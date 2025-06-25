@@ -1,12 +1,18 @@
+import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import LoginScreen from './components/LoginScreen';
-import RewardLayout from './components/RewardLayout';
+import Router from './routes/Router';
 
 function App() {
   return (
     <>
-      <RewardLayout />
-      <ToastContainer position="top-center" />
+      <BrowserRouter>
+        <Router />
+      </BrowserRouter>
+      <ToastContainer
+        position="top-center"
+        autoClose={1000}
+        hideProgressBar={true}
+      />
     </>
   );
 }
