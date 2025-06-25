@@ -6,6 +6,8 @@ import {
   Button,
   Section,
   PinCount,
+  PinNumber,
+  UserName,
 } from '../styles/commonStyle';
 import {
   getCurrentUserData,
@@ -24,6 +26,7 @@ type Product = {
 
 const RewardLayout = () => {
   const [pinCount, setPinCount] = useState(0);
+  const [userName, setUserName] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [usedItems, setUsedItems] = useState<Set<string>>(new Set());
   const [products, setProducts] = useState<Product[]>([]);
@@ -36,6 +39,7 @@ const RewardLayout = () => {
           getCurrentUserData(),
         ]);
         setProducts(prod);
+        setUserName(user.name);
         if (!user || !user.pin || user.pin < 2) {
           toast.error('또랑핀이 없습니다.');
           return;
@@ -90,7 +94,10 @@ const RewardLayout = () => {
       <ContentBox>
         <Section>
           <Title>🎳또랑핀 교환🎳</Title>
-          <PinCount>보유한 또랑핀: {pinCount}개</PinCount>
+          <PinCount>
+            <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
+            <PinNumber>{pinCount}개</PinNumber>
+          </PinCount>
         </Section>
 
         <Section>

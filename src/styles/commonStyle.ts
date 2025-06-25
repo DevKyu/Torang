@@ -138,3 +138,13 @@ export const PinCount = styled.p`
   color: #555;
   text-align: center;
 `;
+
+export const UserName = styled.span`
+  font-weight: bold;
+  color: #3b82f6;
+`;
+
+export const PinNumber = styled.span`
+  font-weight: bold;
+  color: #f97316;
+`;
