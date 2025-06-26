@@ -61,6 +61,16 @@ export const setProductData = async (items: Set<string>) => {
   );
 };
 
+export const setUserPinData = async (pin: number) => {
+  const user = getCurrentUserOrThrow();
+  const empId = user.email?.replace('@torang.com', '');
+
+  await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
+    if (current === null || typeof current !== 'number') return 0;
+    return current - pin;
+  });
+};
+
 export const checkEmpId = async (empId: string) => {
   getCurrentUserOrThrow();
   const snapshot = await get(ref(db, `users/${empId}`));

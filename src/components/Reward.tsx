@@ -13,6 +13,7 @@ import {
   getCurrentUserData,
   getProductData,
   setProductData,
+  setUserPinData,
 } from '../services/firebase';
 import { ProductItem } from '../components/ProductItem';
 import { AnimatePresence } from 'framer-motion';
@@ -77,6 +78,7 @@ const RewardLayout = () => {
 
     try {
       await setProductData(selected);
+      await setUserPinData(totalRequired);
       setPinCount((prev) => prev - totalRequired);
       setUsedItems((prev) => new Set([...prev, ...selected]));
       setSelected(new Set());
