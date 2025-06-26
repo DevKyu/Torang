@@ -40,9 +40,11 @@ const RewardLayout = () => {
         ]);
         setProducts(prod);
         setUserName(user.name);
-        if (!user || !user.pin || user.pin < 2) {
+        if (!user || !user.pin || user.pin <= 0) {
           toast.error('또랑핀이 없습니다.');
           return;
+        } else if (user.pin < 2) {
+          toast.warning('선택 가능한 상품이 없습니다.');
         }
         setPinCount(user.pin);
       } catch (err) {
