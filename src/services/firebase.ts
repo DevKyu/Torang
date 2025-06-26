@@ -66,7 +66,7 @@ export const setUserPinData = async (pin: number) => {
   const empId = user.email?.replace('@torang.com', '');
 
   await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
-    if (current === null || typeof current !== 'number') return 0;
+    if (current === null) return 0;
     return current - pin;
   });
 };
