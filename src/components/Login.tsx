@@ -7,16 +7,10 @@ import {
   linkAnonymousAccount,
   logOut,
 } from '../services/firebase';
-import {
-  Container,
-  ContentBox,
-  Title,
-  Input,
-  Button,
-  ErrorText,
-} from '../styles/commonStyle';
+import { Input, Button, ErrorText } from '../styles/commonStyle';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Layout from './layouts/Layout';
 
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -206,21 +200,18 @@ const Login = () => {
   );
 
   return (
-    <Container>
-      <ContentBox>
-        <Title>또랑 로그인🎳</Title>
-        <div>{renderInputs()}</div>
-        {isPasswordChangeMode && <div>{renderChangePasswordInputs()}</div>}
-        {error && <ErrorText>{error}</ErrorText>}
-        <Button
-          onClick={
-            isPasswordChangeMode ? handleClickChangePassword : handleClickLogin
-          }
-        >
-          {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
-        </Button>
-      </ContentBox>
-    </Container>
+    <Layout title="또랑 로그인🎳">
+      <div>{renderInputs()}</div>
+      {isPasswordChangeMode && <div>{renderChangePasswordInputs()}</div>}
+      {error && <ErrorText>{error}</ErrorText>}
+      <Button
+        onClick={
+          isPasswordChangeMode ? handleClickChangePassword : handleClickLogin
+        }
+      >
+        {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
+      </Button>
+    </Layout>
   );
 };
 

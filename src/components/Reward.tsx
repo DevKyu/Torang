@@ -1,8 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Container,
-  ContentBox,
-  Title,
   Button,
   Section,
   PinCount,
@@ -18,6 +15,7 @@ import {
 import { ProductItem } from '../components/ProductItem';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import Layout from './layouts/Layout';
 
 type Product = {
   name: string;
@@ -44,7 +42,7 @@ const RewardLayout = () => {
         if (!user || !user.pin || user.pin <= 0) {
           toast.error('또랑핀이 없습니다.');
           return;
-        } else if (user.pin < 2) {
+        } else if (user.pin < 1) {
           toast.warning('선택 가능한 상품이 없습니다.');
         }
         setPinCount(user.pin);
@@ -94,43 +92,40 @@ const RewardLayout = () => {
   );
 
   return (
-    <Container>
-      <ContentBox>
-        <Section>
-          <Title>🎳또랑핀 교환🎳</Title>
-          <PinCount>
-            <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
-            <PinNumber>{pinCount}개</PinNumber>
-          </PinCount>
-        </Section>
+    <Layout title="🎳또랑핀 교환🎳">
+      <Section>
+        <PinCount>
+          <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
+          <PinNumber>{pinCount}개</PinNumber>
+        </PinCount>
+      </Section>
 
-        <Section>
-          <AnimatePresence mode="popLayout">
-            {availableProducts.map((product) => {
-              const isSelected = selected.has(product.index);
-              const willExceed =
-                !isSelected && totalRequired + product.requiredPins > pinCount;
-              return (
-                <ProductItem
-                  key={product.index}
-                  product={product}
-                  selected={selected}
-                  usedItems={usedItems}
-                  toggleSelect={toggleSelect}
-                  willExceed={willExceed}
-                />
-              );
-            })}
-          </AnimatePresence>
-        </Section>
+      <Section>
+        <AnimatePresence mode="popLayout">
+          {availableProducts.map((product) => {
+            const isSelected = selected.has(product.index);
+            const willExceed =
+              !isSelected && totalRequired + product.requiredPins > pinCount;
+            return (
+              <ProductItem
+                key={product.index}
+                product={product}
+                selected={selected}
+                usedItems={usedItems}
+                toggleSelect={toggleSelect}
+                willExceed={willExceed}
+              />
+            );
+          })}
+        </AnimatePresence>
+      </Section>
 
-        <Section>
-          <Button onClick={handleSubmit} disabled={!selected.size || !isValid}>
-            신청하기
-          </Button>
-        </Section>
-      </ContentBox>
-    </Container>
+      <Section>
+        <Button onClick={handleSubmit} disabled={!selected.size || !isValid}>
+          신청하기
+        </Button>
+      </Section>
+    </Layout>
   );
 };
 
