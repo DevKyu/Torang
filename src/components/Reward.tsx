@@ -11,11 +11,15 @@ import {
   getProductData,
   setProductData,
   setUserPinData,
+  getUsedItems,
+  saveUsedItems,
+  removeProductData,
 } from '../services/firebase';
-import { ProductItem } from '../components/ProductItem';
+import { ProductItem } from './ProductItem';
+import { RewardHistory } from './RewardHistory';
+import Layout from './layouts/Layout';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
-import Layout from './layouts/Layout';
 
 type Product = {
   name: string;
@@ -29,17 +33,20 @@ const RewardLayout = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [usedItems, setUsedItems] = useState<Set<string>>(new Set());
   const [products, setProducts] = useState<Product[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [prod, user] = await Promise.all([
+        const [prod, user, savedUsedItems] = await Promise.all([
           getProductData(),
           getCurrentUserData(),
+          getUsedItems(),
         ]);
         setProducts(prod);
         setUserName(user.name);
-        if (!user || !user.pin || user.pin <= 0) {
+        setUsedItems(savedUsedItems);
+        if (!user || !user.pin) {
           toast.error('또랑핀이 없습니다.');
           return;
         } else if (user.pin < 1) {
@@ -70,19 +77,46 @@ const RewardLayout = () => {
 
   const isValid = totalRequired <= pinCount;
 
+  const handleCancel = async (index: string) => {
+    const product = products.find((p) => p.index === index);
+    if (!product) return;
+
+    try {
+      const newUsed = new Set(usedItems);
+      newUsed.delete(index);
+      setUsedItems(newUsed);
+
+      const restoredPin = pinCount + product.requiredPins;
+      setPinCount(restoredPin);
+
+      await saveUsedItems(newUsed);
+      await setUserPinData(product.requiredPins);
+      await removeProductData(new Set([product.index]));
+
+      toast.info(`'${product.name}' 신청이 취소되었습니다.`);
+    } catch {
+      toast.error('신청 취소 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (selected.size === 0) return toast.warning('상품을 선택해주세요!');
     if (!isValid) return toast.error('핀 개수가 부족합니다.');
 
+    setIsSubmitting(true);
     try {
       await setProductData(selected);
-      await setUserPinData(totalRequired);
+      await setUserPinData(totalRequired * -1);
+      await saveUsedItems(new Set([...usedItems, ...selected]));
       setPinCount((prev) => prev - totalRequired);
       setUsedItems((prev) => new Set([...prev, ...selected]));
       setSelected(new Set());
-      toast.success('신청 완료!');
+      toast.success('신청이 완료되었습니다!');
     } catch (error) {
       toast.error('신청 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -99,6 +133,14 @@ const RewardLayout = () => {
           <PinNumber>{pinCount}개</PinNumber>
         </PinCount>
       </Section>
+
+      {usedItems.size > 0 && (
+        <RewardHistory
+          usedItems={usedItems}
+          products={products}
+          onCancel={handleCancel}
+        />
+      )}
 
       <Section>
         <AnimatePresence mode="popLayout">
@@ -121,7 +163,10 @@ const RewardLayout = () => {
       </Section>
 
       <Section>
-        <Button onClick={handleSubmit} disabled={!selected.size || !isValid}>
+        <Button
+          onClick={handleSubmit}
+          disabled={!selected.size || !isValid || isSubmitting}
+        >
           신청하기
         </Button>
       </Section>

@@ -1,6 +1,5 @@
 import styled from '@emotion/styled';
 
-/** 공통 Container */
 export const Container = styled.div<{ backgroundColor?: string }>`
   min-height: 100vh;
   display: flex;
@@ -10,7 +9,6 @@ export const Container = styled.div<{ backgroundColor?: string }>`
   background-color: ${({ backgroundColor }) => backgroundColor || '#f9f9f9'};
 `;
 
-/** 공통 ContentBox */
 export const ContentBox = styled.div<{
   maxWidth?: string;
   paddingLarge?: string;
@@ -32,7 +30,6 @@ export const ContentBox = styled.div<{
   }
 `;
 
-/** 공통 Title */
 export const Title = styled.h1<{ size?: 'small' | 'medium' }>`
   font-size: ${({ size }) => (size === 'small' ? '22px' : '28px')};
   font-weight: bold;
@@ -40,7 +37,6 @@ export const Title = styled.h1<{ size?: 'small' | 'medium' }>`
   text-align: center;
 `;
 
-/** 공통 Button */
 export const Button = styled.button`
   width: 100%;
   padding: 12px 16px;
@@ -63,7 +59,6 @@ export const Button = styled.button`
   }
 `;
 
-/** 공통 Input */
 export const Input = styled.input`
   width: 100%;
   padding: 12px 16px;
@@ -79,19 +74,16 @@ export const Input = styled.input`
   }
 `;
 
-/** 공통 ErrorText */
 export const ErrorText = styled.p`
   color: #e00;
   font-size: 13px;
   margin-top: -8px;
 `;
 
-/** 공통 Section */
 export const Section = styled.div`
   margin-bottom: 20px;
 `;
 
-/** Reward 전용 확장 스타일 */
 export const ItemLabel = styled.label<{ disabled?: boolean }>`
   display: block;
   padding: 10px 14px;
@@ -139,12 +131,80 @@ export const PinCount = styled.p`
   text-align: center;
 `;
 
+export const PinNumber = styled.span`
+  font-weight: bold;
+  color: #f97316;
+`;
+
 export const UserName = styled.span`
   font-weight: bold;
   color: #3b82f6;
 `;
 
-export const PinNumber = styled.span`
+export const HistoryList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+  }
+`;
+
+export const HistoryBox = styled.div`
+  padding: 0px 16px 16px;
+  border-radius: 12px;
+  background-color: #f0f7ff;
+  border: 1px solid #b3d4fc;
+  box-shadow: 0 2px 8px rgba(0, 112, 243, 0.05);
+`;
+
+export const HistoryTitle = styled.h3`
+  font-size: 16px;
   font-weight: bold;
-  color: #f97316;
+  margin-bottom: 12px;
+`;
+
+export const HistoryItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed #cce4ff;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+export const ItemLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const RemoveBadge = styled.button`
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #fecaca;
+  }
 `;
