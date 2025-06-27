@@ -7,7 +7,7 @@ import {
   ItemContent,
 } from '../styles/commonStyle';
 
-export type Product = {
+type Product = {
   name: string;
   requiredPins: number;
   index: string;

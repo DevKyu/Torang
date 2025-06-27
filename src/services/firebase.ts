@@ -1,3 +1,4 @@
+// 1. Firebase 초기화
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -9,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
 
+// 2. Firebase App 설정
 const firebaseConfig = {
   apiKey: 'AIzaSyCaTgX8mfkr8md8SF-ZfH87Qr48i1Dw6Ek',
   authDomain: 'torang-3d5a2.firebaseapp.com',
@@ -20,55 +22,34 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
 export const auth = getAuth(app);
+export const db = getDatabase(app);
 
+// 3. 공통 유틸
 const getCurrentUserOrThrow = () => {
   const user = auth.currentUser;
   if (!user) throw new Error('로그인이 필요합니다.');
   return user;
 };
 
-export const anonLogin = async () => {
-  await signInAnonymously(auth);
+// 4. 인증 관련
+export const anonLogin = async () => signInAnonymously(auth);
+export const loginUser = async (email: string, password: string) =>
+  (await signInWithEmailAndPassword(auth, email, password)).user;
+export const linkAnonymousAccount = async (email: string, password: string) => {
+  const user = getCurrentUserOrThrow();
+  const credential = EmailAuthProvider.credential(email, password);
+  const linked = await linkWithCredential(user, credential);
+  return linked.user;
 };
+export const logOut = async () => signOut(auth);
 
+// 5. 유저 관련
 export const getCurrentUserData = async () => {
   const user = getCurrentUserOrThrow();
   const empId = user.email?.replace('@torang.com', '');
   const snapshot = await get(ref(db, `users/${empId}`));
   return snapshot.exists() ? snapshot.val() : null;
-};
-
-export const getProductData = async () => {
-  getCurrentUserOrThrow();
-  const snapshot = await get(ref(db, 'products'));
-  return snapshot.exists() ? snapshot.val() : null;
-};
-
-export const setProductData = async (items: Set<string>) => {
-  const user = getCurrentUserOrThrow();
-  const empId = user.email?.replace('@torang.com', '');
-
-  await Promise.all(
-    [...items].map((item) =>
-      runTransaction(ref(db, `products/${item}/raffle`), (current) => {
-        if (!Array.isArray(current)) return [empId];
-        if (current.includes(empId)) return current;
-        return [...current, empId];
-      }),
-    ),
-  );
-};
-
-export const setUserPinData = async (pin: number) => {
-  const user = getCurrentUserOrThrow();
-  const empId = user.email?.replace('@torang.com', '');
-
-  await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
-    if (current === null) return 0;
-    return current - pin;
-  });
 };
 
 export const checkEmpId = async (empId: string) => {
@@ -82,27 +63,52 @@ export const registerUid = async (empId: string) => {
   await set(ref(db, `users/${empId}/uid`), uid);
 };
 
-export const linkAnonymousAccount = async (email: string, password: string) => {
-  const user = getCurrentUserOrThrow();
-  const credential = EmailAuthProvider.credential(email, password);
-
-  try {
-    const linked = await linkWithCredential(user, credential);
-    return linked.user;
-  } catch (error) {
-    throw error;
-  }
+export const getUsedItems = async (): Promise<Set<string>> => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const snapshot = await get(ref(db, `users/${empId}/usedItems`));
+  return snapshot.exists() ? new Set(snapshot.val()) : new Set();
 };
 
-export const loginUser = async (email: string, password: string) => {
-  const userCredential = await signInWithEmailAndPassword(
-    auth,
-    email,
-    password,
+export const saveUsedItems = async (items: Set<string>) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await set(ref(db, `users/${empId}/usedItems`), [...items]);
+};
+
+// 6. 상품 관련
+export const getProductData = async () => {
+  getCurrentUserOrThrow();
+  const snapshot = await get(ref(db, 'products'));
+  return snapshot.exists() ? snapshot.val() : null;
+};
+
+export const setProductData = async (items: Set<string>) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await Promise.all(
+    [...items].map((item) =>
+      runTransaction(ref(db, `products/${item}/raffle`), (current) => {
+        if (!Array.isArray(current)) return [empId];
+        return current.includes(empId) ? current : [...current, empId];
+      }),
+    ),
   );
-  return userCredential.user;
 };
 
-export const logOut = async () => {
-  await signOut(auth);
+export const removeProductData = async (items: Set<string>) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await Promise.all(
+    [...items].map((item) =>
+      runTransaction(ref(db, `products/${item}/raffle`), (current) => {
+        if (!Array.isArray(current)) return [];
+        return current.filter((id: string) => id !== empId);
+      }),
+    ),
+  );
+};
+
+// 7. 핀 관련
+export const setUserPinData = async (pin: number) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await runTransaction(ref(db, `users/${empId}/pin`), (current) =>
+    current === null ? 0 : current + pin,
+  );
 };
