@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { motion } from 'framer-motion';
 
 export const Container = styled.div<{ backgroundColor?: string }>`
   min-height: 100vh;
@@ -174,7 +175,7 @@ export const HistoryTitle = styled.h3`
   margin-bottom: 12px;
 `;
 
-export const HistoryItem = styled.li`
+export const HistoryItem = styled(motion.li)`
   display: flex;
   justify-content: space-between;
   align-items: center;

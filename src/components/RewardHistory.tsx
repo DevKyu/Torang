@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 import {
   Section,
@@ -39,26 +39,24 @@ export const RewardHistory = ({
             {[...usedItems].map((index) => {
               const product = products.find((p) => p.index === index);
               return (
-                <motion.li
+                <HistoryItem
                   key={index}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, x: -50 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <HistoryItem key={index}>
-                    <ItemLeft>
-                      <span>{product?.name || '알 수 없음'}</span>
-                      <Badge>{product?.requiredPins}핀</Badge>
-                    </ItemLeft>
-                    <RemoveBadge
-                      onClick={() => onCancel(index)}
-                      title="신청 취소"
-                    >
-                      ❌
-                    </RemoveBadge>
-                  </HistoryItem>
-                </motion.li>
+                  <ItemLeft>
+                    <span>{product?.name || '알 수 없음'}</span>
+                    <Badge>{product?.requiredPins}핀</Badge>
+                  </ItemLeft>
+                  <RemoveBadge
+                    onClick={() => onCancel(index)}
+                    title="신청 취소"
+                  >
+                    ❌
+                  </RemoveBadge>
+                </HistoryItem>
               );
             })}
           </HistoryList>
