@@ -1,4 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 import {
   anonLogin,
   checkEmpId,
@@ -7,9 +10,8 @@ import {
   linkAnonymousAccount,
   logOut,
 } from '../services/firebase';
+import { useLoading } from '../contexts/LoadingContext';
 import { Input, Button, ErrorText } from '../styles/commonStyle';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import Layout from './layouts/Layout';
 
 const Login = () => {
@@ -17,32 +19,30 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+
   const [isPasswordChangeMode, setIsPasswordChangeMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const { showLoading, hideLoading } = useLoading();
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const isValid = (val: string, max = 20) => val.length <= max;
+
     switch (name) {
       case 'employeeId':
-        if (/^\d*$/.test(value) && value.length <= 8) {
-          setEmployeeId(value);
-        }
+        if (/^\d*$/.test(value) && isValid(value, 8)) setEmployeeId(value);
         break;
       case 'password':
-        if (value.length <= 20) {
-          setPassword(value);
-        }
+        if (isValid(value)) setPassword(value);
         break;
       case 'newPassword':
-        if (value.length <= 20) {
-          setNewPassword(value);
-        }
+        if (isValid(value)) setNewPassword(value);
         break;
       case 'newPasswordConfirm':
-        if (value.length <= 20) {
-          setNewPasswordConfirm(value);
-        }
+        if (isValid(value)) setNewPasswordConfirm(value);
         break;
     }
   };
@@ -63,18 +63,34 @@ const Login = () => {
     return true;
   };
 
-  const handleClickLogin = async () => {
-    if (!validateInput()) return;
+  const isValidNewPassword = () => {
+    if (newPassword.length < 8 || newPasswordConfirm.length < 8) {
+      setError('비밀번호는 8자 이상이어야 합니다.');
+      return false;
+    }
+    return true;
+  };
 
-    if (!isValidPassword()) return;
+  const isValidSamePassword = () => {
+    if (newPassword !== newPasswordConfirm) {
+      setError('비밀번호가 다릅니다.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleClickLogin = async () => {
+    if (isSubmitting) return;
+    if (!validateInput() || !isValidPassword()) return;
+
+    setIsSubmitting(true);
+    showLoading();
 
     try {
       const user = await loginUser(`${employeeId}@torang.com`, password);
       if (user) {
         toast.success('로그인 완료!');
-        setTimeout(() => {
-          navigate('/reward');
-        }, 1000);
+        navigate('/reward');
       }
     } catch (error: any) {
       const code = error.code;
@@ -94,7 +110,6 @@ const Login = () => {
         try {
           await anonLogin();
           const result = await checkEmpId(employeeId);
-
           if (result) {
             setIsPasswordChangeMode(true);
           } else {
@@ -106,52 +121,41 @@ const Login = () => {
           await logOut();
         }
       } else if (
-        code === 'auth/too-many-requests' ||
-        code === 'auth/network-request-failed'
+        ['auth/too-many-requests', 'auth/network-request-failed'].includes(code)
       ) {
         toast.warning('잠시 후 다시 시도해 주세요.');
       } else {
         toast.error('사번과 비밀번호를 다시 확인해 주세요.');
       }
+    } finally {
+      setIsSubmitting(false);
+      hideLoading();
     }
-  };
-
-  const isValidNewPassword = () => {
-    if (newPassword.length < 8 || newPasswordConfirm.length < 8) {
-      setError('비밀번호는 8자 이상이어야 합니다.');
-      return false;
-    }
-    return true;
-  };
-
-  const isValidSamePassword = () => {
-    if (newPassword !== newPasswordConfirm) {
-      setError('비밀번호가 다릅니다.');
-      return false;
-    }
-    return true;
   };
 
   const handleClickChangePassword = async () => {
-    if (!isValidNewPassword()) return;
-    if (!isValidSamePassword()) return;
+    if (isSubmitting) return;
+    if (!isValidNewPassword() || !isValidSamePassword()) return;
 
     setError('');
+    setIsSubmitting(true);
+    showLoading();
+
     try {
       const user = await linkAnonymousAccount(
         `${employeeId}@torang.com`,
         newPassword,
       );
-
       if (user) {
         await registerUid(employeeId);
         toast.success('비밀번호 변경 완료!');
-        setTimeout(() => {
-          navigate('/reward');
-        }, 1000);
+        navigate('/reward');
       }
     } catch {
       toast.error('비밀번호 변경 실패');
+    } finally {
+      setIsSubmitting(false);
+      hideLoading();
     }
   };
 
@@ -208,6 +212,7 @@ const Login = () => {
         onClick={
           isPasswordChangeMode ? handleClickChangePassword : handleClickLogin
         }
+        disabled={isSubmitting}
       >
         {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
       </Button>
