@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 
@@ -10,6 +11,7 @@ import {
   getUsedItems,
   saveUsedItems,
   removeProductData,
+  logOut,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
 import {
@@ -18,6 +20,7 @@ import {
   PinCount,
   PinNumber,
   UserName,
+  SmallText,
 } from '../styles/commonStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
@@ -38,6 +41,7 @@ const Reward = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { showLoading, showLoadingWithTimeout, hideLoading } = useLoading();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
@@ -184,6 +188,18 @@ const Reward = () => {
         >
           신청하기
         </Button>
+        <SmallText
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          onClick={() => {
+            logOut();
+            navigate('/');
+          }}
+        >
+          돌아가기
+        </SmallText>
       </Section>
     </Layout>
   );

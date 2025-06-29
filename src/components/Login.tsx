@@ -4,15 +4,18 @@ import { toast } from 'react-toastify';
 
 import {
   anonLogin,
+  checkAdminId,
   checkEmpId,
   loginUser,
   registerUid,
   linkAnonymousAccount,
   logOut,
+  getCurrentUserData,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
 import { Input, Button, ErrorText } from '../styles/commonStyle';
 import Layout from './layouts/Layout';
+import AdminPanel from './AdminPanel';
 
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -22,6 +25,8 @@ const Login = () => {
 
   const [isPasswordChangeMode, setIsPasswordChangeMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDrawOpen, setIsDrawOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
 
   const { showLoading, hideLoading } = useLoading();
@@ -82,6 +87,10 @@ const Login = () => {
   const handleClickLogin = async () => {
     if (isSubmitting) return;
     if (!validateInput() || !isValidPassword()) return;
+    if (isAdmin) {
+      isDrawOpen ? navigate('/draw') : navigate('/reward');
+      return;
+    }
 
     setIsSubmitting(true);
     showLoading();
@@ -90,7 +99,19 @@ const Login = () => {
       const user = await loginUser(`${employeeId}@torang.com`, password);
       if (user) {
         toast.success('로그인 완료!');
-        navigate('/reward');
+        const checkAdmin = await checkAdminId();
+        const userData = await getCurrentUserData();
+
+        if (checkAdmin) setIsAdmin(checkAdmin);
+        if (userData) setIsDrawOpen(userData.isDrawOpen);
+
+        if (!checkAdmin) {
+          if (userData.isDrawOpen) {
+            navigate('/draw');
+          } else {
+            navigate('/reward');
+          }
+        }
       }
     } catch (error: any) {
       const code = error.code;
@@ -149,7 +170,15 @@ const Login = () => {
       if (user) {
         await registerUid(employeeId);
         toast.success('비밀번호 변경 완료!');
-        navigate('/reward');
+
+        const userData = await getCurrentUserData();
+        if (userData) setIsDrawOpen(userData.isDrawOpen);
+
+        if (userData.isDrawOpen) {
+          navigate('/draw');
+        } else {
+          navigate('/reward');
+        }
       }
     } catch {
       toast.error('비밀번호 변경 실패');
@@ -216,6 +245,7 @@ const Login = () => {
       >
         {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
       </Button>
+      {isAdmin && <AdminPanel></AdminPanel>}
     </Layout>
   );
 };
