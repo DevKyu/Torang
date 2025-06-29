@@ -8,7 +8,14 @@ import {
   linkWithCredential,
   signOut,
 } from 'firebase/auth';
-import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
+import {
+  getDatabase,
+  ref,
+  get,
+  set,
+  update,
+  runTransaction,
+} from 'firebase/database';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -45,6 +52,17 @@ export const linkAnonymousAccount = async (email: string, password: string) => {
 export const logOut = async () => signOut(auth);
 
 // 5. 유저 관련
+export const checkAdminId = async (): Promise<boolean> => {
+  const uid = getCurrentUserOrThrow().uid;
+  const snapshot = await get(ref(db, `admins/${uid}`));
+  return snapshot.exists();
+};
+
+export const getCurrentUserId = async () => {
+  const user = getCurrentUserOrThrow();
+  return user.email?.replace('@torang.com', '');
+};
+
 export const getCurrentUserData = async () => {
   const user = getCurrentUserOrThrow();
   const empId = user.email?.replace('@torang.com', '');
@@ -81,6 +99,11 @@ export const getProductData = async () => {
   return snapshot.exists() ? snapshot.val() : null;
 };
 
+export const getProductDataWithRaffle = async () => {
+  const all = await getProductData();
+  return all?.filter((product: any) => product.raffle?.length > 0);
+};
+
 export const setProductData = async (items: Set<string>) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   await Promise.all(
@@ -111,4 +134,58 @@ export const setUserPinData = async (pin: number) => {
   await runTransaction(ref(db, `users/${empId}/pin`), (current) =>
     current === null ? 0 : current + pin,
   );
+};
+
+// 8. 추첨 관련
+export const drawWinnerIfNotExists = async (
+  productIndex: number,
+  raffle: string[],
+): Promise<string | undefined> => {
+  const winnerRef = ref(db, `products/${productIndex}/winner`);
+
+  const result = await runTransaction(winnerRef, (current) => {
+    if (current !== null) return current;
+    if (!raffle || raffle.length === 0) return null;
+
+    const randomIndex = Math.floor(Math.random() * raffle.length);
+    return raffle[randomIndex];
+  });
+
+  return result.snapshot.val() || undefined;
+};
+
+let nameCache: Record<string, string> = {};
+let allNamesLoaded = false;
+
+export const preloadAllNames = async (): Promise<void> => {
+  if (allNamesLoaded) return;
+
+  const snapshot = await get(ref(db, 'names'));
+  if (snapshot.exists()) {
+    nameCache = snapshot.val();
+    allNamesLoaded = true;
+  }
+};
+
+export const getCachedUserName = (empId: string): string => {
+  return nameCache[empId] ?? '???';
+};
+
+export const toggleDrawForAllUsers = async (
+  currentState: boolean,
+): Promise<boolean> => {
+  const newState = !currentState;
+
+  const snapshot = await get(ref(db, 'users'));
+  if (!snapshot.exists()) throw new Error('사용자 데이터가 없습니다.');
+
+  const users = snapshot.val();
+
+  const updates: Record<string, any> = {};
+  Object.keys(users).forEach((empId) => {
+    updates[`users/${empId}/isDrawOpen`] = newState;
+  });
+
+  await update(ref(db), updates);
+  return newState;
 };
