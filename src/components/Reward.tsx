@@ -57,8 +57,9 @@ const Reward = () => {
           toast.error('유저 정보가 없습니다.');
           return;
         }
-        if (user.pin < 1 && saveUsedItems.length < 1)
+        if (user.pin < 1 && saveUsedItems.length == 0) {
           toast.warning('선택 가능한 상품이 없습니다.');
+        }
 
         setProducts(prod);
         setUserName(user.name);
