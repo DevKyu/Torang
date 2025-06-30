@@ -79,8 +79,6 @@ export const ProductCard = ({
           transition={{
             duration: 0.7,
             ease: 'easeOut',
-            repeat: Infinity,
-            repeatType: 'mirror',
           }}
         >
           {winnerName || '없음'}

@@ -144,7 +144,7 @@ const Reward = () => {
   };
 
   return (
-    <Layout title="🎳또랑핀 교환🎳">
+    <Layout title="🎳또랑핀 교환🎳" paddingLarge="16px 48px">
       <Section>
         <PinCount>
           <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
@@ -195,7 +195,7 @@ const Reward = () => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           onClick={() => {
             logOut();
-            navigate('/');
+            navigate('/', { replace: true });
           }}
         >
           돌아가기

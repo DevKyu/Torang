@@ -182,7 +182,7 @@ const Draw = () => {
 
   return (
     <Container>
-      <ContentBox maxWidth="720px" paddingLarge="32px">
+      <ContentBox maxWidth="399px" paddingLarge="16px 32px">
         <Title size="medium">🎯 상품 추첨</Title>
 
         <AnimatePresence mode="wait">
@@ -215,7 +215,7 @@ const Draw = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 1.0, ease: 'easeOut', delay: 0.4 }}
             >
-              🎉 당첨 축하드립니다!
+              🎉 당첨을 축하드립니다!
             </CompletionMessage>
           )}
         </AnimatePresence>
@@ -243,7 +243,7 @@ const Draw = () => {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               onClick={() => {
                 logOut();
-                navigate('/');
+                navigate('/', { replace: true });
               }}
             >
               돌아가기
