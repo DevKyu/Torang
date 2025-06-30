@@ -265,6 +265,7 @@ export const CardBadge = styled.span`
   display: inline-block;
   font-size: 13px;
   font-weight: bold;
+  margin-top: 20px;
   padding: 4px 10px;
   background-color: #eee;
   border-radius: 999px;
@@ -297,7 +298,6 @@ export const CardFace = styled.div`
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
 `;
 
 export const CardGridWrapper = styled.div`
