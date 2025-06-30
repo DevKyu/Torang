@@ -53,17 +53,17 @@ const Reward = () => {
           getUsedItems(),
         ]);
 
-        if (!user || !user.pin) {
-          toast.error('또랑핀이 없습니다.');
+        if (!user) {
+          toast.error('유저 정보가 없습니다.');
           return;
         }
+        if (user.pin < 1 && saveUsedItems.length < 1)
+          toast.warning('선택 가능한 상품이 없습니다.');
 
         setProducts(prod);
         setUserName(user.name);
         setPinCount(user.pin);
         setUsedItems(savedUsedItems);
-
-        if (user.pin < 1) toast.warning('선택 가능한 상품이 없습니다.');
       } catch {
         toast.error('데이터를 불러오지 못했습니다.');
       }
