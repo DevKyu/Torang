@@ -182,7 +182,7 @@ const Draw = () => {
 
   return (
     <Container>
-      <ContentBox maxWidth="399px" paddingLarge="16px 32px">
+      <ContentBox maxWidth="399px">
         <Title size="medium">🎯 상품 추첨</Title>
 
         <AnimatePresence mode="wait">

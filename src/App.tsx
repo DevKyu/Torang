@@ -1,13 +1,15 @@
 import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { Toaster } from 'react-hot-toast';
+import GlobalStyle from './styles/GlobalStyle';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { Toaster } from 'react-hot-toast';
 import Router from './routes/Router';
 
 function App() {
   return (
     <>
+      <GlobalStyle />
       <LoadingProvider>
         <BrowserRouter>
           <Router />

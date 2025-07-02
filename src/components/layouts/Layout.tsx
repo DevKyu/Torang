@@ -3,14 +3,14 @@ import { Container, ContentBox, Title } from '../../styles/commonStyle';
 type LayoutProps = {
   title?: string;
   maxWidth?: string;
-  paddingLarge?: string;
+  padding?: string;
   children: React.ReactNode;
 };
 
-const Layout = ({ title, maxWidth, paddingLarge, children }: LayoutProps) => {
+const Layout = ({ title, maxWidth, padding, children }: LayoutProps) => {
   return (
     <Container>
-      <ContentBox maxWidth={maxWidth} paddingLarge={paddingLarge}>
+      <ContentBox maxWidth={maxWidth} padding={padding}>
         {title && <Title>{title}</Title>}
         {children}
       </ContentBox>

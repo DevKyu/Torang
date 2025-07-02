@@ -2,33 +2,27 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
 export const Container = styled.div<{ backgroundColor?: string }>`
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
   background-color: ${({ backgroundColor }) => backgroundColor || '#f9f9f9'};
 `;
 
 export const ContentBox = styled.div<{
   maxWidth?: string;
-  paddingLarge?: string;
+  padding?: string;
   boxShadowOpacity?: number;
 }>`
   width: 90%;
   max-width: ${({ maxWidth }) => maxWidth || '400px'};
-  padding: 16px 32px;
+  padding: ${({ padding }) => (padding ? padding : '32px')};
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 20px
     rgba(0, 0, 0, ${({ boxShadowOpacity }) => boxShadowOpacity ?? 0.08});
   box-sizing: border-box;
   text-align: center;
-
-  @media (min-width: 768px) {
-    padding: ${({ paddingLarge }) => paddingLarge || '48px'};
-    border-radius: 20px;
-  }
 `;
 
 export const Title = styled.h1<{ size?: 'small' | 'medium' }>`
@@ -162,7 +156,7 @@ export const HistoryList = styled.ul`
 `;
 
 export const HistoryBox = styled.div`
-  padding: 0px 16px 16px;
+  padding: 10px 16px 10px;
   border-radius: 12px;
   background-color: #f0f7ff;
   border: 1px solid #b3d4fc;
@@ -287,6 +281,10 @@ export const CardInner = styled(motion.div)`
   perspective: 1000px;
 `;
 
+export const CardWrapper = styled.div`
+  margin-top: 20px;
+`;
+
 export const CardFace = styled.div`
   position: absolute;
   width: 100%;
@@ -296,8 +294,6 @@ export const CardFace = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   background: #fff;
   display: flex;
-  align-items: center;
-  justify-content: center;
 `;
 
 export const CardGridWrapper = styled.div`
@@ -313,6 +309,7 @@ export const FooterWrapper = styled.div`
 
 export const Front = styled(CardFace)`
   background: #f9fafb;
+  justify-content: center;
 `;
 
 export const Back = styled(CardFace)<{ isWinner?: boolean }>`
@@ -370,7 +367,7 @@ export const CompletionMessage = styled(motion.p)`
   font-size: 16px;
   color: #16a34a;
   font-weight: bold;
-  margin-top: 12px;
+  margin: 12px;
 `;
 
 export const SmallText = styled(motion.p)`

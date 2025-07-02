@@ -145,7 +145,7 @@ const Reward = () => {
   };
 
   return (
-    <Layout title="🎳또랑핀 교환🎳" paddingLarge="16px 48px">
+    <Layout title="🎳또랑핀 교환🎳" padding="16px 32px">
       <Section>
         <PinCount>
           <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
@@ -182,26 +182,24 @@ const Reward = () => {
         </AnimatePresence>
       </Section>
 
-      <Section>
-        <Button
-          onClick={handleSubmit}
-          disabled={!selected.size || !isValid || isSubmitting}
-        >
-          신청하기
-        </Button>
-        <SmallText
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          onClick={() => {
-            logOut();
-            navigate('/', { replace: true });
-          }}
-        >
-          돌아가기
-        </SmallText>
-      </Section>
+      <Button
+        onClick={handleSubmit}
+        disabled={!selected.size || !isValid || isSubmitting}
+      >
+        신청하기
+      </Button>
+      <SmallText
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        onClick={() => {
+          logOut();
+          navigate('/', { replace: true });
+        }}
+      >
+        돌아가기
+      </SmallText>
     </Layout>
   );
 };

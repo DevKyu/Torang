@@ -1,6 +1,7 @@
 import toast from 'react-hot-toast';
 import {
   CardInner,
+  CardWrapper,
   CardBadge,
   Name,
   WinnerName,
@@ -57,7 +58,7 @@ export const ProductCard = ({
       whileTap={{ scale: 0.97 }}
     >
       <Front style={{ backfaceVisibility: 'hidden' }}>
-        <div>
+        <CardWrapper>
           <Name>{productName}</Name>
           <HintText
             initial={{ opacity: 0.5 }}
@@ -68,34 +69,36 @@ export const ProductCard = ({
           </HintText>
 
           <SupporterCount>총 {raffle?.length}명 신청</SupporterCount>
-        </div>
+        </CardWrapper>
       </Front>
 
       <Back isWinner={isWinner}>
-        <CardBadge>🎉 {productName}</CardBadge>
-        <WinnerName
-          initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-          animate={winnerAnimation}
-          transition={{
-            duration: 0.7,
-            ease: 'easeOut',
-          }}
-        >
-          {winnerName || '없음'}
-        </WinnerName>
+        <CardWrapper>
+          <CardBadge>🎉 {productName}</CardBadge>
+          <WinnerName
+            initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+            animate={winnerAnimation}
+            transition={{
+              duration: 0.7,
+              ease: 'easeOut',
+            }}
+          >
+            {winnerName || '없음'}
+          </WinnerName>
 
-        <SupporterList>
-          {visibleRaffle?.map((id) => (
-            <SupporterBadge key={id} isSelf={id === currentEmpId}>
-              {getCachedUserName(id)}
-            </SupporterBadge>
-          ))}
-          {hiddenCount > 0 && (
-            <MoreText
-              onClick={handleShowHiddenNames}
-            >{`+${hiddenCount}명`}</MoreText>
-          )}
-        </SupporterList>
+          <SupporterList>
+            {visibleRaffle?.map((id) => (
+              <SupporterBadge key={id} isSelf={id === currentEmpId}>
+                {getCachedUserName(id)}
+              </SupporterBadge>
+            ))}
+            {hiddenCount > 0 && (
+              <MoreText
+                onClick={handleShowHiddenNames}
+              >{`+${hiddenCount}명`}</MoreText>
+            )}
+          </SupporterList>
+        </CardWrapper>
       </Back>
     </CardInner>
   );
