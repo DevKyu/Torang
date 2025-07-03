@@ -1,7 +1,6 @@
 import toast from 'react-hot-toast';
 import {
   CardInner,
-  CardWrapper,
   CardBadge,
   Name,
   WinnerName,
@@ -58,47 +57,42 @@ export const ProductCard = ({
       whileTap={{ scale: 0.97 }}
     >
       <Front style={{ backfaceVisibility: 'hidden' }}>
-        <CardWrapper>
-          <Name>{productName}</Name>
-          <HintText
-            initial={{ opacity: 0.5 }}
-            animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.05, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          >
-            클릭하여 결과 보기
-          </HintText>
+        <Name>{productName}</Name>
+        <HintText
+          initial={{ opacity: 0.5 }}
+          animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.05, 1] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+        >
+          클릭하여 결과 보기
+        </HintText>
 
-          <SupporterCount>총 {raffle?.length}명 신청</SupporterCount>
-        </CardWrapper>
+        <SupporterCount>총 {raffle?.length}명 신청</SupporterCount>
       </Front>
 
       <Back isWinner={isWinner}>
-        <CardWrapper>
-          <CardBadge>🎉 {productName}</CardBadge>
-          <WinnerName
-            initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
-            animate={winnerAnimation}
-            transition={{
-              duration: 0.7,
-              ease: 'easeOut',
-            }}
-          >
-            {winnerName || '없음'}
-          </WinnerName>
-
-          <SupporterList>
-            {visibleRaffle?.map((id) => (
-              <SupporterBadge key={id} isSelf={id === currentEmpId}>
-                {getCachedUserName(id)}
-              </SupporterBadge>
-            ))}
-            {hiddenCount > 0 && (
-              <MoreText
-                onClick={handleShowHiddenNames}
-              >{`+${hiddenCount}명`}</MoreText>
-            )}
-          </SupporterList>
-        </CardWrapper>
+        <CardBadge>🎉 {productName}</CardBadge>
+        <WinnerName
+          initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+          animate={winnerAnimation}
+          transition={{
+            duration: 0.7,
+            ease: 'easeOut',
+          }}
+        >
+          {winnerName || '없음'}
+        </WinnerName>
+        <SupporterList>
+          {visibleRaffle?.map((id) => (
+            <SupporterBadge key={id} isSelf={id === currentEmpId}>
+              {getCachedUserName(id)}
+            </SupporterBadge>
+          ))}
+          {hiddenCount > 0 && (
+            <MoreText
+              onClick={handleShowHiddenNames}
+            >{`+${hiddenCount}명`}</MoreText>
+          )}
+        </SupporterList>
       </Back>
     </CardInner>
   );

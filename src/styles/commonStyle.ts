@@ -229,10 +229,8 @@ export const DrawFlexGrid = styled.div`
 `;
 
 export const CardContainer = styled.div`
-  width: 100%;
   aspect-ratio: 4 / 5;
   border-radius: 12px;
-  background: white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
   cursor: pointer;
@@ -256,13 +254,13 @@ export const Name = styled.h4`
 `;
 
 export const CardBadge = styled.span`
-  display: inline-block;
   font-size: 13px;
   font-weight: bold;
   padding: 4px 10px;
   background-color: #eee;
   border-radius: 999px;
   color: #555;
+  margin: 0 auto;
 `;
 
 export const WinnerName = styled(motion.p)`
@@ -274,15 +272,10 @@ export const WinnerName = styled(motion.p)`
 
 export const CardInner = styled(motion.div)`
   position: relative;
-  width: 100%;
   height: 100%;
   transform-style: preserve-3d;
   border-radius: 12px;
   perspective: 1000px;
-`;
-
-export const CardWrapper = styled.div`
-  margin-top: 20px;
 `;
 
 export const CardFace = styled.div`
@@ -292,8 +285,9 @@ export const CardFace = styled.div`
   backface-visibility: hidden;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  background: #fff;
   display: flex;
+  flex-direction: column;
+  padding-top: 27px;
 `;
 
 export const CardGridWrapper = styled.div`
@@ -309,13 +303,11 @@ export const FooterWrapper = styled.div`
 
 export const Front = styled(CardFace)`
   background: #f9fafb;
-  justify-content: center;
 `;
 
 export const Back = styled(CardFace)<{ isWinner?: boolean }>`
   background: ${({ isWinner }) => (isWinner ? '#fff0f0' : '#fffbe6')};
   transform: rotateY(180deg);
-  flex-direction: column;
   border: ${({ isWinner }) => (isWinner ? '2px solid #ef4444' : 'none')};
   box-shadow: ${({ isWinner }) =>
     isWinner
