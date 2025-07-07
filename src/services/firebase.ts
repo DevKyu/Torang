@@ -93,37 +93,43 @@ export const saveUsedItems = async (items: Set<string>) => {
 };
 
 // 6. 상품 관련
-export const getProductData = async () => {
+export const getProductData = async (yyyymm: string) => {
   getCurrentUserOrThrow();
-  const snapshot = await get(ref(db, 'products'));
+  const snapshot = await get(ref(db, `products/${yyyymm}/items`));
   return snapshot.exists() ? snapshot.val() : null;
 };
 
-export const getProductDataWithRaffle = async () => {
-  const all = await getProductData();
+export const getProductDataWithRaffle = async (yyyymm: string) => {
+  const all = await getProductData(yyyymm);
   return all?.filter((product: any) => product.raffle?.length > 0);
 };
 
-export const setProductData = async (items: Set<string>) => {
+export const setProductData = async (yyyymm: string, items: Set<string>) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   await Promise.all(
     [...items].map((item) =>
-      runTransaction(ref(db, `products/${item}/raffle`), (current) => {
-        if (!Array.isArray(current)) return [empId];
-        return current.includes(empId) ? current : [...current, empId];
-      }),
+      runTransaction(
+        ref(db, `products/${yyyymm}/items/${item}/raffle`),
+        (current) => {
+          if (!Array.isArray(current)) return [empId];
+          return current.includes(empId) ? current : [...current, empId];
+        },
+      ),
     ),
   );
 };
 
-export const removeProductData = async (items: Set<string>) => {
+export const removeProductData = async (yyyymm: string, items: Set<string>) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   await Promise.all(
     [...items].map((item) =>
-      runTransaction(ref(db, `products/${item}/raffle`), (current) => {
-        if (!Array.isArray(current)) return [];
-        return current.filter((id: string) => id !== empId);
-      }),
+      runTransaction(
+        ref(db, `products/${yyyymm}/items/${item}/raffle`),
+        (current) => {
+          if (!Array.isArray(current)) return [];
+          return current.filter((id: string) => id !== empId);
+        },
+      ),
     ),
   );
 };
@@ -138,10 +144,11 @@ export const setUserPinData = async (pin: number) => {
 
 // 8. 추첨 관련
 export const drawWinnerIfNotExists = async (
+  yyyymm: string,
   productIndex: number,
   raffle: string[],
 ): Promise<string | undefined> => {
-  const winnerRef = ref(db, `products/${productIndex}/winner`);
+  const winnerRef = ref(db, `products/${yyyymm}/items/${productIndex}/winner`);
 
   const result = await runTransaction(winnerRef, (current) => {
     if (current !== null) return current;
@@ -178,7 +185,7 @@ export const toggleDrawForAllUsers = async (
 
   const snapshot = await get(ref(db, 'users'));
   if (!snapshot.exists()) throw new Error('사용자 데이터가 없습니다.');
-
+  /* user > products+settings 이동 예정
   const users = snapshot.val();
 
   const updates: Record<string, any> = {};
@@ -187,5 +194,6 @@ export const toggleDrawForAllUsers = async (
   });
 
   await update(ref(db), updates);
+  */
   return newState;
 };

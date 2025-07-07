@@ -48,7 +48,7 @@ const Reward = () => {
       showLoadingWithTimeout();
       try {
         const [prod, user, savedUsedItems] = await Promise.all([
-          getProductData(),
+          getProductData('202506'),
           getCurrentUserData(),
           getUsedItems(),
         ]);
@@ -109,7 +109,7 @@ const Reward = () => {
 
       await saveUsedItems(updatedUsedItems);
       await setUserPinData(product.requiredPins);
-      await removeProductData(new Set([index]));
+      await removeProductData('202506', new Set([index]));
 
       toast.info(`'${product.name}' 신청이 취소되었습니다.`);
     } catch {
@@ -127,7 +127,7 @@ const Reward = () => {
     showLoading();
 
     try {
-      await setProductData(selected);
+      await setProductData('202506', selected);
       await setUserPinData(-totalRequired);
       await saveUsedItems(new Set([...usedItems, ...selected]));
 

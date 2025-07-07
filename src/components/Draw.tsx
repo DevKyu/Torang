@@ -52,7 +52,7 @@ const Draw = () => {
       showLoadingWithTimeout();
       try {
         const userId = await getCurrentUserId();
-        const raffleProduct = await getProductDataWithRaffle();
+        const raffleProduct = await getProductDataWithRaffle('202506');
         if (!raffleProduct) return;
 
         await preloadAllNames();
@@ -109,7 +109,11 @@ const Draw = () => {
     if (product.winner) return product.winner;
 
     if (product.raffle?.length) {
-      return await drawWinnerIfNotExists(product.index, product.raffle);
+      return await drawWinnerIfNotExists(
+        '202506',
+        product.index,
+        product.raffle,
+      );
     }
 
     return undefined;
