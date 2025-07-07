@@ -242,8 +242,7 @@ const Draw = () => {
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
               onClick={() => {
-                logOut();
-                navigate('/', { replace: true });
+                navigate('/menu', { replace: true });
               }}
             >
               돌아가기
