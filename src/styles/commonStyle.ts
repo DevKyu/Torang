@@ -362,8 +362,8 @@ export const CompletionMessage = styled(motion.p)`
   margin: 12px;
 `;
 
-export const SmallText = styled(motion.p)`
-  margin-top: 10px;
+export const SmallText = styled(motion.p)<{ top?: 'narrow' | 'far' }>`
+  margin-top: ${({ top }) => (top === 'far' ? '20px' : '10px')};
   font-size: 12px;
   color: #666;
   text-align: center;
