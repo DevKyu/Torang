@@ -8,14 +8,7 @@ import {
   linkWithCredential,
   signOut,
 } from 'firebase/auth';
-import {
-  getDatabase,
-  ref,
-  get,
-  set,
-  update,
-  runTransaction,
-} from 'firebase/database';
+import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
