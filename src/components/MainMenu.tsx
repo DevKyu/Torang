@@ -10,7 +10,7 @@ import {
   MenuLabel,
   IconWrapper,
   MenuBadge,
-} from '../styles/MenuStyle';
+} from '../styles/menuStyle';
 
 type MenuItem = {
   id: string;
