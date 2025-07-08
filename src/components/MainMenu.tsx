@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { GiftIcon, TargetIcon, UsersIcon } from 'lucide-react';
+import { GiftIcon, TargetIcon, UsersIcon, UserIcon } from 'lucide-react';
 import { logOut } from '../services/firebase';
 
 import Layout from './layouts/Layout';
@@ -23,6 +23,13 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
+  {
+    id: 'user',
+    label: '내정보',
+    icon: <UserIcon size={20} />,
+    isSoon: true,
+    disabled: true,
+  },
   {
     id: 'users',
     label: '또랑 랭킹',
