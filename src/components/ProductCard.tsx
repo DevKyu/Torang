@@ -11,7 +11,7 @@ import {
   SupporterBadge,
   SupporterList,
   MoreText,
-} from '../styles/commonStyle';
+} from '../styles/drawStyle';
 
 import { getCachedUserName } from '../services/firebase';
 

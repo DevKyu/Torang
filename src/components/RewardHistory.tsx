@@ -9,7 +9,7 @@ import {
   ItemLeft,
   Badge,
   RemoveBadge,
-} from '../styles/commonStyle';
+} from '../styles/rewardStyle';
 
 type Product = {
   name: string;

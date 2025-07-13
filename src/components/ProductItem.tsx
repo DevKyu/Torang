@@ -3,9 +3,9 @@ import {
   ItemLabel,
   ItemInput,
   ItemWrapper,
-  Badge,
   ItemContent,
-} from '../styles/commonStyle';
+  Badge,
+} from '../styles/rewardStyle';
 
 type Product = {
   name: string;

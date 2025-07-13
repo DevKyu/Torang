@@ -14,14 +14,8 @@ import {
   logOut,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
-import {
-  Button,
-  Section,
-  PinCount,
-  PinNumber,
-  UserName,
-  SmallText,
-} from '../styles/commonStyle';
+import { Button, SmallText } from '../styles/commonStyle';
+import { Section, PinCount, PinNumber, UserName } from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
@@ -57,16 +51,18 @@ const Reward = () => {
           toast.error('유저 정보가 없습니다.');
           return;
         }
-        if (user.pin < 1 && saveUsedItems.length == 0) {
+        if (!user.pin || (user.pin < 1 && saveUsedItems.length == 0)) {
           toast.warning('선택 가능한 상품이 없습니다.');
         }
 
         setProducts(prod);
         setUserName(user.name);
-        setPinCount(user.pin);
+        setPinCount(user.pin ?? 0);
         setUsedItems(savedUsedItems);
       } catch {
         toast.error('데이터를 불러오지 못했습니다.');
+        logOut();
+        navigate('/');
       }
     };
 
@@ -195,7 +191,7 @@ const Reward = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         onClick={() => {
           logOut();
-          navigate('/', { replace: true });
+          navigate('/menu', { replace: true });
         }}
       >
         돌아가기

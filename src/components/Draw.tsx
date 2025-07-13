@@ -2,20 +2,23 @@ import confetti from 'canvas-confetti';
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
 import {
   Container,
   ContentBox,
   Title,
   Button,
+  SmallText,
+} from '../styles/commonStyle';
+import {
   DrawFlexGrid,
   CardContainer,
   CardGridWrapper,
-  FooterWrapper,
   ScrollableCardGridWrapper,
   StickyHeader,
   CompletionMessage,
-  SmallText,
-} from '../styles/commonStyle';
+  FooterWrapper,
+} from '../styles/drawStyle';
 
 import {
   getProductDataWithRaffle,
