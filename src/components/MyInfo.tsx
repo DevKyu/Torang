@@ -170,13 +170,20 @@ const MyInfo = () => {
   }, [months, year, scores, targets, optimisticTargets]);
 
   const trend = useMemo(() => {
-    const ok = validCount >= 2 && avgCur !== null && avgPrev !== null;
-    const diff = ok ? avgCur - avgPrev : 0;
-    return {
-      show: ok,
-      diff,
-      color: diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#666',
-    };
+    const hasCur = avgCur !== null && validCount >= 2;
+    const hasPrev = avgPrev !== null;
+
+    const diff = hasPrev ? avgCur! - avgPrev! : 0;
+
+    const color = !hasPrev
+      ? '#666'
+      : diff > 0
+        ? '#16a34a'
+        : diff < 0
+          ? '#dc2626'
+          : '#666';
+
+    return { show: hasCur, diff, color };
   }, [validCount, avgCur, avgPrev]);
 
   const handleSave = useCallback(
