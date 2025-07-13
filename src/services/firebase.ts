@@ -171,6 +171,25 @@ export const getCachedUserName = (empId: string): string => {
   return nameCache[empId] ?? '???';
 };
 
+// 10. 목표 점수 관련
+export const getTargetScore = async (year: string, month: string) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const snap = await get(ref(db, `users/${empId}/targets/${year}/${month}`));
+  return snap.exists() ? (snap.val() as number) : undefined;
+};
+
+export const setTargetScore = async (
+  year: string,
+  month: string,
+  target: number,
+) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const targetRef = ref(db, `users/${empId}/targets/${year}/${month}`);
+
+  await runTransaction(targetRef, () => target);
+};
+
+// 추후 변경 예정 (관리자)
 export const toggleDrawForAllUsers = async (
   currentState: boolean,
 ): Promise<boolean> => {
