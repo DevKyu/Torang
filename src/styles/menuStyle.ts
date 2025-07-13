@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export const MenuGrid = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 16px;
+  gap: 10px;
   margin-top: 24px;
 `;
 

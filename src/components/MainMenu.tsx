@@ -69,7 +69,7 @@ const MainMenu = () => {
   };
 
   return (
-    <Layout title="또랑 메뉴🎳">
+    <Layout title="또랑 메뉴🎳" padding="compact">
       <MenuGrid
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

@@ -24,7 +24,7 @@ export const MyInfoBox = styled.div`
   position: relative;
   width: 90%;
   max-width: 400px;
-  padding: 28px 24px 16px;
+  padding: 16px 24px 16px;
   border-radius: 16px;
   background: #fff;
   box-shadow: ${glass()};

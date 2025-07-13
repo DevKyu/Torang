@@ -141,7 +141,7 @@ const Reward = () => {
   };
 
   return (
-    <Layout title="🎳또랑핀 교환🎳" padding="16px 32px">
+    <Layout title="🎳또랑핀 교환🎳" padding="compact">
       <Section>
         <PinCount>
           <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}

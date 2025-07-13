@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 const Overlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
-  background: rgba(0 0 0 / 0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
   animation: fadeIn 0.18s ease-out forwards;
   z-index: 1000;
@@ -35,6 +35,17 @@ const Content = styled(Dialog.Content)`
   text-align: center;
   box-shadow: 0 8px 32px rgba(0 0 0 / 0.15);
   z-index: 1001;
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -46%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
 `;
 
 const Heading = styled.h3`
@@ -118,7 +129,7 @@ const ScoreDialog = ({
 
       <Overlay />
 
-      <Content onOpenAutoFocus={(e) => e.preventDefault()}>
+      <Content>
         <Dialog.Title asChild>
           <Heading>{monthLabel} 목표 점수</Heading>
         </Dialog.Title>
