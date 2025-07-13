@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState, type FormEvent, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -11,7 +11,8 @@ import {
   logOut,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
-import { Input, Button, ErrorText } from '../styles/commonStyle';
+import { Button } from '../styles/commonStyle';
+import { Input, ErrorText } from '../styles/loginStyle';
 import Layout from './layouts/Layout';
 
 const Login = () => {
@@ -80,10 +81,8 @@ const Login = () => {
   };
 
   const handleClickLogin = async () => {
-    if (isSubmitting) return;
     if (!validateInput() || !isValidPassword()) return;
 
-    setIsSubmitting(true);
     showLoading();
 
     try {
@@ -128,17 +127,14 @@ const Login = () => {
         toast.error('사번과 비밀번호를 다시 확인해 주세요.');
       }
     } finally {
-      setIsSubmitting(false);
       hideLoading();
     }
   };
 
   const handleClickChangePassword = async () => {
-    if (isSubmitting) return;
     if (!isValidNewPassword() || !isValidSamePassword()) return;
 
     setError('');
-    setIsSubmitting(true);
     showLoading();
 
     try {
@@ -155,8 +151,24 @@ const Login = () => {
     } catch {
       toast.error('비밀번호 변경 실패');
     } finally {
-      setIsSubmitting(false);
       hideLoading();
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      if (isPasswordChangeMode) {
+        await handleClickChangePassword();
+      } else {
+        await handleClickLogin();
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -206,17 +218,14 @@ const Login = () => {
 
   return (
     <Layout title="또랑 로그인🎳">
-      <div>{renderInputs()}</div>
-      {isPasswordChangeMode && <div>{renderChangePasswordInputs()}</div>}
-      {error && <ErrorText>{error}</ErrorText>}
-      <Button
-        onClick={
-          isPasswordChangeMode ? handleClickChangePassword : handleClickLogin
-        }
-        disabled={isSubmitting}
-      >
-        {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
-      </Button>
+      <form onSubmit={handleSubmit}>
+        <div>{renderInputs()}</div>
+        {isPasswordChangeMode && <div>{renderChangePasswordInputs()}</div>}
+        {error && <ErrorText>{error}</ErrorText>}
+        <Button type="submit" disabled={isSubmitting}>
+          {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
+        </Button>
+      </form>
     </Layout>
   );
 };

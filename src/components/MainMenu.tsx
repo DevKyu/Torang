@@ -27,7 +27,7 @@ const menuItems: MenuItem[] = [
     id: 'user',
     label: '내정보',
     icon: <UserIcon size={20} />,
-    isSoon: true,
+    isNew: true,
     disabled: true,
   },
   {
@@ -41,14 +41,13 @@ const menuItems: MenuItem[] = [
     id: 'reward',
     label: '상품 신청',
     icon: <GiftIcon size={20} />,
-    isClose: true,
     disabled: true,
   },
   {
     id: 'draw',
     label: '추첨 결과',
     icon: <TargetIcon size={20} />,
-    disabled: false,
+    disabled: true,
   },
 ];
 
@@ -57,6 +56,9 @@ const MainMenu = () => {
 
   const handleClick = (id: string) => {
     switch (id) {
+      case 'user':
+        navigate('/myinfo');
+        break;
       case 'draw':
         navigate('/draw');
         break;
