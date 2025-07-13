@@ -118,7 +118,7 @@ const ScoreDialog = ({
 
       <Overlay />
 
-      <Content>
+      <Content onOpenAutoFocus={(e) => e.preventDefault()}>
         <Dialog.Title asChild>
           <Heading>{monthLabel} 목표 점수</Heading>
         </Dialog.Title>
