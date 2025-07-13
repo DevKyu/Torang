@@ -28,7 +28,7 @@ const menuItems: MenuItem[] = [
     label: '내정보',
     icon: <UserIcon size={20} />,
     isNew: true,
-    disabled: true,
+    disabled: false,
   },
   {
     id: 'users',

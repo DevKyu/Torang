@@ -185,17 +185,18 @@ const MyInfo = () => {
         ...prev,
         [year]: { ...(prev[year] ?? {}), [key]: v },
       }));
+      console.log(optimisticTargets);
 
       try {
         await setTargetScore(year, key, v);
-        toast.success('목표 점수 저장 완료!');
+        toast.success(`${key}월 목표 점수를 저장했어요.`);
       } catch (e: any) {
         setOptimisticTargets((prev) => {
           const copy = { ...prev };
           if (copy[year]) delete copy[year][key];
           return copy;
         });
-        toast.error(e.message);
+        toast.error(`${key}월 목표 점수 저장을 실패했어요.`);
       }
     },
     [year],

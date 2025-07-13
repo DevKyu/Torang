@@ -50,7 +50,7 @@ const Login = () => {
 
   const validateInput = () => {
     if (!employeeId || !password) {
-      toast.warning('사번 혹은 비밀번호를 입력해 주세요.');
+      toast.warning('사번과 비밀번호를 입력해 주세요.');
       return false;
     }
     return true;
@@ -58,7 +58,7 @@ const Login = () => {
 
   const isValidPassword = () => {
     if (password.length < 8) {
-      toast.warning('비밀번호는 8자 이상이어야 합니다.');
+      toast.warning('비밀번호는 8자 이상이어야 해요.');
       return false;
     }
     return true;
@@ -66,7 +66,7 @@ const Login = () => {
 
   const isValidNewPassword = () => {
     if (newPassword.length < 8 || newPasswordConfirm.length < 8) {
-      setError('비밀번호는 8자 이상이어야 합니다.');
+      setError('비밀번호는 8자 이상이어야 해요.');
       return false;
     }
     return true;
@@ -74,7 +74,7 @@ const Login = () => {
 
   const isValidSamePassword = () => {
     if (newPassword !== newPasswordConfirm) {
-      setError('비밀번호가 다릅니다.');
+      setError('비밀번호가 일치하지 않아요.');
       return false;
     }
     return true;
@@ -88,7 +88,7 @@ const Login = () => {
     try {
       const user = await loginUser(`${employeeId}@torang.com`, password);
       if (user) {
-        toast.success('로그인 완료!');
+        toast.success('로그인 되었습니다.');
         navigate('/menu');
       }
     } catch (error: any) {
@@ -112,11 +112,11 @@ const Login = () => {
           if (result) {
             setIsPasswordChangeMode(true);
           } else {
-            toast.error('사번을 찾을 수 없습니다.');
+            toast.error('등록되지 않은 사번이에요.');
             await logOut();
           }
         } catch {
-          toast.error('사번과 비밀번호를 다시 확인해 주세요.');
+          toast.error('사번 또는 비밀번호가 올바르지 않아요.');
           await logOut();
         }
       } else if (
@@ -124,7 +124,7 @@ const Login = () => {
       ) {
         toast.warning('잠시 후 다시 시도해 주세요.');
       } else {
-        toast.error('사번과 비밀번호를 다시 확인해 주세요.');
+        toast.error('사번 또는 비밀번호가 올바르지 않아요.');
       }
     } finally {
       hideLoading();
@@ -144,12 +144,12 @@ const Login = () => {
       );
       if (user) {
         await registerUid(employeeId);
-        toast.success('비밀번호 변경 완료!');
+        toast.success('비밀번호를 변경했어요.');
 
         navigate('/menu');
       }
     } catch {
-      toast.error('비밀번호 변경 실패');
+      toast.error('비밀번호 변경에 실패했어요.');
     } finally {
       hideLoading();
     }

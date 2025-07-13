@@ -106,9 +106,9 @@ const ScoreDialog = ({
   const handleSave = () => {
     const num = Number(value);
     if (!Number.isInteger(num) || num < 0 || num > 300)
-      return toast.error('점수는 0~300 사이의 숫자만 입력하세요');
+      return toast.error('0~300의 점수만 입력할 수 있어요.');
     if (num < minScore)
-      return toast.error(`점수는 평균 ${minScore}점 이상이어야 해요!`);
+      return toast.error(`${minScore}점 이상부터 입력할 수 있어요.`);
     onSave(num);
   };
 
@@ -120,10 +120,10 @@ const ScoreDialog = ({
 
       <Content>
         <Dialog.Title asChild>
-          <Heading>{monthLabel} 목표 점수 입력</Heading>
+          <Heading>{monthLabel} 목표 점수</Heading>
         </Dialog.Title>
         <Dialog.Description asChild>
-          <Desc>{minScore} – 300 사이 숫자를 입력 후 ‘저장’을 누르세요.</Desc>
+          <Desc>{minScore}점 이상 입력해 주세요.</Desc>
         </Dialog.Description>
 
         <Input
@@ -139,7 +139,7 @@ const ScoreDialog = ({
         />
 
         <Dialog.Close asChild>
-          <SaveBtn onClick={handleSave}>저장</SaveBtn>
+          <SaveBtn onClick={handleSave}>확인</SaveBtn>
         </Dialog.Close>
 
         <CloseBtn aria-label="닫기">

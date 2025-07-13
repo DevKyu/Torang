@@ -48,11 +48,11 @@ const Reward = () => {
         ]);
 
         if (!user) {
-          toast.error('유저 정보가 없습니다.');
+          toast.error('회원 정보를 불러오지 못했어요.');
           return;
         }
         if (!user.pin || (user.pin < 1 && saveUsedItems.length == 0)) {
-          toast.warning('선택 가능한 상품이 없습니다.');
+          toast.warning('선택할 수 있는 상품이 없어요.');
         }
 
         setProducts(prod);
@@ -60,7 +60,7 @@ const Reward = () => {
         setPinCount(user.pin ?? 0);
         setUsedItems(savedUsedItems);
       } catch {
-        toast.error('데이터를 불러오지 못했습니다.');
+        toast.error('데이터를 불러오지 못했어요.');
         logOut();
         navigate('/');
       }
@@ -107,9 +107,9 @@ const Reward = () => {
       await setUserPinData(product.requiredPins);
       await removeProductData('202506', new Set([index]));
 
-      toast.info(`'${product.name}' 신청이 취소되었습니다.`);
+      toast.info(`${product.name} 신청을 취소했어요.`);
     } catch {
-      toast.error('신청 취소 중 오류가 발생했습니다.');
+      toast.error('신청 취소에 실패했어요.');
     } finally {
       hideLoading();
     }
@@ -117,7 +117,7 @@ const Reward = () => {
 
   const handleSubmit = async () => {
     if (isSubmitting || selected.size === 0) return;
-    if (!isValid) return toast.error('핀 개수가 부족합니다.');
+    if (!isValid) return toast.error('핀 개수가 부족해요.');
 
     setIsSubmitting(true);
     showLoading();
@@ -131,9 +131,9 @@ const Reward = () => {
       setUsedItems((prev) => new Set([...prev, ...selected]));
       setSelected(new Set());
 
-      toast.success('신청이 완료되었습니다!');
+      toast.success('신청이 완료되었어요.');
     } catch {
-      toast.error('신청 중 오류가 발생했습니다.');
+      toast.error('신청에 실패했어요.');
     } finally {
       setIsSubmitting(false);
       hideLoading();

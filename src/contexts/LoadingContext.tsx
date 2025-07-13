@@ -16,10 +16,10 @@ type LoadingProviderProps = {
 
 export function LoadingProvider({ children }: LoadingProviderProps) {
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('잠시만 기다려주세요.');
+  const [loadingText, setLoadingText] = useState('잠시만 기다려 주세요.');
 
   const showLoading = (text?: string) => {
-    setLoadingText(text || '잠시만 기다려주세요.');
+    setLoadingText(text || '잠시만 기다려 주세요.');
     setLoading(true);
   };
 
