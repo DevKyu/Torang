@@ -89,7 +89,7 @@ const Login = () => {
       const user = await loginUser(`${employeeId}@torang.com`, password);
       if (user) {
         toast.success('로그인 되었습니다.');
-        navigate('/menu');
+        navigate('/menu', { replace: true });
       }
     } catch (error: any) {
       const code = error.code;
@@ -146,7 +146,7 @@ const Login = () => {
         await registerUid(employeeId);
         toast.success('비밀번호를 변경했어요.');
 
-        navigate('/menu');
+        navigate('/menu', { replace: true });
       }
     } catch {
       toast.error('비밀번호 변경에 실패했어요.');

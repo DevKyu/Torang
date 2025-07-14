@@ -62,7 +62,7 @@ const Reward = () => {
       } catch {
         toast.error('데이터를 불러오지 못했어요.');
         logOut();
-        navigate('/');
+        navigate('/', { replace: true });
       }
     };
 

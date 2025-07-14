@@ -17,7 +17,7 @@ const useUserInfo = () => {
         setUserInfo(data);
       } catch (e) {
         logOut();
-        navigate('/');
+        navigate('/', { replace: true });
       } finally {
         hideLoading();
       }

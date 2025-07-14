@@ -64,7 +64,7 @@ const Draw = () => {
         setCurrentEmpId(userId ?? '');
       } catch {
         logOut();
-        navigate('/');
+        navigate('/', { replace: true });
       }
     };
 

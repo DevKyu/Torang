@@ -57,13 +57,13 @@ const MainMenu = () => {
   const handleClick = (id: string) => {
     switch (id) {
       case 'user':
-        navigate('/myinfo');
+        navigate('/myinfo', { replace: true });
         break;
       case 'draw':
-        navigate('/draw');
+        navigate('/draw', { replace: true });
         break;
       case 'reward':
-        navigate('/reward');
+        navigate('/reward', { replace: true });
         break;
     }
   };
