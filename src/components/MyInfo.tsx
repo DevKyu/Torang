@@ -192,7 +192,6 @@ const MyInfo = () => {
         ...prev,
         [year]: { ...(prev[year] ?? {}), [key]: v },
       }));
-      console.log(optimisticTargets);
 
       try {
         await setTargetScore(year, key, v);

@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 
 const COLOR = {
-  bgPage: '#f9fafb',
+  bgPage: '#f9f9f9',
   bgCard: '#fafafa',
   border: '#cce4ff',
   brand: '#2563eb',
