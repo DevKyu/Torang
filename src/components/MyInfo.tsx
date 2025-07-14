@@ -57,9 +57,16 @@ type MonthCardProps = {
   month: string;
   score?: number;
   target?: number;
+  onEditTarget?: () => void;
 } & HTMLMotionProps<'button'>;
 
-const MonthCard = ({ month, score, target, ...rest }: MonthCardProps) => (
+const MonthCard = ({
+  month,
+  score,
+  target,
+  onEditTarget,
+  ...rest
+}: MonthCardProps) => (
   <ScoreItem
     {...rest}
     type="button"
@@ -68,13 +75,72 @@ const MonthCard = ({ month, score, target, ...rest }: MonthCardProps) => (
     exit={{ opacity: 0 }}
     transition={{ duration: 0.16 }}
   >
-    {target !== undefined && <TargetBadge>🎯 {target}</TargetBadge>}
+    {target !== undefined && (
+      <TargetBadge
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditTarget?.();
+        }}
+      >
+        🎯 {target}
+      </TargetBadge>
+    )}
     <CardCenter>
       <MonthLabel>{month}월</MonthLabel>
       <Score highlight={score !== undefined}>{score ?? '-'}</Score>
     </CardCenter>
   </ScoreItem>
 );
+
+type MonthCellProps = {
+  meta: {
+    month: string;
+    key: Month;
+    score?: number;
+    target?: number;
+    edit: boolean;
+  };
+  overallAvg: number | null;
+  onSave: (val: number, key: Month) => void;
+};
+
+const MonthCell = ({ meta, overallAvg, onSave }: MonthCellProps) => {
+  const { month, key, score, target, edit } = meta;
+
+  if (target !== undefined) {
+    return (
+      <ScoreDialog
+        monthLabel={`${month}월 목표`}
+        defaultValue={target}
+        minScore={overallAvg ?? 0}
+        onSave={(val) => onSave(val, key)}
+        trigger={(open) => (
+          <MonthCard
+            month={month}
+            score={score}
+            target={target}
+            onEditTarget={open}
+          />
+        )}
+      />
+    );
+  }
+
+  if (edit) {
+    return (
+      <ScoreDialog
+        monthLabel={`${month}월 목표`}
+        defaultValue={score}
+        minScore={overallAvg ?? 0}
+        onSave={(val) => onSave(val, key)}
+      >
+        <MonthCard month={month} score={score} />
+      </ScoreDialog>
+    );
+  }
+
+  return <MonthCard month={month} score={score} target={target} />;
+};
 
 type TrendProps = {
   show: boolean;
@@ -269,30 +335,14 @@ const MyInfo = () => {
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >
               <ScoreGrid>
-                {monthMeta.map((m) =>
-                  m.edit ? (
-                    <ScoreDialog
-                      key={m.month}
-                      monthLabel={`${m.month}월`}
-                      defaultValue={m.score}
-                      minScore={overallAvg ?? 0}
-                      onSave={(val) => handleSave(val, m.key)}
-                    >
-                      <MonthCard
-                        month={m.month}
-                        score={m.score}
-                        target={m.target}
-                      />
-                    </ScoreDialog>
-                  ) : (
-                    <MonthCard
-                      key={m.month}
-                      month={m.month}
-                      score={m.score}
-                      target={m.target}
-                    />
-                  ),
-                )}
+                {monthMeta.map((m) => (
+                  <MonthCell
+                    key={m.month}
+                    meta={m}
+                    overallAvg={overallAvg}
+                    onSave={handleSave}
+                  />
+                ))}
               </ScoreGrid>
 
               <TrendBlock

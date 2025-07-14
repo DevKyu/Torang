@@ -7,11 +7,9 @@ import { toast } from 'react-toastify';
 const Overlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0 0 0 / 0.5);
   backdrop-filter: blur(2px);
   animation: fadeIn 0.18s ease-out forwards;
-  z-index: 1000;
-
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -26,7 +24,7 @@ const Content = styled(Dialog.Content)`
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.96);
   width: 90%;
   max-width: 320px;
   padding: 24px 20px 20px;
@@ -34,16 +32,11 @@ const Content = styled(Dialog.Content)`
   border-radius: 16px;
   text-align: center;
   box-shadow: 0 8px 32px rgba(0 0 0 / 0.15);
-  z-index: 1001;
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -46%) scale(0.96);
-    }
+  animation: pop 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  @keyframes pop {
     to {
-      opacity: 1;
       transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
     }
   }
 `;
@@ -86,13 +79,12 @@ const SaveBtn = styled.button`
     background: #2563eb;
   }
 `;
-
 const CloseBtn = styled(Dialog.Close)`
   position: absolute;
   top: 12px;
   right: 12px;
-  border: none;
   background: none;
+  border: none;
   cursor: pointer;
   color: #64748b;
 `;
@@ -100,63 +92,75 @@ const CloseBtn = styled(Dialog.Close)`
 export type ScoreDialogProps = {
   monthLabel: string;
   minScore: number;
-  defaultValue?: number;
+  defaultValue?: number | null;
   onSave: (val: number) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  trigger?: (open: () => void) => React.ReactNode;
 };
 
 const ScoreDialog = ({
   monthLabel,
   minScore,
-  defaultValue,
+  defaultValue = null,
   onSave,
   children,
+  trigger,
 }: ScoreDialogProps) => {
-  const [value, setValue] = useState(defaultValue?.toString() ?? '');
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState<string>(defaultValue?.toString() ?? '');
+
+  const handleOpenChange = (o: boolean) => {
+    setOpen(o);
+    if (o) setValue(defaultValue?.toString() ?? '');
+  };
 
   const handleSave = () => {
     const num = Number(value);
     if (!Number.isInteger(num) || num < 0 || num > 300)
-      return toast.error('0~300의 점수만 입력할 수 있어요.');
+      return toast.error('0~300 사이의 점수만 입력할 수 있어요.');
     if (num < minScore)
       return toast.error(`${minScore}점 이상부터 입력할 수 있어요.`);
     onSave(num);
+    setOpen(false);
   };
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      {trigger && trigger(() => setOpen(true))}
 
-      <Overlay />
+      {children && !trigger && (
+        <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+      )}
 
-      <Content>
-        <Dialog.Title asChild>
-          <Heading>{monthLabel} 목표 점수</Heading>
-        </Dialog.Title>
-        <Dialog.Description asChild>
-          <Desc>{minScore}점 이상 입력해 주세요.</Desc>
-        </Dialog.Description>
+      <Dialog.Portal>
+        <Overlay />
+        <Content>
+          <Dialog.Title asChild>
+            <Heading>{monthLabel} 목표 점수</Heading>
+          </Dialog.Title>
+          <Dialog.Description asChild>
+            <Desc>{minScore}점 이상 입력해 주세요.</Desc>
+          </Dialog.Description>
 
-        <Input
-          type="number"
-          min={minScore}
-          max={300}
-          step={1}
-          value={value}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (/^\d{0,3}$/.test(v)) setValue(v);
-          }}
-        />
+          <Input
+            autoFocus
+            type="number"
+            min={minScore}
+            max={300}
+            inputMode="numeric"
+            value={value}
+            onChange={(e) =>
+              /^\d{0,3}$/.test(e.target.value) && setValue(e.target.value)
+            }
+          />
 
-        <Dialog.Close asChild>
-          <SaveBtn onClick={handleSave}>확인</SaveBtn>
-        </Dialog.Close>
+          <SaveBtn onClick={handleSave}>저장</SaveBtn>
 
-        <CloseBtn aria-label="닫기">
-          <X size={18} />
-        </CloseBtn>
-      </Content>
+          <CloseBtn aria-label="닫기">
+            <X size={18} />
+          </CloseBtn>
+        </Content>
+      </Dialog.Portal>
     </Dialog.Root>
   );
 };
