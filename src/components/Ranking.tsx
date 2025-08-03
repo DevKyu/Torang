@@ -27,7 +27,7 @@ import {
   RANKING_TYPE_LABELS,
   HEADER_TOAST_MAP,
   EXCLUDED_EMP_IDS,
-} from '../constants/rankingConstants';
+} from '../constants/ranking';
 
 const Ranking = () => {
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
