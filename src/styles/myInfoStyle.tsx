@@ -5,8 +5,7 @@ import { motion, type HTMLMotionProps } from 'framer-motion';
 const COLOR = {
   bgPage: '#f9f9f9',
   bgCard: '#fafafa',
-  border: '#cce4ff',
-  brand: '#2563eb',
+  border: '#e5e7eb',
 };
 
 const glass = (alpha = 0.06) => `0 4px 20px rgba(0,0,0,${alpha})`;
@@ -38,6 +37,7 @@ export const InfoSection = styled.div`
   background: #fff;
   box-shadow: ${glass(0.05)};
 `;
+
 export const ScoreContainer = styled.div`
   margin-top: 12px;
 `;
@@ -48,6 +48,7 @@ export const FilterRow = styled.div`
   gap: 8px;
   margin-bottom: 16px;
 `;
+
 export const ScoreGrid = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -68,16 +69,15 @@ export const ScoreItem = styled(MotionBtn)`
   background: ${COLOR.bgCard};
   border: 1px solid ${COLOR.border};
   border-radius: 12px;
-  overflow: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-
   transition:
     transform 0.15s,
     box-shadow 0.15s;
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -100,19 +100,28 @@ export const TargetBadge = styled.span`
   font-size: 11px;
   white-space: nowrap;
   padding: 2px 8px;
-  background: #fde68a;
+  background: #fef9c3;
+  color: #8a4b0b;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background: #fef3c7;
+  }
 `;
 
 export const MonthLabel = styled.div`
   font-size: 12px;
   color: #666;
 `;
+
 export const Score = styled.div<{ highlight?: boolean }>`
   font-weight: 700;
   font-size: 16px;
-  color: ${(p) => (p.highlight ? '#0070f3' : '#999')};
+  color: ${(p) => (p.highlight ? '#333' : '#999')};
 `;
 
 export const InfoRow = styled.div`
@@ -120,7 +129,8 @@ export const InfoRow = styled.div`
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid ${COLOR.border};
+
   &:last-of-type {
     border-bottom: none;
   }
@@ -138,6 +148,7 @@ export const LabelEmoji = styled.div`
   justify-content: center;
   font-size: 14px;
   transition: transform 0.2s;
+
   &:hover {
     transform: scale(1.1);
   }
@@ -149,17 +160,19 @@ export const Label = styled.span`
   flex: 1;
   text-align: left;
 `;
+
 export const Badge = styled.span`
   font-size: 13px;
-  font-weight: 700;
-  color: ${COLOR.brand};
-  background: #e0f2fe;
+  font-weight: 600;
+  color: #333;
+  background: #fff8e1;
   padding: 4px 10px;
   border-radius: 12px;
   flex-shrink: 0;
   transition: background 0.2s;
+
   &:hover {
-    background: #d0ebfd;
+    background: #ffefc1;
   }
 `;
 
@@ -168,10 +181,16 @@ export const DiffBadge = styled.span<{ color?: string }>`
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 9999px;
-  ${({ color }) => `
-    color:${color ? (color === '#16a34a' ? '#065f46' : color === '#dc2626' ? '#991b1b' : '#444') : '#444'};
-    background:${color ? (color === '#16a34a' ? '#d1fae5' : color === '#dc2626' ? '#fee2e2' : '#e5e7eb') : '#e5e7eb'};
-  `}
+
+  ${({ color }) => {
+    if (color === '#dc2626') {
+      return `color: #991b1b; background: #fee2e2;`;
+    }
+    if (color === '#2563eb') {
+      return `color: #1e40af; background: #dbeafe;`;
+    }
+    return `color: #444; background: #e5e7eb;`;
+  }}
 `;
 
 export const InfoDivider = styled.div`
@@ -180,6 +199,7 @@ export const InfoDivider = styled.div`
   margin: 16px auto;
   background: linear-gradient(to right, transparent, #cbd5e1, transparent);
 `;
+
 export const TrendChartWrapper = styled.div`
   width: 100%;
   padding: 0 4px;
