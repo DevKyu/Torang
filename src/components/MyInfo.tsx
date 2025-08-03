@@ -91,9 +91,9 @@ const MyInfo = () => {
     const color = !hasPrev
       ? '#666'
       : diff > 0
-        ? '#dc2626' // 빨강 (상승)
+        ? '#dc2626'
         : diff < 0
-          ? '#2563eb' // 파랑 (하락)
+          ? '#2563eb'
           : '#666';
 
     return { show: hasCur, diff, color };

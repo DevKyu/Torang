@@ -39,10 +39,8 @@ const TrendBlock = ({
       >
         <div style={{ fontSize: 13 }}>
           <span style={{ color: '#666' }}>분기 평균 </span>
-          <strong style={{ color: '#111', fontWeight: 600, marginLeft: 2 }}>
-            {avgCur}
-          </strong>
-          <span style={{ color: '#666', marginLeft: 2 }}> 점</span>
+          <strong style={{ color: '#111', fontWeight: 600 }}>{avgCur}</strong>
+          <span style={{ color: '#666' }}> 점</span>
         </div>
 
         {avgPrev !== null && (
