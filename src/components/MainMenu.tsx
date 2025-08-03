@@ -27,15 +27,15 @@ const menuItems: MenuItem[] = [
     id: 'user',
     label: '내정보',
     icon: <UserIcon size={20} />,
-    isNew: true,
+    isClose: true,
     disabled: false,
   },
   {
-    id: 'users',
+    id: 'rank',
     label: '또랑 랭킹',
     icon: <UsersIcon size={20} />,
-    isSoon: true,
-    disabled: true,
+    isNew: true,
+    disabled: false,
   },
   {
     id: 'reward',
@@ -64,6 +64,9 @@ const MainMenu = () => {
         break;
       case 'reward':
         navigate('/reward', { replace: true });
+        break;
+      case 'rank':
+        navigate('/ranking', { replace: true });
         break;
     }
   };
@@ -113,7 +116,7 @@ const MainMenu = () => {
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
-                  CLOSE
+                  HOT
                 </MenuBadge>
               )}
               <IconWrapper>{icon}</IconWrapper>
