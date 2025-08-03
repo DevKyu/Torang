@@ -9,6 +9,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
+import type { UserInfo } from '../types/UserInfo';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -187,6 +188,13 @@ export const setTargetScore = async (
   const targetRef = ref(db, `users/${empId}/targets/${year}/${month}`);
 
   await runTransaction(targetRef, () => target);
+};
+
+// 11. 랭킹 관련
+export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
+  const snapshot = await get(ref(db, 'users'));
+  if (!snapshot.exists()) return {};
+  return snapshot.val();
 };
 
 // 추후 변경 예정 (관리자)

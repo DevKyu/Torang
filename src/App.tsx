@@ -1,6 +1,6 @@
 import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import GlobalStyle from './styles/GlobalStyle';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { LoadingOverlay } from './components/LoadingOverlay';
@@ -20,16 +20,7 @@ function App() {
           autoClose={1000}
           hideProgressBar={true}
         />
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            duration: 1000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-          }}
-        />
+        <Toaster position="bottom-center" richColors />
       </LoadingProvider>
     </>
   );
