@@ -190,6 +190,14 @@ export const setTargetScore = async (
   await runTransaction(targetRef, () => target);
 };
 
+export type ActivityDateMap = Record<string, string | number>;
+export type ActivityDateAll = Record<string, ActivityDateMap>;
+
+export const getAllActivityDates = async (): Promise<ActivityDateAll> => {
+  const snap = await get(ref(db, 'activityDate'));
+  return snap.exists() ? (snap.val() as ActivityDateAll) : {};
+};
+
 // 11. 랭킹 관련
 export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
   const snapshot = await get(ref(db, 'users'));

@@ -61,7 +61,10 @@ const MotionBtn = forwardRef<HTMLButtonElement, MotionBtnProps>(
 );
 MotionBtn.displayName = 'MotionBtn';
 
-export const ScoreItem = styled(MotionBtn)`
+export const ScoreItem = styled(MotionBtn)<{
+  $locked?: boolean;
+  $activityGlow?: boolean;
+}>`
   position: relative;
   width: 100%;
   min-height: 64px;
@@ -82,6 +85,22 @@ export const ScoreItem = styled(MotionBtn)`
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+
+  ${({ $activityGlow, $locked }) =>
+    $activityGlow &&
+    !$locked &&
+    `
+      box-shadow:
+        0 0 0 2px rgba(245, 158, 11, 0.35),
+        0 0 16px 0 rgba(245, 158, 11, 0.15);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 0 0 2px rgba(245, 158, 11, 0.5),
+          0 0 20px 2px rgba(245, 158, 11, 0.25);
+      }
+    `}
 `;
 
 export const CardCenter = styled.div`
@@ -92,7 +111,7 @@ export const CardCenter = styled.div`
   margin-block: 6px;
 `;
 
-export const TargetBadge = styled.span`
+export const TargetBadge = styled.span<{ locked?: boolean }>`
   position: absolute;
   left: 50%;
   top: 0;
@@ -100,16 +119,19 @@ export const TargetBadge = styled.span`
   font-size: 11px;
   white-space: nowrap;
   padding: 2px 8px;
-  background: #fef9c3;
-  color: #8a4b0b;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   gap: 4px;
 
+  background: ${({ locked }) => (locked ? '#f3f4f6' : '#fef9c3')};
+  color: ${({ locked }) => (locked ? '#9ca3af' : '#8a4b0b')};
+  cursor: ${({ locked }) => (locked ? 'default' : 'pointer')};
+  opacity: ${({ locked }) => (locked ? 0.7 : 1)};
+
   &:hover {
-    background: #fef3c7;
+    background: ${({ locked }) => (locked ? '#f3f4f6' : '#fef3c7')};
   }
 `;
 
