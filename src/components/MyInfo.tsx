@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import useUserInfo from '../hooks/useUserInfo';
+import useActivityDates from '../hooks/useActivityDates';
 import { useQuarterStats } from '../hooks/useQuarterStats';
 
 import {
@@ -13,7 +14,9 @@ import {
   asMonth,
 } from '../utils/score';
 import { getTypeLabel } from '../utils/user';
-import { TODAY, THIS_YEAR, CUR_YEAR, CUR_MONTHN } from '../constants/date';
+import { toYmd, canEditTarget } from '../utils/policy';
+
+import { THIS_YEAR, CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
 import type {
   Month,
@@ -50,12 +53,15 @@ const MyInfo = () => {
   const { name = '또랑', pin = 0, type = '' } = userInfo;
 
   const [year, setYear] = useState<Year>(THIS_YEAR);
-  const [quarter, setQuarter] = useState(monthToQuarter(TODAY.getMonth()));
+  const [quarter, setQuarter] = useState(monthToQuarter(new Date().getMonth()));
   const [optimisticTargets, setOptimisticTargets] = useState<UserTargets>({});
 
   const scores: UserScores = userInfo.scores ?? {};
   const targets: UserTargets = userInfo.targets ?? {};
   const typeLabel = getTypeLabel(type);
+  const { maps: activityAll, loading: activityLoading } = useActivityDates();
+  const activityMap = activityAll[String(year)] ?? {};
+  const todayYmd = toYmd(new Date());
 
   const { months, avgCur, avgPrev, validCount } = useQuarterStats(
     scores,
@@ -176,37 +182,52 @@ const MyInfo = () => {
         />
       </FilterRow>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${year}-${quarter}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-        >
-          <ScoreGrid>
-            {monthMeta.map((m) => (
-              <MonthCell
-                key={`${year}-${m.key}`}
-                meta={m}
-                overallAvg={overallAvg}
-                onSave={handleSave}
-              />
-            ))}
-          </ScoreGrid>
+      {activityLoading ? null : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${year}-${quarter}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
+            <ScoreGrid>
+              {monthMeta.map((m) => {
+                const raw = activityMap[+m.key];
+                const activityYmd = raw != null ? String(raw) : undefined;
+                const timeAllowed = canEditTarget(todayYmd, activityYmd);
 
-          <TrendBlock
-            show={trend.show}
-            avgCur={avgCur ?? 0}
-            avgPrev={avgPrev}
-            diff={trend.diff}
-            color={trend.color}
-            months={months}
-            year={year}
-            scores={scores}
-          />
-        </motion.div>
-      </AnimatePresence>
+                const hasActivity = !!activityYmd;
+                const isCurrentMonth =
+                  year === CUR_YEAR && +m.key === CUR_MONTHN;
+                const highlightActivity = isCurrentMonth && hasActivity;
+
+                return (
+                  <MonthCell
+                    key={`${year}-${m.key}`}
+                    meta={m}
+                    overallAvg={overallAvg}
+                    onSave={handleSave}
+                    timeAllowed={timeAllowed}
+                    highlightActivity={highlightActivity}
+                  />
+                );
+              })}
+            </ScoreGrid>
+
+            <TrendBlock
+              show={trend.show}
+              avgCur={avgCur ?? 0}
+              avgPrev={avgPrev}
+              diff={trend.diff}
+              color={trend.color}
+              months={months}
+              year={year}
+              scores={scores}
+            />
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       <SmallText
         top="middle"

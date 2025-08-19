@@ -12,6 +12,8 @@ type MonthCardProps = {
   score?: number;
   target?: number;
   onEditTarget?: () => void;
+  locked?: boolean;
+  activityGlow?: boolean;
 } & HTMLMotionProps<'button'>;
 
 const MonthCard = ({
@@ -19,6 +21,8 @@ const MonthCard = ({
   score,
   target,
   onEditTarget,
+  locked = false,
+  activityGlow = false,
   ...rest
 }: MonthCardProps) => (
   <ScoreItem
@@ -28,10 +32,19 @@ const MonthCard = ({
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.16 }}
+    $locked={locked}
+    $activityGlow={activityGlow}
   >
     {target !== undefined && (
       <TargetBadge
+        locked={locked}
+        title={locked ? '목표 수정 마감' : undefined}
         onClick={(e) => {
+          if (locked) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           e.stopPropagation();
           onEditTarget?.();
         }}
