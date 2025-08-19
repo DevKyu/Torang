@@ -1,6 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+
+import { getCurrentUserId, fetchAllUsers } from '../services/firebase';
+import {
+  calculateScoreStats,
+  sortByAvgThenGamesThenMax,
+} from '../utils/ranking';
+import { getYearMonth } from '../utils/date';
+import { showToast } from '../utils/toast';
+import { useLoading } from '../contexts/LoadingContext';
+
+import RankingPopover from './RankingPopover';
+import RivalPopover from './RivalPopover';
+import RivalOverlay from './RivalOverlay';
+
+import type { RankingEntry, RankingType } from '../types/Ranking';
+import type { YearMonth } from '../types/rival';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
 import {
@@ -13,38 +29,80 @@ import {
   itemVariants,
   MotionTableRow,
 } from '../styles/rankingStyle';
-import { getCurrentUserId, fetchAllUsers } from '../services/firebase';
-import {
-  calculateScoreStats,
-  sortByAvgThenGamesThenMax,
-} from '../utils/ranking';
-import RankingPopover from './RankingPopover';
-import { showToast } from '../utils/toast';
-import { useLoading } from '../contexts/LoadingContext';
 
-import type { RankingEntry, RankingType } from '../types/Ranking';
 import {
   RANKING_TYPE_LABELS,
   HEADER_TOAST_MAP,
   EXCLUDED_EMP_IDS,
 } from '../constants/ranking';
+import { useRivalPickedOverlay } from '../hooks/useRivalPickedOverlay';
+import useActivityDates from '../hooks/useActivityDates';
+import { canEditTarget, toYmd } from '../utils/policy';
+import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
+
+const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
+const MEDALS = ['🥇', '🥈', '🥉'] as const;
+const ANIM_DURATION = 0.3;
+
+const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
+  rank: '순위',
+  name: '이름',
+  avg: '평균',
+  best: '최고',
+  join: '참여',
+};
 
 const Ranking = () => {
+  const navigate = useNavigate();
+  const { showLoading, hideLoading } = useLoading();
+
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
   const [myId, setMyId] = useState<string | null>(null);
 
-  const navigate = useNavigate();
+  const { maps: activityAll } = useActivityDates();
+  const activityMap = activityAll[String(CUR_YEAR)] ?? {};
+  const todayYmd = toYmd(new Date());
+  const raw = activityMap[String(CUR_MONTHN)];
+  const activityYmd = raw != null ? String(raw) : undefined;
+  const timeAllowed = canEditTarget(todayYmd, activityYmd);
+
   const isFirstRender = useRef(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
-  const { showLoading, hideLoading } = useLoading();
+
+  const ym: YearMonth = getYearMonth();
+
+  const {
+    open: vsOpen,
+    rivalName: vsRivalName,
+    deltaAvg: vsDeltaAvg,
+    close: closeVs,
+  } = useRivalPickedOverlay({
+    rankingType,
+    ranking,
+    myId,
+    enabled: rankingType === 'quarter' && timeAllowed,
+    cooldownMs: 1000,
+  });
+
+  const meEntry = useMemo(
+    () => ranking.find((r) => r.empId === myId),
+    [ranking, myId],
+  );
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       if (isFirstRender.current) showLoading();
-
       try {
-        const users = await fetchAllUsers();
+        const [users, currentId] = await Promise.all([
+          fetchAllUsers(),
+          getCurrentUserId(),
+        ]);
+
+        if (cancelled) return;
+
         const entries = Object.entries(users)
           .filter(([empId]) => !EXCLUDED_EMP_IDS.includes(empId))
           .map(([empId, user]) => {
@@ -65,10 +123,11 @@ const Ranking = () => {
           .sort(sortByAvgThenGamesThenMax);
 
         setRanking(entries);
+        setMyId(currentId || null);
       } catch {
-        navigate('/', { replace: true });
+        if (!cancelled) navigate('/', { replace: true });
       } finally {
-        if (isFirstRender.current) {
+        if (isFirstRender.current && !cancelled) {
           hideLoading();
           isFirstRender.current = false;
         }
@@ -76,72 +135,100 @@ const Ranking = () => {
     };
 
     fetchData();
-    getCurrentUserId().then((id) => setMyId(id || null));
-  }, [rankingType]);
+    return () => {
+      cancelled = true;
+    };
+  }, [rankingType, navigate, hideLoading, showLoading]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (myRowRef.current) {
-        myRowRef.current.scrollIntoView({
+    const id = window.setTimeout(() => {
+      if (!myRowRef.current) return;
+      requestAnimationFrame(() => {
+        myRowRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         });
-      }
+      });
     }, 1500);
-    return () => clearTimeout(timeout);
+    return () => window.clearTimeout(id);
   }, [ranking]);
 
-  const renderHeader = () => (
-    <tr>
-      {Object.entries(HEADER_TOAST_MAP).map(([key, getToast]) => (
-        <th
-          key={key}
-          onClick={() =>
-            showToast(getToast(RANKING_TYPE_LABELS[rankingType]), key)
-          }
-        >
-          {key === 'rank'
-            ? '순위'
-            : key === 'name'
-              ? '이름'
-              : key === 'avg'
-                ? '평균'
-                : key === 'best'
-                  ? '최고'
-                  : '참여'}
-        </th>
-      ))}
-    </tr>
+  const handleTabClick = useCallback((type: RankingType) => {
+    setRankingType(type);
+  }, []);
+
+  const handleHeaderClick = useCallback(
+    (key: keyof typeof HEADER_TOAST_MAP) => {
+      showToast(HEADER_TOAST_MAP[key](RANKING_TYPE_LABELS[rankingType]), key);
+    },
+    [rankingType],
   );
 
-  const renderRow = (user: RankingEntry, idx: number) => {
-    const isTop3 = idx < 3;
-    const isMe = user.empId === myId;
-    const medal = ['🥇', '🥈', '🥉'][idx] ?? `${idx + 1}`;
-    const refProp = isMe ? { ref: myRowRef } : {};
+  const headerRow = useMemo(
+    () => (
+      <tr>
+        {Object.entries(HEADER_LABELS).map(([key, label]) => (
+          <th
+            key={key}
+            onClick={() =>
+              handleHeaderClick(key as keyof typeof HEADER_TOAST_MAP)
+            }
+          >
+            {label}
+          </th>
+        ))}
+      </tr>
+    ),
+    [handleHeaderClick],
+  );
 
-    return (
-      <MotionTableRow
-        key={user.empId}
-        variants={itemVariants}
-        highlight={isMe}
-        topRank={isTop3}
-        {...refProp}
-      >
-        <td>{medal}</td>
-        <td>{user.name}</td>
-        <td>
-          {rankingType === 'quarter' ? (
-            <RankingPopover user={user} />
-          ) : (
-            user.average
-          )}
-        </td>
-        <td>{user.max}</td>
-        <td>{user.games}</td>
-      </MotionTableRow>
-    );
-  };
+  const renderRow = useCallback(
+    (user: RankingEntry, idx: number) => {
+      const isTop3 = idx < 3;
+      const isMe = user.empId === myId;
+      const medal = MEDALS[idx] ?? String(idx + 1);
+
+      const disabledBase =
+        isMe || EXCLUDED_EMP_IDS.includes(user.empId) || !myId;
+      const rivalUIEnabled =
+        rankingType === 'quarter' && timeAllowed && !disabledBase;
+
+      return (
+        <MotionTableRow
+          key={user.empId}
+          variants={itemVariants}
+          highlight={isMe}
+          topRank={isTop3}
+          ref={isMe ? myRowRef : undefined}
+        >
+          <td>{medal}</td>
+          <td>
+            {rivalUIEnabled ? (
+              <RivalPopover
+                ym={ym}
+                myId={myId}
+                targetId={user.empId}
+                targetName={user.name}
+                disabled={false}
+              />
+            ) : (
+              user.name
+            )}
+          </td>
+          <td>
+            {rankingType === 'quarter' ? (
+              <RankingPopover user={user} />
+            ) : (
+              user.average
+            )}
+          </td>
+          <td>{user.max}</td>
+          <td>{user.games}</td>
+        </MotionTableRow>
+      );
+    },
+    [rankingType, ym, myId, timeAllowed],
+  );
 
   return (
     <Container>
@@ -149,11 +236,11 @@ const Ranking = () => {
         <Title size="small">🏆 또랑 랭킹</Title>
 
         <FilterTabs>
-          {(['quarter', 'year', 'total'] as RankingType[]).map((type) => (
+          {RANKING_TABS.map((type) => (
             <RankingTab
               key={type}
               active={rankingType === type}
-              onClick={() => setRankingType(type)}
+              onClick={() => handleTabClick(type)}
             >
               {RANKING_TYPE_LABELS[type]}
             </RankingTab>
@@ -167,11 +254,11 @@ const Ranking = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: ANIM_DURATION }}
             >
               <TableContainer>
                 <StyledRankingTable>
-                  <thead>{renderHeader()}</thead>
+                  <thead>{headerRow}</thead>
                   <motion.tbody
                     variants={listVariants}
                     initial="hidden"
@@ -192,6 +279,15 @@ const Ranking = () => {
           돌아가기
         </SmallText>
       </RankingContentBox>
+
+      <RivalOverlay
+        open={vsOpen}
+        me={meEntry?.name ?? '나'}
+        rival={vsRivalName}
+        deltaAvg={vsDeltaAvg}
+        onClose={closeVs}
+        durationMs={1400}
+      />
     </Container>
   );
 };
