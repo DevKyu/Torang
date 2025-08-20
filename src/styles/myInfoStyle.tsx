@@ -185,7 +185,7 @@ export const Label = styled.span`
 
 export const Badge = styled.span`
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #333;
   background: #fff8e1;
   padding: 4px 10px;

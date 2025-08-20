@@ -1,5 +1,4 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
 import { Toaster } from 'sonner';
 import GlobalStyle from './styles/GlobalStyle';
 import { LoadingProvider } from './contexts/LoadingContext';
@@ -15,12 +14,7 @@ function App() {
           <Router />
         </BrowserRouter>
         <LoadingOverlay />
-        <ToastContainer
-          position="top-center"
-          autoClose={1000}
-          hideProgressBar={true}
-        />
-        <Toaster position="bottom-center" richColors />
+        <Toaster position="top-center" richColors />
       </LoadingProvider>
     </>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 import {
   getCurrentUserData,
