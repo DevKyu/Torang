@@ -30,7 +30,7 @@ const MonthCell = ({
 
   return (
     <ScoreDialog
-      monthLabel={`${month}월 목표`}
+      monthLabel={`${month}월`}
       defaultValue={defaultValue}
       minScore={overallAvg ?? 50}
       onSave={(val) => onSave(val, key)}
