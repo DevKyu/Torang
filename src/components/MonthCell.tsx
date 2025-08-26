@@ -45,7 +45,6 @@ const MonthCell = ({
           activityGlow={highlightActivity}
         />
       )}
-      delayedFocusMs={260}
     />
   );
 };
