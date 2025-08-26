@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { useState } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import styled from '@emotion/styled';
 import { toast } from 'sonner';
@@ -79,6 +79,7 @@ const SaveBtn = styled.button`
     background: #2563eb;
   }
 `;
+
 const CloseBtn = styled(Dialog.Close)`
   position: absolute;
   top: 12px;
@@ -94,8 +95,9 @@ export type ScoreDialogProps = {
   minScore: number;
   defaultValue?: number | null;
   onSave: (val: number) => void;
-  children?: React.ReactNode;
-  trigger?: (open: () => void) => React.ReactNode;
+  children?: ReactNode;
+  trigger?: (open: () => void) => ReactNode;
+  delayedFocusMs?: number;
 };
 
 const ScoreDialog = ({
@@ -105,21 +107,44 @@ const ScoreDialog = ({
   onSave,
   children,
   trigger,
+  delayedFocusMs = 260,
 }: ScoreDialogProps) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string>(defaultValue?.toString() ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<number | null>(null);
+
+  const scheduleFocus = () => {
+    if (delayedFocusMs > 0) {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => {
+        inputRef.current?.focus({ preventScroll: true });
+        timerRef.current = null;
+      }, delayedFocusMs);
+    }
+  };
 
   const handleOpenChange = (o: boolean) => {
     setOpen(o);
-    if (o) setValue(defaultValue?.toString() ?? '');
+    if (o) {
+      setValue(defaultValue?.toString() ?? '');
+      scheduleFocus();
+    } else if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   };
 
   const handleSave = () => {
     const num = Number(value);
-    if (!Number.isInteger(num) || num < 0 || num > 300)
-      return toast.error('0~300 사이의 점수만 입력할 수 있어요.');
-    if (num < minScore)
-      return toast.error(`${minScore}점 이상부터 입력할 수 있어요.`);
+    if (!Number.isInteger(num) || num < 0 || num > 300) {
+      toast.error('0~300 사이의 점수만 입력할 수 있어요.');
+      return;
+    }
+    if (num < minScore) {
+      toast.error(`${minScore}점 이상부터 입력할 수 있어요.`);
+      return;
+    }
     onSave(num);
     setOpen(false);
   };
@@ -127,14 +152,21 @@ const ScoreDialog = ({
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       {trigger && trigger(() => setOpen(true))}
-
       {children && !trigger && (
         <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       )}
 
       <Dialog.Portal>
         <Overlay />
-        <Content>
+        <Content
+          tabIndex={-1}
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+          }}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+          }}
+        >
           <Dialog.Title asChild>
             <Heading>{monthLabel} 목표 점수</Heading>
           </Dialog.Title>
@@ -143,11 +175,11 @@ const ScoreDialog = ({
           </Dialog.Description>
 
           <Input
-            autoFocus
             type="number"
             min={minScore}
             max={300}
             inputMode="numeric"
+            ref={inputRef}
             value={value}
             onChange={(e) =>
               /^\d{0,3}$/.test(e.target.value) && setValue(e.target.value)
