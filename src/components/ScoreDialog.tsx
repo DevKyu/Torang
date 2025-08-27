@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import styled from '@emotion/styled';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const Overlay = styled(Dialog.Overlay)`
   position: fixed;
@@ -143,7 +143,6 @@ const ScoreDialog = ({
           </Dialog.Description>
 
           <Input
-            autoFocus
             type="number"
             min={minScore}
             max={300}

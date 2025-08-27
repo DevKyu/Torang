@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 import useUserInfo from '../hooks/useUserInfo';
 import useActivityDates from '../hooks/useActivityDates';

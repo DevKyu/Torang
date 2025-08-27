@@ -308,7 +308,7 @@ const Ranking = () => {
         rival={vsRivalName}
         deltaAvg={vsDeltaAvg}
         onClose={closeVs}
-        durationMs={1400}
+        durationMs={2000}
       />
 
       <CongratulationOverlay
