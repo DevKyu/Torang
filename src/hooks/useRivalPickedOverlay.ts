@@ -6,6 +6,7 @@ import {
   type RivalPickedDetail,
 } from '../constants/events';
 import type { RankingEntry, RankingType } from '../types/Ranking';
+import { calcRivalResult } from '../utils/rivalResult';
 
 type Params = {
   rankingType: RankingType;
@@ -34,10 +35,7 @@ export function useRivalPickedOverlay({
   }, [ranking]);
 
   const entryMapRef = useLatestRef(entryMap);
-
   const lastShownAtRef = useRef(0);
-
-  const meEntryRef = useLatestRef(myId ? (entryMap.get(myId) ?? null) : null);
 
   const onRivalPicked = useCallback(
     (e: Event) => {
@@ -49,19 +47,20 @@ export function useRivalPickedOverlay({
       lastShownAtRef.current = now;
 
       const { detail } = e as CustomEvent<RivalPickedDetail>;
-      const rival = detail?.targetId
-        ? entryMapRef.current.get(detail.targetId)
-        : undefined;
-      const meEntry = meEntryRef.current;
+      const rivalId = detail?.targetId ?? null;
+      const { rivalName, deltaAvg } = calcRivalResult(
+        myId,
+        rivalId,
+        Array.from(entryMapRef.current.values()),
+      );
 
-      if (!meEntry || !rival) return;
+      if (!rivalName) return;
 
-      const d = Number((meEntry.average - rival.average).toFixed(1));
-      setRivalName(detail?.targetName ?? '');
-      setDeltaAvg(d);
+      setRivalName(rivalName);
+      setDeltaAvg(deltaAvg);
       setOpen(true);
     },
-    [enabled, cooldownMs, rankingTypeRef, entryMapRef, meEntryRef],
+    [enabled, cooldownMs, rankingTypeRef, entryMapRef, myId],
   );
 
   useEventListener(

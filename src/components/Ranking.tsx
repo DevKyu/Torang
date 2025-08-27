@@ -3,10 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { getCurrentUserId, fetchAllUsers } from '../services/firebase';
-import {
-  calculateScoreStats,
-  sortByAvgThenGamesThenMax,
-} from '../utils/ranking';
+import { mapUsersToRankingEntries } from '../utils/ranking';
 import { getYearMonth } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
@@ -14,8 +11,10 @@ import { useLoading } from '../contexts/LoadingContext';
 import RankingPopover from './RankingPopover';
 import RivalPopover from './RivalPopover';
 import RivalOverlay from './RivalOverlay';
+import CongratulationOverlay from './CongratulationOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
+import type { UserInfo } from '../types/UserInfo';
 import type { YearMonth } from '../types/rival';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
@@ -36,6 +35,9 @@ import {
   EXCLUDED_EMP_IDS,
 } from '../constants/ranking';
 import { useRivalPickedOverlay } from '../hooks/useRivalPickedOverlay';
+import { useRivalResult } from '../hooks/useRivalResult';
+import { useCongratulation } from '../hooks/useCongratulation';
+import { useRivalIncoming } from '../hooks/useRivalIncoming';
 import useActivityDates from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
 import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
@@ -58,6 +60,7 @@ const Ranking = () => {
 
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
 
   const { maps: activityAll } = useActivityDates();
@@ -69,7 +72,6 @@ const Ranking = () => {
 
   const isFirstRender = useRef(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
-
   const ym: YearMonth = getYearMonth();
 
   const {
@@ -96,31 +98,17 @@ const Ranking = () => {
     const fetchData = async () => {
       if (isFirstRender.current) showLoading();
       try {
-        const [users, currentId] = await Promise.all([
+        const [usersData, currentId] = await Promise.all([
           fetchAllUsers(),
           getCurrentUserId(),
         ]);
-
         if (cancelled) return;
 
-        const entries = Object.entries(users)
-          .filter(([empId]) => !EXCLUDED_EMP_IDS.includes(empId))
-          .map(([empId, user]) => {
-            const { average, games, max } = calculateScoreStats(
-              user.scores,
-              rankingType,
-            );
-            return {
-              empId,
-              name: user.name,
-              average,
-              games,
-              max,
-              scores: user.scores,
-            };
-          })
-          .filter((entry) => entry.games > 0)
-          .sort(sortByAvgThenGamesThenMax);
+        setUsers(usersData);
+
+        const entries = mapUsersToRankingEntries(usersData, rankingType).filter(
+          (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
+        );
 
         setRanking(entries);
         setMyId(currentId || null);
@@ -143,15 +131,40 @@ const Ranking = () => {
   useEffect(() => {
     const id = window.setTimeout(() => {
       if (!myRowRef.current) return;
-      requestAnimationFrame(() => {
+      requestAnimationFrame(() =>
         myRowRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
-        });
-      });
+        }),
+      );
     }, 1500);
     return () => window.clearTimeout(id);
   }, [ranking]);
+
+  const {
+    rivalName: resultRival,
+    delta,
+    result,
+  } = useRivalResult({
+    myId,
+    ym,
+    users,
+    activityYmd,
+    withinDays: 7,
+  });
+
+  const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
+    condition: !!resultRival && result !== 'none',
+    activityYmd,
+    withinDays: 7,
+  });
+
+  const incoming = useRivalIncoming(ym, myId, users);
+  const incomingWithNames = incoming.map((i) => ({
+    name: users[i.fromId]?.name ?? i.fromId,
+    result: i.result,
+    delta: i.delta,
+  }));
 
   const handleTabClick = useCallback((type: RankingType) => {
     setRankingType(type);
@@ -230,6 +243,15 @@ const Ranking = () => {
     [rankingType, ym, myId, timeAllowed],
   );
 
+  const resultMessage =
+    result === 'win'
+      ? `${resultRival}님을 이겼습니다!`
+      : result === 'lose'
+        ? `${resultRival}님에게 졌습니다.`
+        : result === 'draw'
+          ? `${resultRival}님과 무승부!`
+          : '';
+
   return (
     <Container>
       <RankingContentBox maxWidth="480px">
@@ -287,6 +309,15 @@ const Ranking = () => {
         deltaAvg={vsDeltaAvg}
         onClose={closeVs}
         durationMs={1400}
+      />
+
+      <CongratulationOverlay
+        open={showCongrats}
+        mainResult={result}
+        message={resultMessage}
+        delta={delta}
+        incoming={incomingWithNames}
+        onClose={() => setShowCongrats(false)}
       />
     </Container>
   );

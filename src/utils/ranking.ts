@@ -1,4 +1,4 @@
-import type { Month, Year, UserScores } from '../types/UserInfo';
+import type { Month, Year, UserScores, UserInfo } from '../types/UserInfo';
 import type { RankingEntry } from '../types/Ranking';
 
 const QUARTER_MONTHS_MAP: Record<number, string[]> = {
@@ -56,4 +56,33 @@ export const sortByAvgThenGamesThenMax = (
   if (b.average !== a.average) return b.average - a.average;
   if (b.games !== a.games) return b.games - a.games;
   return b.max - a.max;
+};
+
+export const mapUsersToRankingEntries = (
+  users: Record<string, UserInfo>,
+  type: 'total' | 'quarter' | 'year',
+): RankingEntry[] => {
+  return Object.entries(users)
+    .map(([empId, user]) => {
+      const { average, games, max } = calculateScoreStats(user.scores, type);
+      return {
+        empId,
+        name: user.name,
+        average,
+        games,
+        max,
+        scores: user.scores,
+      };
+    })
+    .filter((entry) => entry.games > 0)
+    .sort(sortByAvgThenGamesThenMax);
+};
+
+export type Result = 'win' | 'lose' | 'draw' | 'none';
+
+export const getResultType = (delta?: number): Result => {
+  if (typeof delta !== 'number') return 'none';
+  if (delta > 0) return 'win';
+  if (delta < 0) return 'lose';
+  return 'draw';
 };

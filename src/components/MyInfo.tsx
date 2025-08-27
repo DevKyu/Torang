@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import useUserInfo from '../hooks/useUserInfo';
 import useActivityDates from '../hooks/useActivityDates';
 import { useQuarterStats } from '../hooks/useQuarterStats';
+import { useTargetResult } from '../hooks/useTargetResult';
 
 import {
   monthToQuarter,
@@ -31,6 +32,7 @@ import { setTargetScore } from '../services/firebase';
 import RadixSelect from '../components/RadixSelect';
 import MonthCell from './MonthCell';
 import TrendBlock from './TrendBlock';
+import CongratulationOverlay from './CongratulationOverlay';
 
 import {
   MyInfoContainer,
@@ -46,6 +48,7 @@ import {
   LabelEmoji,
 } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
+import { getYearMonth } from '../utils/date';
 
 const MyInfo = () => {
   const navigate = useNavigate();
@@ -135,6 +138,11 @@ const MyInfo = () => {
   );
 
   const overallAvg = useMemo(() => calcOverallAvg(scores), [scores]);
+
+  const ym = getYearMonth();
+  const raw = activityMap[String(CUR_MONTHN)];
+  const activityYmd = raw != null ? String(raw) : undefined;
+  const targetResult = useTargetResult(userInfo, ym, activityYmd, 7);
 
   const renderUserInfo = () => (
     <InfoSection>
@@ -246,6 +254,32 @@ const MyInfo = () => {
         <InfoDivider />
         {renderScoreSection()}
       </MyInfoBox>
+
+      <CongratulationOverlay
+        open={targetResult.show}
+        mainResult={
+          targetResult.special
+            ? 'special'
+            : targetResult.achieved
+              ? 'win'
+              : 'lose'
+        }
+        message={
+          targetResult.special
+            ? `목표와 동일한 점수 달성!\n점수 : ${targetResult.myScore}점`
+            : targetResult.achieved
+              ? `목표 달성!\n점수 : ${targetResult.myScore}점`
+              : `목표 미달성\n점수 : ${targetResult.myScore ?? '-'}점`
+        }
+        delta={
+          targetResult.myScore && targetResult.target
+            ? targetResult.myScore - targetResult.target
+            : undefined
+        }
+        durationMs={2500}
+        compact
+        onClose={() => targetResult.setShow(false)}
+      />
     </MyInfoContainer>
   );
 };
