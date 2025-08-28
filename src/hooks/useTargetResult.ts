@@ -17,12 +17,14 @@ export const useTargetResult = (
   withinDays = 7,
 ): TargetResult => {
   const [show, setShow] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [result, setResult] = useState<Omit<TargetResult, 'show' | 'setShow'>>({
     achieved: false,
     special: false,
   });
 
   useEffect(() => {
+    if (initialized) return;
     if (!user || !activityYmd) return;
 
     const year = ym.slice(0, 4) as Year;
@@ -49,8 +51,10 @@ export const useTargetResult = (
       myScore,
       target,
     });
+
     setShow(true);
-  }, [user, ym, activityYmd, withinDays]);
+    setInitialized(true);
+  }, [user, ym, activityYmd, withinDays, initialized]);
 
   return { ...result, show, setShow };
 };
