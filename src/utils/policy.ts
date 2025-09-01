@@ -10,7 +10,7 @@ export const canEditTarget = (
   activityYmd?: string,
   {
     isAdmin = true,
-    allowWhenNoActivity = true,
+    allowWhenNoActivity = false,
   }: { isAdmin?: boolean; allowWhenNoActivity?: boolean } = {},
 ): boolean => {
   if (!isAdmin) return false;

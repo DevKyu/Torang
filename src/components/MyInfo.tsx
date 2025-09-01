@@ -218,6 +218,7 @@ const MyInfo = () => {
                     onSave={handleSave}
                     timeAllowed={timeAllowed}
                     highlightActivity={highlightActivity}
+                    hasActivity={hasActivity}
                   />
                 );
               })}

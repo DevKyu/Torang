@@ -15,6 +15,7 @@ type MonthCellProps = {
   onSave: (val: number, key: Month) => void;
   timeAllowed: boolean;
   highlightActivity?: boolean;
+  hasActivity: boolean;
 };
 
 const MonthCell = ({
@@ -23,9 +24,10 @@ const MonthCell = ({
   onSave,
   timeAllowed,
   highlightActivity = false,
+  hasActivity = false,
 }: MonthCellProps) => {
   const { month, key, score, target, edit } = meta;
-  const canEdit = timeAllowed && (target !== undefined || edit);
+  const canEdit = hasActivity && timeAllowed && (target !== undefined || edit);
   const defaultValue = target ?? score ?? overallAvg ?? 150;
 
   return (
