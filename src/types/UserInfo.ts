@@ -13,6 +13,7 @@ export type UserTargets = {
 
 export type UserInfo = {
   name: string;
+  join: string;
   pin: number;
   type: 'Member' | 'Associate';
   scores?: UserScores;

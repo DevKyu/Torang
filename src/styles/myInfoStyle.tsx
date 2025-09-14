@@ -19,11 +19,12 @@ export const MyInfoContainer = styled.div`
   background: ${COLOR.bgPage};
 `;
 
-export const MyInfoBox = styled.div`
+export const MyInfoBox = styled.div<{ variant?: 'info' | 'achievements' }>`
   position: relative;
   width: 90%;
   max-width: 400px;
-  padding: 20px 24px 16px;
+  padding: ${({ variant }) =>
+    variant === 'achievements' ? '20px 12px 16px' : '20px 24px 16px'};
   border-radius: 16px;
   background: #fff;
   box-shadow: ${glass()};
@@ -195,6 +196,26 @@ export const Badge = styled.span`
 
   &:hover {
     background: #ffefc1;
+  }
+`;
+
+export const BadgeButton = styled(Badge)`
+  cursor: pointer;
+  background: #fff8e1;
+  color: #8a4b0b;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #facc15;
+  padding: 4px 10px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #ffefc1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 `;
 

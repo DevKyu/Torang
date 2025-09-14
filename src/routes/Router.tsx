@@ -5,6 +5,7 @@ import Reward from '../components/Reward';
 import Draw from '../components/Draw';
 import MyInfo from '../components/MyInfo';
 import Ranking from '../components/Ranking';
+import Achievements from '../components/Achievements';
 
 const Router = () => (
   <Routes>
@@ -14,6 +15,7 @@ const Router = () => (
     <Route path="/draw" element={<Draw />} />
     <Route path="/myinfo" element={<MyInfo />} />
     <Route path="/ranking" element={<Ranking />} />
+    <Route path="/achievements" element={<Achievements />} />
   </Routes>
 );
 
