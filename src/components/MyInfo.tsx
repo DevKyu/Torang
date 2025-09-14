@@ -46,11 +46,11 @@ import {
   FilterRow,
   ScoreGrid,
   LabelEmoji,
-  BadgeButton,
+  // BadgeButton,
 } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
 import { getYearMonth } from '../utils/date';
-import { ChevronRight } from 'lucide-react';
+// import { ChevronRight } from 'lucide-react';
 
 const MyInfo = () => {
   const navigate = useNavigate();
