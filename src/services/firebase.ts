@@ -8,8 +8,16 @@ import {
   linkWithCredential,
   signOut,
 } from 'firebase/auth';
-import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
+import {
+  getDatabase,
+  ref,
+  get,
+  set,
+  runTransaction,
+  update,
+} from 'firebase/database';
 import type { UserInfo } from '../types/UserInfo';
+import type { AchievementResult } from '../types/achievement';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -27,7 +35,7 @@ export const auth = getAuth(app);
 export const db = getDatabase(app);
 
 // 3. 공통 유틸
-const getCurrentUserOrThrow = () => {
+export const getCurrentUserOrThrow = () => {
   const user = auth.currentUser;
   if (!user) throw new Error('로그인이 필요합니다.');
   return user;
@@ -52,9 +60,9 @@ export const checkAdminId = async (): Promise<boolean> => {
   return snapshot.exists();
 };
 
-export const getCurrentUserId = async () => {
+export const getCurrentUserId = () => {
   const user = getCurrentUserOrThrow();
-  return user.email?.replace('@torang.com', '');
+  return user.email?.replace('@torang.com', '') ?? '';
 };
 
 export const getCurrentUserData = async () => {
@@ -203,6 +211,38 @@ export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
   const snapshot = await get(ref(db, 'users'));
   if (!snapshot.exists()) return {};
   return snapshot.val();
+};
+
+// 12. 업적 관련
+export const getUserMatchResults = async (
+  yyyymm: string,
+): Promise<Record<string, any>> => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const snapshot = await get(ref(db, `matchResults/${yyyymm}/${empId}`));
+  return snapshot.exists() ? snapshot.val() : {};
+};
+
+export const getAllUserMatchResults = async (): Promise<
+  Record<string, any>
+> => {
+  const snapshot = await get(ref(db, 'matchResults'));
+  return snapshot.exists() ? snapshot.val() : {};
+};
+
+export const saveAchievements = async (
+  achievements: AchievementResult,
+  today: string,
+  updateLast = true,
+) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+
+  const updates: Record<string, any> = {
+    [`users/${empId}/achievements`]: achievements,
+  };
+  if (updateLast) {
+    updates[`users/${empId}/lastAchievementCheck`] = today;
+  }
+  await update(ref(db), updates);
 };
 
 // 추후 변경 예정 (관리자)
