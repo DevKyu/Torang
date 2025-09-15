@@ -4,7 +4,7 @@ import {
   type ActivityDateAll,
 } from '../services/firebase';
 
-export default function useActivityDates() {
+export const useActivityDates = () => {
   const [maps, setMaps] = useState<ActivityDateAll>({});
   const [loading, setLoading] = useState(true);
 
@@ -24,4 +24,4 @@ export default function useActivityDates() {
   }, []);
 
   return { maps, loading };
-}
+};

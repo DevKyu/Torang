@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import useUserInfo from '../hooks/useUserInfo';
-import useActivityDates from '../hooks/useActivityDates';
+import { useActivityDates } from '../hooks/useActivityDates';
 import { useQuarterStats } from '../hooks/useQuarterStats';
 import { useTargetResult } from '../hooks/useTargetResult';
 

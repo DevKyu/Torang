@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
-import useActivityDates from '../hooks/useActivityDates';
+import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import { getCurrentUserData, saveAchievements } from '../services/firebase';
 import { checkAllAchievements } from '../utils/checkAllAchievements';
