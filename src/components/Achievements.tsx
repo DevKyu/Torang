@@ -154,7 +154,7 @@ const Achievements = () => {
   const scrollTo = useCallback((key: AchievementCategory) => {
     refs.current.get(key)?.scrollIntoView({
       behavior: 'smooth',
-      block: 'start',
+      block: 'nearest',
     });
   }, []);
 
