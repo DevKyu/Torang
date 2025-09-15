@@ -8,6 +8,7 @@ export type RankingEntry = {
   games: number;
   pin: number;
   scores?: UserScores;
+  league: string;
 };
 
 export type RankingType = 'total' | 'quarter' | 'year' | 'monthly';

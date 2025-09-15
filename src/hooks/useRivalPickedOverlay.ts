@@ -40,7 +40,7 @@ export function useRivalPickedOverlay({
   const onRivalPicked = useCallback(
     (e: Event) => {
       if (!enabled) return;
-      if (rankingTypeRef.current !== 'quarter') return;
+      if (rankingTypeRef.current !== 'monthly') return;
 
       const now = Date.now();
       if (now - lastShownAtRef.current < cooldownMs) return;
@@ -53,6 +53,7 @@ export function useRivalPickedOverlay({
         rivalId,
         Array.from(entryMapRef.current.values()),
       );
+      console.log(myId, rivalId, rivalName, deltaAvg);
 
       if (!rivalName) return;
 

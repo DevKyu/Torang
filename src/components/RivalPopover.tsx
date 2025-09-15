@@ -24,6 +24,7 @@ export type RivalNamePopoverProps = {
   targetId: string;
   targetName: string;
   disabled?: boolean;
+  maxChoices?: number;
 };
 
 const RivalNamePopover = ({
@@ -32,14 +33,18 @@ const RivalNamePopover = ({
   targetId,
   targetName,
   disabled,
+  maxChoices = 1,
 }: RivalNamePopoverProps) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const { choice, select, clear } = useRival(ym, myId);
-  const isSelected = useMemo(
-    () => choice?.rivalId === targetId,
-    [choice, targetId],
+  const { choices, select, clear } = useRival(ym, myId, maxChoices);
+
+  const isSelected = useMemo(() => !!choices[targetId], [choices, targetId]);
+
+  const reachedLimit = useMemo(
+    () => Object.keys(choices).length >= maxChoices,
+    [choices, maxChoices],
   );
 
   useEffect(() => {
@@ -72,6 +77,8 @@ const RivalNamePopover = ({
       window.dispatchEvent(
         new CustomEvent('rival-picked', { detail: { targetId, targetName } }),
       );
+    } catch (err: any) {
+      showToast(err.message || '라이벌 지목에 실패했습니다.');
     } finally {
       setBusy(false);
     }
@@ -81,7 +88,7 @@ const RivalNamePopover = ({
     if (busy) return;
     setBusy(true);
     try {
-      await clear();
+      await clear(targetId);
       showToast('라이벌 지목을 해제했어요.');
     } finally {
       setBusy(false);
@@ -96,7 +103,15 @@ const RivalNamePopover = ({
           disabled={!!disabled}
           aria-expanded={open}
           aria-haspopup="dialog"
-          title={disabled ? '라이벌 지목이 불가합니다' : '라이벌 지목'}
+          title={
+            disabled
+              ? '라이벌 지목이 불가합니다'
+              : isSelected
+                ? '라이벌 해제 가능'
+                : reachedLimit
+                  ? `최대 ${maxChoices}명까지 선택 가능`
+                  : '라이벌 지목'
+          }
           data-selected={isSelected ? 'true' : 'false'}
         >
           <span className="name" title={targetName}>
@@ -132,17 +147,23 @@ const RivalNamePopover = ({
                   <Popover.Close asChild>
                     <SubtleButton
                       type="button"
-                      onClick={() => {
-                        if (typeof queueMicrotask === 'function')
-                          queueMicrotask(clearAsync);
-                        else setTimeout(clearAsync, 0);
-                      }}
+                      onClick={() =>
+                        typeof queueMicrotask === 'function'
+                          ? queueMicrotask(() => clearAsync())
+                          : setTimeout(clearAsync, 0)
+                      }
                       disabled={busy}
                     >
                       해제
                     </SubtleButton>
                   </Popover.Close>
                 </Actions>
+              </div>
+            ) : reachedLimit ? (
+              <div>
+                <Row>
+                  <Label>최대 {maxChoices}명까지 선택 가능합니다</Label>
+                </Row>
               </div>
             ) : (
               <div>
@@ -153,11 +174,11 @@ const RivalNamePopover = ({
                   <Popover.Close asChild>
                     <PrimaryButton
                       type="button"
-                      onClick={() => {
-                        if (typeof queueMicrotask === 'function')
-                          queueMicrotask(pickAsync);
-                        else setTimeout(pickAsync, 0);
-                      }}
+                      onClick={() =>
+                        typeof queueMicrotask === 'function'
+                          ? queueMicrotask(() => pickAsync())
+                          : setTimeout(pickAsync, 0)
+                      }
                       disabled={busy || !!disabled}
                     >
                       지목

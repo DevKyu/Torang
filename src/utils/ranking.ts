@@ -64,7 +64,7 @@ export const mapUsersToRankingEntries = (
   type: RankingType,
   empIds?: string[],
 ): RankingEntry[] => {
-  return Object.entries(users)
+  const sorted = Object.entries(users)
     .filter(([empId]) => !empIds || empIds.includes(empId))
     .map(([empId, user]) => {
       const { average, games, max } = calculateScoreStats(user.scores, type);
@@ -77,10 +77,22 @@ export const mapUsersToRankingEntries = (
         max,
         pin: user.pin ?? 0,
         scores: user.scores,
+        league: '',
       };
     })
     .filter((entry) => (type === 'monthly' ? true : entry.games > 0))
     .sort((a, b) => sortByAvgThenGamesThenMax(a, b));
+
+  if (sorted.length === 0) return [];
+
+  const total = sorted.length;
+  const leagueCount = Math.ceil(total / 4);
+  const leagueSize = Math.ceil(total / leagueCount);
+
+  return sorted.map((entry, idx) => {
+    const leagueNum = Math.floor(idx / leagueSize) + 1;
+    return { ...entry, league: `${leagueNum}부` };
+  });
 };
 
 export type Result = 'win' | 'lose' | 'draw' | 'none';

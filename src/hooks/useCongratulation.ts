@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type CongratulationOptions = {
   condition: boolean;
@@ -12,9 +12,10 @@ export const useCongratulation = ({
   activityYmd,
 }: CongratulationOptions) => {
   const [show, setShow] = useState(false);
+  const firedRef = useRef(false);
 
   useEffect(() => {
-    if (!condition) return;
+    if (!condition || firedRef.current) return;
 
     if (activityYmd) {
       const actDate = new Date(
@@ -27,6 +28,7 @@ export const useCongratulation = ({
     }
 
     setShow(true);
+    firedRef.current = true;
   }, [condition, withinDays, activityYmd]);
 
   return { show, setShow };

@@ -98,7 +98,7 @@ const RivalOverlay = ({
             tabIndex={-1}
             ref={containerRef}
           >
-            <Header id={labelId}>라이벌 매치</Header>
+            <Header id={labelId}>핀 쟁탈전 매치</Header>
 
             <Names>
               <Name variants={itemV} custom={-1}>

@@ -14,6 +14,13 @@ type Params = {
   withinDays?: number;
 };
 
+export type RivalResult = {
+  rivalId: string;
+  rivalName: string;
+  delta?: number;
+  result: Result;
+};
+
 export const useRivalResult = ({
   myId,
   ym,
@@ -21,50 +28,59 @@ export const useRivalResult = ({
   activityYmd,
   withinDays = 7,
 }: Params) => {
-  const [rivalId, setRivalId] = useState<string | null>(null);
-  const [rivalName, setRivalName] = useState<string | undefined>();
-  const [delta, setDelta] = useState<number | undefined>();
-  const [result, setResult] = useState<Result>('none');
+  const [results, setResults] = useState<RivalResult[]>([]);
 
   useEffect(() => {
-    if (!ym || !myId) return;
-    const r = ref(db, `rivals/${ym}/${myId}/rivalId`);
+    if (!ym || !myId || !activityYmd) return;
+
+    const r = ref(db, `rivals/${ym}/${myId}`);
     const off = onValue(r, (snap) => {
-      setRivalId(snap.exists() ? (snap.val() as string) : null);
+      if (!snap.exists()) {
+        setResults([]);
+        return;
+      }
+
+      const today = new Date();
+      const todayYmdNum = Number(
+        `${today.getFullYear()}${String(today.getMonth() + 1).padStart(
+          2,
+          '0',
+        )}${String(today.getDate()).padStart(2, '0')}`,
+      );
+      const diffDays = todayYmdNum - Number(activityYmd);
+
+      if (diffDays < 0 || diffDays > withinDays) {
+        setResults([]);
+        return;
+      }
+
+      const year = ym.slice(0, 4) as Year;
+      const month = ym.slice(4, 6) as Month;
+
+      const rivalChoices = snap.val() as Record<string, { chosenAt: number }>;
+
+      const newResults: RivalResult[] = [];
+
+      for (const rivalId of Object.keys(rivalChoices)) {
+        const { rivalName, deltaAvg } = calcRivalMonthResult(
+          myId,
+          rivalId,
+          users,
+          year,
+          month,
+        );
+        newResults.push({
+          rivalId,
+          rivalName: rivalName ?? rivalId,
+          delta: deltaAvg,
+          result: getResultType(deltaAvg),
+        });
+      }
+      setResults(newResults);
     });
+
     return () => off();
-  }, [ym, myId]);
+  }, [myId, ym, users, activityYmd, withinDays]);
 
-  useEffect(() => {
-    if (!activityYmd || !myId || !rivalId) return;
-
-    const today = new Date();
-    const todayYmdNum = Number(
-      `${today.getFullYear()}${String(today.getMonth() + 1).padStart(
-        2,
-        '0',
-      )}${String(today.getDate()).padStart(2, '0')}`,
-    );
-    const activityYmdNum = Number(activityYmd);
-    const diffDays = todayYmdNum - activityYmdNum;
-
-    if (diffDays < 0 || diffDays > withinDays) return;
-
-    const year = ym.slice(0, 4) as Year;
-    const month = ym.slice(4, 6) as Month;
-
-    const { rivalName, deltaAvg } = calcRivalMonthResult(
-      myId,
-      rivalId,
-      users,
-      year,
-      month,
-    );
-
-    setRivalName(rivalName);
-    setDelta(deltaAvg);
-    setResult(getResultType(deltaAvg));
-  }, [myId, rivalId, users, ym, activityYmd, withinDays]);
-
-  return { rivalId, rivalName, delta, result };
+  return results;
 };

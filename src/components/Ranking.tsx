@@ -43,12 +43,7 @@ import { useActivityDates } from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
 import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
-const RANKING_TABS: RankingType[] = [
-  'quarter',
-  'year',
-  'total',
-  /* 'monthly' */
-];
+const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 
@@ -59,6 +54,7 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   best: '최고',
   join: '참여',
   pin: '핀',
+  league: '리그',
 };
 
 const Ranking = () => {
@@ -66,30 +62,30 @@ const Ranking = () => {
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityAll } = useActivityDates();
 
-  const [rankingType, setRankingType] = useState<RankingType>('quarter');
+  const participantsAll = useActivityParticipants(
+    String(CUR_YEAR) as Year,
+    String(CUR_MONTHN) as Month,
+  );
+
+  const [rankingType, setRankingType] = useState<RankingType>(
+    participantsAll.length > 0 ? 'monthly' : 'quarter',
+  );
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
 
-  const isFirstRender = useRef(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
+
   const ym: YearMonth = getYearMonth();
   const activityMap = activityAll[String(CUR_YEAR)] ?? {};
   const todayYmd = toYmd(new Date());
   const raw = activityMap[String(CUR_MONTHN)];
   const activityYmd = raw != null ? String(raw) : undefined;
   const timeAllowed = canEditTarget(todayYmd, activityYmd);
-
-  const participantsAll = useActivityParticipants(
-    String(CUR_YEAR) as Year,
-    String(CUR_MONTHN) as Month,
-  );
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
-
   useEffect(() => {
     let cancelled = false;
-
     const init = async () => {
-      if (isFirstRender.current) showLoading();
+      showLoading();
       try {
         const [usersData, currentId] = await Promise.all([
           fetchAllUsers(),
@@ -101,18 +97,22 @@ const Ranking = () => {
       } catch {
         if (!cancelled) navigate('/', { replace: true });
       } finally {
-        if (isFirstRender.current && !cancelled) {
-          hideLoading();
-          isFirstRender.current = false;
-        }
+        if (!cancelled) hideLoading();
       }
     };
-
     init();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (participantsAll.length > 0) {
+      setRankingType('monthly');
+    } else {
+      setRankingType('quarter');
+    }
+  }, [participantsAll]);
 
   const ranking: RankingEntry[] = useMemo(() => {
     if (!Object.keys(users).length) return [];
@@ -138,6 +138,7 @@ const Ranking = () => {
     () => ranking.find((r) => r.empId === myId),
     [ranking, myId],
   );
+  const myLeague = meEntry?.league ?? null;
 
   const {
     open: vsOpen,
@@ -148,28 +149,38 @@ const Ranking = () => {
     rankingType,
     ranking,
     myId,
-    enabled: rankingType === 'quarter' && timeAllowed,
+    enabled: rankingType === 'monthly' && timeAllowed,
     cooldownMs: 1000,
   });
 
-  const {
-    rivalName: resultRival,
-    delta,
-    result,
-  } = useRivalResult({ myId, ym, users, activityYmd, withinDays: 7 });
+  const rivalResults = useRivalResult({
+    myId,
+    ym,
+    users,
+    activityYmd,
+    withinDays: 7,
+  });
+
+  const resultMessages = useMemo(
+    () =>
+      rivalResults
+        .map((res) => {
+          if (res.result === 'win') return `${res.rivalName}님을 이겼습니다!`;
+          if (res.result === 'lose') return `${res.rivalName}님에게 졌습니다.`;
+          if (res.result === 'draw') return `${res.rivalName}님과 무승부!`;
+          return '';
+        })
+        .filter(Boolean),
+    [rivalResults],
+  );
 
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
-    condition: !!resultRival && result !== 'none',
+    condition: rivalResults.some((r) => r.result !== 'none'),
     activityYmd,
     withinDays: 7,
   });
 
   const incoming = useRivalIncoming(ym, myId, users);
-  const incomingWithNames = incoming.map((i) => ({
-    name: users[i.fromId]?.name ?? i.fromId,
-    result: i.result,
-    delta: i.delta,
-  }));
 
   const handleTabClick = useCallback((type: RankingType) => {
     setRankingType(type);
@@ -185,10 +196,8 @@ const Ranking = () => {
   const headerRow = useMemo(() => {
     const keys =
       rankingType === 'monthly'
-        ? // ? (['rank', 'name', 'avg', 'best', 'pin'] as const)
-          (['rank', 'name', 'avg', 'best', 'join'] as const)
+        ? (['rank', 'name', 'avg', 'league', 'pin'] as const)
         : (['rank', 'name', 'avg', 'best', 'join'] as const);
-
     return (
       <tr>
         {keys.map((key) => (
@@ -203,18 +212,18 @@ const Ranking = () => {
         ))}
       </tr>
     );
-  }, [rankingType, handleHeaderClick]);
+  }, [handleHeaderClick, rankingType]);
 
   const renderRow = useCallback(
     (user: RankingEntry, idx: number) => {
       const isTop3 = idx < 3;
       const isMe = user.empId === myId;
       const medal = MEDALS[idx] ?? String(idx + 1);
-
       const disabledBase =
         isMe || EXCLUDED_EMP_IDS.includes(user.empId) || !myId;
+      const sameLeague = myLeague && user.league === myLeague;
       const rivalUIEnabled =
-        rankingType === 'quarter' && timeAllowed && !disabledBase;
+        rankingType === 'monthly' && timeAllowed && !disabledBase && sameLeague;
 
       return (
         <MotionTableRow
@@ -232,7 +241,8 @@ const Ranking = () => {
                 myId={myId}
                 targetId={user.empId}
                 targetName={user.name}
-                disabled={false}
+                disabled={!rivalUIEnabled}
+                maxChoices={2}
               />
             ) : (
               user.name
@@ -245,27 +255,21 @@ const Ranking = () => {
               user.average
             )}
           </td>
-          <td>{user.max}</td>
-          <td>
-            {
-              // rankingType === 'monthly' ? user.pin : user.games
-              user.games
-            }
-          </td>
+          <td>{rankingType === 'monthly' ? user.league : user.max}</td>
+          <td>{rankingType === 'monthly' ? user.pin : user.games}</td>
         </MotionTableRow>
       );
     },
-    [rankingType, ym, myId, timeAllowed],
+    [rankingType, ym, myId, timeAllowed, myLeague],
   );
 
-  const resultMessage =
-    result === 'win'
-      ? `${resultRival}님을 이겼습니다!`
-      : result === 'lose'
-        ? `${resultRival}님에게 졌습니다.`
-        : result === 'draw'
-          ? `${resultRival}님과 무승부!`
-          : '';
+  const availableTabs = useMemo(
+    () =>
+      participantsAll.length > 0
+        ? RANKING_TABS
+        : RANKING_TABS.filter((t) => t !== 'monthly'),
+    [participantsAll],
+  );
 
   return (
     <Container>
@@ -273,7 +277,7 @@ const Ranking = () => {
         <Title size="small">🏆 또랑 랭킹</Title>
 
         <FilterTabs>
-          {RANKING_TABS.map((type) => (
+          {availableTabs.map((type) => (
             <RankingTab
               key={type}
               active={rankingType === type}
@@ -296,16 +300,13 @@ const Ranking = () => {
               <TableContainer>
                 <StyledRankingTable>
                   <thead>{headerRow}</thead>
-                  <tbody>
-                    <motion.div
-                      variants={listVariants}
-                      initial="hidden"
-                      animate="visible"
-                      style={{ display: 'contents' }}
-                    >
-                      {ranking.map(renderRow)}
-                    </motion.div>
-                  </tbody>
+                  <motion.tbody
+                    variants={listVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {ranking.map(renderRow)}
+                  </motion.tbody>
                 </StyledRankingTable>
               </TableContainer>
             </motion.div>
@@ -331,10 +332,10 @@ const Ranking = () => {
 
       <CongratulationOverlay
         open={showCongrats}
-        mainResult={result}
-        message={resultMessage}
-        delta={delta}
-        incoming={incomingWithNames}
+        mainResult={rivalResults.map((r) => r.result)}
+        message={resultMessages}
+        delta={rivalResults.map((r) => r.delta ?? 0)}
+        incoming={incoming}
         onClose={() => setShowCongrats(false)}
       />
     </Container>

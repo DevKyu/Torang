@@ -63,7 +63,7 @@ export const Card = styled(motion.div)<{ result: Result }>`
 
 export const Emoji = styled.div<{ result: Result }>`
   font-size: 50px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   display: inline-block;
 
   ${(p) =>
@@ -74,6 +74,8 @@ export const Emoji = styled.div<{ result: Result }>`
   ${(p) =>
     p.result === 'special' &&
     `animation: glow 1.6s ease-in-out infinite alternate;`}
+  ${(p) =>
+    p.result === 'none' && `animation: wobble 1.5s ease-in-out infinite;`}
 
   @keyframes bounce {
     0%,
@@ -130,6 +132,24 @@ export const Emoji = styled.div<{ result: Result }>`
     }
   }
 
+  @keyframes wobble {
+    0% {
+      transform: translateX(0) rotate(0deg);
+    }
+    25% {
+      transform: translateX(3px) rotate(6deg);
+    }
+    50% {
+      transform: translateX(0) rotate(0deg);
+    }
+    75% {
+      transform: translateX(-3px) rotate(-6deg);
+    }
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     & {
       animation: none !important;
@@ -141,7 +161,7 @@ export const Message = styled.div`
   font-size: 18px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   white-space: pre-line;
 `;
 
@@ -211,4 +231,23 @@ export const Badge = styled.span<{ result: Result }>`
 export const Delta = styled.span`
   font-size: 12px;
   font-weight: 600;
+`;
+
+export const ResultBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 6px;
+`;
+
+export const ResultMessage = styled(Message)<{ count: number }>`
+  font-size: ${({ count }) => (count > 1 ? '16px' : '18px')};
+`;
+
+export const ResultDeltaBadge = styled(DeltaBadge)<{
+  result: Result;
+  count: number;
+}>`
+  font-size: ${({ count }) => (count > 1 ? '12px' : '13px')};
 `;
