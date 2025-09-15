@@ -127,7 +127,7 @@ const Ranking = () => {
       requestAnimationFrame(() =>
         myRowRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'center',
+          block: 'nearest',
         }),
       );
     }, 1500);
