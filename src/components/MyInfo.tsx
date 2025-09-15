@@ -46,11 +46,11 @@ import {
   FilterRow,
   ScoreGrid,
   LabelEmoji,
-  // BadgeButton,
+  BadgeButton,
 } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
 import { getYearMonth } from '../utils/date';
-// import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 const MyInfo = () => {
   const navigate = useNavigate();
@@ -170,13 +170,13 @@ const MyInfo = () => {
         <Label>또랑핀</Label>
         <Badge>{pin}개</Badge>
       </InfoRow>
-      {/* <InfoRow>
+      <InfoRow>
         <LabelEmoji>🏅</LabelEmoji>
         <Label>업적</Label>
         <BadgeButton onClick={() => navigate('/achievements')}>
           업적 보기 <ChevronRight size={14} strokeWidth={2} />
         </BadgeButton>
-      </InfoRow> */}
+      </InfoRow>
     </InfoSection>
   );
 
