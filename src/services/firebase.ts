@@ -144,6 +144,19 @@ export const setUserPinData = async (pin: number) => {
   );
 };
 
+export const getUserPins = async (): Promise<number> => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const snap = await get(ref(db, `users/${empId}/pin`));
+  return snap.exists() ? (snap.val() as number) : 0;
+};
+
+export const incrementUserPins = async (delta: number) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
+    return (current ?? 0) + delta;
+  });
+};
+
 // 8. 추첨 관련
 export const drawWinnerIfNotExists = async (
   yyyymm: string,
@@ -243,6 +256,34 @@ export const saveAchievements = async (
     updates[`users/${empId}/lastAchievementCheck`] = today;
   }
   await update(ref(db), updates);
+};
+
+// 13. 활동 참여자 관련
+export const getActivityParticipants = async (
+  year: string,
+  month: string,
+): Promise<string[]> => {
+  const snap = await get(ref(db, `activityParticipants/${year}/${month}`));
+  return snap.exists() ? Object.keys(snap.val()) : [];
+};
+
+export const setActivityParticipant = async (year: string, month: string) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const r = ref(db, `activityParticipants/${year}/${month}/${empId}`);
+  await runTransaction(r, (current) => {
+    return current === true ? current : true;
+  });
+};
+
+export const removeActivityParticipant = async (
+  year: string,
+  month: string,
+) => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const r = ref(db, `activityParticipants/${year}/${month}/${empId}`);
+  await runTransaction(r, (current) => {
+    return current === null ? current : null;
+  });
 };
 
 // 추후 변경 예정 (관리자)

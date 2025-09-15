@@ -4,9 +4,10 @@ export type RankingEntry = {
   empId: string;
   name: string;
   average: number;
-  games: number;
   max: number;
+  games: number;
+  pin: number;
   scores?: UserScores;
 };
 
-export type RankingType = 'total' | 'quarter' | 'year';
+export type RankingType = 'total' | 'quarter' | 'year' | 'monthly';

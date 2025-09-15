@@ -1,7 +1,7 @@
 import type { Month, Year, UserScores, UserInfo } from '../types/UserInfo';
-import type { RankingEntry } from '../types/Ranking';
+import type { RankingEntry, RankingType } from '../types/Ranking';
 
-const QUARTER_MONTHS_MAP: Record<number, string[]> = {
+const QUARTER_MONTHS_MAP: Record<number, Month[]> = {
   1: ['1', '2', '3'],
   2: ['4', '5', '6'],
   3: ['7', '8', '9'],
@@ -10,16 +10,16 @@ const QUARTER_MONTHS_MAP: Record<number, string[]> = {
 
 export const calculateScoreStats = (
   scores: UserScores | undefined,
-  type: 'total' | 'quarter' | 'year',
-) => {
-  let total = 0,
-    games = 0,
-    max = 0;
+  type: RankingType,
+): { average: number; games: number; max: number } => {
+  let total = 0;
+  let games = 0;
+  let max = 0;
 
   if (!scores) return { average: 0, games: 0, max: 0 };
 
   const now = new Date();
-  const currentYear = String(now.getFullYear());
+  const currentYear = String(now.getFullYear()) as Year;
   const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
   const quarterMonths = QUARTER_MONTHS_MAP[currentQuarter] ?? [];
 
@@ -27,17 +27,18 @@ export const calculateScoreStats = (
     const yearScores = scores[year as Year];
     if (!yearScores) continue;
 
-    for (const month in yearScores) {
-      const score = yearScores[month as Month];
+    for (const monthKey in yearScores) {
+      const score = yearScores[monthKey as Month];
       if (typeof score !== 'number') continue;
 
       const isInQuarter =
         type === 'quarter' &&
         year === currentYear &&
-        quarterMonths.includes(month);
+        quarterMonths.includes(monthKey as Month);
+
       const isInYear = type === 'year' && year === currentYear;
 
-      if (type === 'total' || isInQuarter || isInYear) {
+      if (type === 'total' || isInQuarter || isInYear || type === 'monthly') {
         total += score;
         games++;
         if (score > max) max = score;
@@ -60,22 +61,26 @@ export const sortByAvgThenGamesThenMax = (
 
 export const mapUsersToRankingEntries = (
   users: Record<string, UserInfo>,
-  type: 'total' | 'quarter' | 'year',
+  type: RankingType,
+  empIds?: string[],
 ): RankingEntry[] => {
   return Object.entries(users)
+    .filter(([empId]) => !empIds || empIds.includes(empId))
     .map(([empId, user]) => {
       const { average, games, max } = calculateScoreStats(user.scores, type);
+
       return {
         empId,
         name: user.name,
         average,
         games,
         max,
+        pin: user.pin ?? 0,
         scores: user.scores,
       };
     })
-    .filter((entry) => entry.games > 0)
-    .sort(sortByAvgThenGamesThenMax);
+    .filter((entry) => (type === 'monthly' ? true : entry.games > 0))
+    .sort((a, b) => sortByAvgThenGamesThenMax(a, b));
 };
 
 export type Result = 'win' | 'lose' | 'draw' | 'none';

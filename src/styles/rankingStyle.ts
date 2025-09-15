@@ -103,7 +103,7 @@ export const FilterTabs = styled.div`
 `;
 
 export const RankingTab = styled.button<{ active: boolean }>`
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;

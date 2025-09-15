@@ -14,7 +14,7 @@ import RivalOverlay from './RivalOverlay';
 import CongratulationOverlay from './CongratulationOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
-import type { UserInfo } from '../types/UserInfo';
+import type { UserInfo, Year, Month } from '../types/UserInfo';
 import type { YearMonth } from '../types/rival';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
@@ -38,11 +38,17 @@ import { useRivalPickedOverlay } from '../hooks/useRivalPickedOverlay';
 import { useRivalResult } from '../hooks/useRivalResult';
 import { useCongratulation } from '../hooks/useCongratulation';
 import { useRivalIncoming } from '../hooks/useRivalIncoming';
-import useActivityDates from '../hooks/useActivityDates';
+import { useActivityParticipants } from '../hooks/useActivityParticipants';
+import { useActivityDates } from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
 import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
-const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
+const RANKING_TABS: RankingType[] = [
+  'quarter',
+  'year',
+  'total',
+  /* 'monthly' */
+];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 
@@ -52,27 +58,86 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   avg: '평균',
   best: '최고',
   join: '참여',
+  pin: '핀',
 };
 
 const Ranking = () => {
   const navigate = useNavigate();
   const { showLoading, hideLoading } = useLoading();
+  const { maps: activityAll } = useActivityDates();
 
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
-  const [ranking, setRanking] = useState<RankingEntry[]>([]);
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
 
-  const { maps: activityAll } = useActivityDates();
+  const isFirstRender = useRef(true);
+  const myRowRef = useRef<HTMLTableRowElement>(null);
+  const ym: YearMonth = getYearMonth();
   const activityMap = activityAll[String(CUR_YEAR)] ?? {};
   const todayYmd = toYmd(new Date());
   const raw = activityMap[String(CUR_MONTHN)];
   const activityYmd = raw != null ? String(raw) : undefined;
   const timeAllowed = canEditTarget(todayYmd, activityYmd);
 
-  const isFirstRender = useRef(true);
-  const myRowRef = useRef<HTMLTableRowElement>(null);
-  const ym: YearMonth = getYearMonth();
+  const participantsAll = useActivityParticipants(
+    String(CUR_YEAR) as Year,
+    String(CUR_MONTHN) as Month,
+  );
+  const participants = rankingType === 'monthly' ? participantsAll : undefined;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const init = async () => {
+      if (isFirstRender.current) showLoading();
+      try {
+        const [usersData, currentId] = await Promise.all([
+          fetchAllUsers(),
+          getCurrentUserId(),
+        ]);
+        if (cancelled) return;
+        setUsers(usersData);
+        setMyId(currentId || null);
+      } catch {
+        if (!cancelled) navigate('/', { replace: true });
+      } finally {
+        if (isFirstRender.current && !cancelled) {
+          hideLoading();
+          isFirstRender.current = false;
+        }
+      }
+    };
+
+    init();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const ranking: RankingEntry[] = useMemo(() => {
+    if (!Object.keys(users).length) return [];
+    return mapUsersToRankingEntries(users, rankingType, participants).filter(
+      (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
+    );
+  }, [users, rankingType, participants]);
+
+  useEffect(() => {
+    if (!ranking.length) return;
+    const id = window.setTimeout(() => {
+      requestAnimationFrame(() =>
+        myRowRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        }),
+      );
+    }, 1500);
+    return () => window.clearTimeout(id);
+  }, [ranking]);
+
+  const meEntry = useMemo(
+    () => ranking.find((r) => r.empId === myId),
+    [ranking, myId],
+  );
 
   const {
     open: vsOpen,
@@ -87,71 +152,11 @@ const Ranking = () => {
     cooldownMs: 1000,
   });
 
-  const meEntry = useMemo(
-    () => ranking.find((r) => r.empId === myId),
-    [ranking, myId],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      if (isFirstRender.current) showLoading();
-      try {
-        const [usersData, currentId] = await Promise.all([
-          fetchAllUsers(),
-          getCurrentUserId(),
-        ]);
-        if (cancelled) return;
-
-        setUsers(usersData);
-
-        const entries = mapUsersToRankingEntries(usersData, rankingType).filter(
-          (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
-        );
-
-        setRanking(entries);
-        setMyId(currentId || null);
-      } catch {
-        if (!cancelled) navigate('/', { replace: true });
-      } finally {
-        if (isFirstRender.current && !cancelled) {
-          hideLoading();
-          isFirstRender.current = false;
-        }
-      }
-    };
-
-    fetchData();
-    return () => {
-      cancelled = true;
-    };
-  }, [rankingType, navigate, hideLoading, showLoading]);
-
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      if (!myRowRef.current) return;
-      requestAnimationFrame(() =>
-        myRowRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        }),
-      );
-    }, 1500);
-    return () => window.clearTimeout(id);
-  }, [ranking]);
-
   const {
     rivalName: resultRival,
     delta,
     result,
-  } = useRivalResult({
-    myId,
-    ym,
-    users,
-    activityYmd,
-    withinDays: 7,
-  });
+  } = useRivalResult({ myId, ym, users, activityYmd, withinDays: 7 });
 
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
     condition: !!resultRival && result !== 'none',
@@ -177,23 +182,28 @@ const Ranking = () => {
     [rankingType],
   );
 
-  const headerRow = useMemo(
-    () => (
+  const headerRow = useMemo(() => {
+    const keys =
+      rankingType === 'monthly'
+        ? // ? (['rank', 'name', 'avg', 'best', 'pin'] as const)
+          (['rank', 'name', 'avg', 'best', 'join'] as const)
+        : (['rank', 'name', 'avg', 'best', 'join'] as const);
+
+    return (
       <tr>
-        {Object.entries(HEADER_LABELS).map(([key, label]) => (
+        {keys.map((key) => (
           <th
             key={key}
             onClick={() =>
               handleHeaderClick(key as keyof typeof HEADER_TOAST_MAP)
             }
           >
-            {label}
+            {HEADER_LABELS[key]}
           </th>
         ))}
       </tr>
-    ),
-    [handleHeaderClick],
-  );
+    );
+  }, [rankingType, handleHeaderClick]);
 
   const renderRow = useCallback(
     (user: RankingEntry, idx: number) => {
@@ -236,7 +246,12 @@ const Ranking = () => {
             )}
           </td>
           <td>{user.max}</td>
-          <td>{user.games}</td>
+          <td>
+            {
+              // rankingType === 'monthly' ? user.pin : user.games
+              user.games
+            }
+          </td>
         </MotionTableRow>
       );
     },
@@ -281,13 +296,16 @@ const Ranking = () => {
               <TableContainer>
                 <StyledRankingTable>
                   <thead>{headerRow}</thead>
-                  <motion.tbody
-                    variants={listVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    {ranking.map(renderRow)}
-                  </motion.tbody>
+                  <tbody>
+                    <motion.div
+                      variants={listVariants}
+                      initial="hidden"
+                      animate="visible"
+                      style={{ display: 'contents' }}
+                    >
+                      {ranking.map(renderRow)}
+                    </motion.div>
+                  </tbody>
                 </StyledRankingTable>
               </TableContainer>
             </motion.div>
