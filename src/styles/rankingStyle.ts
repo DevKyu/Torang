@@ -105,7 +105,6 @@ export const MotionTableRow = styled(motion(StyledTableRow))<{
       background-repeat: no-repeat;
       background-size: 100% 1.5px;
       background-position: bottom;
-      filter: blur(0.2px);
     `}
 `;
 

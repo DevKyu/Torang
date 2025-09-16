@@ -25,9 +25,17 @@ const GlobalStyle = () => (
         color: inherit;
       }
 
-      a[x-apple-data-detectors] {
+      a[x-apple-data-detectors],
+      span[x-apple-data-detectors],
+      p[x-apple-data-detectors] {
         color: inherit !important;
         text-decoration: none !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-style: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+        -webkit-text-fill-color: inherit !important;
       }
 
       ul,
