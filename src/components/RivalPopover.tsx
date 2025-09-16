@@ -73,12 +73,12 @@ const RivalNamePopover = ({
     setBusy(true);
     try {
       await select(targetId);
-      showToast('라이벌을 지목했어요!');
+      showToast('핀 대결을 시작했어요!', '', 'pick');
       window.dispatchEvent(
         new CustomEvent('rival-picked', { detail: { targetId, targetName } }),
       );
     } catch (err: any) {
-      showToast(err.message || '라이벌 지목에 실패했습니다.');
+      showToast(err.message || '핀 대결에 실패했습니다.');
     } finally {
       setBusy(false);
     }
@@ -89,7 +89,7 @@ const RivalNamePopover = ({
     setBusy(true);
     try {
       await clear(targetId);
-      showToast('라이벌 지목을 해제했어요.');
+      showToast('핀 대결을 취소했어요.', '', 'unpick');
     } finally {
       setBusy(false);
     }
@@ -105,12 +105,12 @@ const RivalNamePopover = ({
           aria-haspopup="dialog"
           title={
             disabled
-              ? '라이벌 지목이 불가합니다'
+              ? '핀 대결을 할 수 없습니다.'
               : isSelected
-                ? '라이벌 해제 가능'
+                ? '핀 대결 취소 가능'
                 : reachedLimit
                   ? `최대 ${maxChoices}명까지 선택 가능`
-                  : '라이벌 지목'
+                  : '핀 대결 시작'
           }
           data-selected={isSelected ? 'true' : 'false'}
         >
@@ -140,7 +140,7 @@ const RivalNamePopover = ({
             {isSelected ? (
               <div>
                 <Row>
-                  <Label>현재 라이벌</Label>
+                  <Label>대결 상대</Label>
                   <Value>{targetName}</Value>
                 </Row>
                 <Actions>
@@ -154,7 +154,7 @@ const RivalNamePopover = ({
                       }
                       disabled={busy}
                     >
-                      해제
+                      취소
                     </SubtleButton>
                   </Popover.Close>
                 </Actions>
@@ -168,7 +168,7 @@ const RivalNamePopover = ({
             ) : (
               <div>
                 <Row>
-                  <Label>라이벌로 지목할까요?</Label>
+                  <Label>핀 대결을 시작할까요?</Label>
                 </Row>
                 <Actions>
                   <Popover.Close asChild>
@@ -181,7 +181,7 @@ const RivalNamePopover = ({
                       }
                       disabled={busy || !!disabled}
                     >
-                      지목
+                      확인
                     </PrimaryButton>
                   </Popover.Close>
                 </Actions>

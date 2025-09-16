@@ -11,14 +11,16 @@ import {
   getUsedItems,
   saveUsedItems,
   removeProductData,
-  logOut,
 } from '../services/firebase';
+import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import { Button, SmallText } from '../styles/commonStyle';
 import { Section, PinCount, PinNumber, UserName } from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
+import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../utils/date';
+import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
 type Product = {
   name: string;
@@ -35,46 +37,52 @@ const Reward = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { showLoading, showLoadingWithTimeout, hideLoading } = useLoading();
+  const { maps: activityMaps } = useActivityDates();
   const navigate = useNavigate();
+  const quarterYm = useMemo(() => getQuarterEndYm(), []);
+
+  const activityYmd = activityMaps[CUR_YEAR]?.[String(CUR_MONTHN)];
+  const isLocked = isBeforeOrOnActivityDate(activityYmd);
 
   useEffect(() => {
     const loadData = async () => {
       showLoadingWithTimeout();
       try {
         const [prod, user, savedUsedItems] = await Promise.all([
-          getProductData('202506'),
+          getProductData(quarterYm),
           getCurrentUserData(),
           getUsedItems(),
         ]);
 
         if (!user) {
-          toast.error('회원 정보를 불러오지 못했어요.');
+          toast.error('회원 정보를 불러오지 못했어요.', { id: 'no-user' });
           return;
         }
-        if (!user.pin || (user.pin < 1 && saveUsedItems.length == 0)) {
-          toast.warning('선택할 수 있는 상품이 없어요.');
+
+        if ((user.pin ?? 0) < 1 && savedUsedItems.size === 0) {
+          toast.warning('선택할 수 있는 상품이 없어요.', { id: 'no-products' });
         }
 
-        setProducts(prod);
+        setProducts(prod ?? []);
         setUserName(user.name);
         setPinCount(user.pin ?? 0);
         setUsedItems(savedUsedItems);
       } catch {
-        toast.error('데이터를 불러오지 못했어요.');
-        logOut();
-        navigate('/', { replace: true });
+        toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
       }
     };
 
     loadData();
   }, []);
 
-  const totalRequired = useMemo(() => {
-    return Array.from(selected).reduce((sum, index) => {
-      const product = products.find((p) => p.index === index);
-      return sum + (product?.requiredPins || 0);
-    }, 0);
-  }, [selected, products]);
+  const totalRequired = useMemo(
+    () =>
+      Array.from(selected).reduce((sum, index) => {
+        const product = products.find((p) => p.index === index);
+        return sum + (product?.requiredPins || 0);
+      }, 0),
+    [selected, products],
+  );
 
   const isValid = totalRequired <= pinCount;
 
@@ -105,7 +113,7 @@ const Reward = () => {
 
       await saveUsedItems(updatedUsedItems);
       await setUserPinData(product.requiredPins);
-      await removeProductData('202506', new Set([index]));
+      await removeProductData(quarterYm, new Set([index]));
 
       toast.info(`${product.name} 신청을 취소했어요.`);
     } catch {
@@ -117,13 +125,16 @@ const Reward = () => {
 
   const handleSubmit = async () => {
     if (isSubmitting || selected.size === 0) return;
-    if (!isValid) return toast.error('핀 개수가 부족해요.');
+    if (!isValid) {
+      toast.error('핀 개수가 부족해요.');
+      return;
+    }
 
     setIsSubmitting(true);
     showLoading();
 
     try {
-      await setProductData('202506', selected);
+      await setProductData(quarterYm, selected);
       await setUserPinData(-totalRequired);
       await saveUsedItems(new Set([...usedItems, ...selected]));
 
@@ -141,10 +152,10 @@ const Reward = () => {
   };
 
   return (
-    <Layout title="🎳또랑핀 교환🎳" padding="compact">
+    <Layout title="상품 신청" padding="compact">
       <Section>
         <PinCount>
-          <UserName>{userName}</UserName>님이 보유한 또랑핀 :{' '}
+          <UserName>{userName}</UserName>님 🎳 보유 또랑핀
           <PinNumber>{pinCount}개</PinNumber>
         </PinCount>
       </Section>
@@ -172,6 +183,7 @@ const Reward = () => {
                 usedItems={usedItems}
                 toggleSelect={toggleSelect}
                 willExceed={willExceed}
+                disabled={isLocked}
               />
             );
           })}
@@ -180,19 +192,17 @@ const Reward = () => {
 
       <Button
         onClick={handleSubmit}
-        disabled={!selected.size || !isValid || isSubmitting}
+        disabled={!selected.size || !isValid || isSubmitting || isLocked}
       >
         신청하기
       </Button>
+
       <SmallText
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        onClick={() => {
-          logOut();
-          navigate('/menu', { replace: true });
-        }}
+        onClick={() => navigate('/menu', { replace: true })}
       >
         돌아가기
       </SmallText>

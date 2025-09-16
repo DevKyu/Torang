@@ -3,7 +3,7 @@ import {
   ItemLabel,
   ItemInput,
   ItemWrapper,
-  ItemContent,
+  ItemName,
   Badge,
 } from '../styles/rewardStyle';
 
@@ -19,6 +19,7 @@ type ProductItemProps = {
   usedItems: Set<string>;
   toggleSelect: (index: string) => void;
   willExceed: boolean;
+  disabled?: boolean;
 };
 
 export const ProductItem = ({
@@ -27,10 +28,10 @@ export const ProductItem = ({
   usedItems,
   toggleSelect,
   willExceed,
+  disabled = false,
 }: ProductItemProps) => {
   const isSelected = selected.has(product.index);
-  const isUsed = usedItems.has(product.index);
-  const isDisabled = isUsed || willExceed;
+  const isDisabled = disabled || usedItems.has(product.index) || willExceed;
 
   return (
     <motion.div
@@ -40,7 +41,7 @@ export const ProductItem = ({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
     >
-      <ItemLabel disabled={isDisabled}>
+      <ItemLabel disabled={isDisabled} selected={isSelected}>
         <ItemWrapper>
           <ItemInput
             type="checkbox"
@@ -48,11 +49,9 @@ export const ProductItem = ({
             disabled={isDisabled}
             onChange={() => toggleSelect(product.index)}
           />
-          <ItemContent>
-            <span>{product.name}</span>
-            <Badge>{product.requiredPins}핀</Badge>
-          </ItemContent>
+          <ItemName>{product.name}</ItemName>
         </ItemWrapper>
+        <Badge>{product.requiredPins}핀</Badge>
       </ItemLabel>
     </motion.div>
   );

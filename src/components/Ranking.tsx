@@ -221,8 +221,14 @@ const Ranking = () => {
       const disabledBase =
         isMe || EXCLUDED_EMP_IDS.includes(user.empId) || !myId;
       const sameLeague = myLeague && user.league === myLeague;
+      const isParticipant =
+        rankingType === 'monthly' && participants?.includes(user.empId);
       const rivalUIEnabled =
-        rankingType === 'monthly' && timeAllowed && !disabledBase && sameLeague;
+        rankingType === 'monthly' &&
+        timeAllowed &&
+        !disabledBase &&
+        sameLeague &&
+        isParticipant;
 
       const isLeagueEnd =
         rankingType === 'monthly' &&

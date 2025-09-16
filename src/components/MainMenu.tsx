@@ -41,7 +41,8 @@ const menuItems: MenuItem[] = [
     id: 'reward',
     label: '상품 신청',
     icon: <GiftIcon size={20} />,
-    disabled: true,
+    disabled: false,
+    isSoon: true,
   },
   {
     id: 'draw',

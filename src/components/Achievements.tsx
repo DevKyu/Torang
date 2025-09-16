@@ -5,7 +5,11 @@ import confetti from 'canvas-confetti';
 
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
-import { getCurrentUserData, saveAchievements } from '../services/firebase';
+import {
+  getCurrentUserData,
+  incrementUserPins,
+  saveAchievements,
+} from '../services/firebase';
 import { checkAllAchievements } from '../utils/checkAllAchievements';
 
 import {
@@ -33,6 +37,7 @@ import {
 } from '../styles/achievementStyle';
 import { containerVariants, cardVariants } from '../styles/achievementVariants';
 import { Check } from 'lucide-react';
+import { showAchievementWithPinToast } from '../utils/toast';
 
 const getTodayYmd = (): number => {
   const d = new Date();
@@ -100,6 +105,8 @@ const Achievements = () => {
               ticks: 200,
               colors: ['#22c55e', '#3b82f6', '#facc15'],
             });
+            showAchievementWithPinToast(0.5);
+            await incrementUserPins(0.5);
             await saveAchievements(merged, String(todayYmd), true);
             setAchievements(merged);
           } else {
