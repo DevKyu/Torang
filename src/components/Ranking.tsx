@@ -216,7 +216,6 @@ const Ranking = () => {
 
   const renderRow = useCallback(
     (user: RankingEntry, idx: number) => {
-      const isTop3 = idx < 3;
       const isMe = user.empId === myId;
       const medal = MEDALS[idx] ?? String(idx + 1);
       const disabledBase =
@@ -225,13 +224,18 @@ const Ranking = () => {
       const rivalUIEnabled =
         rankingType === 'monthly' && timeAllowed && !disabledBase && sameLeague;
 
+      const isLeagueEnd =
+        rankingType === 'monthly' &&
+        idx < ranking.length - 1 &&
+        ranking[idx + 1].league !== user.league;
+
       return (
         <MotionTableRow
           key={user.empId}
           variants={itemVariants}
           highlight={isMe}
-          topRank={isTop3}
           ref={isMe ? myRowRef : undefined}
+          isLeagueEnd={isLeagueEnd}
         >
           <td>{medal}</td>
           <td>
@@ -249,7 +253,7 @@ const Ranking = () => {
             )}
           </td>
           <td>
-            {rankingType === 'quarter' ? (
+            {rankingType === 'monthly' ? (
               <RankingPopover user={user} />
             ) : (
               user.average

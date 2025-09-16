@@ -4,7 +4,7 @@ export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
   total: '전체',
   quarter: '분기',
   year: '연간',
-  monthly: '미션',
+  monthly: '월간',
 };
 
 export const HEADER_TOAST_MAP: Record<
@@ -17,7 +17,7 @@ export const HEADER_TOAST_MAP: Record<
   best: (label) => `🔥 최고 : ${label} 최고 점수`,
   join: (label) => `🎳 참여 : ${label} 참여 경기 수`,
   pin: () => `📌 핀 : 분기 또랑핀 갯수`,
-  league: () => `리그 : 소속된 리그`,
+  league: () => `🏆 리그 : 소속된 리그`,
 };
 
 export const EXCLUDED_EMP_IDS = ['20160000'];

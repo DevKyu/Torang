@@ -25,6 +25,11 @@ const GlobalStyle = () => (
         color: inherit;
       }
 
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+      }
+
       ul,
       ol {
         list-style: none;

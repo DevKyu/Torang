@@ -77,7 +77,6 @@ export const StyledRankingTable = styled.table`
 
 export const StyledTableRow = styled.tr<{
   highlight?: boolean;
-  topRank?: boolean;
 }>`
   display: table-row;
   background: ${({ highlight }) =>
@@ -85,16 +84,30 @@ export const StyledTableRow = styled.tr<{
   font-weight: ${({ highlight }) => (highlight ? '600' : 'normal')};
 
   &:hover {
-    background-color: ${({ highlight, topRank }) =>
-      highlight
-        ? colors.highlightHover
-        : topRank
-          ? colors.topRankHover
-          : colors.defaultHover};
+    background-color: ${({ highlight }) =>
+      highlight ? colors.highlightHover : colors.defaultHover};
   }
 `;
 
-export const MotionTableRow = motion.create(StyledTableRow);
+export const MotionTableRow = styled(motion(StyledTableRow))<{
+  isLeagueEnd?: boolean;
+}>`
+  ${({ isLeagueEnd }) =>
+    isLeagueEnd &&
+    `
+      border-bottom: none;
+      background-image: linear-gradient(
+        to right,
+        transparent,
+        rgba(209, 213, 219, 0.8),
+        transparent
+      );
+      background-repeat: no-repeat;
+      background-size: 100% 1.5px;
+      background-position: bottom;
+      filter: blur(0.2px);
+    `}
+`;
 
 export const FilterTabs = styled.div`
   display: flex;
