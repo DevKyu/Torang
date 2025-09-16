@@ -26,7 +26,6 @@ import {
   drawWinnerIfNotExists,
   preloadAllNames,
   getCachedUserName,
-  logOut,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
 import { ProductCard } from './ProductCard';
@@ -63,7 +62,6 @@ const Draw = () => {
         setProducts(raffleProduct);
         setCurrentEmpId(userId ?? '');
       } catch {
-        logOut();
         navigate('/', { replace: true });
       }
     };

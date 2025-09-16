@@ -228,7 +228,10 @@ const Achievements = () => {
           })}
         </GridScrollContainer>
 
-        <SmallText top="narrow" onClick={() => navigate('/myinfo')}>
+        <SmallText
+          top="narrow"
+          onClick={() => navigate('/myinfo', { replace: true })}
+        >
           돌아가기
         </SmallText>
       </MyInfoBox>

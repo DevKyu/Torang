@@ -173,7 +173,9 @@ const MyInfo = () => {
       <InfoRow>
         <LabelEmoji>🏅</LabelEmoji>
         <Label>업적</Label>
-        <BadgeButton onClick={() => navigate('/achievements')}>
+        <BadgeButton
+          onClick={() => navigate('/achievements', { replace: true })}
+        >
           업적 보기 <ChevronRight size={14} strokeWidth={2} />
         </BadgeButton>
       </InfoRow>

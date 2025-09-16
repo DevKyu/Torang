@@ -278,7 +278,7 @@ const Ranking = () => {
   return (
     <Container>
       <RankingContentBox maxWidth="480px">
-        <Title size="small">🏆 또랑 랭킹</Title>
+        <Title size="small">또랑 랭킹</Title>
 
         <FilterTabs>
           {availableTabs.map((type) => (
