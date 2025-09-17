@@ -162,7 +162,7 @@ const RivalNamePopover = ({
             ) : reachedLimit ? (
               <div>
                 <Row>
-                  <Label>최대 {maxChoices}명까지 선택 가능합니다</Label>
+                  <Label>최대 {maxChoices}명까지 선택 가능합니다.</Label>
                 </Row>
               </div>
             ) : (
