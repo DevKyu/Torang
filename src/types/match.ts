@@ -1,3 +1,5 @@
+export type MatchType = 'rival' | 'pin';
+
 export type TwoDigitMonth =
   | '01'
   | '02'

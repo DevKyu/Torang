@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { motion } from 'framer-motion';
 
-import { useRival } from '../hooks/useRival';
-import type { YearMonth } from '../types/rival';
+import { useMatch } from '../hooks/useMatch';
+import type { YearMonth } from '../types/match';
 import { showToast } from '../utils/toast';
 
 import {
@@ -15,33 +15,34 @@ import {
   PrimaryButton,
   SubtleButton,
   POPOVER_STYLE,
-} from '../styles/rivalPopoverStyle';
-import { popContentV } from '../styles/rivalVariants';
+} from '../styles/matchPopoverStyle';
+import { popContentV } from '../styles/matchVariants';
 
-export type RivalNamePopoverProps = {
+export type MatchNamePopoverProps = {
   ym: YearMonth;
   myId: string | null;
   targetId: string;
   targetName: string;
+  type: 'rival' | 'pin';
   disabled?: boolean;
   maxChoices?: number;
 };
 
-const RivalNamePopover = ({
+const MatchNamePopover = ({
   ym,
   myId,
   targetId,
   targetName,
+  type,
   disabled,
   maxChoices = 1,
-}: RivalNamePopoverProps) => {
+}: MatchNamePopoverProps) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const { choices, select, clear } = useRival(ym, myId, maxChoices);
+  const { choices, select, clear } = useMatch(ym, myId, type, maxChoices);
 
   const isSelected = useMemo(() => !!choices[targetId], [choices, targetId]);
-
   const reachedLimit = useMemo(
     () => Object.keys(choices).length >= maxChoices,
     [choices, maxChoices],
@@ -73,12 +74,16 @@ const RivalNamePopover = ({
     setBusy(true);
     try {
       await select(targetId);
-      showToast('핀 대결을 시작했어요!', '', 'pick');
+      showToast(
+        type === 'pin' ? '핀 대결을 시작했어요!' : '라이벌 대결을 시작했어요!',
+        '',
+        'pick',
+      );
       window.dispatchEvent(
-        new CustomEvent('rival-picked', { detail: { targetId, targetName } }),
+        new CustomEvent('match-picked', { detail: { targetId, targetName } }),
       );
     } catch (err: any) {
-      showToast(err.message || '핀 대결에 실패했습니다.');
+      showToast(err.message || '대결에 실패했습니다.');
     } finally {
       setBusy(false);
     }
@@ -89,7 +94,11 @@ const RivalNamePopover = ({
     setBusy(true);
     try {
       await clear(targetId);
-      showToast('핀 대결을 취소했어요.', '', 'unpick');
+      showToast(
+        type === 'pin' ? '핀 대결을 취소했어요.' : '라이벌 대결을 취소했어요.',
+        '',
+        'unpick',
+      );
     } finally {
       setBusy(false);
     }
@@ -105,12 +114,12 @@ const RivalNamePopover = ({
           aria-haspopup="dialog"
           title={
             disabled
-              ? '핀 대결을 할 수 없습니다.'
+              ? '대결을 할 수 없습니다.'
               : isSelected
-                ? '핀 대결 취소 가능'
+                ? '대결 취소 가능'
                 : reachedLimit
                   ? `최대 ${maxChoices}명까지 선택 가능`
-                  : '핀 대결 시작'
+                  : '대결 시작'
           }
           data-selected={isSelected ? 'true' : 'false'}
         >
@@ -168,7 +177,11 @@ const RivalNamePopover = ({
             ) : (
               <div>
                 <Row>
-                  <Label>핀 대결을 시작할까요?</Label>
+                  <Label>
+                    {type === 'pin'
+                      ? '핀 대결을 시작할까요?'
+                      : '라이벌 대결을 시작할까요?'}
+                  </Label>
                 </Row>
                 <Actions>
                   <Popover.Close asChild>
@@ -199,4 +212,4 @@ const RivalNamePopover = ({
   );
 };
 
-export default RivalNamePopover;
+export default MatchNamePopover;

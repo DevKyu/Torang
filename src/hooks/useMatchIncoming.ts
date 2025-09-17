@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
-import type { YearMonth } from '../types/rival';
-import type { UserInfo } from '../types/UserInfo';
 import { asYear, asMonth } from '../utils/score';
 import { getResultType, type Result } from '../utils/ranking';
+import type { UserInfo } from '../types/UserInfo';
+import type { YearMonth, MatchType } from '../types/match';
 
 export type Incoming = {
   name: string;
@@ -12,9 +12,10 @@ export type Incoming = {
   delta?: number;
 };
 
-export const useRivalIncoming = (
+export const useMatchIncoming = (
   ym: YearMonth,
   myId: string | null,
+  type: MatchType,
   users: Record<string, UserInfo>,
 ) => {
   const [incoming, setIncoming] = useState<Incoming[]>([]);
@@ -22,7 +23,7 @@ export const useRivalIncoming = (
   useEffect(() => {
     if (!ym || !myId) return;
 
-    const r = ref(db, `rivals/${ym}`);
+    const r = ref(db, `match/${ym}/${type}`);
     const off = onValue(r, (snap) => {
       if (!snap.exists()) {
         setIncoming([]);
@@ -39,15 +40,18 @@ export const useRivalIncoming = (
 
       const pickedMe: Incoming[] = [];
 
-      for (const [empId, rivals] of Object.entries(allUsers)) {
-        for (const [rivalId] of Object.entries(rivals)) {
-          if (rivalId === myId) {
-            const meScore = users[myId]?.scores?.[year]?.[month];
-            const rivalScore = users[empId]?.scores?.[year]?.[month];
+      for (const [empId, opponents] of Object.entries(allUsers)) {
+        for (const [opponentId] of Object.keys(opponents)) {
+          if (opponentId === myId) {
+            const myScore = users[myId]?.scores?.[year]?.[month];
+            const opponentScore = users[empId]?.scores?.[year]?.[month];
 
             let delta: number | undefined;
-            if (typeof meScore === 'number' && typeof rivalScore === 'number') {
-              delta = meScore - rivalScore;
+            if (
+              typeof myScore === 'number' &&
+              typeof opponentScore === 'number'
+            ) {
+              delta = myScore - opponentScore;
             }
 
             pickedMe.push({
@@ -63,7 +67,7 @@ export const useRivalIncoming = (
     });
 
     return () => off();
-  }, [ym, myId, users]);
+  }, [ym, myId, type, users]);
 
   return incoming;
 };

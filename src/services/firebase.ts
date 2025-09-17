@@ -15,9 +15,13 @@ import {
   set,
   runTransaction,
   update,
+  serverTimestamp,
+  child,
 } from 'firebase/database';
 import type { UserInfo } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
+import type { Result } from '../utils/ranking';
+import type { MatchType, YearMonth } from '../types/match';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -157,6 +161,12 @@ export const incrementUserPins = async (delta: number) => {
   });
 };
 
+export const incrementPinsByEmpId = async (empId: string, delta: number) => {
+  await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
+    return (current ?? 0) + delta;
+  });
+};
+
 // 8. 추첨 관련
 export const drawWinnerIfNotExists = async (
   yyyymm: string,
@@ -224,6 +234,56 @@ export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
   const snapshot = await get(ref(db, 'users'));
   if (!snapshot.exists()) return {};
   return snapshot.val();
+};
+
+export const saveMatchResult = async (
+  ym: YearMonth,
+  myId: string,
+  type: MatchType,
+  opponentId: string,
+  myScore: number,
+  opponentScore: number,
+  delta: number,
+  result: Result,
+) => {
+  const baseRef = ref(db, `matchResults/${ym}/${myId}/${type}`);
+  const snap = await get(baseRef);
+
+  let targetKey: string | null = null;
+
+  if (snap.exists()) {
+    const data = snap.val() as Record<string, any>;
+
+    const existing = Object.entries(data).find(
+      ([, rec]) => rec.opponentId === opponentId,
+    );
+
+    if (existing) {
+      const [key, rec] = existing;
+
+      if (rec.myScore === myScore && rec.opponentScore === opponentScore) {
+        return;
+      }
+
+      targetKey = key;
+    }
+  }
+
+  if (!targetKey) {
+    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+    targetKey = String(count + 1);
+  }
+
+  const targetRef = child(baseRef, targetKey);
+
+  await set(targetRef, {
+    opponentId,
+    myScore,
+    opponentScore,
+    delta,
+    result,
+    finalizedAt: serverTimestamp(),
+  });
 };
 
 // 12. 업적 관련

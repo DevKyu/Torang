@@ -89,7 +89,7 @@ export const StyledTableRow = styled.tr<{
   }
 `;
 
-export const MotionTableRow = styled(motion(StyledTableRow))<{
+export const MotionTableRow = styled(motion.create(StyledTableRow))<{
   isLeagueEnd?: boolean;
 }>`
   ${({ isLeagueEnd }) =>

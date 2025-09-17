@@ -33,6 +33,7 @@ import RadixSelect from '../components/RadixSelect';
 import MonthCell from './MonthCell';
 import TrendBlock from './TrendBlock';
 import CongratulationOverlay from './CongratulationOverlay';
+import { useUiStore } from '../stores/useUiStore';
 
 import {
   MyInfoContainer,
@@ -67,6 +68,8 @@ const MyInfo = () => {
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
   const activityMap = activityAll[String(year)] ?? {};
   const todayYmd = toYmd(new Date());
+
+  const { hasShownCongrats, setShownCongrats } = useUiStore();
 
   const { months, avgCur, avgPrev, validCount } = useQuarterStats(
     scores,
@@ -268,7 +271,7 @@ const MyInfo = () => {
       </MyInfoBox>
 
       <CongratulationOverlay
-        open={targetResult.show}
+        open={targetResult.show && !hasShownCongrats}
         mainResult={
           targetResult.special
             ? 'special'
@@ -290,7 +293,10 @@ const MyInfo = () => {
             : undefined
         }
         durationMs={2500}
-        onClose={() => targetResult.setShow(false)}
+        onClose={() => {
+          targetResult.setShow(false);
+          setShownCongrats();
+        }}
       />
     </MyInfoContainer>
   );

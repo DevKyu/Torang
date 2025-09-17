@@ -9,13 +9,13 @@ import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
 
 import RankingPopover from './RankingPopover';
-import RivalPopover from './RivalPopover';
-import RivalOverlay from './RivalOverlay';
+import MatchNamePopover from './MatchNamePopover';
+import MatchOverlay from './MatchOverlay';
 import CongratulationOverlay from './CongratulationOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import type { YearMonth } from '../types/rival';
+import type { YearMonth } from '../types/match';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
 import {
@@ -34,10 +34,10 @@ import {
   HEADER_TOAST_MAP,
   EXCLUDED_EMP_IDS,
 } from '../constants/ranking';
-import { useRivalPickedOverlay } from '../hooks/useRivalPickedOverlay';
-import { useRivalResult } from '../hooks/useRivalResult';
+import { useMatchPickedOverlay } from '../hooks/useMatchPickedOverlay';
+import { useMatchResult } from '../hooks/useMatchResult';
+import { useMatchIncoming } from '../hooks/useMatchIncoming';
 import { useCongratulation } from '../hooks/useCongratulation';
-import { useRivalIncoming } from '../hooks/useRivalIncoming';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
@@ -56,6 +56,8 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   pin: '핀',
   league: '리그',
 };
+
+const MATCH_TYPE: 'rival' | 'pin' = 'pin';
 
 const Ranking = () => {
   const navigate = useNavigate();
@@ -82,6 +84,7 @@ const Ranking = () => {
   const activityYmd = raw != null ? String(raw) : undefined;
   const timeAllowed = canEditTarget(todayYmd, activityYmd);
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
+
   useEffect(() => {
     let cancelled = false;
     const init = async () => {
@@ -107,11 +110,7 @@ const Ranking = () => {
   }, []);
 
   useEffect(() => {
-    if (participantsAll.length > 0) {
-      setRankingType('monthly');
-    } else {
-      setRankingType('quarter');
-    }
+    setRankingType(participantsAll.length > 0 ? 'monthly' : 'quarter');
   }, [participantsAll]);
 
   const ranking: RankingEntry[] = useMemo(() => {
@@ -142,45 +141,48 @@ const Ranking = () => {
 
   const {
     open: vsOpen,
-    rivalName: vsRivalName,
+    opponentName: opponent,
     deltaAvg: vsDeltaAvg,
     close: closeVs,
-  } = useRivalPickedOverlay({
+  } = useMatchPickedOverlay({
     rankingType,
-    ranking,
     myId,
+    ranking,
     enabled: rankingType === 'monthly' && timeAllowed,
     cooldownMs: 1000,
   });
 
-  const rivalResults = useRivalResult({
+  const matchResults = useMatchResult({
     myId,
     ym,
+    type: MATCH_TYPE,
     users,
     activityYmd,
     withinDays: 7,
   });
 
+  const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users);
+
   const resultMessages = useMemo(
     () =>
-      rivalResults
+      matchResults
         .map((res) => {
-          if (res.result === 'win') return `${res.rivalName}님을 이겼습니다!`;
-          if (res.result === 'lose') return `${res.rivalName}님에게 졌습니다.`;
-          if (res.result === 'draw') return `${res.rivalName}님과 무승부!`;
+          if (res.result === 'win')
+            return `${res.opponentName}님을 이겼습니다!`;
+          if (res.result === 'lose')
+            return `${res.opponentName}님에게 졌습니다.`;
+          if (res.result === 'draw') return `${res.opponentName}님과 무승부!`;
           return '';
         })
         .filter(Boolean),
-    [rivalResults],
+    [matchResults],
   );
 
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
-    condition: rivalResults.some((r) => r.result !== 'none'),
+    condition: matchResults.some((r) => r.result !== 'none'),
     activityYmd,
     withinDays: 7,
   });
-
-  const incoming = useRivalIncoming(ym, myId, users);
 
   const handleTabClick = useCallback((type: RankingType) => {
     setRankingType(type);
@@ -223,7 +225,7 @@ const Ranking = () => {
       const sameLeague = myLeague && user.league === myLeague;
       const isParticipant =
         rankingType === 'monthly' && participants?.includes(user.empId);
-      const rivalUIEnabled =
+      const matchUIEnabled =
         rankingType === 'monthly' &&
         timeAllowed &&
         !disabledBase &&
@@ -245,13 +247,14 @@ const Ranking = () => {
         >
           <td>{medal}</td>
           <td>
-            {rivalUIEnabled ? (
-              <RivalPopover
+            {matchUIEnabled ? (
+              <MatchNamePopover
                 ym={ym}
                 myId={myId}
                 targetId={user.empId}
                 targetName={user.name}
-                disabled={!rivalUIEnabled}
+                type={MATCH_TYPE}
+                disabled={!matchUIEnabled}
                 maxChoices={2}
               />
             ) : (
@@ -331,20 +334,21 @@ const Ranking = () => {
         </SmallText>
       </RankingContentBox>
 
-      <RivalOverlay
+      <MatchOverlay
         open={vsOpen}
         me={meEntry?.name ?? '나'}
-        rival={vsRivalName}
+        opponent={opponent}
         deltaAvg={vsDeltaAvg}
         onClose={closeVs}
         durationMs={2000}
+        type={MATCH_TYPE}
       />
 
       <CongratulationOverlay
         open={showCongrats}
-        mainResult={rivalResults.map((r) => r.result)}
+        mainResult={matchResults.map((r) => r.result)}
         message={resultMessages}
-        delta={rivalResults.map((r) => r.delta ?? 0)}
+        delta={matchResults.map((r) => r.delta ?? 0)}
         incoming={incoming}
         onClose={() => setShowCongrats(false)}
       />

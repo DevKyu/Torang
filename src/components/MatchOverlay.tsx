@@ -11,28 +11,36 @@ import {
   DeltaRow,
   DeltaLabel,
   DeltaValue,
-} from '../styles/rivalOverlayStyle';
-import { overlayV, cardV, fadeUp, itemV } from '../styles/rivalVariants';
+} from '../styles/matchOverlayStyle';
+import { overlayV, cardV, fadeUp, itemV } from '../styles/matchVariants';
+import type { MatchType } from '../types/match';
 
-export type RivalOverlayProps = {
+export type MatchOverlayProps = {
   open: boolean;
   me: string;
-  rival: string;
+  opponent: string;
   deltaAvg?: number;
   onClose: () => void;
-  durationMs?: number; // 기본 1400ms
+  durationMs?: number;
   dismissible?: boolean;
+  type?: MatchType;
 };
 
-const RivalOverlay = ({
+const TITLE_MAP = {
+  rival: '라이벌 매치',
+  pin: '핀 쟁탈전 매치',
+} as const;
+
+const MatchOverlay = ({
   open,
   me,
-  rival,
+  opponent,
   deltaAvg,
   onClose,
   durationMs = 1400,
   dismissible = true,
-}: RivalOverlayProps) => {
+  type = 'rival',
+}: MatchOverlayProps) => {
   const reduced = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +106,7 @@ const RivalOverlay = ({
             tabIndex={-1}
             ref={containerRef}
           >
-            <Header id={labelId}>핀 쟁탈전 매치</Header>
+            <Header id={labelId}>{TITLE_MAP[type]}</Header>
 
             <Names>
               <Name variants={itemV} custom={-1}>
@@ -107,8 +115,8 @@ const RivalOverlay = ({
               <VS variants={itemV} custom={0}>
                 VS
               </VS>
-              <Name className="rival" variants={itemV} custom={+1}>
-                {rival}
+              <Name className="opponent" variants={itemV} custom={+1}>
+                {opponent}
               </Name>
             </Names>
 
@@ -138,4 +146,4 @@ const RivalOverlay = ({
   );
 };
 
-export default RivalOverlay;
+export default MatchOverlay;

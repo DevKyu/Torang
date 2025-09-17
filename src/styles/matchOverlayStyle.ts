@@ -61,7 +61,7 @@ export const Name = styled(motion.div)`
   font-weight: 900;
   letter-spacing: 0.2px;
 
-  &.rival {
+  &.opponent {
     color: #f4da8b;
     text-shadow: 0 0 14px rgba(244, 218, 139, 0.22);
   }

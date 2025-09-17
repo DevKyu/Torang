@@ -1,4 +1,4 @@
-import type { TwoDigitMonth, YearMonth } from '../types/rival';
+import type { TwoDigitMonth, YearMonth } from '../types/match';
 
 export const getTodayYmd = (d = new Date()): number => {
   return Number(

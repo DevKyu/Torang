@@ -1,6 +1,6 @@
-export const EVENT_RIVAL_PICKED = 'rival-picked' as const;
+export const EVENT_MATCH_PICKED = 'match-picked' as const;
 
-export type RivalPickedDetail = {
+export type MatchPickedDetail = {
   targetId: string;
   targetName: string;
 };
