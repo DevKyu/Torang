@@ -41,7 +41,7 @@ export const useMatchIncoming = (
       const pickedMe: Incoming[] = [];
 
       for (const [empId, opponents] of Object.entries(allUsers)) {
-        for (const [opponentId] of Object.keys(opponents)) {
+        for (const opponentId of Object.keys(opponents)) {
           if (opponentId === myId) {
             const myScore = users[myId]?.scores?.[year]?.[month];
             const opponentScore = users[empId]?.scores?.[year]?.[month];

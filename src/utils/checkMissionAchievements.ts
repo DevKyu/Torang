@@ -1,5 +1,6 @@
 import { getAllUserMatchResults, getCurrentUserId } from '../services/firebase';
 import type { AchievementResult } from '../types/achievement';
+import type { MatchType } from '../types/match';
 
 const START_YYYYMM = 202508;
 const getCurrentYyyymm = (): number => {
@@ -9,11 +10,11 @@ const getCurrentYyyymm = (): number => {
 
 type MatchResult = 'win' | 'lose' | 'draw';
 type MatchRecord = { result?: MatchResult };
-type UserMatchData = {
-  rival?: Record<string, MatchRecord>;
-  pin?: Record<string, MatchRecord>;
-};
-type AllMatchResults = Record<string, Record<string, UserMatchData>>;
+
+type AllMatchResults = Record<
+  string,
+  Record<MatchType, Record<string, Record<string, MatchRecord>>>
+>;
 
 export const checkMissionAchievements = async (
   existing: AchievementResult = {},
@@ -34,19 +35,20 @@ export const checkMissionAchievements = async (
     const numYm = Number(ym);
     if (numYm < START_YYYYMM || numYm > currentYyyymm) continue;
 
-    const userData = allData[ym]?.[empId];
-    if (!userData) continue;
+    const typeData = allData[ym];
+    const rivalMatches = typeData?.rival?.[empId];
+    const pinMatches = typeData?.pin?.[empId];
 
-    if (userData.rival && !rivalFirst) rivalFirst = ym;
-    if (userData.rival && !rivalWin) {
-      if (Object.values(userData.rival).some((m) => m.result === 'win')) {
+    if (rivalMatches && !rivalFirst) rivalFirst = ym;
+    if (rivalMatches && !rivalWin) {
+      if (Object.values(rivalMatches).some((m) => m.result === 'win')) {
         rivalWin = ym;
       }
     }
 
-    if (userData.pin && !pinFirst) pinFirst = ym;
-    if (userData.pin && !pinWin) {
-      if (Object.values(userData.pin).some((m) => m.result === 'win')) {
+    if (pinMatches && !pinFirst) pinFirst = ym;
+    if (pinMatches && !pinWin) {
+      if (Object.values(pinMatches).some((m) => m.result === 'win')) {
         pinWin = ym;
       }
     }

@@ -246,38 +246,18 @@ export const saveMatchResult = async (
   delta: number,
   result: Result,
 ) => {
-  const baseRef = ref(db, `matchResults/${ym}/${myId}/${type}`);
-  const snap = await get(baseRef);
+  const resultRef = ref(db, `matchResults/${ym}/${type}/${myId}/${opponentId}`);
 
-  let targetKey: string | null = null;
-
-  if (snap.exists()) {
-    const data = snap.val() as Record<string, any>;
-
-    const existing = Object.entries(data).find(
-      ([, rec]) => rec.opponentId === opponentId,
-    );
-
-    if (existing) {
-      const [key, rec] = existing;
-
-      if (rec.myScore === myScore && rec.opponentScore === opponentScore) {
-        return;
-      }
-
-      targetKey = key;
-    }
+  const snap = await get(resultRef);
+  if (
+    snap.exists() &&
+    snap.val().myScore === myScore &&
+    snap.val().opponentScore === opponentScore
+  ) {
+    return;
   }
 
-  if (!targetKey) {
-    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
-    targetKey = String(count + 1);
-  }
-
-  const targetRef = child(baseRef, targetKey);
-
-  await set(targetRef, {
-    opponentId,
+  await set(resultRef, {
     myScore,
     opponentScore,
     delta,
@@ -289,14 +269,24 @@ export const saveMatchResult = async (
 // 12. 업적 관련
 export const getUserMatchResults = async (
   yyyymm: string,
-): Promise<Record<string, any>> => {
+): Promise<Record<MatchType, Record<string, any>>> => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const snapshot = await get(ref(db, `matchResults/${yyyymm}/${empId}`));
-  return snapshot.exists() ? snapshot.val() : {};
+  const types: MatchType[] = ['rival', 'pin'];
+
+  const result = {} as Record<MatchType, Record<string, any>>;
+
+  for (const type of types) {
+    const snap = await get(ref(db, `matchResults/${yyyymm}/${type}/${empId}`));
+    if (snap.exists()) {
+      result[type] = snap.val();
+    }
+  }
+
+  return result;
 };
 
 export const getAllUserMatchResults = async (): Promise<
-  Record<string, any>
+  Record<string, Record<MatchType, Record<string, Record<string, any>>>>
 > => {
   const snapshot = await get(ref(db, 'matchResults'));
   return snapshot.exists() ? snapshot.val() : {};
