@@ -40,7 +40,7 @@ export const useTargetResult = (
     );
     const diffDays = todayYmd - Number(activityYmd);
 
-    if (diffDays < 0 || diffDays > withinDays) return;
+    if (diffDays <= 0 || diffDays > withinDays) return;
 
     const isSpecial = myScore === target;
     const isAchieved = myScore >= target;

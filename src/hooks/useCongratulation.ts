@@ -24,7 +24,7 @@ export const useCongratulation = ({
         Number(activityYmd.slice(6, 8)),
       );
       const diffDays = (Date.now() - actDate.getTime()) / 86400000;
-      if (diffDays < 0 || diffDays > withinDays) return;
+      if (diffDays < 1 || diffDays > withinDays) return;
     }
 
     setShow(true);

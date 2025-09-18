@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ref, onValue } from 'firebase/database';
-import { db, saveMatchResult } from '../services/firebase';
+import { ref, get } from 'firebase/database';
+import { db, saveMatchResult, getUserMatchResults } from '../services/firebase';
 import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
+import { applyPinChangeBatch } from '../utils/pin';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
 import type { YearMonth, MatchType } from '../types/match';
 
@@ -33,10 +34,10 @@ export const useMatchResult = ({
   const [results, setResults] = useState<MatchResult[]>([]);
 
   useEffect(() => {
-    if (!ym || !myId || !activityYmd) return;
+    const fetchData = async () => {
+      if (!ym || !myId || !activityYmd) return;
 
-    const r = ref(db, `match/${ym}/${type}/${myId}`);
-    const off = onValue(r, async (snap) => {
+      const snap = await get(ref(db, `match/${ym}/${type}/${myId}`));
       if (!snap.exists()) {
         setResults([]);
         return;
@@ -44,13 +45,12 @@ export const useMatchResult = ({
 
       const today = new Date();
       const todayYmd = Number(
-        `${today.getFullYear()}${String(today.getMonth() + 1).padStart(
-          2,
-          '0',
-        )}${String(today.getDate()).padStart(2, '0')}`,
+        `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(
+          today.getDate(),
+        ).padStart(2, '0')}`,
       );
       const diffDays = todayYmd - Number(activityYmd);
-      if (diffDays < 0 || diffDays > withinDays) {
+      if (diffDays <= 0 || diffDays > withinDays) {
         setResults([]);
         return;
       }
@@ -58,14 +58,20 @@ export const useMatchResult = ({
       const year = ym.slice(0, 4) as Year;
       const month = ym.slice(4, 6) as Month;
       const choices = snap.val() as Record<string, { chosenAt: number }>;
+      const opponentIds = Object.keys(choices);
+
+      const allMatchesByType = await getUserMatchResults(ym);
+      const allMatches = allMatchesByType[type] ?? {};
 
       const newResults: MatchResult[] = [];
+      const resultsMap: Record<string, Result> = {};
 
-      for (const opponentId of Object.keys(choices)) {
+      for (const opponentId of opponentIds) {
         const { opponentName, deltaAvg, myScore, opponentScore } =
           calcMatchMonthResult(myId, opponentId, users, year, month);
 
         const result = getResultType(deltaAvg);
+        resultsMap[opponentId] = result;
 
         newResults.push({
           opponentId,
@@ -75,7 +81,6 @@ export const useMatchResult = ({
         });
 
         if (
-          myId &&
           typeof myScore === 'number' &&
           typeof opponentScore === 'number' &&
           typeof deltaAvg === 'number'
@@ -93,10 +98,19 @@ export const useMatchResult = ({
         }
       }
 
-      setResults(newResults);
-    });
+      await applyPinChangeBatch(
+        ym,
+        myId,
+        type,
+        opponentIds,
+        resultsMap,
+        allMatches,
+      );
 
-    return () => off();
+      setResults(newResults);
+    };
+
+    fetchData();
   }, [myId, ym, type, users, activityYmd, withinDays]);
 
   return results;
