@@ -16,7 +16,6 @@ import {
   runTransaction,
   update,
   serverTimestamp,
-  child,
 } from 'firebase/database';
 import type { UserInfo } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
