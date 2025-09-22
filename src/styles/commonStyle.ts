@@ -16,7 +16,8 @@ export const ContentBox = styled.div<{
 }>`
   width: 90%;
   max-width: ${({ maxWidth }) => maxWidth || '400px'};
-  padding: ${({ padding }) => (padding === 'compact' ? '20px 32px' : '32px')};
+  padding: ${({ padding }) =>
+    padding === 'compact' ? '20px 32px' : padding === 'draw' ? '24px' : '32px'};
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 20px

@@ -165,7 +165,7 @@ const Draw = () => {
 
   return (
     <Container>
-      <ContentBox>
+      <ContentBox padding="draw">
         <Title size="medium">상품 추첨</Title>
 
         <HeaderWrapper>
