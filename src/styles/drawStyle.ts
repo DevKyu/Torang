@@ -1,122 +1,48 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
-export const DrawFlexGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
+const colors = {
+  bg: {
+    front: '#fafaf9',
+    back: '#fffdf5',
+    winner: '#fff8e1',
+  },
+  border: {
+    default: '#e5e7eb',
+    winner: '#facc15',
+  },
+  text: {
+    primary: '#333',
+    subtle: '#555',
+    hint: '#6b7280',
+    count: '#9ca3af',
+  },
+  badge: {
+    defaultBg: '#f3f4f6',
+    defaultText: '#444',
+    selfBg: '#2563eb',
+    selfText: '#fff',
+  },
+};
 
-  > div {
-    flex: 1 1 120px;
-    max-width: 140px;
-
-    @media (min-width: 480px) {
-      max-width: 160px;
-    }
-    @media (min-width: 768px) {
-      max-width: 180px;
-    }
-    @media (min-width: 1024px) {
-      max-width: 200px;
-    }
-  }
-`;
-
-export const CardContainer = styled.div`
-  aspect-ratio: 4 / 5;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-  cursor: pointer;
-
-  &:hover {
-    transform: scale(1.03);
-  }
-`;
-
-export const CardInner = styled(motion.div)`
-  position: relative;
-  height: 100%;
-  transform-style: preserve-3d;
-  border-radius: 12px;
-  perspective: 1000px;
-`;
-
-export const CardFace = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  padding-top: 27px;
-`;
-
-export const Front = styled(CardFace)`
-  background: #f9fafb;
-`;
-
-export const Back = styled(CardFace)<{ isWinner?: boolean }>`
-  background: ${({ isWinner }) => (isWinner ? '#fff0f0' : '#fffbe6')};
-  transform: rotateY(180deg);
-  border: ${({ isWinner }) => (isWinner ? '2px solid #ef4444' : 'none')};
-  box-shadow: ${({ isWinner }) =>
-    isWinner
-      ? '0 0 12px rgba(239, 68, 68, 0.5)'
-      : '0 4px 12px rgba(0, 0, 0, 0.05)'};
-`;
-
-export const Name = styled.h4`
-  font-size: 16px;
-  margin: 0 0 8px;
-`;
-
-export const HintText = styled(motion.span)`
-  margin-top: 6px;
-  font-size: 12px;
-  color: #999;
-`;
-
-export const CardBadge = styled.span`
-  font-size: 13px;
-  font-weight: bold;
-  padding: 4px 10px;
-  background-color: #eee;
-  border-radius: 999px;
-  color: #555;
-  margin: 0 auto;
-`;
-
-export const WinnerName = styled(motion.p)`
-  font-size: 16px;
-  color: #f97316;
-  font-weight: bold;
-  margin-top: 8px;
-`;
-
-export const CardGridWrapper = styled.div`
-  margin: 24px 16px 16px;
-`;
+const font = {
+  xs: '11px',
+  sm: '12px',
+  md: '14px',
+  lg: '15px',
+};
 
 export const ScrollableCardGridWrapper = styled.div`
-  max-height: 50vh;
+  max-height: 55vh;
   overflow-y: auto;
-  background: #fefefe;
-  border: 2px solid #f3f4f6;
-  border-radius: 12px;
-  box-shadow: inset 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  scroll-behavior: smooth;
-
+  padding: 8px 12px 12px;
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
   }
-
   position: relative;
+
   &:after {
     content: '';
     position: sticky;
@@ -126,37 +52,96 @@ export const ScrollableCardGridWrapper = styled.div`
   }
 `;
 
-export const StickyHeader = styled(motion.p)`
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  padding: 12px 16px;
-  font-weight: 600;
-  font-size: 14px;
-  color: #444;
-  border-bottom: 1px solid #eee;
-  text-align: center;
+export const DrawGridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  justify-content: center;
+  gap: 12px;
 `;
 
-export const CompletionMessage = styled(motion.p)`
-  text-align: center;
-  font-size: 16px;
-  color: #16a34a;
-  font-weight: bold;
-  margin: 12px;
+export const CardContainer = styled.div`
+  perspective: 1000px;
 `;
 
-export const FooterWrapper = styled.div`
-  margin-top: 16px;
+export const CardInner = styled(motion.div)`
+  position: relative;
+  width: 100%;
+  height: 160px;
+  transform-style: preserve-3d;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &:active {
+    scale: 1 !important;
+  }
+`;
+
+export const CardFace = styled.div`
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  gap: 6px;
+  padding: 10px;
+`;
+
+export const Front = styled(CardFace)`
+  background: ${colors.bg.front};
+  border: 1px solid ${colors.border.default};
+`;
+
+export const Back = styled(CardFace)<{ isWinner?: boolean }>`
+  transform: rotateY(180deg);
+  background: ${({ isWinner }) =>
+    isWinner ? colors.bg.winner : colors.bg.back};
+  border: 1px solid
+    ${({ isWinner }) =>
+      isWinner ? colors.border.winner : colors.border.default};
+  gap: 8px;
+
+  ${({ isWinner }) =>
+    isWinner && `box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);`}
+`;
+
+export const Name = styled.h4`
+  font-size: ${font.md};
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  color: ${colors.text.primary};
+`;
+
+export const HintText = styled(motion.span)`
+  font-size: ${font.sm};
+  color: ${colors.text.hint};
+`;
+
+export const CardBadge = styled.span`
+  font-size: ${font.sm};
+  font-weight: bold;
+  padding: 4px 10px;
+  background-color: ${colors.badge.defaultBg};
+  border-radius: 999px;
+  color: ${colors.badge.defaultText};
+`;
+
+export const WinnerName = styled(motion.p)`
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+  color: #f97316;
 `;
 
 export const SupporterCount = styled.p`
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
+  font-size: ${font.xs};
+  color: ${colors.text.count};
+  margin: 0;
 `;
 
 export const SupporterList = styled.div`
@@ -164,28 +149,70 @@ export const SupporterList = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
-  margin-top: 8px;
+  max-width: 100%;
 `;
 
 export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  background-color: ${({ isSelf }) => (isSelf ? '#dbeafe' : '#f3f4f6')};
-  color: ${({ isSelf }) => (isSelf ? '#1e40af' : '#444')};
+  font-size: ${font.xs};
+  padding: 3px 6px;
+  border-radius: 10px;
+  background-color: ${({ isSelf }) =>
+    isSelf ? colors.badge.selfBg : colors.badge.defaultBg};
+  color: ${({ isSelf }) =>
+    isSelf ? colors.badge.selfText : colors.badge.defaultText};
   font-weight: ${({ isSelf }) => (isSelf ? 'bold' : 'normal')};
 `;
 
 export const MoreText = styled.span`
-  font-size: 12px;
-  color: #6b7280;
-  background-color: #f3f4f6;
-  padding: 4px 8px;
-  border-radius: 12px;
-  margin-left: 4px;
+  font-size: ${font.xs};
+  color: ${colors.text.subtle};
+  background-color: ${colors.badge.defaultBg};
+  padding: 3px 6px;
+  border-radius: 10px;
   cursor: default;
 
   &:hover {
     background-color: #e5e7eb;
   }
+`;
+
+export const HeaderWrapper = styled.div`
+  min-height: 40px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const StickyHeader = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+`;
+
+export const CompletionMessage = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  color: #16a34a;
+  font-weight: bold;
+`;
+
+export const FooterWrapper = styled.div`
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;

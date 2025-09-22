@@ -65,3 +65,51 @@ export const showAchievementWithPinToast = (amount: number) => {
     );
   }, 1500);
 };
+
+const hiddenNamesBaseToast = {
+  position: 'top-center' as const,
+  style: {
+    backgroundColor: '#f9fafb',
+    color: '#1f2937',
+    borderRadius: '12px',
+    padding: '10px 16px',
+    fontSize: '0.9rem',
+  },
+};
+export const showHiddenNamesToast = (names?: string[]) => {
+  const safeNames = names ?? [];
+
+  toast.dismiss();
+
+  if (!safeNames.length) {
+    toast('🙅 추가 인원 없음', {
+      ...hiddenNamesBaseToast,
+      duration: 2000,
+      style: {
+        ...hiddenNamesBaseToast.style,
+        backgroundColor: '#fef2f2',
+        color: '#b91c1c',
+        fontWeight: 600,
+      },
+    });
+    return;
+  }
+
+  toast(
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span>👥 숨겨진 신청자</span>
+      <span style={{ fontSize: '0.8rem', color: '#374151' }}>
+        {safeNames.join(', ')}
+      </span>
+    </div>,
+    {
+      ...hiddenNamesBaseToast,
+      duration: 3000,
+      style: {
+        ...hiddenNamesBaseToast.style,
+        backgroundColor: '#fff7ed',
+        color: '#9a3412',
+      },
+    },
+  );
+};

@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import {
   CardInner,
   CardBadge,
@@ -14,6 +13,7 @@ import {
 } from '../styles/drawStyle';
 
 import { getCachedUserName } from '../services/firebase';
+import { showHiddenNamesToast } from '../utils/toast';
 
 type Props = {
   productName: string;
@@ -35,49 +35,43 @@ export const ProductCard = ({
   const MAX_BADGES = 3;
   const visibleRaffle = (raffle ?? []).slice(0, MAX_BADGES);
   const hiddenCount = raffle ? Math.max(raffle.length - MAX_BADGES, 0) : 0;
+
   const handleShowHiddenNames = () => {
-    toast.dismiss();
-    const names = raffle?.slice(MAX_BADGES).map(getCachedUserName).join(', ');
-    toast(names || '없음');
+    const names = raffle?.slice(MAX_BADGES).map(getCachedUserName);
+    showHiddenNamesToast(names);
   };
 
   const winnerAnimation = flipped
-    ? {
-        opacity: 1,
-        scale: [0.9, 1.3, 1],
-        rotate: [0, 2, 0],
-      }
+    ? { opacity: 1, scale: [0.9, 1.2, 1] }
     : { opacity: 0, scale: 0.9 };
 
   return (
     <CardInner
       animate={{ rotateY: flipped ? 180 : 0 }}
       initial={{ rotateY: 0 }}
-      transition={{ duration: 0.8, ease: [0.4, 0.2, 0.2, 1] }}
-      whileTap={{ scale: 0.97 }}
+      transition={{
+        duration: 0.55,
+        ease: [0.25, 0.1, 0.25, 1],
+      }}
     >
-      <Front style={{ backfaceVisibility: 'hidden' }}>
+      <Front>
         <Name>{productName}</Name>
         <HintText
           initial={{ opacity: 0.5 }}
-          animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.05, 1] }}
+          animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ repeat: Infinity, duration: 2 }}
         >
           클릭하여 결과 보기
         </HintText>
-
-        <SupporterCount>총 {raffle?.length}명 신청</SupporterCount>
+        <SupporterCount>총 {raffle?.length ?? 0}명 신청</SupporterCount>
       </Front>
 
       <Back isWinner={isWinner}>
         <CardBadge>🎉 {productName}</CardBadge>
         <WinnerName
-          initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={winnerAnimation}
-          transition={{
-            duration: 0.7,
-            ease: 'easeOut',
-          }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {winnerName || '없음'}
         </WinnerName>
@@ -88,9 +82,9 @@ export const ProductCard = ({
             </SupporterBadge>
           ))}
           {hiddenCount > 0 && (
-            <MoreText
-              onClick={handleShowHiddenNames}
-            >{`+${hiddenCount}명`}</MoreText>
+            <MoreText onClick={handleShowHiddenNames}>
+              +{hiddenCount}명
+            </MoreText>
           )}
         </SupporterList>
       </Back>
