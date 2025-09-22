@@ -3,8 +3,8 @@ import type { AchievementResult } from '../types/achievement';
 import {
   findFirstParticipationYm,
   findStreakYms,
-  getActiveYm,
   findScoreYms,
+  getActiveAchievementYm,
 } from '../utils/achievementHelpers';
 
 export const checkBaseAchievements = (
@@ -36,7 +36,10 @@ export const checkBaseAchievements = (
     ];
     for (const { m, k } of targets) {
       if (!existing[k]) {
-        results[k] = { achievedAt: getActiveYm(user.join!, m) };
+        const ym = getActiveAchievementYm(user.join, m);
+        if (ym) {
+          results[k] = { achievedAt: ym };
+        }
       }
     }
   }

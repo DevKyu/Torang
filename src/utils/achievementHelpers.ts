@@ -3,6 +3,11 @@ import type { UserScores } from '../types/UserInfo';
 
 export const today = (): string => new Date().toISOString().slice(0, 10);
 
+const todayYm = (): string => {
+  const d = new Date();
+  return formatYm(d.getFullYear(), d.getMonth() + 1);
+};
+
 const formatYm = (year: number, month: number): string =>
   `${year}${String(month).padStart(2, '0')}`;
 
@@ -116,4 +121,12 @@ export const findScoreYms = (
   }
 
   return achieved;
+};
+
+export const getActiveAchievementYm = (
+  joinYm: string,
+  months: number,
+): string | null => {
+  const targetYm = getActiveYm(joinYm, months);
+  return todayYm() >= targetYm ? targetYm : null;
 };
