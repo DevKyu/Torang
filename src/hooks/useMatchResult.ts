@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ref, get } from 'firebase/database';
-import { db, saveMatchResult, getUserMatchResults } from '../services/firebase';
+import { db, saveMatchResult } from '../services/firebase';
 import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
 import { applyPinChangeBatch } from '../utils/pin';
@@ -19,8 +19,10 @@ type Params = {
 export type MatchResult = {
   opponentId: string;
   opponentName: string;
-  delta?: number;
+  delta: number;
   result: Result;
+  myScore: number;
+  opponentScore: number;
 };
 
 export const useMatchResult = ({
@@ -31,15 +33,17 @@ export const useMatchResult = ({
   activityYmd,
   withinDays = 7,
 }: Params) => {
-  const [results, setResults] = useState<MatchResult[]>([]);
+  const [results, setResults] = useState<MatchResult[] | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       if (!ym || !myId || !activityYmd) return;
 
       const snap = await get(ref(db, `match/${ym}/${type}/${myId}`));
       if (!snap.exists()) {
-        setResults([]);
+        if (!cancelled) setResults([]);
         return;
       }
 
@@ -51,7 +55,7 @@ export const useMatchResult = ({
       );
       const diffDays = todayYmd - Number(activityYmd);
       if (diffDays <= 0 || diffDays > withinDays) {
-        setResults([]);
+        if (!cancelled) setResults([]);
         return;
       }
 
@@ -60,57 +64,64 @@ export const useMatchResult = ({
       const choices = snap.val() as Record<string, { chosenAt: number }>;
       const opponentIds = Object.keys(choices);
 
-      const allMatchesByType = await getUserMatchResults(ym);
-      const allMatches = allMatchesByType[type] ?? {};
-
       const newResults: MatchResult[] = [];
-      const resultsMap: Record<string, Result> = {};
 
       for (const opponentId of opponentIds) {
         const { opponentName, deltaAvg, myScore, opponentScore } =
           calcMatchMonthResult(myId, opponentId, users, year, month);
 
+        if (
+          typeof myScore !== 'number' ||
+          typeof opponentScore !== 'number' ||
+          typeof deltaAvg !== 'number'
+        ) {
+          continue;
+        }
+
         const result = getResultType(deltaAvg);
-        resultsMap[opponentId] = result;
 
         newResults.push({
           opponentId,
           opponentName: opponentName ?? opponentId,
           delta: deltaAvg,
           result,
+          myScore,
+          opponentScore,
         });
-
-        if (
-          typeof myScore === 'number' &&
-          typeof opponentScore === 'number' &&
-          typeof deltaAvg === 'number'
-        ) {
-          await saveMatchResult(
-            ym,
-            myId,
-            type,
-            opponentId,
-            myScore,
-            opponentScore,
-            deltaAvg,
-            result,
-          );
-        }
       }
 
-      await applyPinChangeBatch(
-        ym,
-        myId,
-        type,
-        opponentIds,
-        resultsMap,
-        allMatches,
-      );
+      if (!cancelled) setResults(newResults);
 
-      setResults(newResults);
+      (async () => {
+        try {
+          await Promise.all(
+            newResults.map(
+              async ({ opponentId, myScore, opponentScore, delta, result }) => {
+                await saveMatchResult(
+                  ym,
+                  myId!,
+                  type,
+                  opponentId,
+                  myScore,
+                  opponentScore,
+                  delta,
+                  result,
+                );
+              },
+            ),
+          );
+
+          await applyPinChangeBatch(ym, myId!, type, newResults);
+        } catch (err) {
+          console.error('DB update error:', err);
+        }
+      })();
     };
 
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [myId, ym, type, users, activityYmd, withinDays]);
 
   return results;

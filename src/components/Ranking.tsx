@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { getCurrentUserId, fetchAllUsers } from '../services/firebase';
-import { mapUsersToRankingEntries } from '../utils/ranking';
+import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
 import { getYearMonth } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
@@ -34,6 +34,8 @@ import {
   HEADER_TOAST_MAP,
   EXCLUDED_EMP_IDS,
 } from '../constants/ranking';
+import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
+
 import { useMatchPickedOverlay } from '../hooks/useMatchPickedOverlay';
 import { useMatchResult } from '../hooks/useMatchResult';
 import { useMatchIncoming } from '../hooks/useMatchIncoming';
@@ -41,7 +43,6 @@ import { useCongratulation } from '../hooks/useCongratulation';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
-import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
@@ -163,26 +164,40 @@ const Ranking = () => {
 
   const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users);
 
-  const resultMessages = useMemo(
-    () =>
-      matchResults
-        .map((res) => {
-          if (res.result === 'win')
-            return `${res.opponentName}님을 이겼습니다!`;
-          if (res.result === 'lose')
-            return `${res.opponentName}님에게 졌습니다.`;
-          if (res.result === 'draw') return `${res.opponentName}님과 무승부!`;
-          return '';
-        })
-        .filter(Boolean),
-    [matchResults],
-  );
+  const resultMessages = useMemo(() => {
+    if (!matchResults || matchResults.length === 0) return [];
+    return matchResults
+      .map((res) => {
+        if (res.result === 'win') return `${res.opponentName}님을 이겼습니다!`;
+        if (res.result === 'lose') return `${res.opponentName}님에게 졌습니다.`;
+        if (res.result === 'draw') return `${res.opponentName}님과 무승부!`;
+        return '';
+      })
+      .filter(Boolean);
+  }, [matchResults]);
+
+  const hasMatchResults =
+    matchResults !== null && matchResults.some((r) => r.result !== 'none');
+  const hasIncoming = incoming.length > 0;
 
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
-    condition: matchResults.some((r) => r.result !== 'none'),
+    condition: matchResults !== null && (hasMatchResults || hasIncoming),
     activityYmd,
     withinDays: 7,
   });
+
+  const mainResults: Result[] = hasMatchResults
+    ? matchResults!.map((r) => r.result)
+    : (['none'] as const);
+
+  const deltas = hasMatchResults ? matchResults!.map((r) => r.delta ?? 0) : [];
+
+  const messagesSafe =
+    resultMessages.length > 0
+      ? resultMessages
+      : hasIncoming
+        ? ['이번 매치에 참여하지 않았어요.']
+        : [];
 
   const handleTabClick = useCallback((type: RankingType) => {
     setRankingType(type);
@@ -346,9 +361,9 @@ const Ranking = () => {
 
       <CongratulationOverlay
         open={showCongrats}
-        mainResult={matchResults.map((r) => r.result)}
-        message={resultMessages}
-        delta={matchResults.map((r) => r.delta ?? 0)}
+        mainResult={mainResults}
+        message={messagesSafe}
+        delta={deltas}
         incoming={incoming}
         onClose={() => setShowCongrats(false)}
       />
