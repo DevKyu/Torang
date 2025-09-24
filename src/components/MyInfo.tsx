@@ -279,13 +279,13 @@ const MyInfo = () => {
               ? 'win'
               : 'lose'
         }
-        message={
+        message={[
           targetResult.special
             ? `목표와 동일한 점수 달성!`
             : targetResult.achieved
               ? `목표 달성!`
-              : `목표 미달성`
-        }
+              : `목표 미달성`,
+        ]}
         score={targetResult.myScore}
         delta={
           targetResult.myScore && targetResult.target
