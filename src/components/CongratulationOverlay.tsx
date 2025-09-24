@@ -83,7 +83,7 @@ const CongratulationOverlay = ({
 
     const t = window.setTimeout(onClose, durationMs);
 
-    if ((safeResult === 'win' || safeResult === 'special') && isTargetCase) {
+    if (safeResult === 'win') {
       requestAnimationFrame(() => {
         confetti({
           particleCount: 60,
