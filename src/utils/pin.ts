@@ -3,6 +3,7 @@ import { db, incrementPinsByEmpId } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';
+import { showMatchWithPinToast } from './toast';
 
 export const applyPinChangeBatch = async (
   ym: YearMonth,
@@ -13,6 +14,7 @@ export const applyPinChangeBatch = async (
 ) => {
   const updates: Record<string, any> = {};
   const pinOps: Promise<void>[] = [];
+  let gainedPins = 0;
 
   await Promise.all(
     results.map(async ({ opponentId, result }) => {
@@ -29,6 +31,7 @@ export const applyPinChangeBatch = async (
       if (alreadyUpdated) return;
 
       if (result === 'win') {
+        gainedPins += pinDelta;
         pinOps.push(incrementPinsByEmpId(myId, +pinDelta));
         const oppPin = oppPinSnap.exists() ? Number(oppPinSnap.val()) : 0;
         if (oppPin > 0) {
@@ -46,6 +49,10 @@ export const applyPinChangeBatch = async (
 
   if (pinOps.length > 0) {
     await Promise.all(pinOps);
+
+    if (gainedPins > 0) {
+      showMatchWithPinToast(gainedPins);
+    }
   }
 };
 
