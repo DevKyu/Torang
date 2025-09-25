@@ -13,49 +13,40 @@ export const applyPinChangeBatch = async (
   pinDelta: number = 0.5,
 ) => {
   const updates: Record<string, any> = {};
-  const pinOps: Promise<void>[] = [];
   let gainedPins = 0;
 
-  await Promise.all(
-    results.map(async ({ opponentId, result }) => {
-      const pinPath = `matchResults/${ym}/${type}/${myId}/${opponentId}/pinUpdated`;
-      const pinRef = ref(db, pinPath);
+  for (const { opponentId, result } of results) {
+    const pinPath = `matchResults/${ym}/${type}/${myId}/${opponentId}/pinUpdated`;
+    const pinRef = ref(db, pinPath);
 
-      const [pinUpdatedSnap, oppPinSnap] = await Promise.all([
-        get(pinRef),
-        get(ref(db, `users/${opponentId}/pin`)),
-      ]);
+    const [pinUpdatedSnap, oppPinSnap] = await Promise.all([
+      get(pinRef),
+      get(ref(db, `users/${opponentId}/pin`)),
+    ]);
 
-      const alreadyUpdated =
-        pinUpdatedSnap.exists() && pinUpdatedSnap.val() === true;
-      if (alreadyUpdated) return;
+    const alreadyUpdated =
+      pinUpdatedSnap.exists() && pinUpdatedSnap.val() === true;
+    if (alreadyUpdated) continue;
 
-      if (result === 'win') {
-        gainedPins += pinDelta;
+    if (result === 'win') {
+      gainedPins += pinDelta;
+      await incrementPinsByEmpId(myId, +pinDelta);
 
-        pinOps.push(incrementPinsByEmpId(myId, +pinDelta));
-
-        const oppPin = oppPinSnap.exists() ? Number(oppPinSnap.val()) : 0;
-        if (oppPin > 0) {
-          const deductAmount = oppPin >= pinDelta ? pinDelta : oppPin;
-          pinOps.push(incrementPinsByEmpId(opponentId, -deductAmount));
-        }
+      const oppPin = Number(oppPinSnap.val() ?? 0);
+      if (oppPin >= pinDelta) {
+        await incrementPinsByEmpId(opponentId, -pinDelta);
       }
+    }
 
-      updates[pinPath] = true;
-    }),
-  );
+    updates[pinPath] = true;
+  }
 
   if (Object.keys(updates).length > 0) {
     await update(ref(db), updates);
   }
 
-  if (pinOps.length > 0) {
-    await Promise.all(pinOps);
-
-    if (gainedPins > 0) {
-      showMatchWithPinToast(gainedPins);
-    }
+  if (gainedPins > 0) {
+    showMatchWithPinToast(gainedPins);
   }
 };
 
