@@ -162,7 +162,8 @@ export const incrementUserPins = async (delta: number) => {
 
 export const incrementPinsByEmpId = async (empId: string, delta: number) => {
   await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
-    return (current ?? 0) + delta;
+    const newValue = (current ?? 0) + delta;
+    return Math.max(0, newValue);
   });
 };
 

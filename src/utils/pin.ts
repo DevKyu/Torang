@@ -32,10 +32,13 @@ export const applyPinChangeBatch = async (
 
       if (result === 'win') {
         gainedPins += pinDelta;
+
         pinOps.push(incrementPinsByEmpId(myId, +pinDelta));
+
         const oppPin = oppPinSnap.exists() ? Number(oppPinSnap.val()) : 0;
         if (oppPin > 0) {
-          pinOps.push(incrementPinsByEmpId(opponentId, -pinDelta));
+          const deductAmount = oppPin >= pinDelta ? pinDelta : oppPin;
+          pinOps.push(incrementPinsByEmpId(opponentId, -deductAmount));
         }
       }
 
