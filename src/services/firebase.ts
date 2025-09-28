@@ -21,6 +21,7 @@ import type { UserInfo } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
+import type { ProductBundle } from '../types/Product';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -107,6 +108,23 @@ export const getProductData = async (yyyymm: string) => {
 export const getProductDataWithRaffle = async (yyyymm: string) => {
   const all = await getProductData(yyyymm);
   return all?.filter((product: any) => product.raffle?.length > 0);
+};
+
+export const getProductBundle = async (
+  yyyymm: string,
+): Promise<ProductBundle> => {
+  const snapshot = await get(ref(db, `products/${yyyymm}`));
+
+  if (!snapshot.exists()) {
+    return { items: [], meta: {} };
+  }
+
+  const data = snapshot.val();
+
+  return {
+    items: Object.values(data.items ?? {}) as ProductBundle['items'],
+    meta: (data.meta ?? {}) as ProductBundle['meta'],
+  };
 };
 
 export const setProductData = async (yyyymm: string, items: Set<string>) => {

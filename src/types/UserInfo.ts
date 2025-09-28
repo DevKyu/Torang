@@ -18,4 +18,5 @@ export type UserInfo = {
   type: 'Member' | 'Associate';
   scores?: UserScores;
   targets?: UserTargets;
+  usedItems?: string[];
 };

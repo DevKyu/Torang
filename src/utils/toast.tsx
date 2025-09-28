@@ -76,7 +76,10 @@ const hiddenNamesBaseToast = {
     fontSize: '0.9rem',
   },
 };
-export const showHiddenNamesToast = (names?: string[]) => {
+export const showHiddenNamesToast = (
+  productName?: string,
+  names?: string[],
+) => {
   const safeNames = names ?? [];
 
   toast.dismiss();
@@ -97,7 +100,9 @@ export const showHiddenNamesToast = (names?: string[]) => {
 
   toast(
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <span>👥 숨겨진 신청자</span>
+      <span>
+        👥 [{productName}] 신청자 ({safeNames.length}명)
+      </span>
       <span style={{ fontSize: '0.8rem', color: '#374151' }}>
         {safeNames.join(', ')}
       </span>
