@@ -1,13 +1,25 @@
 import { create } from 'zustand';
 
 type UiState = {
-  hasShownCongrats: boolean;
-  setShownCongrats: () => void;
-  resetShownCongrats: () => void;
+  hasShownCongrats: {
+    myInfo: boolean;
+    ranking: boolean;
+  };
+  setShownCongrats: (menu: 'myInfo' | 'ranking') => void;
+  resetShownCongrats: (menu: 'myInfo' | 'ranking') => void;
 };
 
 export const useUiStore = create<UiState>((set) => ({
-  hasShownCongrats: false,
-  setShownCongrats: () => set({ hasShownCongrats: true }),
-  resetShownCongrats: () => set({ hasShownCongrats: false }),
+  hasShownCongrats: {
+    myInfo: false,
+    ranking: false,
+  },
+  setShownCongrats: (menu) =>
+    set((state) => ({
+      hasShownCongrats: { ...state.hasShownCongrats, [menu]: true },
+    })),
+  resetShownCongrats: (menu) =>
+    set((state) => ({
+      hasShownCongrats: { ...state.hasShownCongrats, [menu]: false },
+    })),
 }));

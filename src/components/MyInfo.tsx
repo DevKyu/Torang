@@ -70,6 +70,7 @@ const MyInfo = () => {
   const todayYmd = toYmd(new Date());
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
+  const hasMyInfoCongrats = hasShownCongrats.myInfo;
 
   const { months, avgCur, avgPrev, validCount } = useQuarterStats(
     scores,
@@ -271,7 +272,7 @@ const MyInfo = () => {
       </MyInfoBox>
 
       <CongratulationOverlay
-        open={targetResult.show && !hasShownCongrats}
+        open={targetResult.show && !hasMyInfoCongrats}
         mainResult={
           targetResult.special
             ? 'special'
@@ -295,7 +296,7 @@ const MyInfo = () => {
         durationMs={2500}
         onClose={() => {
           targetResult.setShow(false);
-          setShownCongrats();
+          setShownCongrats('myInfo');
         }}
       />
     </MyInfoContainer>

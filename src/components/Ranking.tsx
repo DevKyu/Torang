@@ -43,6 +43,7 @@ import { useCongratulation } from '../hooks/useCongratulation';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { canEditTarget, toYmd } from '../utils/policy';
+import { useUiStore } from '../stores/useUiStore';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
@@ -85,6 +86,9 @@ const Ranking = () => {
   const activityYmd = raw != null ? String(raw) : undefined;
   const timeAllowed = canEditTarget(todayYmd, activityYmd);
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
+
+  const { hasShownCongrats, setShownCongrats } = useUiStore();
+  const hasRankingCongrats = hasShownCongrats.ranking;
 
   useEffect(() => {
     let cancelled = false;
@@ -360,12 +364,15 @@ const Ranking = () => {
       />
 
       <CongratulationOverlay
-        open={showCongrats}
+        open={showCongrats && !hasRankingCongrats}
         mainResult={mainResults}
         message={messagesSafe}
         delta={deltas}
         incoming={incoming}
-        onClose={() => setShowCongrats(false)}
+        onClose={() => {
+          setShowCongrats(false);
+          setShownCongrats('ranking');
+        }}
       />
     </Container>
   );
