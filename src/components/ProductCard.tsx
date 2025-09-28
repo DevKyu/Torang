@@ -2,7 +2,7 @@ import {
   CardInner,
   CardBadge,
   Name,
-  WinnerName,
+  WinnerNames,
   HintText,
   Front,
   Back,
@@ -10,40 +10,42 @@ import {
   SupporterBadge,
   SupporterList,
   MoreText,
+  WinnerNameItem,
 } from '../styles/drawStyle';
 
 import { getCachedUserName } from '../services/firebase';
 import { showHiddenNamesToast } from '../utils/toast';
 
+const MAX_BADGES = 0;
+
 type Props = {
   productName: string;
-  winnerName?: string;
+  winners?: string[];
+  supplement?: string[];
   flipped: boolean;
   isWinner?: boolean;
   raffle?: string[];
   currentEmpId: string;
+  isBonus: boolean;
 };
 
 export const ProductCard = ({
   productName,
-  winnerName,
+  winners = [],
+  supplement = [],
   flipped,
   isWinner,
   raffle,
   currentEmpId,
+  isBonus,
 }: Props) => {
-  const MAX_BADGES = 3;
   const visibleRaffle = (raffle ?? []).slice(0, MAX_BADGES);
   const hiddenCount = raffle ? Math.max(raffle.length - MAX_BADGES, 0) : 0;
 
   const handleShowHiddenNames = () => {
     const names = raffle?.slice(MAX_BADGES).map(getCachedUserName);
-    showHiddenNamesToast(names);
+    showHiddenNamesToast(productName, names);
   };
-
-  const winnerAnimation = flipped
-    ? { opacity: 1, scale: [0.9, 1.2, 1] }
-    : { opacity: 0, scale: 0.9 };
 
   return (
     <CardInner
@@ -63,33 +65,59 @@ export const ProductCard = ({
         >
           클릭하여 결과 보기
         </HintText>
-        <SupporterCount>총 {raffle?.length ?? 0}명 신청</SupporterCount>
+
+        {isBonus ? (
+          <SupporterCount>미당첨자 중 추첨</SupporterCount>
+        ) : (
+          <SupporterCount>총 {raffle?.length ?? 0}명 신청</SupporterCount>
+        )}
       </Front>
 
       <Back isWinner={isWinner}>
         <CardBadge>🎉 {productName}</CardBadge>
-        <WinnerName
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={winnerAnimation}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        >
-          {winnerName || '없음'}
-        </WinnerName>
+
+        <WinnerNames count={winners.length}>
+          {winners.length === 0 ? (
+            <WinnerNameItem
+              className="empty"
+              count={0}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              없음
+            </WinnerNameItem>
+          ) : (
+            winners.map((id) => (
+              <WinnerNameItem
+                key={id}
+                count={winners.length}
+                isSupplement={supplement.includes(id)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={
+                  flipped
+                    ? { opacity: 1, scale: [0.9, 1.2, 1] }
+                    : { opacity: 0, scale: 0.9 }
+                }
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+              >
+                {getCachedUserName(id)}
+              </WinnerNameItem>
+            ))
+          )}
+        </WinnerNames>
+
         <SupporterList>
-          {visibleRaffle?.map((id) => (
+          {visibleRaffle.map((id) => (
             <SupporterBadge key={id} isSelf={id === currentEmpId}>
               {getCachedUserName(id)}
             </SupporterBadge>
           ))}
           {hiddenCount > 0 && (
-            <MoreText onClick={handleShowHiddenNames}>
-              +{hiddenCount}명
-            </MoreText>
+            <MoreText onClick={handleShowHiddenNames}>신청자 보기</MoreText>
           )}
         </SupporterList>
       </Back>
     </CardInner>
   );
 };
-
-export default ProductCard;

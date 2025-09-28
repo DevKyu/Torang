@@ -130,12 +130,33 @@ export const CardBadge = styled.span`
   color: ${colors.badge.defaultText};
 `;
 
-export const WinnerName = styled(motion.p)`
-  font-size: 15px;
-  font-weight: bold;
-  margin: 0;
+export const WinnerNames = styled.div<{ count: number }>`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: ${({ count }) => (count <= 2 ? '6px' : '4px')};
   text-align: center;
-  color: #f97316;
+  margin: 4px 0;
+`;
+
+export const WinnerNameItem = styled(motion.span)<{
+  count: number;
+  isSupplement?: boolean;
+}>`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  font-size: ${({ count }) => (count <= 3 ? '14px' : '13px')};
+  font-weight: 600;
+  color: ${({ isSupplement }) => (isSupplement ? '#3b82f6' : '#f59e0b')};
+
+  &.empty {
+    color: #9ca3af;
+    font-weight: 400;
+  }
 `;
 
 export const SupporterCount = styled.p`
@@ -149,7 +170,6 @@ export const SupporterList = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
-  max-width: 100%;
 `;
 
 export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
@@ -190,9 +210,8 @@ export const StickyHeader = styled(motion.div)`
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-weight: 600;
-  font-size: 14px;
+  font-size: ${font.md};
   color: #444;
   background: #fff;
   border-bottom: 1px solid #eee;
@@ -204,8 +223,7 @@ export const CompletionMessage = styled(motion.div)`
   display: flex;
   align-items: center;
   justify-content: center;
-
-  font-size: 15px;
+  font-size: ${font.lg};
   color: #16a34a;
   font-weight: bold;
 `;

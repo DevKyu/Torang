@@ -20,60 +20,67 @@ import {
 } from '../styles/drawStyle';
 
 import {
-  getProductDataWithRaffle,
+  getProductBundle,
   getCurrentUserId,
-  drawWinnerIfNotExists,
   preloadAllNames,
-  getCachedUserName,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
 import { ProductCard } from './ProductCard';
+import { ensureBatchWinners } from '../utils/ensureBatchWinners';
 
 type DrawState = 'waiting' | 'drawing' | 'done';
+
 type Product = {
   name: string;
   requiredPins: number;
   index: number;
   raffle?: string[];
-  winner?: string;
+  winners?: string[];
 };
 
-const EVENT_YYYMM = '202506';
+type SupplementMap = Record<number, string[]>;
+
+const EVENT_YYYMM = '202509';
 
 const Draw = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [supplement, setSupplement] = useState<SupplementMap>({});
   const [flippedSet, setFlippedSet] = useState<Set<number>>(new Set());
   const [drawState, setDrawState] = useState<DrawState>('waiting');
   const [currentEmpId, setCurrentEmpId] = useState<string>('');
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const { showLoadingWithTimeout } = useLoading();
+  const { showLoadingWithTimeout, hideLoading } = useLoading();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAndCache = async () => {
+    const init = async () => {
       showLoadingWithTimeout();
+
       try {
+        await ensureBatchWinners(EVENT_YYYMM, navigate);
+
         const userId = await getCurrentUserId();
-        const raffleProduct = await getProductDataWithRaffle(EVENT_YYYMM);
-        if (!raffleProduct) return;
+        const bundle = await getProductBundle(EVENT_YYYMM);
+        if (!bundle) return;
 
         await preloadAllNames();
-
-        setProducts(raffleProduct);
+        setProducts(bundle.items);
+        setSupplement(bundle.meta?.supplement ?? {});
         setCurrentEmpId(userId ?? '');
       } catch {
         navigate('/', { replace: true });
+      } finally {
+        hideLoading();
       }
     };
 
-    fetchAndCache();
+    init();
   }, []);
 
   const scrollToCard = (index: number) => {
     const el = cardRefs.current[index];
     const wrapper = scrollWrapperRef.current;
-
     if (!el || !wrapper) return;
 
     const targetOffset = el.offsetTop + el.offsetHeight / 2;
@@ -105,33 +112,19 @@ const Draw = () => {
     });
   };
 
-  const revealProduct = async (
-    product: Product,
-  ): Promise<string | undefined> => {
-    if (product.winner) return product.winner;
-
-    if (product.raffle?.length) {
-      return await drawWinnerIfNotExists(
-        EVENT_YYYMM,
-        product.index,
-        product.raffle,
-      );
-    }
-
-    return undefined;
-  };
-
   const handleFlip = async (index: number): Promise<void> => {
     if (flippedSet.has(index)) return;
 
     const product = products.find((p) => p.index === index);
     if (!product) return;
 
-    const winnerEmpId = await revealProduct(product);
+    const winnerIds = product.winners ?? [];
+    const supIds = supplement[product.index] ?? [];
 
     setProducts((prev) =>
-      prev.map((p) => (p.index === index ? { ...p, winner: winnerEmpId } : p)),
+      prev.map((p) => (p.index === index ? { ...p, winners: winnerIds } : p)),
     );
+
     setFlippedSet((prev) => {
       const newSet = new Set(prev);
       newSet.add(index);
@@ -145,7 +138,7 @@ const Draw = () => {
 
     scrollToCard(index);
 
-    if (winnerEmpId === currentEmpId) {
+    if (winnerIds.includes(currentEmpId) || supIds.includes(currentEmpId)) {
       fireConfettiAtCard(index);
     }
   };
@@ -194,27 +187,32 @@ const Draw = () => {
 
         <ScrollableCardGridWrapper ref={scrollWrapperRef}>
           <DrawGridContainer>
-            {products.map((product) => (
-              <CardContainer
-                key={product.index}
-                ref={(el) => {
-                  cardRefs.current[product.index] = el;
-                }}
-                onClick={() => {
-                  if (drawState !== 'waiting') return;
-                  handleFlip(product.index);
-                }}
-              >
-                <ProductCard
-                  productName={product.name}
-                  winnerName={getCachedUserName(product.winner || '')}
-                  flipped={flippedSet.has(product.index)}
-                  isWinner={product.winner === currentEmpId}
-                  raffle={product.raffle}
-                  currentEmpId={currentEmpId ?? ''}
-                />
-              </CardContainer>
-            ))}
+            {products.map((product) => {
+              const supIds = supplement[product.index] ?? [];
+              return (
+                <CardContainer
+                  key={product.index}
+                  ref={(el) => {
+                    cardRefs.current[product.index] = el;
+                  }}
+                  onClick={() => {
+                    if (drawState !== 'waiting') return;
+                    handleFlip(product.index);
+                  }}
+                >
+                  <ProductCard
+                    productName={product.name}
+                    winners={product.winners ?? []}
+                    supplement={supIds}
+                    flipped={flippedSet.has(product.index)}
+                    isWinner={product.winners?.includes(currentEmpId)}
+                    raffle={product.raffle}
+                    currentEmpId={currentEmpId ?? ''}
+                    isBonus={product.requiredPins === 0}
+                  />
+                </CardContainer>
+              );
+            })}
           </DrawGridContainer>
         </ScrollableCardGridWrapper>
 
