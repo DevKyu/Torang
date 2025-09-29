@@ -33,22 +33,20 @@ const menuItems: MenuItem[] = [
     id: 'rank',
     label: '또랑 랭킹',
     icon: <UsersIcon size={20} />,
-    isClose: true,
     disabled: false,
   },
   {
     id: 'reward',
     label: '상품 신청',
     icon: <GiftIcon size={20} />,
-    disabled: false,
-    isNew: true,
+    disabled: true,
   },
   {
     id: 'draw',
     label: '추첨 결과',
     icon: <TargetIcon size={20} />,
-    isSoon: true,
-    disabled: true,
+    isNew: true,
+    disabled: false,
   },
 ];
 
