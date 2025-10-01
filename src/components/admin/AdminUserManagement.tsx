@@ -130,13 +130,6 @@ const AdminUserManagement = () => {
     setSelectedUser(updated);
   };
 
-  const handleResetPin = async () => {
-    if (!selectedEmpId) return;
-    await resetAllUserPins(0);
-    const updated = await checkEmpId(selectedEmpId);
-    setSelectedUser(updated);
-  };
-
   const handleBulkReset = async () => {
     if (!window.confirm('⚠️ 전체 유저의 핀을 0으로 초기화하시겠습니까?'))
       return;
