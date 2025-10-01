@@ -125,6 +125,21 @@ const Ranking = () => {
     );
   }, [users, rankingType, participants]);
 
+  const hasQuarterData = useMemo(() => {
+    const entries = mapUsersToRankingEntries(
+      users,
+      'quarter',
+      undefined,
+    ).filter((entry) => !EXCLUDED_EMP_IDS.includes(entry.empId));
+    return entries.length > 0;
+  }, [users]);
+
+  useEffect(() => {
+    if (rankingType === 'quarter' && !hasQuarterData) {
+      setRankingType('total');
+    }
+  }, [rankingType, hasQuarterData]);
+
   useEffect(() => {
     if (!ranking.length) return;
     const id = window.setTimeout(() => {
@@ -295,13 +310,17 @@ const Ranking = () => {
     [rankingType, ym, myId, timeAllowed, myLeague],
   );
 
-  const availableTabs = useMemo(
-    () =>
+  const availableTabs = useMemo(() => {
+    let base =
       participantsAll.length > 0
         ? RANKING_TABS
-        : RANKING_TABS.filter((t) => t !== 'monthly'),
-    [participantsAll],
-  );
+        : RANKING_TABS.filter((t) => t !== 'monthly');
+
+    if (!hasQuarterData) {
+      base = base.filter((t) => t !== 'quarter');
+    }
+    return base;
+  }, [participantsAll, hasQuarterData]);
 
   return (
     <Container>

@@ -16,8 +16,9 @@ import {
   runTransaction,
   update,
   serverTimestamp,
+  remove,
 } from 'firebase/database';
-import type { UserInfo } from '../types/UserInfo';
+import type { Month, UserInfo, Year } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
@@ -96,6 +97,17 @@ export const getUsedItems = async (): Promise<Set<string>> => {
 export const saveUsedItems = async (items: Set<string>) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   await set(ref(db, `users/${empId}/usedItems`), [...items]);
+};
+
+export const addUser = async (empId: string, user: UserInfo) => {
+  const userRef = ref(db, `users/${empId}`);
+  const snapshot = await get(userRef);
+  if (snapshot.exists()) throw new Error('이미 존재하는 사번입니다.');
+  await set(userRef, user);
+};
+
+export const deleteUser = async (empId: string) => {
+  await remove(ref(db, `users/${empId}`));
 };
 
 // 6. 상품 관련
@@ -183,6 +195,20 @@ export const incrementPinsByEmpId = async (empId: string, delta: number) => {
     const newValue = (current ?? 0) + delta;
     return Math.max(0, newValue);
   });
+};
+
+export const resetAllUserPins = async (value: number = 0) => {
+  const snapshot = await get(ref(db, 'users'));
+  if (!snapshot.exists()) return;
+
+  const users = snapshot.val();
+  const updates: Record<string, any> = {};
+
+  Object.keys(users).forEach((empId) => {
+    updates[`users/${empId}/pin`] = value;
+  });
+
+  await update(ref(db), updates);
 };
 
 // 8. 추첨 관련
@@ -354,23 +380,65 @@ export const removeActivityParticipant = async (
   });
 };
 
-// 추후 변경 예정 (관리자)
-export const toggleDrawForAllUsers = async (
-  currentState: boolean,
-): Promise<boolean> => {
-  const newState = !currentState;
+// 14. 점수 관련
+export const getUserYearScores = async (
+  empId: string,
+  year: Year,
+): Promise<Partial<Record<Month, number>>> => {
+  const snap = await get(ref(db, `users/${empId}/scores/${year}`));
+  if (!snap.exists()) return {};
 
-  const snapshot = await get(ref(db, 'users'));
-  if (!snapshot.exists()) throw new Error('사용자 데이터가 없습니다.');
-  /* user > products+settings 이동 예정
-  const users = snapshot.val();
+  const data = snap.val();
+  const cleanData: Partial<Record<Month, number>> = {};
 
-  const updates: Record<string, any> = {};
-  Object.keys(users).forEach((empId) => {
-    updates[`users/${empId}/isDrawOpen`] = newState;
+  Object.entries(data).forEach(([month, val]) => {
+    if (typeof val === 'number') {
+      cleanData[month as Month] = val;
+    }
   });
 
-  await update(ref(db), updates);
-  */
-  return newState;
+  return cleanData;
+};
+
+export const getUserMonthScore = async (
+  empId: string,
+  year: Year,
+  month: Month,
+): Promise<number | undefined> => {
+  const snap = await get(ref(db, `users/${empId}/scores/${year}/${month}`));
+  return snap.exists() ? (snap.val() as number) : undefined;
+};
+
+export const setUserMonthScore = async (
+  empId: string,
+  year: Year,
+  month: Month,
+  score: number,
+) => {
+  await set(ref(db, `users/${empId}/scores/${year}/${month}`), score);
+};
+
+export const updateUserScores = async (
+  empId: string,
+  year: Year,
+  scores: Partial<Record<Month, number>>,
+) => {
+  const updates: Record<string, number> = {};
+  Object.entries(scores).forEach(([month, val]) => {
+    if (typeof val === 'number') {
+      updates[`users/${empId}/scores/${year}/${month}`] = val;
+    }
+  });
+
+  if (Object.keys(updates).length > 0) {
+    await update(ref(db), updates);
+  }
+};
+
+export const removeUserScore = async (
+  empId: string,
+  year: Year,
+  month: Month,
+): Promise<void> => {
+  await remove(ref(db, `users/${empId}/scores/${year}/${month}`));
 };

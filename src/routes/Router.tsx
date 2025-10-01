@@ -6,6 +6,7 @@ import Draw from '../components/Draw';
 import MyInfo from '../components/MyInfo';
 import Ranking from '../components/Ranking';
 import Achievements from '../components/Achievements';
+import AdminUserManagement from '../components/admin/AdminUserManagement';
 
 const Router = () => (
   <Routes>
@@ -16,6 +17,7 @@ const Router = () => (
     <Route path="/myinfo" element={<MyInfo />} />
     <Route path="/ranking" element={<Ranking />} />
     <Route path="/achievements" element={<Achievements />} />
+    <Route path="/admin" element={<AdminUserManagement />} />
   </Routes>
 );
 
