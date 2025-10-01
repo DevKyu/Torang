@@ -65,7 +65,7 @@ export const ResultItem = styled.li`
     padding: 2px 8px;
     border-radius: 9999px;
     text-align: center;
-    min-width: 44px;
+    min-width: 50px;
   }
 `;
 
