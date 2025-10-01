@@ -247,9 +247,9 @@ const AdminUserManagement = () => {
             </h3>
             <DeleteButton onClick={handleDeleteUser}>유저 삭제</DeleteButton>
           </UserCardHeader>
-          <p>핀: {selectedUser.pin ?? 0}</p>
-          <p>타입: {selectedUser.type === 'Member' ? '정회원' : '준회원'}</p>
-          <p>가입일: {selectedUser.join ?? '-'}</p>
+          <p>핀 : {selectedUser.pin ?? 0}</p>
+          <p>타입 : {selectedUser.type === 'Member' ? '정회원' : '준회원'}</p>
+          <p>가입일 : {selectedUser.join ?? '-'}</p>
 
           <ButtonRow>
             <button onClick={() => handleUpdatePin(0.5)}>+0.5</button>
