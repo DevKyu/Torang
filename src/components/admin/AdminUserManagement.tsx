@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import {
   fetchAllUsers,
@@ -37,6 +38,7 @@ import {
   InnerContent,
   NewUserForm,
 } from '../../styles/AdminUserManagementStyle';
+import { SmallText } from '../../styles/commonStyle';
 
 const MONTHS: Month[] = [
   '1',
@@ -81,6 +83,7 @@ const AdminUserManagement = () => {
   const [newPin, setNewPin] = useState(0);
   const [newType, setNewType] = useState<'Member' | 'Associate'>('Member');
   const [newJoin, setNewJoin] = useState(getCurrentMonthInput());
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllUsers().then(setUsers);
@@ -270,7 +273,7 @@ const AdminUserManagement = () => {
                   type="single"
                   collapsible
                   value={openYear}
-                  onValueChange={(val) => {
+                  onValueChange={(val: string) => {
                     if (val && selectedEmpId)
                       loadScores(selectedEmpId, val as Year);
                     setOpenYear(val as Year);
@@ -415,6 +418,18 @@ const AdminUserManagement = () => {
           </AccordionRoot>
         </UserCard>
       )}
+      <SmallText
+        top="far"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        onClick={() => {
+          navigate('/menu', { replace: true });
+        }}
+      >
+        돌아가기
+      </SmallText>
     </AdminLayout>
   );
 };
