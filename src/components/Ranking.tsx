@@ -59,7 +59,7 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   league: '리그',
 };
 
-const MATCH_TYPE: 'rival' | 'pin' = 'pin';
+const MATCH_TYPE: 'rival' | 'pin' = 'rival';
 
 const Ranking = () => {
   const navigate = useNavigate();
