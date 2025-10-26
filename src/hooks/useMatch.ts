@@ -3,7 +3,7 @@ import { ref, onValue, runTransaction, remove } from 'firebase/database';
 import { db } from '../services/firebase';
 import type { YearMonth, MatchType } from '../types/match';
 
-export type MatchChoice = { chosenAt: number };
+export type MatchChoice = { chosenAt: number, message?: string };
 export type MatchChoices = Record<string, MatchChoice>;
 
 export const useMatch = (
@@ -26,7 +26,7 @@ export const useMatch = (
   }, [ym, myId, type]);
 
   const select = useCallback(
-    async (targetId: string) => {
+    async (targetId: string, message?: string) => {
       if (!myId) return;
 
       const r = ref(db, `match/${ym}/${type}/${myId}`);
@@ -39,7 +39,13 @@ export const useMatch = (
 
         if (Object.keys(next).length >= maxChoices) return next;
 
-        return { ...next, [targetId]: { chosenAt: Date.now() } };
+        return {
+        ...next,
+        [targetId]: {
+          chosenAt: Date.now(),
+          ...(message ? { message } : {}),
+        },
+      };
       });
     },
     [ym, myId, type, maxChoices],

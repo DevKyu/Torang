@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-
-import { getCurrentUserId, fetchAllUsers } from '../services/firebase';
+import { getCurrentUserId, fetchAllUsers, db } from '../services/firebase';
+import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
 import { getYearMonth } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
 
 import RankingPopover from './RankingPopover';
-import MatchNamePopover from './MatchNamePopover';
 import MatchOverlay from './MatchOverlay';
 import CongratulationOverlay from './CongratulationOverlay';
+import MatchNamePopover from './MatchNamePopover';
+import LetterListOverlay from './LetterListOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
@@ -28,7 +29,6 @@ import {
   itemVariants,
   MotionTableRow,
 } from '../styles/rankingStyle';
-
 import {
   RANKING_TYPE_LABELS,
   HEADER_TOAST_MAP,
@@ -42,12 +42,14 @@ import { useMatchIncoming } from '../hooks/useMatchIncoming';
 import { useCongratulation } from '../hooks/useCongratulation';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
+import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget, toYmd } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
+const MATCH_TYPE: 'rival' | 'pin' = 'rival';
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
@@ -58,8 +60,6 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   pin: '핀',
   league: '리그',
 };
-
-const MATCH_TYPE: 'rival' | 'pin' = 'rival';
 
 const Ranking = () => {
   const navigate = useNavigate();
@@ -76,6 +76,7 @@ const Ranking = () => {
   );
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
+  const [showLetters, setShowLetters] = useState(true);
 
   const myRowRef = useRef<HTMLTableRowElement>(null);
 
@@ -85,6 +86,8 @@ const Ranking = () => {
   const raw = activityMap[String(CUR_MONTHN)];
   const activityYmd = raw != null ? String(raw) : undefined;
   const timeAllowed = canEditTarget(todayYmd, activityYmd);
+  const timeAllowedUntilToday =
+    activityYmd !== undefined && todayYmd <= activityYmd;
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
@@ -182,6 +185,7 @@ const Ranking = () => {
   });
 
   const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users);
+  const receivedLetters = useReceivedLetters(ym, myId, MATCH_TYPE);
 
   const resultMessages = useMemo(() => {
     if (!matchResults || matchResults.length === 0) return [];
@@ -208,9 +212,7 @@ const Ranking = () => {
   const mainResults: Result[] = hasMatchResults
     ? matchResults!.map((r) => r.result)
     : (['none'] as const);
-
   const deltas = hasMatchResults ? matchResults!.map((r) => r.delta ?? 0) : [];
-
   const messagesSafe =
     resultMessages.length > 0
       ? resultMessages
@@ -249,6 +251,19 @@ const Ranking = () => {
       </tr>
     );
   }, [handleHeaderClick, rankingType]);
+
+  const handleSendLetter = async (
+    targetId: string,
+    message: string,
+    anonymous: boolean,
+  ) => {
+    if (!myId) return;
+    await set(ref(db, `match/${ym}/${MATCH_TYPE}/${myId}/${targetId}`), {
+      chosenAt: Date.now(),
+      message,
+      anonymous,
+    });
+  };
 
   const renderRow = useCallback(
     (user: RankingEntry, idx: number) => {
@@ -290,6 +305,7 @@ const Ranking = () => {
                 type={MATCH_TYPE}
                 disabled={!matchUIEnabled}
                 maxChoices={2}
+                onSendLetter={handleSendLetter}
               />
             ) : (
               user.name
@@ -315,10 +331,7 @@ const Ranking = () => {
       participantsAll.length > 0
         ? RANKING_TABS
         : RANKING_TABS.filter((t) => t !== 'monthly');
-
-    if (!hasQuarterData) {
-      base = base.filter((t) => t !== 'quarter');
-    }
+    if (!hasQuarterData) base = base.filter((t) => t !== 'quarter');
     return base;
   }, [participantsAll, hasQuarterData]);
 
@@ -393,6 +406,14 @@ const Ranking = () => {
           setShownCongrats('ranking');
         }}
       />
+
+      {timeAllowedUntilToday && showLetters && receivedLetters.length > 0 && (
+        <LetterListOverlay
+          letters={receivedLetters}
+          users={users}
+          onClose={() => setShowLetters(false)}
+        />
+      )}
     </Container>
   );
 };
