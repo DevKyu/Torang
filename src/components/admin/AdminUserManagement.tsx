@@ -215,6 +215,49 @@ const AdminUserManagement = () => {
     setNewJoin(getCurrentMonthInput());
   };
 
+  const handleResetPassword = async () => {
+    if (!selectedEmpId) return;
+
+    if (
+      !window.confirm(
+        `⚠️ ${selectedEmpId}의 비밀번호를 '00000000'으로 초기화할까요?`,
+      )
+    )
+      return;
+
+    try {
+      const response = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empId: selectedEmpId,
+          newPassword: '00000000',
+        }),
+      });
+
+      if (!response.ok) {
+        const { error } = await response
+          .json()
+          .catch(() => ({ error: '알 수 없는 오류' }));
+        throw new Error(error || `HTTP ${response.status}`);
+      }
+
+      const { success } = await response.json();
+      if (success) {
+        alert(
+          `✅ ${selectedEmpId}의 비밀번호가 '00000000'로 초기화되었습니다.`,
+        );
+      } else {
+        alert(`❌ 초기화에 실패했습니다.`);
+      }
+    } catch (err: any) {
+      console.error('비밀번호 초기화 오류:', err);
+      alert(
+        `❌ 비밀번호 초기화 중 오류가 발생했습니다.\n\n${err.message ?? ''}`,
+      );
+    }
+  };
+
   return (
     <AdminLayout title="유저 관리">
       <SearchRow>
@@ -259,6 +302,7 @@ const AdminUserManagement = () => {
             <button onClick={() => handleUpdatePin(-0.5)}>-0.5</button>
             <button onClick={() => handleUpdatePin(1)}>+1</button>
             <button onClick={() => handleUpdatePin(-1)}>-1</button>
+            <button onClick={handleResetPassword}>비밀번호 초기화</button>
           </ButtonRow>
 
           <Divider />
