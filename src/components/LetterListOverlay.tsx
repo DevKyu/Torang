@@ -18,7 +18,6 @@ type Props = {
 const LetterListOverlay = ({ letters, users, onClose }: Props) => {
   if (letters.length === 0) return null;
 
-  // ✨ 바깥 영역 클릭 시 닫기
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -31,7 +30,7 @@ const LetterListOverlay = ({ letters, users, onClose }: Props) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={handleBackdropClick} // 👈 추가
+        onClick={handleBackdropClick}
       >
         <Modal
           initial={{ scale: 0.9, opacity: 0 }}
@@ -45,7 +44,7 @@ const LetterListOverlay = ({ letters, users, onClose }: Props) => {
             {letters.map((letter, i) => {
               const senderKey = String(letter.fromId);
               const senderName = letter.anonymous
-                ? '익명 🎭'
+                ? '익명의 도전자'
                 : (users[senderKey]?.name ?? senderKey);
 
               return (
@@ -68,7 +67,6 @@ const LetterListOverlay = ({ letters, users, onClose }: Props) => {
 
 export default LetterListOverlay;
 
-/* --------------------- styled --------------------- */
 const Overlay = styled(motion.div)`
   position: fixed;
   inset: 0;

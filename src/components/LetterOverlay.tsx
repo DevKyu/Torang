@@ -75,7 +75,7 @@ const LetterOverlay = ({ targetName, open, onSubmit, onClose }: Props) => {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <Title>🎳 {targetName}님께 도전장을 보내요</Title>
+            <Title>🎳 {targetName}님에게 도전장을 보내요</Title>
 
             <TextArea
               placeholder={`도전장 메시지를 보내보세요!\n(예시: 이번엔 꼭 이기고 말겠어 🔥)`}

@@ -40,6 +40,7 @@ const baseMenuItems: MenuItem[] = [
   {
     id: 'rank',
     label: '또랑 랭킹',
+    isNew: true,
     icon: <UsersIcon size={20} />,
     disabled: false,
   },
