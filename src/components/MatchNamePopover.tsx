@@ -80,7 +80,7 @@ const MatchNamePopover = ({
       } else {
         await select(targetId, message);
       }
-      showToast(`${targetName}님께 도전장을 보냈어요!`, '', 'pick');
+      showToast(`${targetName}님에게 도전장을 보냈어요!`, '', 'pick');
       window.dispatchEvent(
         new CustomEvent('match-picked', { detail: { targetId, targetName } }),
       );
@@ -195,7 +195,7 @@ const MatchNamePopover = ({
               ) : reachedLimit ? (
                 <div>
                   <Row>
-                    <Label>최대 {maxChoices}명에게만 도전할 수 있어요..</Label>
+                    <Label>최대 {maxChoices}명에게만 도전할 수 있어요.</Label>
                   </Row>
                 </div>
               ) : (
