@@ -18,4 +18,5 @@ export const ErrorText = styled.p`
   color: #e00;
   font-size: 13px;
   margin-top: -8px;
+  margin-bottom: 8px;
 `;

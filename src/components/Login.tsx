@@ -1,8 +1,16 @@
-import { useState, type FormEvent, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-
 import {
+  useState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type ChangeEvent,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { deleteUser, updatePassword } from 'firebase/auth';
+import {
+  auth,
   anonLogin,
   checkEmpId,
   loginUser,
@@ -11,7 +19,7 @@ import {
   logOut,
 } from '../services/firebase';
 import { useLoading } from '../contexts/LoadingContext';
-import { Button } from '../styles/commonStyle';
+import { Button, SmallText } from '../styles/commonStyle';
 import { Input, ErrorText } from '../styles/loginStyle';
 import Layout from './layouts/Layout';
 
@@ -20,13 +28,19 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
-
   const [isPasswordChangeMode, setIsPasswordChangeMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const { showLoading, hideLoading } = useLoading();
   const navigate = useNavigate();
+  const newPasswordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isPasswordChangeMode && newPasswordRef.current) {
+      newPasswordRef.current.focus();
+    }
+  }, [isPasswordChangeMode]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -80,23 +94,51 @@ const Login = () => {
     return true;
   };
 
+  const isInvalidNewPasswordPattern = () => {
+    if (newPassword === '00000000') {
+      setError('초기 비밀번호(00000000)는 사용할 수 없어요.');
+      return true;
+    }
+    if (newPassword === employeeId) {
+      setError('사번과 동일한 비밀번호는 사용할 수 없어요.');
+      return true;
+    }
+    return false;
+  };
+
+  const safeLogout = async () => {
+    const user = auth.currentUser;
+    if (user?.isAnonymous) {
+      await deleteUser(user).catch(() => {});
+    } else {
+      await logOut();
+    }
+  };
+
   const handleClickLogin = async () => {
     if (!validateInput() || !isValidPassword()) return;
-
     showLoading();
 
     try {
-      const user = await loginUser(`${employeeId}@torang.com`, password);
+      const email = `${employeeId}@torang.com`;
+      const user = await loginUser(email, password);
+
       if (user) {
-        toast.success('로그인 되었습니다.');
-        navigate('/menu', { replace: true });
+        if (password === '00000000') {
+          toast.info('임시 비밀번호입니다.\n새로운 비밀번호를 설정해 주세요.', {
+            style: { whiteSpace: 'pre-line' },
+          });
+          setIsPasswordChangeMode(true);
+        } else {
+          toast.success('로그인 되었어요.');
+          navigate('/menu', { replace: true });
+        }
+        return;
       }
     } catch (error: any) {
       const code = error.code;
       const isInitialPassword =
-        employeeId.startsWith('2016') &&
-        employeeId.length === 8 &&
-        employeeId === password;
+        employeeId.length === 8 && employeeId === password;
 
       if (
         [
@@ -108,16 +150,20 @@ const Login = () => {
       ) {
         try {
           await anonLogin();
-          const result = await checkEmpId(employeeId);
-          if (result) {
-            setIsPasswordChangeMode(true);
+          const userData = await checkEmpId(employeeId);
+
+          if (userData?.uid) {
+            toast.info(
+              '이미 등록된 계정이에요.\n비밀번호 초기화를 원하시면 문의해 주세요.',
+              { style: { whiteSpace: 'pre-line' } },
+            );
+            await safeLogout();
           } else {
-            toast.error('등록되지 않은 사번이에요.');
-            await logOut();
+            setIsPasswordChangeMode(true);
           }
         } catch {
           toast.error('사번 또는 비밀번호가 올바르지 않아요.');
-          await logOut();
+          await safeLogout();
         }
       } else if (
         ['auth/too-many-requests', 'auth/network-request-failed'].includes(code)
@@ -132,35 +178,60 @@ const Login = () => {
   };
 
   const handleClickChangePassword = async () => {
-    if (!isValidNewPassword() || !isValidSamePassword()) return;
+    if (
+      !isValidNewPassword() ||
+      !isValidSamePassword() ||
+      isInvalidNewPasswordPattern()
+    )
+      return;
 
     setError('');
     showLoading();
 
-    try {
-      const user = await linkAnonymousAccount(
-        `${employeeId}@torang.com`,
-        newPassword,
-      );
-      if (user) {
-        await registerUid(employeeId);
-        toast.success('비밀번호를 변경했어요.');
+    const email = `${employeeId}@torang.com`;
 
+    try {
+      if (auth.currentUser && !auth.currentUser.isAnonymous) {
+        await updatePassword(auth.currentUser, newPassword);
+        toast.success('비밀번호가 변경되었어요.');
+        await logOut();
+        await loginUser(email, newPassword);
+        navigate('/menu', { replace: true });
+        return;
+      }
+
+      const user = await linkAnonymousAccount(email, newPassword);
+      await registerUid(employeeId);
+      if (user) {
+        toast.success('비밀번호를 설정했어요.');
         navigate('/menu', { replace: true });
       }
     } catch {
-      toast.error('비밀번호 변경에 실패했어요.');
+      toast.error('비밀번호 변경 중 오류가 발생했어요.');
     } finally {
       hideLoading();
     }
   };
 
+  const handleCancelChange = async () => {
+    const user = auth.currentUser;
+    if (user?.isAnonymous) {
+      await deleteUser(user).catch(() => {});
+    }
+
+    setTimeout(() => {
+      setIsPasswordChangeMode(false);
+      setError('');
+      setNewPassword('');
+      setNewPasswordConfirm('');
+    }, 150);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (isSubmitting) return;
-    setIsSubmitting(true);
 
+    setIsSubmitting(true);
     try {
       if (isPasswordChangeMode) {
         await handleClickChangePassword();
@@ -172,7 +243,7 @@ const Login = () => {
     }
   };
 
-  const renderInputs = () => (
+  const renderLoginInputs = () => (
     <>
       <Input
         type="text"
@@ -198,6 +269,7 @@ const Login = () => {
   const renderChangePasswordInputs = () => (
     <>
       <Input
+        ref={newPasswordRef}
         type="password"
         name="newPassword"
         placeholder="새로운 비밀번호"
@@ -218,14 +290,31 @@ const Login = () => {
 
   return (
     <Layout title="또랑 로그인🎳">
-      <form onSubmit={handleSubmit}>
-        <div>{renderInputs()}</div>
-        {isPasswordChangeMode && <div>{renderChangePasswordInputs()}</div>}
-        {error && <ErrorText>{error}</ErrorText>}
-        <Button type="submit" disabled={isSubmitting}>
-          {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
-        </Button>
-      </form>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.form
+          key={isPasswordChangeMode ? 'change' : 'login'}
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+        >
+          <div>
+            {isPasswordChangeMode
+              ? renderChangePasswordInputs()
+              : renderLoginInputs()}
+          </div>
+          {error && <ErrorText>{error}</ErrorText>}
+          <Button type="submit" disabled={isSubmitting}>
+            {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
+          </Button>
+          {isPasswordChangeMode && (
+            <SmallText top="narrow" onClick={handleCancelChange}>
+              돌아가기
+            </SmallText>
+          )}
+        </motion.form>
+      </AnimatePresence>
     </Layout>
   );
 };
