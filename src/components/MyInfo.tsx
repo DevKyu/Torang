@@ -56,7 +56,7 @@ import { ChevronRight } from 'lucide-react';
 const MyInfo = () => {
   const navigate = useNavigate();
   const userInfo = useUserInfo() ?? ({} as UserInfo);
-  const { name = '또랑', pin = 0, type = '' } = userInfo;
+  const { name = '게스트', pin = 0, type = '' } = userInfo;
 
   const [year, setYear] = useState<Year>(THIS_YEAR);
   const [quarter, setQuarter] = useState(monthToQuarter(new Date().getMonth()));
