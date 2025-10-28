@@ -8,7 +8,7 @@ export const getTypeLabel = (type: string) => {
     case 'Associate':
       return '준회원';
     default:
-      return '회원';
+      return '비회원';
   }
 };
 
