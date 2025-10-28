@@ -442,3 +442,25 @@ export const removeUserScore = async (
 ): Promise<void> => {
   await remove(ref(db, `users/${empId}/scores/${year}/${month}`));
 };
+
+export const getAfterPartyParticipation = async (
+  empId: string,
+): Promise<Record<string, Record<string, boolean>>> => {
+  const snap = await get(ref(db, `activityParticipants`));
+  if (!snap.exists()) return {};
+
+  const data = snap.val();
+  const result: Record<string, Record<string, boolean>> = {};
+
+  for (const [year, months] of Object.entries(data)) {
+    for (const [month, members] of Object.entries(
+      months as Record<string, any>,
+    )) {
+      if (members[empId]) {
+        result[year] ??= {};
+        result[year][month] = true;
+      }
+    }
+  }
+  return result;
+};

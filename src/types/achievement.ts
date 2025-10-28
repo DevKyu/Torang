@@ -9,18 +9,26 @@ export type AchievementId =
   | 'participation_streak_3'
   | 'participation_streak_6'
   | 'participation_streak_12'
+  | 'participation_streak_24'
+  | 'participation_afterparty_3'
   | 'active_3m'
   | 'active_6m'
   | 'active_1y'
   | 'active_2y'
+  | 'active_3y'
+  | 'active_invite_3'
   | 'score_100'
   | 'score_150'
   | 'score_180'
   | 'score_200'
+  | 'score_consistent_150'
+  | 'score_personal_best'
   | 'mission_rival_participate'
   | 'mission_rival_win1'
   | 'mission_pin_participate'
-  | 'mission_pin_win1';
+  | 'mission_pin_win1'
+  | 'mission_rival_streak3'
+  | 'mission_rival_revenge';
 
 export type Achievement = {
   id: AchievementId;
@@ -67,7 +75,21 @@ export const achievementGroups: AchievementGroup[] = [
         category: 'participation',
         label: '볼링 중독',
         desc: '1년간 매달 출석',
+        icon: '💗',
+      },
+      {
+        id: 'participation_streak_24',
+        category: 'participation',
+        label: '개근왕',
+        desc: '2년간 매달 출석',
         icon: '🏆',
+      },
+      {
+        id: 'participation_afterparty_3',
+        category: 'participation',
+        label: '뒤풀이 러버',
+        desc: '3개월 연속 참여중',
+        icon: '🍻',
       },
     ],
   },
@@ -103,6 +125,20 @@ export const achievementGroups: AchievementGroup[] = [
         desc: '2년 이상 활동중',
         icon: '👑',
       },
+      {
+        id: 'active_3y',
+        category: 'activity',
+        label: '고인물',
+        desc: '3년 이상 활동중',
+        icon: '🧙‍♂️',
+      },
+      {
+        id: 'active_invite_3',
+        category: 'activity',
+        label: '모집왕',
+        desc: '신규회원 3명 초대',
+        icon: '📣',
+      },
     ],
   },
   {
@@ -137,6 +173,20 @@ export const achievementGroups: AchievementGroup[] = [
         desc: '200점 돌파 성공',
         icon: '🚀',
       },
+      {
+        id: 'score_consistent_150',
+        category: 'score',
+        label: '꾸준한 실력자',
+        desc: '3개월간 150점 이상',
+        icon: '📈',
+      },
+      {
+        id: 'score_personal_best',
+        category: 'score',
+        label: '신기록',
+        desc: '개인 최고 점수 갱신',
+        icon: '🏁',
+      },
     ],
   },
   {
@@ -169,7 +219,21 @@ export const achievementGroups: AchievementGroup[] = [
         category: 'mission',
         label: '핀 털이범',
         desc: '핀 쟁탈전 승리',
-        icon: '😎',
+        icon: '💰',
+      },
+      {
+        id: 'mission_rival_streak3',
+        category: 'mission',
+        label: '불패신화',
+        desc: '라이벌전 3연승 달성',
+        icon: '⚡',
+      },
+      {
+        id: 'mission_rival_revenge',
+        category: 'mission',
+        label: '리벤지 매치',
+        desc: '패배 상대에게 승리',
+        icon: '💥',
       },
     ],
   },

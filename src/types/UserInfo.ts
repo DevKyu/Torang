@@ -19,4 +19,5 @@ export type UserInfo = {
   scores?: UserScores;
   targets?: UserTargets;
   usedItems?: string[];
+  invitedCount?: number;
 };

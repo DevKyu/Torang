@@ -26,47 +26,79 @@ export const checkMissionAchievements = async (
   if (!allData) return {};
 
   const currentYyyymm = getCurrentYyyymm();
+
   let rivalFirst: string | null = null;
   let rivalWin: string | null = null;
+  let rivalStreak3: string | null = null;
+  let rivalRevenge: string | null = null;
   let pinFirst: string | null = null;
   let pinWin: string | null = null;
 
-  for (const ym of Object.keys(allData).sort()) {
-    const numYm = Number(ym);
-    if (numYm < START_YYYYMM || numYm > currentYyyymm) continue;
+  let rivalWinCount = 0;
+  const rivalHistory: Record<string, MatchResult> = {};
 
+  const sortedYms = Object.keys(allData)
+    .map(Number)
+    .filter((ym) => ym >= START_YYYYMM && ym <= currentYyyymm)
+    .sort((a, b) => a - b)
+    .map(String);
+
+  for (const ym of sortedYms) {
     const typeData = allData[ym];
     const rivalMatches = typeData?.rival?.[empId];
     const pinMatches = typeData?.pin?.[empId];
 
-    if (rivalMatches && !rivalFirst) rivalFirst = ym;
-    if (rivalMatches && !rivalWin) {
-      if (Object.values(rivalMatches).some((m) => m.result === 'win')) {
+    if (rivalMatches) {
+      if (!rivalFirst) rivalFirst = ym;
+
+      let monthHasWin = false;
+
+      for (const [opponentId, match] of Object.entries(rivalMatches)) {
+        const result = match.result;
+        const prev = rivalHistory[opponentId];
+
+        if (prev === 'lose' && result === 'win' && !rivalRevenge) {
+          rivalRevenge = ym;
+        }
+
+        if (result === 'win') {
+          rivalWinCount++;
+          monthHasWin = true;
+          if (rivalWinCount >= 3 && !rivalStreak3) {
+            rivalStreak3 = ym;
+          }
+        } else if (result === 'lose') {
+          rivalWinCount = 0;
+        }
+
+        if (result) rivalHistory[opponentId] = result;
+      }
+
+      if (monthHasWin && !rivalWin) {
         rivalWin = ym;
       }
     }
 
-    if (pinMatches && !pinFirst) pinFirst = ym;
-    if (pinMatches && !pinWin) {
-      if (Object.values(pinMatches).some((m) => m.result === 'win')) {
+    if (pinMatches) {
+      if (!pinFirst) pinFirst = ym;
+      const hasWin = Object.values(pinMatches).some((m) => m.result === 'win');
+      if (hasWin && !pinWin) {
         pinWin = ym;
       }
     }
   }
 
   const results: AchievementResult = {};
-  if (rivalFirst && !existing['mission_rival_participate']) {
-    results['mission_rival_participate'] = { achievedAt: rivalFirst };
-  }
-  if (rivalWin && !existing['mission_rival_win1']) {
-    results['mission_rival_win1'] = { achievedAt: rivalWin };
-  }
-  if (pinFirst && !existing['mission_pin_participate']) {
-    results['mission_pin_participate'] = { achievedAt: pinFirst };
-  }
-  if (pinWin && !existing['mission_pin_win1']) {
-    results['mission_pin_win1'] = { achievedAt: pinWin };
-  }
+  const addIfNew = (id: string, ym: string | null) => {
+    if (ym && !existing[id]) results[id] = { achievedAt: ym };
+  };
+
+  addIfNew('mission_rival_participate', rivalFirst);
+  addIfNew('mission_rival_win1', rivalWin);
+  addIfNew('mission_pin_participate', pinFirst);
+  addIfNew('mission_pin_win1', pinWin);
+  addIfNew('mission_rival_streak3', rivalStreak3);
+  addIfNew('mission_rival_revenge', rivalRevenge);
 
   return results;
 };

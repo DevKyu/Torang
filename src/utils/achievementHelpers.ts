@@ -3,12 +3,12 @@ import type { UserScores } from '../types/UserInfo';
 
 export const today = (): string => new Date().toISOString().slice(0, 10);
 
-const todayYm = (): string => {
+export const todayYm = (): string => {
   const d = new Date();
   return formatYm(d.getFullYear(), d.getMonth() + 1);
 };
 
-const formatYm = (year: number, month: number): string =>
+export const formatYm = (year: number, month: number): string =>
   `${year}${String(month).padStart(2, '0')}`;
 
 export const findFirstParticipationYm = (scores: UserScores): string | null => {
@@ -39,7 +39,10 @@ export const findStreakYms = (
     const yearKey = asYear(y);
     for (const m of Object.keys(scores[yearKey] ?? {})) {
       const mKey = asMonth(m);
-      if (typeof scores[yearKey]?.[mKey] === 'number') {
+      if (
+        typeof scores[yearKey]?.[mKey] === 'number' ||
+        scores[yearKey]?.[mKey] === true
+      ) {
         entries.push(`${y}${String(m).padStart(2, '0')}`);
       }
     }
@@ -79,6 +82,60 @@ export const findStreakYms = (
   return achieved;
 };
 
+export const findScoreStreakYm = (
+  scores: Partial<Record<string, Partial<Record<string, number>>>>,
+  minScore: number,
+  streak: number,
+): string | null => {
+  const yms = Object.keys(scores)
+    .flatMap((y) => Object.keys(scores[y] ?? {}).map((m) => `${y}${m}`))
+    .sort((a, b) => Number(a) - Number(b));
+
+  if (yms.length < streak) return null;
+
+  let count = 0;
+
+  for (const ym of yms) {
+    const year = ym.slice(0, 4);
+    const month = ym.slice(4);
+    const score = scores[year]?.[month];
+
+    if ((score ?? 0) >= minScore) {
+      count++;
+      if (count >= streak) {
+        const formatted = `${year}${String(month).padStart(2, '0')}`;
+        return formatted;
+      }
+    } else {
+      count = 0;
+    }
+  }
+
+  return null;
+};
+
+export const findPersonalBestYm = (
+  scores: Partial<Record<string, Partial<Record<string, number>>>>,
+): string | null => {
+  const sorted = Object.keys(scores)
+    .flatMap((y) =>
+      Object.keys(scores[y] ?? {}).map((m) => ({
+        year: Number(y),
+        month: Number(m),
+        score: scores[y]?.[m] ?? 0,
+      })),
+    )
+    .sort((a, b) => a.year - b.year || a.month - b.month);
+
+  if (sorted.length <= 1) return null;
+
+  const latest = sorted[sorted.length - 1];
+  const maxBefore = Math.max(...sorted.slice(0, -1).map((s) => s.score));
+
+  return latest.score > maxBefore
+    ? `${latest.year}${String(latest.month).padStart(2, '0')}`
+    : null;
+};
 export const getActiveYm = (join: string, months: number): string => {
   const joinY = parseInt(join.slice(0, 4), 10);
   const joinM = parseInt(join.slice(4, 6), 10);
