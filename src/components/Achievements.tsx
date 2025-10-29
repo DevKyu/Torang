@@ -130,17 +130,28 @@ const Achievements = () => {
   }, [activityLoading, activityMaps]);
 
   useEffect(() => {
+    let ticking = false;
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((e) => e.isIntersecting);
-        if (visible) {
-          const id = visible.target.getAttribute(
-            'data-category',
-          ) as AchievementCategory;
-          if (id) setActiveTab(id);
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const visible = entries.find((e) => e.isIntersecting);
+            if (visible) {
+              const id = visible.target.getAttribute(
+                'data-category',
+              ) as AchievementCategory;
+              if (id) setActiveTab(id);
+            }
+            ticking = false;
+          });
+          ticking = true;
         }
       },
-      { root: null, rootMargin: '0px 0px -30% 0px', threshold: 0.3 },
+      {
+        root: null,
+        rootMargin: '-10% 0px -40% 0px',
+        threshold: 0.2,
+      },
     );
 
     achievementGroups.forEach((g) => {
@@ -161,7 +172,7 @@ const Achievements = () => {
   const scrollTo = useCallback((key: AchievementCategory) => {
     refs.current.get(key)?.scrollIntoView({
       behavior: 'smooth',
-      block: 'nearest',
+      block: 'start',
     });
   }, []);
 

@@ -75,7 +75,7 @@ export const achievementGroups: AchievementGroup[] = [
         category: 'participation',
         label: '볼링 중독',
         desc: '1년간 매달 출석',
-        icon: '💗',
+        icon: '😵‍💫',
       },
       {
         id: 'participation_streak_24',
@@ -232,7 +232,7 @@ export const achievementGroups: AchievementGroup[] = [
         id: 'mission_rival_revenge',
         category: 'mission',
         label: '리벤지 매치',
-        desc: '패배 상대에게 승리',
+        desc: '지난 패배 복수 성공',
         icon: '💥',
       },
     ],
