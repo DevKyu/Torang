@@ -32,9 +32,11 @@ export const applyPinChangeBatch = async (
       gainedPins += pinDelta;
       await incrementPinsByEmpId(myId, +pinDelta);
 
-      const oppPin = Number(oppPinSnap.val() ?? 0);
-      if (oppPin >= pinDelta) {
-        await incrementPinsByEmpId(opponentId, -pinDelta);
+      if (type !== 'rival') {
+        const oppPin = Number(oppPinSnap.val() ?? 0);
+        if (oppPin >= pinDelta) {
+          await incrementPinsByEmpId(opponentId, -pinDelta);
+        }
       }
     }
 
