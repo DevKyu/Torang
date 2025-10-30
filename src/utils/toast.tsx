@@ -120,13 +120,45 @@ export const showHiddenNamesToast = (
 };
 
 export const showMatchWithPinToast = (amount: number) => {
-  toast('🏆 핀 쟁탈전 승리!', {
+  toast('🏆 라이벌 매치 승리!', {
     ...baseToast,
     duration: 2000,
     style: {
       ...baseToast.style,
       backgroundColor: '#eff6ff',
       color: '#1e40af',
+      fontWeight: 600,
+    },
+  });
+
+  setTimeout(() => {
+    toast(
+      <span>
+        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
+        획득!
+      </span>,
+      {
+        ...baseToast,
+        duration: 2000,
+        style: {
+          ...baseToast.style,
+          backgroundColor: '#ecfdf5',
+          color: '#065f46',
+          fontWeight: 600,
+        },
+      },
+    );
+  }, 1500);
+};
+
+export const showTargetWithPinToast = (amount: number) => {
+  toast('🎯 목표 점수 달성!', {
+    ...baseToast,
+    duration: 2000,
+    style: {
+      ...baseToast.style,
+      backgroundColor: '#f0f9ff',
+      color: '#0369a1',
       fontWeight: 600,
     },
   });
