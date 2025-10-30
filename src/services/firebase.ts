@@ -23,6 +23,8 @@ import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
+import { CUR_MONTHN, CUR_YEAR } from '../constants/date';
+import { getReadableTimestamp } from '../utils/date';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -209,6 +211,65 @@ export const resetAllUserPins = async (value: number = 0) => {
   });
 
   await update(ref(db), updates);
+};
+
+export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
+  try {
+    const year = CUR_YEAR;
+    const month = String(CUR_MONTHN);
+    const ym = `${year}${month.padStart(2, '0')}`;
+
+    const [participantsSnap, usersSnap] = await Promise.all([
+      get(ref(db, `activityParticipants/${year}/${month}`)),
+      get(ref(db, 'users')),
+    ]);
+    if (!participantsSnap.exists() || !usersSnap.exists()) return false;
+
+    const participants = participantsSnap.val();
+    const nowMs = Date.now();
+    const readableTime = getReadableTimestamp();
+
+    await Promise.all(
+      Object.keys(participants).map(async (empId) => {
+        const user = usersSnap.child(empId).val();
+        if (!user) return;
+
+        const inc =
+          user.type === 'Member' ? 1 : user.type === 'Associate' ? 0.5 : 0;
+        if (inc === 0) return;
+
+        const rewardBaseRef = ref(db, `users/${empId}/rewards/${ym}/activity`);
+        const rewardBaseSnap = await get(rewardBaseRef);
+
+        if (rewardBaseSnap.exists()) return;
+
+        const pinRef = ref(db, `users/${empId}/pin`);
+        const rewardRef = ref(
+          db,
+          `users/${empId}/rewards/${ym}/activity/${readableTime}`,
+        );
+
+        await Promise.all([
+          runTransaction(pinRef, (cur) =>
+            typeof cur === 'number' ? cur + inc : inc,
+          ),
+          runTransaction(rewardRef, () => ({
+            type: 'activity',
+            direction: 'gain',
+            pin: inc,
+            ym,
+            createdAt: readableTime,
+            createdAtMs: nowMs,
+            source: 'adjustPinsForCurrentMonth',
+          })),
+        ]);
+      }),
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 // 8. 추첨 관련

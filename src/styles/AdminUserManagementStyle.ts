@@ -143,6 +143,10 @@ export const Divider = styled.hr`
 
 export const BulkSection = styled.div`
   margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
   button {
     width: 100%;
     padding: 8px 12px;
@@ -151,6 +155,11 @@ export const BulkSection = styled.div`
     background: #3b82f6;
     color: #fff;
     cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #2563eb;
+    }
   }
 `;
 
