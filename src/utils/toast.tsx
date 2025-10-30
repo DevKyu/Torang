@@ -119,8 +119,12 @@ export const showHiddenNamesToast = (
   );
 };
 
-export const showMatchWithPinToast = (amount: number) => {
-  toast('🏆 라이벌 매치 승리!', {
+type MatchType = 'rival' | 'pin';
+export const showMatchWithPinToast = (amount: number, type: MatchType) => {
+  const title =
+    type === 'rival' ? '🏆 라이벌 매치 승리!' : '🏆 핀 쟁탈전 승리!';
+
+  toast(title, {
     ...baseToast,
     duration: 2000,
     style: {

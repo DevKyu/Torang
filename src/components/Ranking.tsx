@@ -46,7 +46,9 @@ import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget, toYmd } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 
-const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
+// monthly 연동
+//const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
+const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 const MATCH_TYPE: 'rival' | 'pin' = 'rival';
@@ -71,9 +73,10 @@ const Ranking = () => {
     String(CUR_MONTHN) as Month,
   );
 
-  const [rankingType, setRankingType] = useState<RankingType>(
-    participantsAll.length > 0 ? 'monthly' : 'quarter',
-  );
+  // monthly 연동
+  //const [rankingType, setRankingType] = useState<RankingType>(
+  //participantsAll.length > 0 ? 'monthly' : 'quarter',);
+  const [rankingType, setRankingType] = useState<RankingType>('quarter');
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
@@ -117,9 +120,10 @@ const Ranking = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setRankingType(participantsAll.length > 0 ? 'monthly' : 'quarter');
-  }, [participantsAll]);
+  // monthly 연동
+  // useEffect(() => {
+  //   setRankingType(participantsAll.length > 0 ? 'monthly' : 'quarter');
+  // }, [participantsAll]);
 
   const ranking: RankingEntry[] = useMemo(() => {
     if (!Object.keys(users).length) return [];
@@ -137,11 +141,11 @@ const Ranking = () => {
     return entries.length > 0;
   }, [users]);
 
-  useEffect(() => {
-    if (rankingType === 'quarter' && !hasQuarterData) {
-      setRankingType('total');
-    }
-  }, [rankingType, hasQuarterData]);
+  // useEffect(() => {
+  //   if (rankingType === 'quarter' && !hasQuarterData) {
+  //     setRankingType('total');
+  //   }
+  // }, [rankingType, hasQuarterData]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -312,7 +316,12 @@ const Ranking = () => {
             )}
           </td>
           <td>
-            {rankingType === 'monthly' ? (
+            {/* {rankingType === 'monthly' ? (
+              <RankingPopover user={user} />
+            ) : (
+              user.average
+            )} */}
+            {rankingType === 'quarter' ? (
               <RankingPopover user={user} />
             ) : (
               user.average

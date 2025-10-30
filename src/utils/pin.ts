@@ -15,12 +15,13 @@ export const applyPinChangeBatch = async (
   const updates: Record<string, any> = {};
   let gainedPins = 0;
 
-  for (const { opponentId, result } of results) {
-    const pinPath = `matchResults/${ym}/${type}/${myId}/${opponentId}/pinUpdated`;
-    const pinRef = ref(db, pinPath);
+  for (const { opponentId, opponentName, result } of results) {
+    const matchPath = `matchResults/${ym}/${type}/${myId}/${opponentId}`;
+    const rewardPath = `users/${myId}/rewards/${ym}/match/${opponentId}`;
+    const pinUpdatedRef = ref(db, `${matchPath}/pinUpdated`);
 
     const [pinUpdatedSnap, oppPinSnap] = await Promise.all([
-      get(pinRef),
+      get(pinUpdatedRef),
       get(ref(db, `users/${opponentId}/pin`)),
     ]);
 
@@ -38,9 +39,20 @@ export const applyPinChangeBatch = async (
           await incrementPinsByEmpId(opponentId, -pinDelta);
         }
       }
+
+      updates[rewardPath] = {
+        type,
+        opponentId,
+        opponentName,
+        result,
+        direction: result === 'win' ? 'gain' : 'loss',
+        pin: pinDelta,
+        ym,
+        createdAt: Date.now(),
+      };
     }
 
-    updates[pinPath] = true;
+    updates[`${matchPath}/pinUpdated`] = true;
   }
 
   if (Object.keys(updates).length > 0) {
@@ -48,7 +60,7 @@ export const applyPinChangeBatch = async (
   }
 
   if (gainedPins > 0) {
-    showMatchWithPinToast(gainedPins);
+    showMatchWithPinToast(gainedPins, type);
   }
 };
 

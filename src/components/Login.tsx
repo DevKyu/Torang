@@ -130,7 +130,7 @@ const Login = () => {
           });
           setIsPasswordChangeMode(true);
         } else {
-          toast.success('로그인 되었어요.');
+          toast.success('로그인이 완료됐어요.');
           navigate('/menu', { replace: true });
         }
         return;
