@@ -6,7 +6,9 @@ import confetti from 'canvas-confetti';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import {
+  db,
   getCurrentUserData,
+  getCurrentUserId,
   incrementUserPins,
   saveAchievements,
 } from '../services/firebase';
@@ -38,6 +40,8 @@ import {
 import { containerVariants, cardVariants } from '../styles/achievementVariants';
 import { Check } from 'lucide-react';
 import { showAchievementWithPinToast } from '../utils/toast';
+import { getReadableTimestamp } from '../utils/date';
+import { ref, update } from 'firebase/database';
 
 const getTodayYmd = (): number => {
   const d = new Date();
@@ -107,6 +111,28 @@ const Achievements = () => {
             });
             showAchievementWithPinToast(0.5);
             await incrementUserPins(0.5);
+
+            const empId = getCurrentUserId();
+            const pinReward = 0.5;
+            const readableTime = getReadableTimestamp();
+            const nowMs = Date.now();
+            const ym = `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+            if (empId) {
+              const rewardPath = `users/${empId}/rewards/${ym}/achievement/${readableTime}`;
+              await update(ref(db), {
+                [rewardPath]: {
+                  type: 'achievement',
+                  detail: Object.keys(newResults).join(', '),
+                  direction: 'gain',
+                  pin: pinReward,
+                  ym,
+                  createdAt: readableTime,
+                  createdAtMs: nowMs,
+                },
+              });
+            }
+
             await saveAchievements(merged, String(todayYmd), true);
             setAchievements(merged);
           } else {

@@ -7,6 +7,7 @@ import {
 } from '../services/firebase';
 import { showTargetWithPinToast } from '../utils/toast';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
+import { getReadableTimestamp } from '../utils/date';
 
 export type TargetResult = {
   show: boolean;
@@ -75,7 +76,8 @@ export const useTargetResult = (
             pin: pinReward,
             ym,
             direction: 'gain',
-            createdAt: Date.now(),
+            createdAt: getReadableTimestamp(),
+            createdAtMs: Date.now(),
           },
         });
 

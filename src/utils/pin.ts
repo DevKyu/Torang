@@ -4,6 +4,7 @@ import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';
 import { showMatchWithPinToast } from './toast';
+import { getReadableTimestamp } from './date';
 
 export const applyPinChangeBatch = async (
   ym: YearMonth,
@@ -48,7 +49,8 @@ export const applyPinChangeBatch = async (
         direction: result === 'win' ? 'gain' : 'loss',
         pin: pinDelta,
         ym,
-        createdAt: Date.now(),
+        createdAt: getReadableTimestamp(),
+        createdAtMs: Date.now(),
       };
     }
 

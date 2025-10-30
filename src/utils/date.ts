@@ -27,3 +27,12 @@ export const getQuarterEndYm = (date = new Date()): string => {
   const endMonth = quarter * 3;
   return `${year}${String(endMonth).padStart(2, '0')}`;
 };
+
+export const getReadableTimestamp = (d = new Date()): string => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}${hh}${mi}`;
+};
