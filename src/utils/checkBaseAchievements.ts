@@ -60,10 +60,10 @@ export const checkBaseAchievements = async (
 
   if (
     user.invitedCount &&
-    user.invitedCount >= 3 &&
-    !existing['active_invite_3']
+    user.invitedCount >= 2 &&
+    !existing['active_invite_2']
   ) {
-    results['active_invite_3'] = { achievedAt: todayYm() };
+    results['active_invite_2'] = { achievedAt: todayYm() };
   }
 
   const milestones = [100, 150, 180, 200];

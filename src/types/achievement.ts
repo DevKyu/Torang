@@ -16,7 +16,7 @@ export type AchievementId =
   | 'active_1y'
   | 'active_2y'
   | 'active_3y'
-  | 'active_invite_3'
+  | 'active_invite_2'
   | 'score_100'
   | 'score_150'
   | 'score_180'
@@ -133,10 +133,10 @@ export const achievementGroups: AchievementGroup[] = [
         icon: '🧙‍♂️',
       },
       {
-        id: 'active_invite_3',
+        id: 'active_invite_2',
         category: 'activity',
         label: '모집왕',
-        desc: '신규회원 3명 초대',
+        desc: '신규회원 2명 초대',
         icon: '📣',
       },
     ],
