@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { ref, update } from 'firebase/database';
 
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
@@ -13,7 +14,6 @@ import {
   saveAchievements,
 } from '../services/firebase';
 import { checkAllAchievements } from '../utils/checkAllAchievements';
-
 import {
   achievementGroups,
   type AchievementCategory,
@@ -21,7 +21,6 @@ import {
   type AchievementResult,
 } from '../types/achievement';
 
-import { CUR_MONTHN } from '../constants/date';
 import { MyInfoContainer, MyInfoBox } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
 import {
@@ -40,25 +39,13 @@ import {
 import { containerVariants, cardVariants } from '../styles/achievementVariants';
 import { Check } from 'lucide-react';
 import { showAchievementWithPinToast } from '../utils/toast';
-import { getReadableTimestamp } from '../utils/date';
-import { ref, update } from 'firebase/database';
-
-const getTodayYmd = (): number => {
-  const d = new Date();
-  return Number(
-    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(
-      d.getDate(),
-    ).padStart(2, '0')}`,
-  );
-};
+import { useUiStore } from '../stores/useUiStore';
 
 const toMonthLabel = (dateStr: string): string => {
   const digits = dateStr.replace(/\D/g, '');
   if (digits.length < 6) return dateStr;
-
   const year = digits.slice(0, 4);
   const month = parseInt(digits.slice(4, 6), 10);
-
   if (isNaN(month) || month < 1 || month > 12) return dateStr;
   return `${year}년 ${month}월`;
 };
@@ -73,6 +60,9 @@ const Achievements = () => {
   const [achievements, setAchievements] = useState<AchievementResult>({});
   const refs = useRef(new Map<AchievementCategory, HTMLDivElement | null>());
 
+  const { formatServerDate, isBeforeCutoff, getServerTimestamp, getServerNow } =
+    useUiStore();
+
   useEffect(() => {
     if (activityLoading) return;
 
@@ -84,16 +74,17 @@ const Achievements = () => {
 
         const existing = user.achievements ?? {};
         const lastCheck = user.lastAchievementCheck ?? null;
-        const todayYmd = getTodayYmd();
 
-        const curYear = String(new Date().getFullYear());
-        const curMonth = String(CUR_MONTHN);
+        const todayYmd = Number(formatServerDate('ymd'));
+
+        const curYear = String(getServerNow().getFullYear());
+        const curMonth = String(getServerNow().getMonth() + 1);
         const activityYmd = activityMaps[curYear]?.[curMonth];
 
         const shouldRun =
           Object.keys(existing).length === 0 ||
           (activityYmd &&
-            todayYmd > Number(activityYmd) &&
+            !isBeforeCutoff(String(activityYmd), '18:30') &&
             String(todayYmd) !== lastCheck);
 
         if (shouldRun) {
@@ -114,9 +105,9 @@ const Achievements = () => {
 
             const empId = getCurrentUserId();
             const pinReward = 0.5;
-            const readableTime = getReadableTimestamp();
-            const nowMs = Date.now();
-            const ym = `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+            const readableTime = getServerTimestamp();
+            const nowMs = getServerNow().getTime();
+            const ym = formatServerDate('ym');
 
             if (empId) {
               const rewardPath = `users/${empId}/rewards/${ym}/achievement/${readableTime}`;
@@ -155,6 +146,7 @@ const Achievements = () => {
     init();
   }, [activityLoading, activityMaps]);
 
+  // 🔍 탭 스크롤 감지 (IntersectionObserver)
   useEffect(() => {
     let ticking = false;
     const observer = new IntersectionObserver(

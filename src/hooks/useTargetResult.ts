@@ -7,7 +7,8 @@ import {
 } from '../services/firebase';
 import { showTargetWithPinToast } from '../utils/toast';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import { getReadableTimestamp } from '../utils/date';
+import { getDiffDaysServer, getReadableTimestamp } from '../utils/date';
+import { useUiStore } from '../stores/useUiStore';
 
 export type TargetResult = {
   show: boolean;
@@ -33,61 +34,62 @@ export const useTargetResult = (
     special: false,
   });
 
+  const { getServerNow } = useUiStore.getState();
+
   useEffect(() => {
     if (initialized || !user || !activityYmd) return;
 
     const empId = getCurrentUserId();
     if (!empId) return;
 
-    const year = ym.slice(0, 4) as Year;
-    const month = String(Number(ym.slice(4, 6))) as Month;
+    const year = activityYmd.slice(0, 4) as Year;
+    const month = String(Number(activityYmd.slice(4, 6))) as Month;
 
     const myScore = user.scores?.[year]?.[month];
     const target = user.targets?.[year]?.[month];
     if (typeof myScore !== 'number' || typeof target !== 'number') return;
 
-    const todayYmd = Number(
-      `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`,
-    );
-    const diffDays = todayYmd - Number(activityYmd);
+    const diffDays = getDiffDaysServer(activityYmd);
     if (diffDays <= 0 || diffDays > withinDays) return;
 
     const isSpecial = myScore === target;
     const isAchieved = myScore >= target;
+
     setResult({ achieved: isAchieved, special: isSpecial, myScore, target });
-
-    if (isAchieved) {
-      const rewardPath = `users/${empId}/rewards/${ym}/target`;
-      const rewardRef = ref(db, rewardPath);
-
-      get(rewardRef).then(async (snap) => {
-        if (snap.exists()) return;
-
-        const pinReward = 1;
-        await incrementPinsByEmpId(empId, pinReward);
-
-        await update(ref(db), {
-          [rewardPath]: {
-            type: 'target',
-            achieved: isAchieved,
-            special: isSpecial,
-            myScore,
-            target,
-            pin: pinReward,
-            ym,
-            direction: 'gain',
-            createdAt: getReadableTimestamp(),
-            createdAtMs: Date.now(),
-          },
-        });
-
-        showTargetWithPinToast(pinReward);
-        if (onPinReward) onPinReward(pinReward);
-      });
-    }
-
     setShow(true);
     setInitialized(true);
+
+    if (!isAchieved) return;
+
+    const rewardPath = `users/${empId}/rewards/${ym}/target`;
+    const rewardRef = ref(db, rewardPath);
+
+    get(rewardRef).then(async (snap) => {
+      if (snap.exists()) return;
+
+      const pinReward = 1;
+      await incrementPinsByEmpId(empId, pinReward);
+
+      const serverNow = getServerNow();
+
+      await update(ref(db), {
+        [rewardPath]: {
+          type: 'target',
+          achieved: isAchieved,
+          special: isSpecial,
+          myScore,
+          target,
+          pin: pinReward,
+          ym,
+          direction: 'gain',
+          createdAt: getReadableTimestamp(serverNow),
+          createdAtMs: serverNow.getTime(),
+        },
+      });
+
+      showTargetWithPinToast(pinReward);
+      if (onPinReward) onPinReward(pinReward);
+    });
   }, [user, ym, activityYmd, withinDays, initialized]);
 
   return { ...result, show, setShow };

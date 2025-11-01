@@ -1,3 +1,4 @@
+import { useUiStore } from '../stores/useUiStore';
 import type { TwoDigitMonth, YearMonth } from '../types/match';
 
 export const getTodayYmd = (d = new Date()): number => {
@@ -35,4 +36,34 @@ export const getReadableTimestamp = (d = new Date()): string => {
   const hh = String(d.getHours()).padStart(2, '0');
   const mi = String(d.getMinutes()).padStart(2, '0');
   return `${yyyy}${mm}${dd}${hh}${mi}`;
+};
+
+export const getDiffDays = (activityYmd: string): number => {
+  if (!activityYmd || activityYmd.length !== 8) return Infinity;
+
+  const today = new Date();
+  const actDate = new Date(
+    Number(activityYmd.slice(0, 4)),
+    Number(activityYmd.slice(4, 6)) - 1,
+    Number(activityYmd.slice(6, 8)),
+  );
+
+  const diffMs = today.getTime() - actDate.getTime();
+  return diffMs / (1000 * 60 * 60 * 24);
+};
+
+export const getDiffDaysServer = (activityYmd: string): number => {
+  if (!activityYmd || activityYmd.length !== 8) return Infinity;
+
+  const { getServerNow } = useUiStore.getState();
+  const serverNow = getServerNow();
+
+  const actDate = new Date(
+    Number(activityYmd.slice(0, 4)),
+    Number(activityYmd.slice(4, 6)) - 1,
+    Number(activityYmd.slice(6, 8)),
+  );
+
+  const diffMs = serverNow.getTime() - actDate.getTime();
+  return diffMs / (1000 * 60 * 60 * 24);
 };

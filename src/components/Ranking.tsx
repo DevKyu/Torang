@@ -43,7 +43,7 @@ import { useCongratulation } from '../hooks/useCongratulation';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useReceivedLetters } from '../hooks/useReceivedLetters';
-import { canEditTarget, toYmd } from '../utils/policy';
+import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 
 // monthly 연동
@@ -80,17 +80,22 @@ const Ranking = () => {
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
-
   const myRowRef = useRef<HTMLTableRowElement>(null);
 
   const ym: YearMonth = getYearMonth();
-  const activityMap = activityAll[String(CUR_YEAR)] ?? {};
-  const todayYmd = toYmd(new Date());
-  const raw = activityMap[String(CUR_MONTHN)];
-  const activityYmd = raw != null ? String(raw) : undefined;
-  const timeAllowed = canEditTarget(todayYmd, activityYmd);
-  const timeAllowedUntilToday =
-    activityYmd !== undefined && todayYmd <= activityYmd;
+  const year = Number(CUR_YEAR);
+  const month = Number(CUR_MONTHN);
+
+  const activityYmd = (() => {
+    const current = activityAll[String(year)]?.[String(month)];
+    if (current) return String(current);
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const prev = activityAll[String(prevYear)]?.[String(prevMonth)];
+    return prev ? String(prev) : undefined;
+  })();
+
+  const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
@@ -98,7 +103,7 @@ const Ranking = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const init = async () => {
+    (async () => {
       showLoading();
       try {
         const [usersData, currentId] = await Promise.all([
@@ -113,17 +118,11 @@ const Ranking = () => {
       } finally {
         if (!cancelled) hideLoading();
       }
-    };
-    init();
+    })();
     return () => {
       cancelled = true;
     };
   }, []);
-
-  // monthly 연동
-  // useEffect(() => {
-  //   setRankingType(participantsAll.length > 0 ? 'monthly' : 'quarter');
-  // }, [participantsAll]);
 
   const ranking: RankingEntry[] = useMemo(() => {
     if (!Object.keys(users).length) return [];
@@ -133,19 +132,12 @@ const Ranking = () => {
   }, [users, rankingType, participants]);
 
   const hasQuarterData = useMemo(() => {
-    const entries = mapUsersToRankingEntries(
-      users,
-      'quarter',
-      undefined,
-    ).filter((entry) => !EXCLUDED_EMP_IDS.includes(entry.empId));
-    return entries.length > 0;
+    return (
+      mapUsersToRankingEntries(users, 'quarter').filter(
+        (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
+      ).length > 0
+    );
   }, [users]);
-
-  // useEffect(() => {
-  //   if (rankingType === 'quarter' && !hasQuarterData) {
-  //     setRankingType('total');
-  //   }
-  // }, [rankingType, hasQuarterData]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -188,34 +180,41 @@ const Ranking = () => {
     withinDays: 7,
   });
 
-  const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users);
-  const receivedLetters = useReceivedLetters(ym, myId, MATCH_TYPE);
-
-  const resultMessages = useMemo(() => {
-    if (!matchResults || matchResults.length === 0) return [];
-    return matchResults
-      .map((res) => {
-        if (res.result === 'win') return `${res.opponentName}님을 이겼습니다!`;
-        if (res.result === 'lose') return `${res.opponentName}님에게 졌습니다.`;
-        if (res.result === 'draw') return `${res.opponentName}님과 무승부!`;
-        return '';
-      })
-      .filter(Boolean);
-  }, [matchResults]);
+  const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users, activityYmd);
+  const receivedLetters = useReceivedLetters(ym, myId, MATCH_TYPE, activityYmd);
 
   const hasMatchResults =
-    matchResults !== null && matchResults.some((r) => r.result !== 'none');
+    matchResults?.some((r) => r.result !== 'none') ?? false;
   const hasIncoming = incoming.length > 0;
+  const isReady = matchResults !== null;
+  const hasActivity = Boolean(activityYmd);
+  const condition = isReady && hasActivity && (hasMatchResults || hasIncoming);
 
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
-    condition: matchResults !== null && (hasMatchResults || hasIncoming),
+    condition,
     activityYmd,
     withinDays: 7,
   });
 
+  const resultMessages = useMemo(() => {
+    if (!matchResults?.length) return [];
+    return matchResults
+      .map((res) =>
+        res.result === 'win'
+          ? `${res.opponentName}님을 이겼습니다!`
+          : res.result === 'lose'
+            ? `${res.opponentName}님에게 졌습니다.`
+            : res.result === 'draw'
+              ? `${res.opponentName}님과 무승부!`
+              : '',
+      )
+      .filter(Boolean);
+  }, [matchResults]);
+
   const mainResults: Result[] = hasMatchResults
     ? matchResults!.map((r) => r.result)
     : (['none'] as const);
+
   const deltas = hasMatchResults ? matchResults!.map((r) => r.delta ?? 0) : [];
   const messagesSafe =
     resultMessages.length > 0
@@ -223,10 +222,6 @@ const Ranking = () => {
       : hasIncoming
         ? ['이번 매치에 참여하지 않았어요.']
         : [];
-
-  const handleTabClick = useCallback((type: RankingType) => {
-    setRankingType(type);
-  }, []);
 
   const handleHeaderClick = useCallback(
     (key: keyof typeof HEADER_TOAST_MAP) => {
@@ -243,12 +238,7 @@ const Ranking = () => {
     return (
       <tr>
         {keys.map((key) => (
-          <th
-            key={key}
-            onClick={() =>
-              handleHeaderClick(key as keyof typeof HEADER_TOAST_MAP)
-            }
-          >
+          <th key={key} onClick={() => handleHeaderClick(key)}>
             {HEADER_LABELS[key]}
           </th>
         ))}
@@ -354,7 +344,7 @@ const Ranking = () => {
             <RankingTab
               key={type}
               active={rankingType === type}
-              onClick={() => handleTabClick(type)}
+              onClick={() => setRankingType(type)}
             >
               {RANKING_TYPE_LABELS[type]}
             </RankingTab>
@@ -416,7 +406,7 @@ const Ranking = () => {
         }}
       />
 
-      {timeAllowedUntilToday && showLetters && receivedLetters.length > 0 && (
+      {timeAllowed && showLetters && receivedLetters.length > 0 && (
         <LetterListOverlay
           letters={receivedLetters}
           users={users}

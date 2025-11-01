@@ -11,28 +11,28 @@ export type Incoming = {
   result: Result;
   delta?: number;
 };
-
 export const useMatchIncoming = (
   ym: YearMonth,
   myId: string | null,
   type: MatchType,
   users: Record<string, UserInfo>,
+  activityYmd?: string,
 ) => {
   const [incoming, setIncoming] = useState<Incoming[]>([]);
 
   useEffect(() => {
     if (!ym || !myId) return;
 
-    const r = ref(db, `match/${ym}/${type}`);
+    const activityYm = activityYmd ? activityYmd.slice(0, 6) : ym;
+    const r = ref(db, `match/${activityYm}/${type}`);
     const off = onValue(r, (snap) => {
       if (!snap.exists()) {
         setIncoming([]);
         return;
       }
 
-      const year = asYear(ym.slice(0, 4));
-      const month = asMonth(String(Number(ym.slice(4, 6))));
-
+      const year = asYear(activityYm.slice(0, 4));
+      const month = asMonth(String(Number(activityYm.slice(4, 6))));
       const allUsers = snap.val() as Record<
         string,
         Record<string, { chosenAt: number }>
@@ -67,7 +67,7 @@ export const useMatchIncoming = (
     });
 
     return () => off();
-  }, [ym, myId, type, users]);
+  }, [ym, myId, type, users, activityYmd]);
 
   return incoming;
 };

@@ -1,12 +1,9 @@
 import { getAllUserMatchResults, getCurrentUserId } from '../services/firebase';
 import type { AchievementResult } from '../types/achievement';
 import type { MatchType } from '../types/match';
+import { useUiStore } from '../stores/useUiStore';
 
 const START_YYYYMM = 202508;
-const getCurrentYyyymm = (): number => {
-  const d = new Date();
-  return d.getFullYear() * 100 + (d.getMonth() + 1);
-};
 
 type MatchResult = 'win' | 'lose' | 'draw';
 type MatchRecord = { result?: MatchResult };
@@ -25,7 +22,8 @@ export const checkMissionAchievements = async (
   const allData = (await getAllUserMatchResults()) as AllMatchResults | null;
   if (!allData) return {};
 
-  const currentYyyymm = getCurrentYyyymm();
+  const { formatServerDate } = useUiStore.getState();
+  const currentYyyymm = Number(formatServerDate('ym'));
 
   let rivalFirst: string | null = null;
   let rivalWin: string | null = null;
@@ -50,23 +48,19 @@ export const checkMissionAchievements = async (
 
     if (rivalMatches) {
       if (!rivalFirst) rivalFirst = ym;
-
       let monthHasWin = false;
 
       for (const [opponentId, match] of Object.entries(rivalMatches)) {
         const result = match.result;
         const prev = rivalHistory[opponentId];
 
-        if (prev === 'lose' && result === 'win' && !rivalRevenge) {
+        if (prev === 'lose' && result === 'win' && !rivalRevenge)
           rivalRevenge = ym;
-        }
 
         if (result === 'win') {
           rivalWinCount++;
           monthHasWin = true;
-          if (rivalWinCount >= 3 && !rivalStreak3) {
-            rivalStreak3 = ym;
-          }
+          if (rivalWinCount >= 3 && !rivalStreak3) rivalStreak3 = ym;
         } else if (result === 'lose') {
           rivalWinCount = 0;
         }
@@ -74,17 +68,13 @@ export const checkMissionAchievements = async (
         if (result) rivalHistory[opponentId] = result;
       }
 
-      if (monthHasWin && !rivalWin) {
-        rivalWin = ym;
-      }
+      if (monthHasWin && !rivalWin) rivalWin = ym;
     }
 
     if (pinMatches) {
       if (!pinFirst) pinFirst = ym;
       const hasWin = Object.values(pinMatches).some((m) => m.result === 'win');
-      if (hasWin && !pinWin) {
-        pinWin = ym;
-      }
+      if (hasWin && !pinWin) pinWin = ym;
     }
   }
 

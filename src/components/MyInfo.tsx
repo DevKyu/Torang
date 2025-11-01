@@ -7,7 +7,6 @@ import useUserInfo from '../hooks/useUserInfo';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useQuarterStats } from '../hooks/useQuarterStats';
 import { useTargetResult } from '../hooks/useTargetResult';
-
 import {
   monthToQuarter,
   quarterList,
@@ -15,26 +14,13 @@ import {
   asMonth,
 } from '../utils/score';
 import { getTypeLabel } from '../utils/user';
-import { toYmd, canEditTarget } from '../utils/policy';
-
-import { THIS_YEAR, CUR_YEAR, CUR_MONTHN } from '../constants/date';
-
-import type {
-  Month,
-  Year,
-  UserInfo,
-  UserScores,
-  UserTargets,
-} from '../types/UserInfo';
-
+import { canEditTarget } from '../utils/policy';
 import { setTargetScore } from '../services/firebase';
-
 import RadixSelect from '../components/RadixSelect';
 import MonthCell from './MonthCell';
 import TrendBlock from './TrendBlock';
 import CongratulationOverlay from './CongratulationOverlay';
 import { useUiStore } from '../stores/useUiStore';
-
 import {
   MyInfoContainer,
   MyInfoBox,
@@ -50,24 +36,35 @@ import {
   BadgeButton,
 } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
-import { getYearMonth } from '../utils/date';
 import { ChevronRight } from 'lucide-react';
+import type {
+  Month,
+  Year,
+  UserInfo,
+  UserScores,
+  UserTargets,
+} from '../types/UserInfo';
 
 const MyInfo = () => {
   const navigate = useNavigate();
   const userInfo = useUserInfo() ?? ({} as UserInfo);
   const { name = '게스트', pin = 0, type = '' } = userInfo;
 
-  const [year, setYear] = useState<Year>(THIS_YEAR);
-  const [quarter, setQuarter] = useState(monthToQuarter(new Date().getMonth()));
+  const { formatServerDate } = useUiStore.getState();
+  const serverYear = formatServerDate('year') as Year;
+  const serverMonth = Number(formatServerDate('month'));
+  const serverYm = formatServerDate('ym');
+
+  const [year, setYear] = useState<Year>(serverYear);
+  const [quarter, setQuarter] = useState(monthToQuarter(serverMonth));
   const [optimisticTargets, setOptimisticTargets] = useState<UserTargets>({});
 
   const scores: UserScores = userInfo.scores ?? {};
   const targets: UserTargets = userInfo.targets ?? {};
   const typeLabel = getTypeLabel(type);
+
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
   const activityMap = activityAll[String(year)] ?? {};
-  const todayYmd = toYmd(new Date());
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
   const hasMyInfoCongrats = hasShownCongrats.myInfo;
@@ -78,31 +75,50 @@ const MyInfo = () => {
     quarter,
   );
 
+  const yearNum = Number(serverYear);
+  const monthNum = serverMonth;
+  let activityYmd = activityAll[String(yearNum)]?.[String(monthNum)];
+  if (!activityYmd) {
+    const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
+    const prevYear = monthNum === 1 ? yearNum - 1 : yearNum;
+    activityYmd = activityAll[String(prevYear)]?.[String(prevMonth)];
+  }
+
+  const activityYmdStr = activityYmd ? String(activityYmd) : undefined;
+  const targetResult = useTargetResult(userInfo, serverYm, activityYmdStr, 7);
+
   const yearOptions = useMemo<Year[]>(() => {
     const allYears = new Set(Object.keys(scores) as Year[]);
-    allYears.add(THIS_YEAR);
+    allYears.add(serverYear);
     return Array.from(allYears).sort((a, b) => +b - +a);
-  }, [scores]);
+  }, [scores, serverYear]);
 
   const monthMeta = useMemo(() => {
     const baseYear = targets[year] ?? {};
     const optYear = optimisticTargets[year] ?? {};
-
     return months.map((m) => {
       const key = asMonth(m);
       const score = scores[year]?.[key];
       const target = optYear[key] ?? baseYear[key];
       const hasTarget = target !== undefined;
-      const isEditable = year === CUR_YEAR && +key === CUR_MONTHN && !hasTarget;
+      const isEditable =
+        year === serverYear && +key === serverMonth && !hasTarget;
       return { month: m, key, score, target, edit: isEditable };
     });
-  }, [months, year, scores, targets, optimisticTargets]);
+  }, [
+    months,
+    year,
+    scores,
+    targets,
+    optimisticTargets,
+    serverYear,
+    serverMonth,
+  ]);
 
   const trend = useMemo(() => {
     const hasCur = avgCur !== null && validCount >= 2;
     const hasPrev = avgPrev !== null;
     const diff = hasPrev ? avgCur! - avgPrev! : 0;
-
     const color = !hasPrev
       ? '#666'
       : diff > 0
@@ -110,7 +126,6 @@ const MyInfo = () => {
         : diff < 0
           ? '#2563eb'
           : '#666';
-
     return { show: hasCur, diff, color };
   }, [validCount, avgCur, avgPrev]);
 
@@ -145,130 +160,121 @@ const MyInfo = () => {
 
   const overallAvg = useMemo(() => calcOverallAvg(scores), [scores]);
 
-  const ym = getYearMonth();
-  const raw = activityMap[String(CUR_MONTHN)];
-  const activityYmd = raw != null ? String(raw) : undefined;
-  const targetResult = useTargetResult(userInfo, ym, activityYmd, 7);
-
-  const renderUserInfo = () => (
-    <InfoSection>
-      <InfoRow>
-        <LabelEmoji>👤</LabelEmoji>
-        <Label>이름</Label>
-        <Badge>{name}</Badge>
-      </InfoRow>
-      <InfoRow>
-        <LabelEmoji>🏷️</LabelEmoji>
-        <Label>회원 구분</Label>
-        <Badge>{typeLabel}</Badge>
-      </InfoRow>
-      {overallAvg !== null && (
-        <InfoRow>
-          <LabelEmoji>📊</LabelEmoji>
-          <Label>평균 점수</Label>
-          <Badge>{overallAvg}점</Badge>
-        </InfoRow>
-      )}
-      <InfoRow>
-        <LabelEmoji>🎳</LabelEmoji>
-        <Label>또랑핀</Label>
-        <Badge>{pin}개</Badge>
-      </InfoRow>
-      <InfoRow>
-        <LabelEmoji>🏅</LabelEmoji>
-        <Label>업적</Label>
-        <BadgeButton
-          onClick={() => navigate('/achievements', { replace: true })}
-        >
-          업적 보기 <ChevronRight size={14} strokeWidth={2} />
-        </BadgeButton>
-      </InfoRow>
-    </InfoSection>
-  );
-
-  const renderScoreSection = () => (
-    <ScoreContainer>
-      <FilterRow>
-        <RadixSelect
-          value={year}
-          options={yearOptions}
-          onChange={(v) => setYear(v as Year)}
-          center
-          minWidth={96}
-        />
-        <RadixSelect
-          value={quarter}
-          options={quarterList}
-          onChange={(v) => setQuarter(v as typeof quarter)}
-          center
-          minWidth={84}
-        />
-      </FilterRow>
-
-      {activityLoading ? null : (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${year}-${quarter}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-          >
-            <ScoreGrid>
-              {monthMeta.map((m) => {
-                const raw = activityMap[+m.key];
-                const activityYmd = raw != null ? String(raw) : undefined;
-                const timeAllowed = canEditTarget(todayYmd, activityYmd);
-
-                const hasActivity = !!activityYmd;
-                const isCurrentMonth =
-                  year === CUR_YEAR && +m.key === CUR_MONTHN;
-                const highlightActivity = isCurrentMonth && hasActivity;
-
-                return (
-                  <MonthCell
-                    key={`${year}-${m.key}`}
-                    meta={m}
-                    overallAvg={overallAvg}
-                    onSave={handleSave}
-                    timeAllowed={timeAllowed}
-                    highlightActivity={highlightActivity}
-                    hasActivity={hasActivity}
-                  />
-                );
-              })}
-            </ScoreGrid>
-
-            <TrendBlock
-              show={trend.show}
-              avgCur={avgCur ?? 0}
-              avgPrev={avgPrev}
-              diff={trend.diff}
-              color={trend.color}
-              months={months}
-              year={year}
-              scores={scores}
-            />
-          </motion.div>
-        </AnimatePresence>
-      )}
-
-      <SmallText
-        top="middle"
-        onClick={() => navigate('/menu', { replace: true })}
-      >
-        돌아가기
-      </SmallText>
-    </ScoreContainer>
-  );
-
   return (
     <MyInfoContainer>
       <MyInfoBox>
         <h2>내 정보</h2>
-        {renderUserInfo()}
+
+        <InfoSection>
+          <InfoRow>
+            <LabelEmoji>👤</LabelEmoji>
+            <Label>이름</Label>
+            <Badge>{name}</Badge>
+          </InfoRow>
+          <InfoRow>
+            <LabelEmoji>🏷️</LabelEmoji>
+            <Label>회원 구분</Label>
+            <Badge>{typeLabel}</Badge>
+          </InfoRow>
+          {overallAvg !== null && (
+            <InfoRow>
+              <LabelEmoji>📊</LabelEmoji>
+              <Label>평균 점수</Label>
+              <Badge>{overallAvg}점</Badge>
+            </InfoRow>
+          )}
+          <InfoRow>
+            <LabelEmoji>🎳</LabelEmoji>
+            <Label>또랑핀</Label>
+            <Badge>{pin}개</Badge>
+          </InfoRow>
+          <InfoRow>
+            <LabelEmoji>🏅</LabelEmoji>
+            <Label>업적</Label>
+            <BadgeButton
+              onClick={() => navigate('/achievements', { replace: true })}
+            >
+              업적 보기 <ChevronRight size={14} strokeWidth={2} />
+            </BadgeButton>
+          </InfoRow>
+        </InfoSection>
+
         <InfoDivider />
-        {renderScoreSection()}
+
+        <ScoreContainer>
+          <FilterRow>
+            <RadixSelect
+              value={year}
+              options={yearOptions}
+              onChange={(v) => setYear(v as Year)}
+              center
+              minWidth={96}
+            />
+            <RadixSelect
+              value={quarter}
+              options={quarterList}
+              onChange={(v) => setQuarter(v as typeof quarter)}
+              center
+              minWidth={84}
+            />
+          </FilterRow>
+
+          {!activityLoading && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${year}-${quarter}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                <ScoreGrid>
+                  {monthMeta.map((m) => {
+                    const raw = activityMap[+m.key];
+                    const actYmd = raw ? String(raw) : undefined;
+                    const timeAllowed = canEditTarget(actYmd, {
+                      cutoffTime: '18:30',
+                    });
+                    const hasActivity = !!actYmd;
+                    const isCurrentMonth =
+                      year === serverYear && +m.key === serverMonth;
+                    const highlightActivity = isCurrentMonth && hasActivity;
+
+                    return (
+                      <MonthCell
+                        key={`${year}-${m.key}`}
+                        meta={m}
+                        overallAvg={overallAvg}
+                        onSave={handleSave}
+                        timeAllowed={timeAllowed}
+                        highlightActivity={highlightActivity}
+                        hasActivity={hasActivity}
+                      />
+                    );
+                  })}
+                </ScoreGrid>
+
+                <TrendBlock
+                  show={trend.show}
+                  avgCur={avgCur ?? 0}
+                  avgPrev={avgPrev}
+                  diff={trend.diff}
+                  color={trend.color}
+                  months={months}
+                  year={year}
+                  scores={scores}
+                />
+              </motion.div>
+            </AnimatePresence>
+          )}
+
+          <SmallText
+            top="middle"
+            onClick={() => navigate('/menu', { replace: true })}
+          >
+            돌아가기
+          </SmallText>
+        </ScoreContainer>
       </MyInfoBox>
 
       <CongratulationOverlay
