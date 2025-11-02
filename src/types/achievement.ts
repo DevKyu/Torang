@@ -75,7 +75,7 @@ export const achievementGroups: AchievementGroup[] = [
         category: 'participation',
         label: '볼링 중독',
         desc: '1년간 매달 출석',
-        icon: '😵‍💫',
+        icon: '😵',
       },
       {
         id: 'participation_streak_24',

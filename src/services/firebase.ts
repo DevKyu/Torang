@@ -507,7 +507,7 @@ export const removeUserScore = async (
 export const getAfterPartyParticipation = async (
   empId: string,
 ): Promise<Record<string, Record<string, boolean>>> => {
-  const snap = await get(ref(db, `activityParticipants`));
+  const snap = await get(ref(db, `afterPartyParticipants`));
   if (!snap.exists()) return {};
 
   const data = snap.val();

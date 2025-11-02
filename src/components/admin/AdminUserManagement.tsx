@@ -91,7 +91,13 @@ const AdminUserManagement = () => {
   }, []);
 
   const handleSearchUser = async () => {
-    if (!searchInput.trim()) return;
+    if (!searchInput.trim()) {
+      const all = Object.entries(users);
+      setSearchResults(all);
+      setSelectedUser(null);
+      setSelectedEmpId('');
+      return;
+    }
     const lowerInput = searchInput.toLowerCase();
     const results = Object.entries(users).filter(
       ([empId, u]) =>
