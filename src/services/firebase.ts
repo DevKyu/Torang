@@ -260,7 +260,6 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
             ym,
             createdAt: readableTime,
             createdAtMs: nowMs,
-            source: 'adjustPinsForCurrentMonth',
           })),
         ]);
       }),
