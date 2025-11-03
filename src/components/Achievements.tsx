@@ -74,7 +74,6 @@ const Achievements = () => {
 
         const existing = user.achievements ?? {};
         const lastCheck = user.lastAchievementCheck ?? null;
-
         const todayYmd = Number(formatServerDate('ymd'));
 
         const curYear = String(getServerNow().getFullYear());
@@ -100,6 +99,7 @@ const Achievements = () => {
               ticks: 200,
               colors: ['#22c55e', '#3b82f6', '#facc15'],
             });
+
             showAchievementWithPinToast(0.5);
             await incrementUserPins(0.5);
 
@@ -107,17 +107,21 @@ const Achievements = () => {
             const pinReward = 0.5;
             const readableTime = getServerTimestamp();
             const nowMs = getServerNow().getTime();
-            const ym = formatServerDate('ym');
+
+            const ymServer = formatServerDate('ym');
+            const activityYm = activityYmd
+              ? String(activityYmd).slice(0, 6)
+              : ymServer;
+            const rewardPath = `users/${empId}/rewards/${activityYm}/achievement/${readableTime}`;
 
             if (empId) {
-              const rewardPath = `users/${empId}/rewards/${ym}/achievement/${readableTime}`;
               await update(ref(db), {
                 [rewardPath]: {
                   type: 'achievement',
                   detail: Object.keys(newResults).join(', '),
                   direction: 'gain',
                   pin: pinReward,
-                  ym,
+                  ym: activityYm,
                   createdAt: readableTime,
                   createdAtMs: nowMs,
                 },
@@ -133,6 +137,7 @@ const Achievements = () => {
           setAchievements(existing);
         }
 
+        // 기본 탭 설정
         if (achievementGroups.length > 0) {
           setActiveTab(achievementGroups[0].category);
         }
@@ -146,7 +151,6 @@ const Achievements = () => {
     init();
   }, [activityLoading, activityMaps]);
 
-  // 🔍 탭 스크롤 감지 (IntersectionObserver)
   useEffect(() => {
     let ticking = false;
     const observer = new IntersectionObserver(
