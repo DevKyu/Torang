@@ -44,6 +44,7 @@ export const useTargetResult = (
 
     const year = activityYmd.slice(0, 4) as Year;
     const month = String(Number(activityYmd.slice(4, 6))) as Month;
+    const activityYm = activityYmd.slice(0, 6);
 
     const myScore = user.scores?.[year]?.[month];
     const target = user.targets?.[year]?.[month];
@@ -61,7 +62,8 @@ export const useTargetResult = (
 
     if (!isAchieved) return;
 
-    const rewardPath = `users/${empId}/rewards/${ym}/target`;
+    const rewardYm = activityYm || ym;
+    const rewardPath = `users/${empId}/rewards/${rewardYm}/target`;
     const rewardRef = ref(db, rewardPath);
 
     get(rewardRef).then(async (snap) => {
@@ -80,7 +82,7 @@ export const useTargetResult = (
           myScore,
           target,
           pin: pinReward,
-          ym,
+          ym: rewardYm,
           direction: 'gain',
           createdAt: getReadableTimestamp(serverNow),
           createdAtMs: serverNow.getTime(),

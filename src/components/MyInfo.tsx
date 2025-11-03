@@ -85,7 +85,8 @@ const MyInfo = () => {
   }
 
   const activityYmdStr = activityYmd ? String(activityYmd) : undefined;
-  const targetResult = useTargetResult(userInfo, serverYm, activityYmdStr, 7);
+  const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
+  const targetResult = useTargetResult(userInfo, activityYm, activityYmdStr, 7);
 
   const yearOptions = useMemo<Year[]>(() => {
     const allYears = new Set(Object.keys(scores) as Year[]);
