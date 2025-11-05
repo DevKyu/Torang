@@ -65,5 +65,5 @@ export const getDiffDaysServer = (activityYmd: string): number => {
   );
 
   const diffMs = serverNow.getTime() - actDate.getTime();
-  return diffMs / (1000 * 60 * 60 * 24);
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
