@@ -11,7 +11,6 @@ import {
   saveGalleryMeta,
   checkGalleryUploadAvailability,
 } from '../../utils/galleryUpload';
-import { getYearMonth } from '../../utils/date';
 import { addPinUsage } from '../../utils/pin';
 
 import {
@@ -44,12 +43,12 @@ const GalleryPage = () => {
   const { formatServerDate } = useUiStore();
 
   const [mode, setMode] = useState<'list' | 'upload'>('list');
-  const [galleryList, setGalleryList] = useState<GalleryItem[]>([]);
+  const [galleryList, setGalleryList] = useState<GalleryItem[] | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [empId, setEmpId] = useState<string | null>(null);
   const [uploadCount, setUploadCount] = useState(BASE_UPLOAD);
+  const [yyyymm, setYyyymm] = useState(formatServerDate('ym'));
 
-  const yyyymm = getYearMonth();
   const year = Number(formatServerDate('year'));
   const month = Number(formatServerDate('month'));
 
@@ -63,7 +62,6 @@ const GalleryPage = () => {
 
   useEffect(() => {
     if (!empId) return;
-
     (async () => {
       const ok = await checkAdminId();
       setIsAdmin(Boolean(ok));
@@ -72,7 +70,6 @@ const GalleryPage = () => {
 
   const fetchUploadCount = useCallback(async () => {
     if (!empId) return;
-
     const snap = await get(ref(db, `users/${empId}/uploadCount/${yyyymm}`));
     setUploadCount(snap.exists() ? snap.val() : BASE_UPLOAD);
   }, [empId, yyyymm]);
@@ -92,7 +89,7 @@ const GalleryPage = () => {
         url: v.url,
         caption: v.caption ?? '',
         empId: v.empId,
-        uploadedAt: v.uploadedAt,
+        uploadedAt: String(v.uploadedAt ?? ''),
         likes: v.likes ?? {},
         comments: v.comments ?? {},
       }))
@@ -105,7 +102,7 @@ const GalleryPage = () => {
     if (!empId) return;
     fetchUploadCount();
     fetchGallery();
-  }, [empId, fetchUploadCount, fetchGallery]);
+  }, [empId, yyyymm, fetchUploadCount, fetchGallery]);
 
   const uploadPolicy = useMemo(() => {
     if (activityLoading) return { allowed: false, reason: 'loading' };
@@ -124,7 +121,6 @@ const GalleryPage = () => {
       }
 
       showLoading();
-
       try {
         for (let i = 0; i < files.length; i++) {
           const { imageId, url } = await uploadGalleryImage(files[i], yyyymm);
@@ -139,11 +135,9 @@ const GalleryPage = () => {
 
         if (!isAdmin) {
           const next = uploadCount - needed;
-
           await update(ref(db), {
             [`users/${empId}/uploadCount/${yyyymm}`]: next,
           });
-
           setUploadCount(next);
         }
 
@@ -174,10 +168,8 @@ const GalleryPage = () => {
     }
 
     showLoading();
-
     try {
       await addPinUsage(1, 'gallery_boost', '업로드 횟수 +3');
-
       const next = uploadCount + BASE_UPLOAD;
 
       await update(ref(db), {
@@ -192,13 +184,25 @@ const GalleryPage = () => {
 
   return (
     <>
-      {mode === 'list' && (
-        <GalleryListPage
-          list={galleryList}
-          onMoveUpload={() => setMode('upload')}
-          onCancel={() => navigate('/menu', { replace: true })}
-        />
-      )}
+      {mode === 'list' &&
+        (galleryList === null ? (
+          <GalleryListPage
+            list={[]}
+            yyyymm={yyyymm}
+            onMoveUpload={() => setMode('upload')}
+            onCancel={() => navigate('/menu', { replace: true })}
+            onChangeMonth={(ym) => setYyyymm(ym)}
+            loading
+          />
+        ) : (
+          <GalleryListPage
+            list={galleryList}
+            yyyymm={yyyymm}
+            onMoveUpload={() => setMode('upload')}
+            onCancel={() => navigate('/menu', { replace: true })}
+            onChangeMonth={(ym) => setYyyymm(ym)}
+          />
+        ))}
 
       {mode === 'upload' && (
         <GalleryUpload

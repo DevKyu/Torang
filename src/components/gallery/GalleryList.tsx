@@ -48,22 +48,33 @@ type Props = {
   list: GalleryItem[];
   onMoveUpload: () => void;
   onCancel: () => void;
+  onChangeMonth: (ym: string) => void;
+  yyyymm: string;
+  loading?: boolean;
 };
 
-const GalleryList = ({ list, onMoveUpload, onCancel }: Props) => {
-  const now = useUiStore.getState().getServerNow();
+const GalleryList = ({
+  list,
+  onMoveUpload,
+  onCancel,
+  onChangeMonth,
+  yyyymm,
+  loading,
+}: Props) => {
   const { setImages } = useLightBoxStore();
 
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(Number(yyyymm.slice(0, 4)));
+  const [month, setMonth] = useState(Number(yyyymm.slice(4, 6)));
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
     'latest',
   );
 
-  const hasData = list.length > 0;
+  useEffect(() => {
+    setYear(Number(yyyymm.slice(0, 4)));
+    setMonth(Number(yyyymm.slice(4, 6)));
+  }, [yyyymm]);
 
   useEffect(() => {
-    if (!hasData) return;
     setImages(
       list.map((i) => ({
         id: i.id,
@@ -73,7 +84,7 @@ const GalleryList = ({ list, onMoveUpload, onCancel }: Props) => {
         liked: false,
       })),
     );
-  }, [hasData, list, setImages]);
+  }, [list, setImages]);
 
   const monthKey = useMemo(
     () => `${year}${String(month).padStart(2, '0')}`,
@@ -81,36 +92,37 @@ const GalleryList = ({ list, onMoveUpload, onCancel }: Props) => {
   );
 
   const monthImages = useMemo(() => {
-    if (!hasData) return [];
     const base = list
-      .filter((i) => i.uploadedAt.startsWith(monthKey))
+      .filter(
+        (i) =>
+          typeof i.uploadedAt === 'string' && i.uploadedAt.startsWith(monthKey),
+      )
       .map((i) => ({
         ...i,
         likesCount: i.likes ? Object.keys(i.likes).length : 0,
         commentsCount: i.comments ? Object.keys(i.comments).length : 0,
       }));
+
     return base.sort((a, b) => {
       if (filter === 'likes') return b.likesCount - a.likesCount;
       if (filter === 'comments') return b.commentsCount - a.commentsCount;
       return Number(b.uploadedAt) - Number(a.uploadedAt);
     });
-  }, [hasData, list, monthKey, filter]);
+  }, [list, monthKey, filter]);
 
   const pages = useMemo(() => {
-    if (!hasData) return [];
     const arr: GalleryItem[][] = [];
     for (let i = 0; i < monthImages.length; i += 9) {
       arr.push(monthImages.slice(i, i + 9));
     }
     return arr;
-  }, [hasData, monthImages]);
+  }, [monthImages]);
 
   const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!hasData) return;
     setPageLoadedCounts(new Array(pages.length).fill(0));
-  }, [hasData, pages.length, filter, monthKey]);
+  }, [pages.length, filter, monthKey]);
 
   const minYear = 2025;
   const minMonth = 10;
@@ -129,117 +141,117 @@ const GalleryList = ({ list, onMoveUpload, onCancel }: Props) => {
       nextMonth = 1;
     }
 
-    if (nextYear < minYear || (nextYear === minYear && nextMonth < minMonth)) {
+    if (nextYear < minYear || (nextYear === minYear && nextMonth < minMonth))
       return;
-    }
 
     setYear(nextYear);
     setMonth(nextMonth);
+
+    onChangeMonth(`${nextYear}${String(nextMonth).padStart(2, '0')}`);
   };
 
   return (
     <>
-      {!hasData ? null : (
-        <GalleryOuter>
-          <GalleryBox>
-            <GalleryTitle>활동 갤러리</GalleryTitle>
+      <GalleryOuter>
+        <GalleryBox>
+          <GalleryTitle>활동 갤러리</GalleryTitle>
 
-            <HeaderRow>
-              <MonthNavButton
-                disabled={isPrevDisabled}
-                onClick={() => moveMonth(-1)}
-              >
-                ‹
-              </MonthNavButton>
+          <HeaderRow>
+            <MonthNavButton
+              disabled={isPrevDisabled}
+              onClick={() => moveMonth(-1)}
+            >
+              ‹
+            </MonthNavButton>
 
-              <MonthText>
-                {year}년 {month}월
-              </MonthText>
+            <MonthText>
+              {year}년 {month}월
+            </MonthText>
 
-              <MonthNavButton onClick={() => moveMonth(1)}>›</MonthNavButton>
-            </HeaderRow>
+            <MonthNavButton onClick={() => moveMonth(1)}>›</MonthNavButton>
+          </HeaderRow>
 
-            <FilterRow>
-              <FilterButton
-                active={filter === 'latest'}
-                onClick={() => setFilter('latest')}
-              >
-                최신순
-              </FilterButton>
-              <FilterButton
-                active={filter === 'likes'}
-                onClick={() => setFilter('likes')}
-              >
-                좋아요순
-              </FilterButton>
-              <FilterButton
-                active={filter === 'comments'}
-                onClick={() => setFilter('comments')}
-              >
-                댓글순
-              </FilterButton>
-            </FilterRow>
+          <FilterRow>
+            <FilterButton
+              active={filter === 'latest'}
+              onClick={() => setFilter('latest')}
+            >
+              최신순
+            </FilterButton>
+            <FilterButton
+              active={filter === 'likes'}
+              onClick={() => setFilter('likes')}
+            >
+              좋아요순
+            </FilterButton>
+            <FilterButton
+              active={filter === 'comments'}
+              onClick={() => setFilter('comments')}
+            >
+              댓글순
+            </FilterButton>
+          </FilterRow>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${monthKey}-${filter}`}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-              >
-                {monthImages.length === 0 ? (
-                  <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
-                ) : (
-                  <Swiper
-                    modules={[Pagination]}
-                    slidesPerView={1}
-                    pagination={{ clickable: true }}
-                    className="gallery-swiper"
-                  >
-                    {pages.map((page, pageIdx) => {
-                      const allLoaded =
-                        pageLoadedCounts[pageIdx] >= page.length;
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${monthKey}-${filter}-${loading}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+            >
+              {loading ? (
+                <EmptyBox>불러오는 중…</EmptyBox>
+              ) : monthImages.length === 0 ? (
+                <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
+              ) : (
+                <Swiper
+                  modules={[Pagination]}
+                  slidesPerView={1}
+                  pagination={{ clickable: true }}
+                  className="gallery-swiper"
+                >
+                  {pages.map((page, pageIdx) => {
+                    const allLoaded = pageLoadedCounts[pageIdx] >= page.length;
 
-                      return (
-                        <SwiperSlide key={pageIdx} className="gallery-slide">
-                          <GridWrapper>
-                            {page.map((img, i) => (
-                              <GridItem
-                                key={img.id}
-                                onClick={() =>
-                                  preloadOpenLightBox(pageIdx * 9 + i)
+                    return (
+                      <SwiperSlide key={pageIdx} className="gallery-slide">
+                        <GridWrapper>
+                          {page.map((img, i) => (
+                            <GridItem
+                              key={img.id}
+                              onClick={() =>
+                                preloadOpenLightBox(pageIdx * 9 + i)
+                              }
+                            >
+                              <Skeleton hidden={allLoaded} />
+                              <Thumb
+                                src={img.url}
+                                visible={allLoaded}
+                                onLoad={() =>
+                                  setPageLoadedCounts((prev) => {
+                                    const next = [...prev];
+                                    next[pageIdx] += 1;
+                                    return next;
+                                  })
                                 }
-                              >
-                                <Skeleton hidden={allLoaded} />
-                                <Thumb
-                                  src={img.url}
-                                  visible={allLoaded}
-                                  onLoad={() =>
-                                    setPageLoadedCounts((prev) => {
-                                      const next = [...prev];
-                                      next[pageIdx] += 1;
-                                      return next;
-                                    })
-                                  }
-                                />
-                              </GridItem>
-                            ))}
-                          </GridWrapper>
-                        </SwiperSlide>
-                      );
-                    })}
-                  </Swiper>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                              />
+                            </GridItem>
+                          ))}
+                        </GridWrapper>
+                      </SwiperSlide>
+                    );
+                  })}
+                </Swiper>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-            <AddButton onClick={onMoveUpload}>+ 업로드하기</AddButton>
-            <SmallText top="narrow" onClick={onCancel}>
-              돌아가기
-            </SmallText>
-          </GalleryBox>
-        </GalleryOuter>
-      )}
+          <AddButton onClick={onMoveUpload}>+ 업로드하기</AddButton>
+          <SmallText top="narrow" onClick={onCancel}>
+            돌아가기
+          </SmallText>
+        </GalleryBox>
+      </GalleryOuter>
 
       <LightBox />
       <CommentSheet />

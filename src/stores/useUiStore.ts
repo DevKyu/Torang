@@ -70,7 +70,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       case 'month':
         return m;
       case 'ym':
-        return `${y}${m}`;
+        return `${y}${mm}`;
       case 'ymd':
         return `${y}${mm}${day}`;
       case 'ymdhm':
