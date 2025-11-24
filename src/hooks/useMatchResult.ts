@@ -3,7 +3,7 @@ import { ref, get } from 'firebase/database';
 import { db, saveMatchResult } from '../services/firebase';
 import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
-import { applyPinChangeBatch } from '../utils/pin';
+//import { applyPinChangeBatch } from '../utils/pin';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
 import type { YearMonth, MatchType } from '../types/match';
 import { getDiffDaysServer } from '../utils/date';
