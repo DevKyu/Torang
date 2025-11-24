@@ -106,7 +106,8 @@ export const useMatchResult = ({
                 ),
             ),
           );
-          await applyPinChangeBatch(activityYm, myId!, type, newResults);
+          // 핀로직 임시 제거
+          // await applyPinChangeBatch(activityYm, myId!, type, newResults);
         } catch (err) {
           console.error('DB update error:', err);
         }

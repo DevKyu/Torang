@@ -47,8 +47,8 @@ import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 
 // monthly 연동
-//const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
-const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
+const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
+//const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 const MATCH_TYPE: 'rival' | 'pin' = 'rival';
@@ -74,9 +74,12 @@ const Ranking = () => {
   );
 
   // monthly 연동
-  //const [rankingType, setRankingType] = useState<RankingType>(
-  //participantsAll.length > 0 ? 'monthly' : 'quarter',);
-  const [rankingType, setRankingType] = useState<RankingType>('quarter');
+
+  const [rankingType, setRankingType] = useState<RankingType>(
+    participantsAll.length > 0 ? 'monthly' : 'quarter',
+  );
+
+  //const [rankingType, setRankingType] = useState<RankingType>('monthly');
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
@@ -306,16 +309,17 @@ const Ranking = () => {
             )}
           </td>
           <td>
-            {/* {rankingType === 'monthly' ? (
-              <RankingPopover user={user} />
-            ) : (
-              user.average
-            )} */}
-            {rankingType === 'quarter' ? (
+            {rankingType === 'monthly' ? (
               <RankingPopover user={user} />
             ) : (
               user.average
             )}
+            {/*
+           {rankingType === 'quarter' ? (
+              <RankingPopover user={user} />
+            ) : (
+              user.average
+            )} */}
           </td>
           <td>{rankingType === 'monthly' ? user.league : user.max}</td>
           <td>{rankingType === 'monthly' ? user.pin : user.games}</td>
@@ -324,6 +328,12 @@ const Ranking = () => {
     },
     [rankingType, ym, myId, timeAllowed, myLeague],
   );
+
+  useEffect(() => {
+    if (participantsAll.length > 0) {
+      setRankingType('monthly');
+    }
+  }, [participantsAll]);
 
   const availableTabs = useMemo(() => {
     let base =

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ref, get, update } from 'firebase/database';
+//import { ref, get, update } from 'firebase/database';
 import {
-  db,
+  // db,
   getCurrentUserId,
-  incrementPinsByEmpId,
+  // incrementPinsByEmpId,
 } from '../services/firebase';
-import { showTargetWithPinToast } from '../utils/toast';
+//import { showTargetWithPinToast } from '../utils/toast';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import { getDiffDaysServer, getReadableTimestamp } from '../utils/date';
-import { useUiStore } from '../stores/useUiStore';
+import { getDiffDaysServer /*getReadableTimestamp*/ } from '../utils/date';
+//import { useUiStore } from '../stores/useUiStore';
 
 export type TargetResult = {
   show: boolean;
@@ -19,7 +19,7 @@ export type TargetResult = {
   setShow: (v: boolean) => void;
   onPinReward?: (amount: number) => void;
 };
-
+/*
 export const useTargetResult = (
   user: UserInfo | null,
   ym: string,
@@ -92,6 +92,47 @@ export const useTargetResult = (
       showTargetWithPinToast(pinReward);
       if (onPinReward) onPinReward(pinReward);
     });
+  }, [user, ym, activityYmd, withinDays, initialized]);
+
+  return { ...result, show, setShow };
+}; 핀 로직 임시 제거
+*/
+
+export const useTargetResult = (
+  user: UserInfo | null,
+  ym: string,
+  activityYmd?: string,
+  withinDays = 7,
+): TargetResult => {
+  const [show, setShow] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [result, setResult] = useState<Omit<TargetResult, 'show' | 'setShow'>>({
+    achieved: false,
+    special: false,
+  });
+
+  useEffect(() => {
+    if (initialized || !user || !activityYmd) return;
+
+    const empId = getCurrentUserId();
+    if (!empId) return;
+
+    const year = activityYmd.slice(0, 4) as Year;
+    const month = String(Number(activityYmd.slice(4, 6))) as Month;
+
+    const myScore = user.scores?.[year]?.[month];
+    const target = user.targets?.[year]?.[month];
+    if (typeof myScore !== 'number' || typeof target !== 'number') return;
+
+    const diffDays = getDiffDaysServer(activityYmd);
+    if (diffDays <= 0 || diffDays > withinDays) return;
+
+    const isSpecial = myScore === target;
+    const isAchieved = myScore >= target;
+
+    setResult({ achieved: isAchieved, special: isSpecial, myScore, target });
+    setShow(true);
+    setInitialized(true);
   }, [user, ym, activityYmd, withinDays, initialized]);
 
   return { ...result, show, setShow };
