@@ -27,7 +27,6 @@ import {
 } from '../../styles/galleryGridStyle';
 
 import { SmallText } from '../../styles/commonStyle';
-import { useUiStore } from '../../stores/useUiStore';
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 
