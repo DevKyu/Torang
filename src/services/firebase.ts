@@ -18,6 +18,7 @@ import {
   serverTimestamp,
   remove,
 } from 'firebase/database';
+import { getStorage } from 'firebase/storage';
 import type { Month, UserInfo, Year } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
@@ -32,7 +33,7 @@ const firebaseConfig = {
   authDomain: 'torang-3d5a2.firebaseapp.com',
   databaseURL: 'https://torang-3d5a2-default-rtdb.firebaseio.com',
   projectId: 'torang-3d5a2',
-  storageBucket: 'torang-3d5a2.appspot.com',
+  storageBucket: 'torang-3d5a2.firebasestorage.app',
   messagingSenderId: '1035546618430',
   appId: '1:1035546618430:web:c1cd435354dfe2e6b5ff6f',
 };
@@ -40,6 +41,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+export const storage = getStorage(app);
 
 // 3. 공통 유틸
 export const getCurrentUserOrThrow = () => {

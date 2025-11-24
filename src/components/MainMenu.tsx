@@ -6,6 +6,7 @@ import {
   UsersIcon,
   UserIcon,
   ShieldIcon,
+  ImagesIcon,
 } from 'lucide-react';
 import { logOut, checkAdminId } from '../services/firebase';
 
@@ -43,6 +44,12 @@ const baseMenuItems: MenuItem[] = [
     isNew: true,
     icon: <UsersIcon size={20} />,
     disabled: false,
+  },
+  {
+    id: 'gallery',
+    label: '활동 사진',
+    icon: <ImagesIcon size={20} />,
+    disabled: true,
   },
   {
     id: 'reward',
@@ -103,6 +110,9 @@ const MainMenu = () => {
         break;
       case 'admin':
         navigate('/admin', { replace: true });
+        break;
+      case 'gallery':
+        navigate('/gallery', { replace: true });
         break;
     }
   };

@@ -1,10 +1,15 @@
 import { ref, get, update } from 'firebase/database';
-import { db, incrementPinsByEmpId } from '../services/firebase';
+import {
+  db,
+  getCurrentUserId,
+  incrementPinsByEmpId,
+} from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';
 import { showMatchWithPinToast } from './toast';
 import { getReadableTimestamp } from './date';
+import { useUiStore } from '../stores/useUiStore';
 
 export const applyPinChangeBatch = async (
   ym: YearMonth,
@@ -100,4 +105,33 @@ export const applyPinRewardBatch = async (
   if (winCount > 0) {
     await incrementPinsByEmpId(myId, winCount * pinDelta);
   }
+};
+
+export const addPinUsage = async (
+  delta: number,
+  type: string,
+  detail: string,
+) => {
+  const empId = getCurrentUserId();
+  const { getServerNow, getServerTimestamp, formatServerDate } =
+    useUiStore.getState();
+
+  const serverNow = getServerNow();
+  const usageId = getServerTimestamp();
+  const yyyymm = formatServerDate('ym');
+  const readable = getServerTimestamp();
+
+  const finalDelta = delta > 0 ? -delta : delta;
+
+  await incrementPinsByEmpId(empId, finalDelta);
+
+  await update(ref(db), {
+    [`users/${empId}/pinUsage/${yyyymm}/${usageId}`]: {
+      createdAt: readable,
+      createdAtMs: serverNow.getTime(),
+      type,
+      detail,
+      delta: finalDelta,
+    },
+  });
 };

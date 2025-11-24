@@ -14,28 +14,16 @@ const GlobalStyle = () => (
       html,
       body {
         height: 100%;
-        font-family: sans-serif;
-        background-color: #fff;
+        background: #fff;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
       }
 
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-
-      a[x-apple-data-detectors],
-      span[x-apple-data-detectors],
-      p[x-apple-data-detectors] {
-        color: inherit !important;
-        text-decoration: none !important;
-        font-family: inherit !important;
-        font-size: inherit !important;
-        font-style: inherit !important;
-        font-weight: inherit !important;
-        line-height: inherit !important;
-        -webkit-text-fill-color: inherit !important;
+      button {
+        border: none;
+        background: none;
+        cursor: pointer;
       }
 
       ul,
@@ -43,10 +31,17 @@ const GlobalStyle = () => (
         list-style: none;
       }
 
-      button {
-        background: none;
-        border: none;
-        cursor: pointer;
+      .gallery-swiper {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .gallery-slide {
+        padding: 8px 10px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
       }
     `}
   />

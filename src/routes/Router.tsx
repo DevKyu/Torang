@@ -7,6 +7,7 @@ import MyInfo from '../components/MyInfo';
 import Ranking from '../components/Ranking';
 import Achievements from '../components/Achievements';
 import AdminUserManagement from '../components/admin/AdminUserManagement';
+import GalleryPage from '../components/gallery/GalleryPage';
 
 const Router = () => (
   <Routes>
@@ -18,6 +19,7 @@ const Router = () => (
     <Route path="/ranking" element={<Ranking />} />
     <Route path="/achievements" element={<Achievements />} />
     <Route path="/admin" element={<AdminUserManagement />} />
+    <Route path="/gallery" element={<GalleryPage />} />
   </Routes>
 );
 

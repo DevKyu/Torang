@@ -1,0 +1,7 @@
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+
+.swiper-pagination {
+  margin-top: 8px;
+  position: relative;
+}
