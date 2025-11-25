@@ -158,7 +158,7 @@ const GalleryList = ({
     <>
       <GalleryOuter>
         <GalleryBox>
-          <GalleryTitle>활동 갤러리</GalleryTitle>
+          <GalleryTitle>또랑 갤러리</GalleryTitle>
 
           <HeaderRow>
             <MonthNavButton

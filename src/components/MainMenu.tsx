@@ -56,7 +56,7 @@ const baseMenuItems: MenuItem[] = [
     label: '또랑 갤러리',
     isNew: true,
     icon: <ImagesIcon size={20} />,
-    disabled: false,
+    disabled: true,
   },
   {
     id: 'draw',
