@@ -35,27 +35,28 @@ const baseMenuItems: MenuItem[] = [
     id: 'user',
     label: '내정보',
     icon: <UserIcon size={20} />,
-    isClose: true,
     disabled: false,
   },
   {
     id: 'rank',
     label: '또랑 랭킹',
-    isNew: true,
+    isClose: true,
     icon: <UsersIcon size={20} />,
     disabled: false,
   },
-  {
-    id: 'gallery',
-    label: '활동 사진',
-    icon: <ImagesIcon size={20} />,
-    disabled: true,
-  },
+
   {
     id: 'reward',
     label: '상품 신청',
     icon: <GiftIcon size={20} />,
     disabled: true,
+  },
+  {
+    id: 'gallery',
+    label: '또랑 갤러리',
+    isNew: true,
+    icon: <ImagesIcon size={20} />,
+    disabled: false,
   },
   {
     id: 'draw',

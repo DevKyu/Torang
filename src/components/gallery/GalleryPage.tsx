@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ref, get, update } from 'firebase/database';
+import { ref, get, update, onValue } from 'firebase/database';
 import { toast } from 'sonner';
 
 import GalleryListPage from './GalleryList';
@@ -18,6 +18,7 @@ import {
   getCurrentUserId,
   checkAdminId,
   getUserPins,
+  preloadAllNames,
 } from '../../services/firebase';
 
 import { useLoading } from '../../contexts/LoadingContext';
@@ -43,9 +44,11 @@ const GalleryPage = () => {
   const { formatServerDate } = useUiStore();
 
   const [mode, setMode] = useState<'list' | 'upload'>('list');
+
   const [galleryList, setGalleryList] = useState<GalleryItem[] | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [empId, setEmpId] = useState<string | null>(null);
+
   const [uploadCount, setUploadCount] = useState(BASE_UPLOAD);
   const [yyyymm, setYyyymm] = useState(formatServerDate('ym'));
 
@@ -55,6 +58,7 @@ const GalleryPage = () => {
   useEffect(() => {
     try {
       setEmpId(getCurrentUserId());
+      preloadAllNames();
     } catch {
       navigate('/', { replace: true });
     }
@@ -74,17 +78,20 @@ const GalleryPage = () => {
     setUploadCount(snap.exists() ? snap.val() : BASE_UPLOAD);
   }, [empId, yyyymm]);
 
-  const fetchGallery = useCallback(async () => {
-    const snap = await get(ref(db, `gallery/${yyyymm}`));
+  useEffect(() => {
+    if (!empId) return;
 
-    if (!snap.exists()) {
-      setGalleryList([]);
-      return;
-    }
+    fetchUploadCount();
 
-    const data = snap.val();
-    const list = Object.entries(data)
-      .map(([id, v]: any) => ({
+    const r = ref(db, `gallery/${yyyymm}`);
+    const unsub = onValue(r, (snap) => {
+      if (!snap.exists()) {
+        setGalleryList([]);
+        return;
+      }
+
+      const data = snap.val();
+      const list = Object.entries(data).map(([id, v]: any) => ({
         id,
         url: v.url,
         caption: v.caption ?? '',
@@ -92,17 +99,13 @@ const GalleryPage = () => {
         uploadedAt: String(v.uploadedAt ?? ''),
         likes: v.likes ?? {},
         comments: v.comments ?? {},
-      }))
-      .sort((a, b) => Number(b.uploadedAt) - Number(a.uploadedAt));
+      }));
 
-    setGalleryList(list);
-  }, [yyyymm]);
+      setGalleryList(list);
+    });
 
-  useEffect(() => {
-    if (!empId) return;
-    fetchUploadCount();
-    fetchGallery();
-  }, [empId, yyyymm, fetchUploadCount, fetchGallery]);
+    return () => unsub();
+  }, [empId, yyyymm, fetchUploadCount]);
 
   const uploadPolicy = useMemo(() => {
     if (activityLoading) return { allowed: false, reason: 'loading' };
@@ -121,6 +124,7 @@ const GalleryPage = () => {
       }
 
       showLoading();
+
       try {
         for (let i = 0; i < files.length; i++) {
           const { imageId, url } = await uploadGalleryImage(files[i], yyyymm);
@@ -135,27 +139,20 @@ const GalleryPage = () => {
 
         if (!isAdmin) {
           const next = uploadCount - needed;
+
           await update(ref(db), {
             [`users/${empId}/uploadCount/${yyyymm}`]: next,
           });
+
           setUploadCount(next);
         }
 
-        await fetchGallery();
         setMode('list');
       } finally {
         hideLoading();
       }
     },
-    [
-      empId,
-      isAdmin,
-      uploadCount,
-      yyyymm,
-      showLoading,
-      hideLoading,
-      fetchGallery,
-    ],
+    [empId, isAdmin, uploadCount, yyyymm, showLoading, hideLoading],
   );
 
   const handleBoost = useCallback(async () => {
@@ -168,6 +165,7 @@ const GalleryPage = () => {
     }
 
     showLoading();
+
     try {
       await addPinUsage(1, 'gallery_boost', '업로드 횟수 +3');
       const next = uploadCount + BASE_UPLOAD;

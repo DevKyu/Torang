@@ -1,30 +1,37 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
+const gpu = `
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+`;
+
 export const Dim = styled(motion.div)`
   position: fixed;
   inset: 0;
-  background: black;
+  background: rgba(0, 0, 0, 0.55);
   z-index: 9998;
+  ${gpu};
 `;
 
 export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  max-height: 72vh;
-
-  background: white;
+  height: 65vh;
+  max-height: 65vh;
+  background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 9999;
-
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  ${gpu};
 `;
 
 export const SheetHeader = styled.div`
-  padding: 14px 18px;
+  padding: 16px 18px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -32,7 +39,7 @@ export const SheetHeader = styled.div`
   .close {
     width: 24px;
     height: 24px;
-    color: #555;
+    color: #333;
     cursor: pointer;
   }
 `;
@@ -45,14 +52,22 @@ export const Title = styled.div`
 
 export const SheetBody = styled.div`
   flex: 1;
+  padding: 6px 18px 20px;
   overflow-y: auto;
-  padding: 6px 18px 12px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const CommentItem = styled(motion.div)`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
   .row1 {
     display: flex;
     align-items: center;
@@ -63,6 +78,7 @@ export const CommentItem = styled(motion.div)`
       font-weight: 600;
       color: #333;
     }
+
     .time {
       font-size: 11px;
       color: #999;
@@ -70,24 +86,24 @@ export const CommentItem = styled(motion.div)`
   }
 
   .text {
-    margin-top: 2px;
     font-size: 14px;
     color: #444;
-    line-height: 1.35;
+    line-height: 1.45;
+    white-space: pre-wrap;
   }
 
   .actions {
-    margin-top: 6px;
     display: flex;
-    gap: 14px;
     align-items: center;
+    gap: 8px; /* 기존 12 → 8로 축소 */
+    min-height: 20px;
 
     .heart {
       display: flex;
       align-items: center;
       gap: 4px;
-      color: #aaa;
       cursor: pointer;
+      color: #aaa;
 
       &.on {
         color: #e63946;
@@ -95,6 +111,7 @@ export const CommentItem = styled(motion.div)`
 
       span {
         font-size: 12px;
+        min-width: 10px;
       }
     }
 
@@ -103,25 +120,29 @@ export const CommentItem = styled(motion.div)`
       background: none;
       border: none;
       color: #666;
-      font-size: 11px;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 4px;
       cursor: pointer;
-      padding: 0;
+
+      &:active {
+        opacity: 0.6;
+      }
     }
   }
 `;
 
 export const ReplyItem = styled(motion.div)`
-  margin-left: 24px;
-  margin-top: 14px;
-  padding-bottom: 4px;
-
+  margin-top: 2px;
+  margin-left: 20px;
+  padding-left: 4px;
   display: flex;
   gap: 8px;
 
   .inner {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
 
     .row1 {
       display: flex;
@@ -133,6 +154,7 @@ export const ReplyItem = styled(motion.div)`
         font-weight: 600;
         color: #333;
       }
+
       .time {
         font-size: 11px;
         color: #999;
@@ -141,22 +163,21 @@ export const ReplyItem = styled(motion.div)`
 
     .text {
       font-size: 13px;
-      line-height: 1.32;
       color: #444;
+      line-height: 1.45;
+      white-space: pre-wrap;
     }
 
     .actions {
-      margin-top: 6px;
       display: flex;
-      gap: 14px;
       align-items: center;
+      gap: 8px;
 
       .heart {
         display: flex;
         align-items: center;
         gap: 4px;
         cursor: pointer;
-
         color: #aaa;
 
         &.on {
@@ -165,6 +186,7 @@ export const ReplyItem = styled(motion.div)`
 
         span {
           font-size: 12px;
+          min-width: 10px;
         }
       }
 
@@ -172,49 +194,63 @@ export const ReplyItem = styled(motion.div)`
         background: none;
         border: none;
         color: #666;
-        font-size: 11px;
+        font-size: 12px;
+        padding: 2px 4px;
+        border-radius: 4px;
         cursor: pointer;
-        padding: 0;
+
+        &:active {
+          opacity: 0.6;
+        }
       }
     }
   }
 `;
 
 export const InputWrap = styled.div`
+  padding: 14px 16px 10px;
+  background: #fff;
   border-top: 1px solid #eee;
-  background: white;
 `;
 
 export const ReplyNotice = styled.div`
-  padding: 6px 14px;
-  font-size: 12px;
-  color: #555;
   display: flex;
   justify-content: space-between;
+  padding: 0 14px 10px;
+  font-size: 12px;
+  color: #555;
 
   button {
     background: none;
     border: none;
     font-size: 12px;
     color: #777;
+    padding: 2px 6px;
+    border-radius: 4px;
     cursor: pointer;
+
+    &:active {
+      opacity: 0.6;
+    }
   }
 `;
 
 export const InputBox = styled.div`
-  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  background: #f3f3f5;
+  border-radius: 14px;
+  padding: 12px 16px;
 
   input {
     flex: 1;
-    border: 1px solid #ddd;
-    border-radius: 18px;
-    padding: 10px 14px;
-    font-size: 14px;
+    border: none;
     outline: none;
-    background: #f7f7f7;
+    background: none;
+    font-size: 14px;
+    color: #222;
+    line-height: 1.44;
   }
 
   .send {
@@ -222,9 +258,13 @@ export const InputBox = styled.div`
     height: 24px;
     color: #444;
     cursor: pointer;
+
+    &:active {
+      opacity: 0.6;
+    }
   }
 `;
 
 export const SafeBottom = styled.div`
-  height: env(safe-area-inset-bottom, 10px);
+  height: calc(env(safe-area-inset-bottom, 0px) + 10px);
 `;

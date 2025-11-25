@@ -1,9 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
-import { AnimatePresence, type PanInfo } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { X, Send, CornerDownRight, Heart } from 'lucide-react';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
-import type { Comment } from '../../types/lightbox';
+import type { LightboxComment } from '../../types/lightbox';
+
+import {
+  addGalleryComment,
+  toggleCommentLike,
+  deleteGalleryComment,
+} from '../../utils/comments';
+
+import { getCurrentUserId, getCachedUserName } from '../../services/firebase';
 
 import {
   Dim,
@@ -19,10 +27,9 @@ import {
   SafeBottom,
 } from '../../styles/commentSheetStyle';
 
-const formatTimeAgo = (timestamp: number) => {
-  const now = Date.now();
-  const diff = now - timestamp;
-
+/* timeago */
+const formatTimeAgo = (ts: number) => {
+  const diff = Date.now() - ts;
   const sec = diff / 1000;
   const min = sec / 60;
   const hour = min / 60;
@@ -34,11 +41,16 @@ const formatTimeAgo = (timestamp: number) => {
   if (day < 2) return '어제';
   if (day < 7) return `${Math.floor(day)}일 전`;
 
-  const d = new Date(timestamp);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(
-    2,
-    '0',
-  )}.${String(d.getDate()).padStart(2, '0')}`;
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
+};
+
+const fadeSlow = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.33 } },
+  exit: { opacity: 0, transition: { duration: 0.25 } },
 };
 
 export const CommentSheet = () => {
@@ -56,110 +68,146 @@ export const CommentSheet = () => {
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const myName = '나';
+  const empId = getCurrentUserId();
+  const myName = empId ? getCachedUserName(empId) : '나';
 
-  const currentImage = images[commentIndex];
-  const imageId = currentImage?.id;
+  const img = images[commentIndex];
+  const imageId = img?.id;
+  const uploadedAt = img?.uploadedAt;
 
-  const list = (imageId ? comments[imageId] : []) ?? [];
+  const list = useMemo(
+    () => (imageId ? (comments[imageId] ?? []) : []),
+    [comments, imageId],
+  );
 
   const [text, setText] = useState('');
-  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
+
+  const scrollToBottom = useCallback(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      });
+    }, 0);
+  }, []);
 
   useEffect(() => {
-    setReplyTo(null);
-  }, [commentIndex]);
-
-  useEffect(() => {
-    if (commentOpen) {
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+    if (commentOpen) requestAnimationFrame(() => inputRef.current?.focus());
   }, [commentOpen]);
 
-  useEffect(() => {
-    if (!commentOpen || !bodyRef.current) return;
+  useEffect(() => setReplyTo(null), [commentIndex]);
 
-    requestAnimationFrame(() => {
-      bodyRef.current?.scrollTo({
-        top: bodyRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    });
-  }, [list, commentOpen]);
+  const handleSend = async () => {
+    const t = text.trim();
+    if (!imageId || !uploadedAt || !t) return;
 
-  const handleSend = () => {
-    if (!imageId || !text.trim()) return;
+    const tempId = `temp_${Date.now()}`;
+    const isReply = Boolean(replyTo);
 
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      parentId: replyTo ? replyTo.id : null,
+    const optimistic: LightboxComment = {
+      id: tempId,
+      parentId: isReply ? replyTo!.id : null,
       user: myName,
-      text: text.trim(),
+      text: t,
       createdAt: Date.now(),
       likes: 0,
       likedByMe: false,
     };
 
-    addComment(imageId, newComment);
-
+    addComment(imageId, optimistic);
     setText('');
     setReplyTo(null);
 
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
+    if (!isReply) scrollToBottom();
+
+    const realId = await addGalleryComment(
+      uploadedAt,
+      imageId,
+      t,
+      optimistic.parentId,
+    );
+
+    if (realId) updateComment(imageId, tempId, { id: realId });
   };
 
-  const handleLike = (c: Comment) => {
-    updateComment(imageId!, c.id, {
+  const handleLike = (c: LightboxComment) => {
+    if (!imageId || !uploadedAt) return;
+
+    updateComment(imageId, c.id, {
       likedByMe: !c.likedByMe,
-      likes: c.likedByMe ? c.likes - 1 : c.likes + 1,
+      likes: !c.likedByMe ? c.likes + 1 : Math.max(0, c.likes - 1),
     });
+
+    toggleCommentLike(uploadedAt, imageId, c.id, !c.likedByMe);
   };
 
-  const topLevel = list.filter((c) => c.parentId === null && !c.deleted);
-  const replies = (pid: string) =>
-    list.filter((c) => c.parentId === pid && !c.deleted);
+  const handleDeleteComment = (cid: string) => {
+    if (!imageId || !uploadedAt) return;
+    deleteComment(imageId, cid);
+    deleteGalleryComment(uploadedAt, imageId, cid);
+  };
+
+  const topLevel = useMemo(() => {
+    return list.filter((c) => !c.deleted && !c.parentId);
+  }, [list]);
+
+  const getReplies = useCallback(
+    (pid: string) => list.filter((c) => !c.deleted && c.parentId === pid),
+    [list],
+  );
 
   const totalCount = list.filter((c) => !c.deleted).length;
 
-  const replyTargetName =
-    replyTo?.user === myName ? '나에게' : `${replyTo?.user}님에게`;
-
-  const handleDragClose = (_: any, info: PanInfo) => {
+  const handleDragClose = (_: unknown, info: PanInfo) => {
     if (info.offset.y > 160) closeComment();
   };
 
+  if (!commentOpen) return null;
+
   return (
     <AnimatePresence>
-      {commentOpen && (
-        <>
-          <Dim
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.55 }}
-            exit={{ opacity: 0 }}
-            onClick={closeComment}
-          />
+      <>
+        <Dim key="dim" {...fadeSlow} onClick={closeComment} />
 
-          <Sheet
-            drag="y"
-            dragElastic={0.15}
-            dragConstraints={{ top: 0, bottom: 0 }}
-            onDragEnd={handleDragClose}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-          >
-            <SheetHeader>
-              <Title>댓글 {totalCount}</Title>
-              <X className="close" onClick={closeComment} />
-            </SheetHeader>
+        <Sheet
+          key="sheet"
+          drag="y"
+          dragElastic={0.15}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          onDragEnd={handleDragClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.28 } }}
+          exit={{ opacity: 0, transition: { duration: 0.25 } }}
+        >
+          <SheetHeader>
+            <Title>댓글 {totalCount}</Title>
+            <X className="close" onClick={closeComment} />
+          </SheetHeader>
 
-            <SheetBody ref={bodyRef}>
-              {topLevel.map((c) => (
-                <div key={c.id}>
-                  <CommentItem>
+          <SheetBody ref={bodyRef}>
+            {topLevel.length === 0 && (
+              <motion.div
+                {...fadeSlow}
+                style={{
+                  textAlign: 'center',
+                  color: '#777',
+                  paddingTop: '22px',
+                  fontSize: '14px',
+                }}
+              >
+                아직 댓글이 없어요!
+              </motion.div>
+            )}
+
+            <AnimatePresence mode="sync">
+              {topLevel.map((c) => {
+                const replies = getReplies(c.id);
+
+                return (
+                  <CommentItem key={c.id} {...fadeSlow}>
                     <div className="row1">
                       <div className="name">{c.user}</div>
                       <div className="time">{formatTimeAgo(c.createdAt)}</div>
@@ -168,102 +216,116 @@ export const CommentSheet = () => {
                     <div className="text">{c.text}</div>
 
                     <div className="actions">
-                      <div
+                      <motion.div
                         className={`heart ${c.likedByMe ? 'on' : ''}`}
                         onClick={() => handleLike(c)}
+                        whileTap={{ scale: 0.92 }}
                       >
                         <Heart
                           size={16}
                           fill={c.likedByMe ? '#e63946' : 'none'}
                           color={c.likedByMe ? '#e63946' : '#aaa'}
                         />
-                        {c.likes > 0 && <span>{c.likes}</span>}
-                      </div>
+                        <span>{c.likes || ''}</span>
+                      </motion.div>
 
                       <button
                         className="replyBtn"
-                        onClick={() => setReplyTo(c)}
+                        onClick={() => {
+                          setReplyTo(c);
+                          requestAnimationFrame(() =>
+                            inputRef.current?.focus(),
+                          );
+                        }}
                       >
-                        답글 달기
+                        답글
                       </button>
 
                       {c.user === myName && (
                         <button
                           className="delBtn"
-                          onClick={() => deleteComment(imageId!, c.id)}
+                          onClick={() => handleDeleteComment(c.id)}
                         >
                           삭제
                         </button>
                       )}
                     </div>
 
-                    {replies(c.id).map((r) => (
-                      <ReplyItem key={r.id}>
-                        <CornerDownRight size={16} />
-                        <div className="inner">
-                          <div className="row1">
-                            <div className="name">{r.user}</div>
-                            <div className="time">
-                              {formatTimeAgo(r.createdAt)}
-                            </div>
-                          </div>
+                    <AnimatePresence mode="sync">
+                      {replies.map((r) => (
+                        <ReplyItem key={r.id} {...fadeSlow}>
+                          <CornerDownRight size={16} />
 
-                          <div className="text">{r.text}</div>
-
-                          <div className="actions">
-                            <div
-                              className={`heart ${r.likedByMe ? 'on' : ''}`}
-                              onClick={() => handleLike(r)}
-                            >
-                              <Heart
-                                size={15}
-                                fill={r.likedByMe ? '#e63946' : 'none'}
-                                color={r.likedByMe ? '#e63946' : '#aaa'}
-                              />
-                              {r.likes > 0 && <span>{r.likes}</span>}
+                          <div className="inner">
+                            <div className="row1">
+                              <div className="name">{r.user}</div>
+                              <div className="time">
+                                {formatTimeAgo(r.createdAt)}
+                              </div>
                             </div>
 
-                            {r.user === myName && (
-                              <button
-                                className="delBtn"
-                                onClick={() => deleteComment(imageId!, r.id)}
+                            <div className="text">{r.text}</div>
+
+                            <div className="actions">
+                              <motion.div
+                                className={`heart ${r.likedByMe ? 'on' : ''}`}
+                                onClick={() => handleLike(r)}
+                                whileTap={{ scale: 0.92 }}
                               >
-                                삭제
-                              </button>
-                            )}
+                                <Heart
+                                  size={15}
+                                  fill={r.likedByMe ? '#e63946' : 'none'}
+                                  color={r.likedByMe ? '#e63946' : '#aaa'}
+                                />
+                                <span>{r.likes || ''}</span>
+                              </motion.div>
+
+                              {r.user === myName && (
+                                <button
+                                  className="delBtn"
+                                  onClick={() => handleDeleteComment(r.id)}
+                                >
+                                  삭제
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </ReplyItem>
-                    ))}
+                        </ReplyItem>
+                      ))}
+                    </AnimatePresence>
                   </CommentItem>
-                </div>
-              ))}
-            </SheetBody>
+                );
+              })}
+            </AnimatePresence>
+          </SheetBody>
 
-            <InputWrap>
-              {replyTo && (
-                <ReplyNotice>
-                  <span>{replyTargetName} 답글 작성 중…</span>
-                  <button onClick={() => setReplyTo(null)}>취소</button>
-                </ReplyNotice>
-              )}
+          <InputWrap>
+            {replyTo && (
+              <ReplyNotice>
+                <span>
+                  {replyTo.user === myName
+                    ? '나에게 답글 작성 중…'
+                    : `${replyTo.user}님에게 답글 작성 중…`}
+                </span>
+                <button onClick={() => setReplyTo(null)}>취소</button>
+              </ReplyNotice>
+            )}
 
-              <InputBox>
-                <input
-                  ref={inputRef}
-                  value={text}
-                  placeholder="댓글 입력..."
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <Send className="send" onClick={handleSend} />
-              </InputBox>
+            <InputBox>
+              <input
+                ref={inputRef}
+                value={text}
+                placeholder="댓글 입력..."
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              />
+              <Send className="send" onClick={handleSend} />
+            </InputBox>
 
-              <SafeBottom />
-            </InputWrap>
-          </Sheet>
-        </>
-      )}
+            <SafeBottom />
+          </InputWrap>
+        </Sheet>
+      </>
     </AnimatePresence>
   );
 };

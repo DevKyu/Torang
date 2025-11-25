@@ -13,7 +13,7 @@ type UiState = {
   syncServerTime: () => Promise<void>;
   getServerNow: () => Date;
   formatServerDate: (
-    type?: 'year' | 'month' | 'ym' | 'ymd' | 'ymdhm' | 'hm',
+    type?: 'year' | 'month' | 'ym' | 'ymd' | 'ymdhm' | 'ymdhmsms' | 'hm',
   ) => string;
   isBeforeCutoff: (activityYmd?: string, cutoffTime?: string) => boolean;
   getServerTimestamp: () => string;
@@ -63,6 +63,8 @@ export const useUiStore = create<UiState>((set, get) => ({
     const day = String(d.getDate()).padStart(2, '0');
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    const ms = String(d.getMilliseconds()).padStart(3, '0');
 
     switch (type) {
       case 'year':
@@ -75,6 +77,8 @@ export const useUiStore = create<UiState>((set, get) => ({
         return `${y}${mm}${day}`;
       case 'ymdhm':
         return `${y}${mm}${day}${h}${min}`;
+      case 'ymdhmsms':
+        return `${y}${mm}${day}${h}${min}${s}${ms}`;
       case 'hm':
         return `${h}${min}`;
       default:

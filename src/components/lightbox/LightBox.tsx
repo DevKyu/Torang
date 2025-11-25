@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Heart,
   MessageCircle,
-  Share2,
 } from 'lucide-react';
 
 import {
@@ -28,6 +27,9 @@ import {
   Footer,
   FooterIcons,
   IconButton,
+  Count,
+  IconRow,
+  CountBox,
 } from '../../styles/lightBoxStyle';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
@@ -50,6 +52,7 @@ export const LightBox = () => {
     closeUploadLightBox,
     toggleLike,
     openComment,
+    comments: commentsState,
   } = useLightBoxStore();
 
   const isUpload = uploadOpen;
@@ -82,10 +85,8 @@ export const LightBox = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-
     loadedRef.current = false;
     setIsReady(false);
-
     measureStage();
     const resize = () => measureStage();
     window.addEventListener('resize', resize);
@@ -160,7 +161,12 @@ export const LightBox = () => {
 
   const currentImg = list[current];
   const hasDescription = showCaption && !!currentImg?.description?.trim();
-  const showFooter = !isUpload;
+
+  const cid = currentImg?.id;
+  const commentList = cid ? (commentsState[cid] ?? []) : [];
+  const commentCount = commentList.filter((c) => !c.deleted).length;
+
+  const likeCount = currentImg.likes ?? 0;
 
   return (
     <AnimatePresence>
@@ -201,7 +207,6 @@ export const LightBox = () => {
             >
               {list.map((img, idx) => {
                 const isCurrent = idx === current;
-
                 return (
                   <Slide key={img.id} style={{ width: stageW, height: stageH }}>
                     {!isReady && isCurrent && (
@@ -212,8 +217,8 @@ export const LightBox = () => {
                           background: 'rgba(0,0,0,0.32)',
                           backdropFilter: 'blur(10px)',
                           pointerEvents: 'none',
-                          transition: 'opacity 180ms ease-out',
                           opacity: isReady ? 0 : 1,
+                          transition: 'opacity 160ms ease-out',
                         }}
                       />
                     )}
@@ -230,7 +235,7 @@ export const LightBox = () => {
                         opacity: isReady ? 1 : 0,
                         transition:
                           isInitial.current || !isReady
-                            ? 'opacity 220ms ease-out'
+                            ? 'opacity 200ms ease-out'
                             : 'none',
                       }}
                     />
@@ -281,31 +286,44 @@ export const LightBox = () => {
           </DescriptionWrap>
         )}
 
-        {showFooter && (
-          <Footer showIcon={showIcon}>
-            <FooterIcons>
+        <Footer showIcon={showIcon}>
+          <FooterIcons>
+            <IconRow>
               <IconButton onClick={toggleLike}>
                 <Heart
-                  fill={currentImg?.liked ? '#ff4d6d' : 'none'}
-                  color={currentImg?.liked ? '#ff4d6d' : '#eee'}
+                  fill={currentImg.liked ? '#ff4d6d' : 'none'}
+                  color={currentImg.liked ? '#ff4d6d' : '#eee'}
                 />
-                {(currentImg?.likes ?? 0) > 0 && (
-                  <span style={{ marginLeft: 4, fontSize: 14 }}>
-                    {currentImg.likes}
-                  </span>
-                )}
               </IconButton>
 
+              <CountBox>
+                <Count
+                  initial={false}
+                  animate={{ opacity: likeCount > 0 ? 1 : 0, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {likeCount > 0 ? likeCount : ''}
+                </Count>
+              </CountBox>
+            </IconRow>
+
+            <IconRow>
               <IconButton onClick={() => openComment(current)}>
                 <MessageCircle />
               </IconButton>
 
-              <IconButton>
-                <Share2 />
-              </IconButton>
-            </FooterIcons>
-          </Footer>
-        )}
+              <CountBox>
+                <Count
+                  initial={false}
+                  animate={{ opacity: commentCount > 0 ? 1 : 0, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {commentCount > 0 ? commentCount : ''}
+                </Count>
+              </CountBox>
+            </IconRow>
+          </FooterIcons>
+        </Footer>
       </Overlay>
     </AnimatePresence>
   );

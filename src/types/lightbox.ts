@@ -2,6 +2,7 @@ export type GalleryImage = {
   id: string;
   preview: string;
   description?: string;
+  uploadedAt?: string;
   liked?: boolean;
   likes?: number;
 };
@@ -20,7 +21,7 @@ export type LightBoxProps = {
   onComment?: (img: GalleryImage) => void;
 };
 
-export type Comment = {
+export type LightboxComment = {
   id: string;
   parentId: string | null;
   user: string;

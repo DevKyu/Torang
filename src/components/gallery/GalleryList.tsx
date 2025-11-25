@@ -27,11 +27,12 @@ import {
 } from '../../styles/galleryGridStyle';
 
 import { SmallText } from '../../styles/commonStyle';
+
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
-
 import LightBox from '../lightbox/LightBox';
 import { CommentSheet } from '../lightbox/CommentSheet';
+import { getCurrentUserId } from '../../services/firebase';
 
 type GalleryItem = {
   id: string;
@@ -64,9 +65,12 @@ const GalleryList = ({
 
   const [year, setYear] = useState(Number(yyyymm.slice(0, 4)));
   const [month, setMonth] = useState(Number(yyyymm.slice(4, 6)));
+
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
     'latest',
   );
+
+  const [sortedImages, setSortedImages] = useState<GalleryItem[]>([]);
 
   useEffect(() => {
     setYear(Number(yyyymm.slice(0, 4)));
@@ -74,54 +78,55 @@ const GalleryList = ({
   }, [yyyymm]);
 
   useEffect(() => {
-    setImages(
-      list.map((i) => ({
-        id: i.id,
-        preview: i.url,
-        description: i.caption ?? '',
-        likes: i.likes ? Object.keys(i.likes).length : 0,
-        liked: false,
-      })),
-    );
-  }, [list, setImages]);
+    const base = list.map((i) => ({
+      ...i,
+      likesCount: i.likes ? Object.keys(i.likes).length : 0,
+      commentsCount: i.comments
+        ? Object.values(i.comments).filter((c: any) => !c?.deleted).length
+        : 0,
+    }));
 
-  const monthKey = useMemo(
-    () => `${year}${String(month).padStart(2, '0')}`,
-    [year, month],
-  );
-
-  const monthImages = useMemo(() => {
-    const base = list
-      .filter(
-        (i) =>
-          typeof i.uploadedAt === 'string' && i.uploadedAt.startsWith(monthKey),
-      )
-      .map((i) => ({
-        ...i,
-        likesCount: i.likes ? Object.keys(i.likes).length : 0,
-        commentsCount: i.comments ? Object.keys(i.comments).length : 0,
-      }));
-
-    return base.sort((a, b) => {
+    const sorted = [...base].sort((a, b) => {
       if (filter === 'likes') return b.likesCount - a.likesCount;
       if (filter === 'comments') return b.commentsCount - a.commentsCount;
       return Number(b.uploadedAt) - Number(a.uploadedAt);
     });
-  }, [list, monthKey, filter]);
+
+    setSortedImages(sorted);
+  }, [filter]);
+
+  useEffect(() => {
+    if (sortedImages.length === 0 && list.length > 0 && filter === 'latest') {
+      setSortedImages(list);
+    }
+  }, [list]);
+
+  useEffect(() => {
+    setImages(
+      sortedImages.map((i) => ({
+        id: i.id,
+        preview: i.url,
+        description: i.caption ?? '',
+        uploadedAt: i.uploadedAt,
+        likes: i.likes ? Object.keys(i.likes).length : 0,
+        liked: Boolean(i.likes?.[getCurrentUserId()]),
+      })),
+    );
+  }, [sortedImages, setImages]);
 
   const pages = useMemo(() => {
     const arr: GalleryItem[][] = [];
-    for (let i = 0; i < monthImages.length; i += 9) {
-      arr.push(monthImages.slice(i, i + 9));
+    for (let i = 0; i < sortedImages.length; i += 9) {
+      arr.push(sortedImages.slice(i, i + 9));
     }
     return arr;
-  }, [monthImages]);
+  }, [sortedImages]);
 
   const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
 
   useEffect(() => {
     setPageLoadedCounts(new Array(pages.length).fill(0));
-  }, [pages.length, filter, monthKey]);
+  }, [pages.length, filter, yyyymm]);
 
   const minYear = 2025;
   const minMonth = 10;
@@ -143,10 +148,10 @@ const GalleryList = ({
     if (nextYear < minYear || (nextYear === minYear && nextMonth < minMonth))
       return;
 
+    const ym = `${nextYear}${String(nextMonth).padStart(2, '0')}`;
     setYear(nextYear);
     setMonth(nextMonth);
-
-    onChangeMonth(`${nextYear}${String(nextMonth).padStart(2, '0')}`);
+    onChangeMonth(ym);
   };
 
   return (
@@ -193,14 +198,14 @@ const GalleryList = ({
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${monthKey}-${filter}-${loading}`}
+              key={`g-${yyyymm}-${filter}-${loading}`}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
             >
               {loading ? (
                 <EmptyBox>불러오는 중…</EmptyBox>
-              ) : monthImages.length === 0 ? (
+              ) : sortedImages.length === 0 ? (
                 <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
               ) : (
                 <Swiper

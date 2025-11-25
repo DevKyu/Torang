@@ -25,6 +25,7 @@ export const IconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   color: white;
   opacity: 0.9;
   transition:
@@ -39,6 +40,8 @@ export const IconButton = styled.button`
   svg {
     width: 26px;
     height: 26px;
+    display: block;
+    vertical-align: middle;
   }
 
   -webkit-tap-highlight-color: transparent;
@@ -160,7 +163,29 @@ export const Footer = styled.div<{ showIcon: boolean }>`
 
 export const FooterIcons = styled.div`
   display: flex;
-  gap: 32px;
+  gap: 20px;
   align-items: center;
   padding-top: 6px;
+`;
+
+export const Count = styled(motion.span)`
+  display: block;
+  font-size: 13px;
+  color: #eee;
+  line-height: 1;
+`;
+
+export const IconRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+`;
+
+export const CountBox = styled.div`
+  min-width: 14px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
