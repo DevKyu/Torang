@@ -28,6 +28,7 @@ import { useLightBoxStore } from '../../stores/lightBoxStore';
 import LightBox from '../lightbox/LightBox';
 import { CommentSheet } from '../lightbox/CommentSheet';
 import { preloadOpenUploadLightBox } from '../../utils/gallery';
+import { getCurrentUserId } from '../../services/firebase';
 
 export type GalleryUploadProps = {
   onUpload: (files: File[], captions: string[]) => Promise<void>;
@@ -58,6 +59,7 @@ const GalleryUpload = ({
   const { setUploadImages } = useLightBoxStore();
 
   const maxSelectable = Math.min(MAX_FILES, availableCount);
+  const empId = getCurrentUserId();
 
   const revoke = useCallback((url: string) => {
     if (url.startsWith('blob:')) {
@@ -118,8 +120,12 @@ const GalleryUpload = ({
         id: i.id,
         preview: i.preview,
         description: i.caption,
+        empId,
+        liked: false,
+        likes: 0,
+        uploadedAt: '',
       })),
-    [items],
+    [items, empId],
   );
 
   useEffect(() => {
