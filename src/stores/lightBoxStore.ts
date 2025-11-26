@@ -126,14 +126,13 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     s.commentUnsub?.();
     set({ commentUnsub: null });
 
-    const list = await fetchGalleryComments(img.uploadedAt, img.id);
-    get().setComments(img.id, list);
-
     const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
       get().setComments(img.id, list),
     );
-
     set({ commentUnsub: unsub });
+
+    const list = await fetchGalleryComments(img.uploadedAt, img.id);
+    get().setComments(img.id, list);
   },
 
   openLightBox: (index) => {
@@ -150,7 +149,6 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     s.bindCommentSubscription(index);
   },
 
-  /* 라이트박스 닫기 */
   closeLightBox: () => {
     const s = get();
     s.likeUnsub?.();
@@ -225,7 +223,6 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   openComment: async (index) => {
     const s = get();
     const img = s.images[index];
-
     set({ commentOpen: true, commentIndex: index });
 
     if (!img?.uploadedAt) return;
@@ -233,14 +230,13 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     s.commentUnsub?.();
     set({ commentUnsub: null });
 
-    const list = await fetchGalleryComments(img.uploadedAt, img.id);
-    get().setComments(img.id, list);
-
     const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
       get().setComments(img.id, list),
     );
-
     set({ commentUnsub: unsub });
+
+    const list = await fetchGalleryComments(img.uploadedAt, img.id);
+    get().setComments(img.id, list);
   },
 
   closeComment: () => {
@@ -289,7 +285,9 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     set((st) => {
       const arr = [...st.images];
-      arr[s.index] = { ...img, liked, likes };
+      const base = arr[s.index];
+      if (!base) return {};
+      arr[s.index] = { ...base, liked, likes };
       return { images: arr };
     });
 

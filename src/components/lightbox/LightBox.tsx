@@ -71,44 +71,48 @@ export const LightBox = () => {
   const imageBoxRef = useRef<HTMLDivElement>(null);
   const [stageW, setStageW] = useState(0);
   const [stageH, setStageH] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
-
   const markLoaded = useCallback((idx: number) => {
-    setLoadedMap((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
+    setLoadedMap((p) => (p[idx] ? p : { ...p, [idx]: true }));
   }, []);
 
-  const measureStage = () => {
+  const measure = () => {
     const el = imageBoxRef.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setStageW(rect.width);
-    setStageH(rect.height);
+    const r = el.getBoundingClientRect();
+    setStageW(r.width);
+    setStageH(r.height);
   };
 
   useEffect(() => {
     if (!isOpen) return;
     setLoadedMap({});
-    measureStage();
-    const resize = () => measureStage();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+    measure();
+    const r = () => measure();
+    window.addEventListener('resize', r);
+    return () => window.removeEventListener('resize', r);
   }, [isOpen]);
+
+  const animateToIndex = (i: number) => {
+    setIsAnimating(true);
+    animate(x, -stageW * i, {
+      type: 'spring',
+      stiffness: 300,
+      damping: 32,
+      onComplete: () => setIsAnimating(false),
+    });
+  };
 
   useEffect(() => {
     if (!isOpen || stageW === 0) return;
-
     if (isInitial.current) {
       x.set(-stageW * current);
       requestAnimationFrame(() => (isInitial.current = false));
       return;
     }
-
-    animate(x, -stageW * current, {
-      type: 'spring',
-      stiffness: 300,
-      damping: 32,
-    });
+    animateToIndex(current);
   }, [current, stageW, isOpen]);
 
   useEffect(() => {
@@ -116,49 +120,35 @@ export const LightBox = () => {
   }, [isOpen]);
 
   const onDragEnd = (_: any, info: PanInfo) => {
+    if (isInitial.current) return;
+    if (isAnimating) return animateToIndex(current);
+
     const { offset, velocity } = info;
 
-    if (current === 0 && offset.x > 0) {
-      return animate(x, -stageW * current, {
-        type: 'spring',
-        stiffness: 300,
-        damping: 32,
-      });
-    }
-
-    if (current === list.length - 1 && offset.x < 0) {
-      return animate(x, -stageW * current, {
-        type: 'spring',
-        stiffness: 300,
-        damping: 32,
-      });
-    }
+    if (current === 0 && offset.x > 0) return animateToIndex(current);
+    if (current === list.length - 1 && offset.x < 0)
+      return animateToIndex(current);
 
     if (offset.x > 80 || velocity.x > 500) return prev();
     if (offset.x < -80 || velocity.x < -500) return next();
 
-    animate(x, -stageW * current, {
-      type: 'spring',
-      stiffness: 300,
-      damping: 32,
-    });
+    animateToIndex(current);
   };
 
   useEffect(() => {
     if (!isOpen) return;
-    const temp = new Image();
-    temp.src = list[current]?.preview || '';
+    new Image().src = list[current]?.preview || '';
   }, [current, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => {
+    const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, [isOpen, current]);
 
   if (!isOpen) return null;
@@ -169,7 +159,6 @@ export const LightBox = () => {
   const cid = currentImg?.id;
   const commentList = cid ? (commentsState[cid] ?? []) : [];
   const commentCount = commentList.filter((c) => !c.deleted).length;
-
   const likeCount = currentImg.likes ?? 0;
 
   return (
@@ -198,12 +187,17 @@ export const LightBox = () => {
               width: stageW * list.length,
               height: '100%',
               display: 'flex',
-              overflow: 'hidden',
               position: 'relative',
+              overflow: 'hidden',
             }}
           >
             <motion.div
-              style={{ display: 'flex', height: '100%', x }}
+              style={{
+                display: 'flex',
+                height: '100%',
+                x,
+                pointerEvents: isAnimating ? 'none' : 'auto',
+              }}
               drag="x"
               dragElastic={0.2}
               dragMomentum={false}
@@ -221,7 +215,6 @@ export const LightBox = () => {
                           inset: 0,
                           background: 'rgba(0,0,0,0.32)',
                           backdropFilter: 'blur(10px)',
-                          pointerEvents: 'none',
                         }}
                       />
                     )}
@@ -272,7 +265,7 @@ export const LightBox = () => {
 
         {hasDescription && (
           <DescriptionWrap showIcon={showIcon}>
-            <Description initial={false} animate={{ opacity: 1, y: 0 }}>
+            <Description initial={false} animate={{ opacity: 1 }}>
               {currentImg.description}
             </Description>
           </DescriptionWrap>
@@ -287,13 +280,9 @@ export const LightBox = () => {
                   color={currentImg.liked ? '#ff4d6d' : '#eee'}
                 />
               </IconButton>
-
               <CountBox>
-                <Count
-                  initial={false}
-                  animate={{ opacity: likeCount > 0 ? 1 : 0 }}
-                >
-                  {likeCount > 0 ? likeCount : ''}
+                <Count animate={{ opacity: likeCount > 0 ? 1 : 0 }}>
+                  {likeCount || ''}
                 </Count>
               </CountBox>
             </IconRow>
@@ -302,13 +291,9 @@ export const LightBox = () => {
               <IconButton onClick={() => openComment(current)}>
                 <MessageCircle />
               </IconButton>
-
               <CountBox>
-                <Count
-                  initial={false}
-                  animate={{ opacity: commentCount > 0 ? 1 : 0 }}
-                >
-                  {commentCount > 0 ? commentCount : ''}
+                <Count animate={{ opacity: commentCount > 0 ? 1 : 0 }}>
+                  {commentCount || ''}
                 </Count>
               </CountBox>
             </IconRow>

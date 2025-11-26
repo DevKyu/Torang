@@ -6,10 +6,8 @@ export const DESC_H = 72;
 export const FOOTER_H = 60;
 
 export const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
-
 export const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
-
 export const getImageBoxHeight = (showIcon: boolean) =>
   `calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)})`;
 
@@ -93,12 +91,6 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  ${gpu}
-`;
-
-export const SlideTrack = styled.div`
-  display: flex;
-  height: 100%;
   ${gpu}
 `;
 

@@ -104,7 +104,7 @@ export const CommentSheet = () => {
       if (!t || !imageId || !uploadedAt) return;
 
       const parentId = replyTo ? replyTo.id : null;
-      const tempId = `temp_${Date.now()}`;
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
       const optimistic: LightboxComment = {
         id: tempId,
@@ -150,6 +150,7 @@ export const CommentSheet = () => {
     () => list.filter((c) => !c.deleted && !c.parentId),
     [list],
   );
+
   const getReplies = useCallback(
     (pid: string) => list.filter((c) => !c.deleted && c.parentId === pid),
     [list],

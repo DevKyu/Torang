@@ -12,6 +12,7 @@ export const Dim = styled(motion.div)`
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
   z-index: 9998;
+  pointer-events: auto;
   ${gpu};
 `;
 
@@ -27,10 +28,9 @@ export const Sheet = styled(motion.div)`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
-
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   ${gpu};
 `;
 
@@ -61,6 +61,7 @@ export const SheetBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: 18px;
+  touch-action: pan-y;
 
   &::-webkit-scrollbar {
     display: none;
@@ -99,7 +100,7 @@ export const CommentItem = styled(motion.div)`
   .actions {
     display: flex;
     align-items: center;
-    gap: 8px; /* 기존 12 → 8로 축소 */
+    gap: 8px;
     min-height: 20px;
 
     .heart {
