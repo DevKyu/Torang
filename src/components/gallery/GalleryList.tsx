@@ -27,7 +27,6 @@ import {
 } from '../../styles/galleryGridStyle';
 
 import { SmallText } from '../../styles/commonStyle';
-
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
@@ -61,20 +60,26 @@ const GalleryList = ({
   yyyymm,
   loading,
 }: Props) => {
-  const { setImages } = useLightBoxStore();
+  const { setImages, open } = useLightBoxStore();
 
   const [year, setYear] = useState(Number(yyyymm.slice(0, 4)));
   const [month, setMonth] = useState(Number(yyyymm.slice(4, 6)));
-
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
     'latest',
   );
-
   const [sortedImages, setSortedImages] = useState<GalleryItem[]>([]);
+  const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
+
+  const minYear = 2025;
+  const minMonth = 10;
+  const isPrevDisabled =
+    year < minYear || (year === minYear && month === minMonth);
 
   useEffect(() => {
     setYear(Number(yyyymm.slice(0, 4)));
     setMonth(Number(yyyymm.slice(4, 6)));
+    setSortedImages([]);
+    setPageLoadedCounts([]);
   }, [yyyymm]);
 
   useEffect(() => {
@@ -93,15 +98,11 @@ const GalleryList = ({
     });
 
     setSortedImages(sorted);
-  }, [filter]);
+  }, [filter, list]);
 
   useEffect(() => {
-    if (sortedImages.length === 0 && list.length > 0 && filter === 'latest') {
-      setSortedImages(list);
-    }
-  }, [list]);
+    if (open) return;
 
-  useEffect(() => {
     setImages(
       sortedImages.map((i) => ({
         id: i.id,
@@ -112,7 +113,7 @@ const GalleryList = ({
         liked: Boolean(i.likes?.[getCurrentUserId()]),
       })),
     );
-  }, [sortedImages, setImages]);
+  }, [sortedImages, setImages, open]);
 
   const pages = useMemo(() => {
     const arr: GalleryItem[][] = [];
@@ -122,16 +123,9 @@ const GalleryList = ({
     return arr;
   }, [sortedImages]);
 
-  const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
-
   useEffect(() => {
     setPageLoadedCounts(new Array(pages.length).fill(0));
-  }, [pages.length, filter, yyyymm]);
-
-  const minYear = 2025;
-  const minMonth = 10;
-  const isPrevDisabled =
-    year < minYear || (year === minYear && month === minMonth);
+  }, [pages.length, filter]);
 
   const moveMonth = (dir: -1 | 1) => {
     let nextMonth = month + dir;
@@ -250,7 +244,7 @@ const GalleryList = ({
             </motion.div>
           </AnimatePresence>
 
-          <AddButton onClick={onMoveUpload}>+ 업로드하기</AddButton>
+          <AddButton onClick={onMoveUpload}>+ 사진 업로드</AddButton>
           <SmallText top="narrow" onClick={onCancel}>
             돌아가기
           </SmallText>

@@ -19,39 +19,13 @@ const gpu = `
   will-change: transform, opacity;
 `;
 
-export const IconButton = styled.button`
-  all: unset;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: white;
-  opacity: 0.9;
-  transition:
-    opacity 0.15s ease,
-    transform 0.12s ease;
-
-  &:active {
-    opacity: 0.7;
-    transform: scale(0.9);
-  }
-
-  svg {
-    width: 26px;
-    height: 26px;
-    display: block;
-    vertical-align: middle;
-  }
-
-  -webkit-tap-highlight-color: transparent;
-`;
-
 export const Overlay = styled(motion.div)`
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -71,17 +45,43 @@ export const Header = styled.div`
 export const TopCounter = styled.div`
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
   border-radius: 12px;
   color: white;
   font-size: 13px;
+  ${gpu}
 `;
 
 export const HeaderRight = styled.div`
   position: absolute;
   right: 16px;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
+`;
+
+export const IconButton = styled.button`
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  color: white;
+  opacity: 0.9;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+
+  &:active {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  svg {
+    width: 26px;
+    height: 26px;
+    display: block;
+  }
 `;
 
 export const ImageBox = styled.div<{ showIcon: boolean }>`
@@ -99,7 +99,7 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
 export const SlideTrack = styled.div`
   display: flex;
   height: 100%;
-  will-change: transform;
+  ${gpu}
 `;
 
 export const Slide = styled.div`
@@ -137,9 +137,9 @@ export const Description = styled(motion.div)`
   max-width: 420px;
   padding: 10px 14px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: white;
   font-size: 14px;
   text-align: center;
@@ -157,8 +157,9 @@ export const Footer = styled.div<{ showIcon: boolean }>`
   align-items: flex-start;
   background: ${({ showIcon }) =>
     showIcon
-      ? 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)'
+      ? 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
       : 'none'};
+  ${gpu}
 `;
 
 export const FooterIcons = styled.div`
@@ -168,6 +169,12 @@ export const FooterIcons = styled.div`
   padding-top: 6px;
 `;
 
+export const IconRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
 export const Count = styled(motion.span)`
   display: block;
   font-size: 13px;
@@ -175,16 +182,8 @@ export const Count = styled(motion.span)`
   line-height: 1;
 `;
 
-export const IconRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-`;
-
 export const CountBox = styled.div`
   min-width: 14px;
-  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;

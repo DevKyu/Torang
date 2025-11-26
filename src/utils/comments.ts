@@ -21,6 +21,21 @@ const createCommentId = (empId: string) => {
   return `${empId}_${fmt('ymdhmsms')}`;
 };
 
+const convertRaw = (
+  raw: Record<string, Raw>,
+  empId: string | null,
+): LightboxComment[] =>
+  Object.entries(raw).map(([cid, v]) => ({
+    id: cid,
+    parentId: v.parentId ?? null,
+    user: v.userName ?? getCachedUserName(v.empId ?? ''),
+    text: v.deleted ? '' : (v.text ?? ''),
+    createdAt: Number(v.createdAt ?? 0),
+    deleted: Boolean(v.deleted),
+    likes: v.likes ? Object.keys(v.likes).length : 0,
+    likedByMe: empId ? Boolean(v.likes?.[empId]) : false,
+  }));
+
 export const addGalleryComment = async (
   uploadedAt: string,
   imageId: string,
@@ -29,11 +44,12 @@ export const addGalleryComment = async (
 ): Promise<string | null> => {
   const empId = getCurrentUserId();
   const t = text.trim();
-  if (!empId || !t || !uploadedAt || !imageId) return null;
+
+  if (!empId || !uploadedAt || !imageId || !t) return null;
 
   const ym = getYm(uploadedAt);
-  const now = useUiStore.getState().getServerNow().getTime();
   const cid = createCommentId(empId);
+  const now = useUiStore.getState().getServerNow().getTime();
 
   await set(ref(db, `gallery/${ym}/${imageId}/comments/${cid}`), {
     id: cid,
@@ -53,12 +69,27 @@ export const deleteGalleryComment = async (
   cid: string,
 ) => {
   if (!uploadedAt || !imageId || !cid) return;
-  const ym = getYm(uploadedAt);
 
-  await update(ref(db, `gallery/${ym}/${imageId}/comments/${cid}`), {
-    text: '',
-    deleted: true,
-  });
+  const ym = getYm(uploadedAt);
+  const base = `gallery/${ym}/${imageId}/comments`;
+
+  const snap = await get(ref(db, base));
+  if (!snap.exists()) return;
+
+  const raw = snap.val() as Record<string, Raw>;
+  const children = Object.entries(raw)
+    .filter(([_, v]) => v.parentId === cid)
+    .map(([id]) => id);
+
+  const updates: Record<string, any> = {
+    [`${base}/${cid}`]: { deleted: true, text: '' },
+  };
+
+  for (const childId of children) {
+    updates[`${base}/${childId}`] = { deleted: true, text: '' };
+  }
+
+  await update(ref(db), updates);
 };
 
 export const toggleCommentLike = (
@@ -71,11 +102,12 @@ export const toggleCommentLike = (
   if (!empId || !uploadedAt) return;
 
   const ym = getYm(uploadedAt);
-  const key = `${ym}-${imageId}-${cid}-${empId}`;
   const likeRef = ref(
     db,
     `gallery/${ym}/${imageId}/comments/${cid}/likes/${empId}`,
   );
+
+  const key = `${ym}-${imageId}-${cid}-${empId}`;
 
   scheduleLikeUpdate(key, nextLiked, async (liked) => {
     if (liked) await set(likeRef, true);
@@ -89,6 +121,7 @@ export const subscribeGalleryComments = (
   cb: (list: LightboxComment[]) => void,
 ) => {
   if (!uploadedAt || !imageId) return () => {};
+
   const ym = getYm(uploadedAt);
   const commentsRef = ref(db, `gallery/${ym}/${imageId}/comments`);
   const empId = getCurrentUserId();
@@ -100,19 +133,7 @@ export const subscribeGalleryComments = (
     }
 
     const raw = snap.val() as Record<string, Raw>;
-
-    const list: LightboxComment[] = Object.entries(raw).map(([cid, v]) => ({
-      id: cid,
-      parentId: v.parentId ?? null,
-      user: v.userName ?? getCachedUserName(v.empId ?? ''),
-      text: v.deleted ? '' : (v.text ?? ''),
-      createdAt: Number(v.createdAt ?? 0),
-      deleted: Boolean(v.deleted),
-      likes: v.likes ? Object.keys(v.likes).length : 0,
-      likedByMe: Boolean(v.likes?.[empId]),
-    }));
-
-    cb(list);
+    cb(convertRaw(raw, empId));
   };
 
   onValue(commentsRef, handler);
@@ -127,19 +148,9 @@ export const fetchGalleryComments = async (
 
   const ym = getYm(uploadedAt);
   const snap = await get(ref(db, `gallery/${ym}/${imageId}/comments`));
+
   if (!snap.exists()) return [];
 
-  const empId = getCurrentUserId();
   const raw = snap.val() as Record<string, Raw>;
-
-  return Object.entries(raw).map(([cid, v]) => ({
-    id: cid,
-    parentId: v.parentId ?? null,
-    user: v.userName ?? getCachedUserName(v.empId ?? ''),
-    text: v.deleted ? '' : (v.text ?? ''),
-    createdAt: Number(v.createdAt ?? 0),
-    deleted: Boolean(v.deleted),
-    likes: v.likes ? Object.keys(v.likes).length : 0,
-    likedByMe: Boolean(v.likes?.[empId]),
-  })) as LightboxComment[];
+  return convertRaw(raw, getCurrentUserId());
 };

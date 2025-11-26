@@ -85,7 +85,6 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   commentUnsub: null,
   likeUnsub: null,
 
-  /* 이미지 세팅 시 liked/likes 기본값 보정 */
   setImages: (images) =>
     set({
       images: images.map((i) => ({
@@ -95,46 +94,44 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       })),
     }),
 
-  /* 좋아요 구독 */
   bindLikeSubscription: (idx) => {
     const s = get();
     const img = s.images[idx];
     if (!img?.uploadedAt) return;
 
-    if (s.likeUnsub) s.likeUnsub();
+    s.likeUnsub?.();
 
     const unsub = subscribeGalleryLikes(
       img.uploadedAt,
       img.id,
       (liked, likes) => {
-        const arr = [...get().images];
-        const target = arr[idx];
-        if (!target) return;
-        arr[idx] = { ...target, liked, likes };
-        set({ images: arr });
+        set((state) => {
+          const arr = [...state.images];
+          const t = arr[idx];
+          if (!t) return {};
+          arr[idx] = { ...t, liked, likes };
+          return { images: arr };
+        });
       },
     );
 
     set({ likeUnsub: unsub });
   },
 
-  /* 댓글 구독 + 첫 로딩 fetch */
   bindCommentSubscription: async (idx) => {
     const s = get();
     const img = s.images[idx];
     if (!img?.uploadedAt) return;
 
-    if (s.commentUnsub) {
-      s.commentUnsub();
-      set({ commentUnsub: null });
-    }
+    s.commentUnsub?.();
+    set({ commentUnsub: null });
 
     const list = await fetchGalleryComments(img.uploadedAt, img.id);
     get().setComments(img.id, list);
 
-    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) => {
-      get().setComments(img.id, list);
-    });
+    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
+      get().setComments(img.id, list),
+    );
 
     set({ commentUnsub: unsub });
   },
@@ -148,14 +145,16 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       direction: 0,
     });
 
-    get().bindLikeSubscription(index);
-    get().bindCommentSubscription(index);
+    const s = get();
+    s.bindLikeSubscription(index);
+    s.bindCommentSubscription(index);
   },
 
+  /* 라이트박스 닫기 */
   closeLightBox: () => {
     const s = get();
-    if (s.likeUnsub) s.likeUnsub();
-    if (s.commentUnsub) s.commentUnsub();
+    s.likeUnsub?.();
+    s.commentUnsub?.();
 
     set({
       open: false,
@@ -175,8 +174,8 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       ...(s.commentOpen && { commentIndex: next }),
     });
 
-    get().bindLikeSubscription(next);
-    get().bindCommentSubscription(next);
+    s.bindLikeSubscription(next);
+    s.bindCommentSubscription(next);
   },
 
   goNext: () => {
@@ -189,25 +188,17 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       ...(s.commentOpen && { commentIndex: next }),
     });
 
-    get().bindLikeSubscription(next);
-    get().bindCommentSubscription(next);
+    s.bindLikeSubscription(next);
+    s.bindCommentSubscription(next);
   },
 
   swipePrev: () => get().goPrev(),
   swipeNext: () => get().goNext(),
 
-  setUploadImages: (images) =>
-    set({
-      uploadImages: images,
-      uploadIndex: 0,
-    }),
+  setUploadImages: (images) => set({ uploadImages: images, uploadIndex: 0 }),
 
   openUploadLightBox: (index) =>
-    set({
-      uploadOpen: true,
-      uploadIndex: index,
-      direction: 0,
-    }),
+    set({ uploadOpen: true, uploadIndex: index, direction: 0 }),
 
   closeUploadLightBox: () => set({ uploadOpen: false }),
 
@@ -239,10 +230,8 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     if (!img?.uploadedAt) return;
 
-    if (s.commentUnsub) {
-      s.commentUnsub();
-      set({ commentUnsub: null });
-    }
+    s.commentUnsub?.();
+    set({ commentUnsub: null });
 
     const list = await fetchGalleryComments(img.uploadedAt, img.id);
     get().setComments(img.id, list);
@@ -256,7 +245,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
   closeComment: () => {
     const s = get();
-    if (s.commentUnsub) s.commentUnsub();
+    s.commentUnsub?.();
     set({ commentOpen: false, commentUnsub: null });
   },
 
@@ -294,12 +283,15 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     if (!img?.uploadedAt) return;
 
     const liked = !img.liked;
-    const prevLikes = img.likes ?? 0;
-    const likes = liked ? prevLikes + 1 : Math.max(0, prevLikes - 1);
+    const likes = liked
+      ? (img.likes ?? 0) + 1
+      : Math.max(0, (img.likes ?? 0) - 1);
 
-    const arr = [...s.images];
-    arr[s.index] = { ...img, liked, likes };
-    set({ images: arr });
+    set((st) => {
+      const arr = [...st.images];
+      arr[s.index] = { ...img, liked, likes };
+      return { images: arr };
+    });
 
     toggleGalleryLike(img.uploadedAt, img.id, liked);
   },

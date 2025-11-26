@@ -27,20 +27,17 @@ import {
   SafeBottom,
 } from '../../styles/commentSheetStyle';
 
-/* timeago */
 const formatTimeAgo = (ts: number) => {
   const diff = Date.now() - ts;
   const sec = diff / 1000;
   const min = sec / 60;
   const hour = min / 60;
   const day = hour / 24;
-
   if (sec < 60) return '방금 전';
   if (min < 60) return `${Math.floor(min)}분 전`;
   if (hour < 24) return `${Math.floor(hour)}시간 전`;
   if (day < 2) return '어제';
   if (day < 7) return `${Math.floor(day)}일 전`;
-
   const d = new Date(ts);
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
     d.getDate(),
@@ -67,6 +64,7 @@ export const CommentSheet = () => {
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sendingRef = useRef(false);
 
   const empId = getCurrentUserId();
   const myName = empId ? getCachedUserName(empId) : '나';
@@ -86,7 +84,6 @@ export const CommentSheet = () => {
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
     if (!el) return;
-
     setTimeout(() => {
       requestAnimationFrame(() => {
         el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
@@ -95,42 +92,41 @@ export const CommentSheet = () => {
   }, []);
 
   useEffect(() => {
-    if (commentOpen) requestAnimationFrame(() => inputRef.current?.focus());
-  }, [commentOpen]);
-
-  useEffect(() => setReplyTo(null), [commentIndex]);
+    setReplyTo(null);
+  }, [commentIndex]);
 
   const handleSend = async () => {
-    const t = text.trim();
-    if (!imageId || !uploadedAt || !t) return;
+    if (sendingRef.current) return;
+    sendingRef.current = true;
 
-    const tempId = `temp_${Date.now()}`;
-    const isReply = Boolean(replyTo);
+    try {
+      const t = text.trim();
+      if (!t || !imageId || !uploadedAt) return;
 
-    const optimistic: LightboxComment = {
-      id: tempId,
-      parentId: isReply ? replyTo!.id : null,
-      user: myName,
-      text: t,
-      createdAt: Date.now(),
-      likes: 0,
-      likedByMe: false,
-    };
+      const parentId = replyTo ? replyTo.id : null;
+      const tempId = `temp_${Date.now()}`;
 
-    addComment(imageId, optimistic);
-    setText('');
-    setReplyTo(null);
+      const optimistic: LightboxComment = {
+        id: tempId,
+        parentId,
+        user: myName,
+        text: t,
+        createdAt: Date.now(),
+        likes: 0,
+        likedByMe: false,
+      };
 
-    if (!isReply) scrollToBottom();
+      addComment(imageId, optimistic);
+      setText('');
+      setReplyTo(null);
 
-    const realId = await addGalleryComment(
-      uploadedAt,
-      imageId,
-      t,
-      optimistic.parentId,
-    );
+      if (!parentId) scrollToBottom();
 
-    if (realId) updateComment(imageId, tempId, { id: realId });
+      const realId = await addGalleryComment(uploadedAt, imageId, t, parentId);
+      if (realId) updateComment(imageId, tempId, { id: realId });
+    } finally {
+      sendingRef.current = false;
+    }
   };
 
   const handleLike = (c: LightboxComment) => {
@@ -144,16 +140,16 @@ export const CommentSheet = () => {
     toggleCommentLike(uploadedAt, imageId, c.id, !c.likedByMe);
   };
 
-  const handleDeleteComment = (cid: string) => {
+  const handleDelete = (cid: string) => {
     if (!imageId || !uploadedAt) return;
     deleteComment(imageId, cid);
     deleteGalleryComment(uploadedAt, imageId, cid);
   };
 
-  const topLevel = useMemo(() => {
-    return list.filter((c) => !c.deleted && !c.parentId);
-  }, [list]);
-
+  const topLevel = useMemo(
+    () => list.filter((c) => !c.deleted && !c.parentId),
+    [list],
+  );
   const getReplies = useCallback(
     (pid: string) => list.filter((c) => !c.deleted && c.parentId === pid),
     [list],
@@ -171,7 +167,6 @@ export const CommentSheet = () => {
     <AnimatePresence>
       <>
         <Dim key="dim" {...fadeSlow} onClick={closeComment} />
-
         <Sheet
           key="sheet"
           drag="y"
@@ -244,7 +239,7 @@ export const CommentSheet = () => {
                       {c.user === myName && (
                         <button
                           className="delBtn"
-                          onClick={() => handleDeleteComment(c.id)}
+                          onClick={() => handleDelete(c.id)}
                         >
                           삭제
                         </button>
@@ -255,7 +250,6 @@ export const CommentSheet = () => {
                       {replies.map((r) => (
                         <ReplyItem key={r.id} {...fadeSlow}>
                           <CornerDownRight size={16} />
-
                           <div className="inner">
                             <div className="row1">
                               <div className="name">{r.user}</div>
@@ -283,7 +277,7 @@ export const CommentSheet = () => {
                               {r.user === myName && (
                                 <button
                                   className="delBtn"
-                                  onClick={() => handleDeleteComment(r.id)}
+                                  onClick={() => handleDelete(r.id)}
                                 >
                                   삭제
                                 </button>
@@ -317,7 +311,13 @@ export const CommentSheet = () => {
                 value={text}
                 placeholder="댓글 입력..."
                 onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing) return;
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
               />
               <Send className="send" onClick={handleSend} />
             </InputBox>

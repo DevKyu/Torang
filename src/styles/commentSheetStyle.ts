@@ -19,14 +19,18 @@ export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 65vh;
-  max-height: 65vh;
+  height: 55vh;
+  max-height: 55vh;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
+
   ${gpu};
 `;
 
