@@ -3,6 +3,7 @@ export type GalleryImage = {
   preview: string;
   description?: string;
   uploadedAt?: string;
+  empId: string;
   liked?: boolean;
   likes?: number;
 };

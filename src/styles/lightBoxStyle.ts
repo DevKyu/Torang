@@ -8,8 +8,9 @@ export const FOOTER_H = 60;
 export const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
 export const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
+
 export const getImageBoxHeight = (showIcon: boolean) =>
-  `calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)})`;
+  `calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)} - 30px)`;
 
 const gpu = `
   transform: translateZ(0);
@@ -23,7 +24,6 @@ export const Overlay = styled(motion.div)`
   z-index: 9999;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -62,7 +62,6 @@ export const IconButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   cursor: pointer;
   color: white;
   opacity: 0.9;
@@ -121,7 +120,9 @@ export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
       : `calc(env(safe-area-inset-bottom, 0px) + 24px)`};
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 `;
 
 export const Description = styled(motion.div)`
@@ -131,7 +132,6 @@ export const Description = styled(motion.div)`
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   color: white;
   font-size: 14px;
   text-align: center;
@@ -156,26 +156,27 @@ export const Footer = styled.div<{ showIcon: boolean }>`
 
 export const FooterIcons = styled.div`
   display: flex;
-  gap: 20px;
   align-items: center;
   padding-top: 6px;
+  gap: 32px;
 `;
 
 export const IconRow = styled.div`
+  width: 50px;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 `;
 
 export const Count = styled(motion.span)`
-  display: block;
   font-size: 13px;
   color: #eee;
   line-height: 1;
 `;
 
 export const CountBox = styled.div`
-  min-width: 14px;
+  width: 18px;
   display: flex;
   align-items: center;
   justify-content: center;

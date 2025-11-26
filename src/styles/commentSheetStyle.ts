@@ -29,8 +29,8 @@ export const Sheet = styled(motion.div)`
   flex-direction: column;
   overflow: hidden;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
+  mask-image: radial-gradient(white, black);
   ${gpu};
 `;
 
@@ -100,7 +100,6 @@ export const CommentItem = styled(motion.div)`
   .actions {
     display: flex;
     align-items: center;
-    gap: 8px;
     min-height: 20px;
 
     .heart {
@@ -176,7 +175,6 @@ export const ReplyItem = styled(motion.div)`
     .actions {
       display: flex;
       align-items: center;
-      gap: 8px;
 
       .heart {
         display: flex;

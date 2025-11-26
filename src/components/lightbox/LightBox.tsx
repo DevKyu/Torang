@@ -33,6 +33,7 @@ import {
 } from '../../styles/lightBoxStyle';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
+import { getCachedUserName } from '../../services/firebase';
 
 export const LightBox = () => {
   const {
@@ -67,78 +68,86 @@ export const LightBox = () => {
 
   const x = useMotionValue(0);
   const isInitial = useRef(true);
-
   const imageBoxRef = useRef<HTMLDivElement>(null);
+
   const [stageW, setStageW] = useState(0);
   const [stageH, setStageH] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
-  const markLoaded = useCallback((idx: number) => {
-    setLoadedMap((p) => (p[idx] ? p : { ...p, [idx]: true }));
-  }, []);
+  const markLoaded = useCallback(
+    (i: number) => setLoadedMap((p) => (p[i] ? p : { ...p, [i]: true })),
+    [],
+  );
 
-  const measure = () => {
+  const measure = useCallback(() => {
     const el = imageBoxRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     setStageW(r.width);
     setStageH(r.height);
-  };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
     setLoadedMap({});
     measure();
-    const r = () => measure();
-    window.addEventListener('resize', r);
-    return () => window.removeEventListener('resize', r);
-  }, [isOpen]);
+    const h = () => measure();
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, [isOpen, measure]);
 
-  const animateToIndex = (i: number) => {
-    setIsAnimating(true);
-    animate(x, -stageW * i, {
-      type: 'spring',
-      stiffness: 300,
-      damping: 32,
-      onComplete: () => setIsAnimating(false),
-    });
-  };
+  const animateToIndex = useCallback(
+    (i: number) => {
+      setIsAnimating(true);
+      animate(x, -stageW * i, {
+        type: 'spring',
+        stiffness: 300,
+        damping: 32,
+        onComplete: () => setIsAnimating(false),
+      });
+    },
+    [stageW, x],
+  );
 
   useEffect(() => {
     if (!isOpen || stageW === 0) return;
+
     if (isInitial.current) {
       x.set(-stageW * current);
       requestAnimationFrame(() => (isInitial.current = false));
       return;
     }
+
     animateToIndex(current);
-  }, [current, stageW, isOpen]);
+  }, [current, stageW, isOpen, animateToIndex, x]);
 
   useEffect(() => {
     if (!isOpen) isInitial.current = true;
   }, [isOpen]);
 
-  const onDragEnd = (_: any, info: PanInfo) => {
-    if (isInitial.current) return;
-    if (isAnimating) return animateToIndex(current);
+  const onDragEnd = useCallback(
+    (_: any, info: PanInfo) => {
+      if (isInitial.current) return;
+      if (isAnimating) return animateToIndex(current);
 
-    const { offset, velocity } = info;
+      const { offset, velocity } = info;
 
-    if (current === 0 && offset.x > 0) return animateToIndex(current);
-    if (current === list.length - 1 && offset.x < 0)
-      return animateToIndex(current);
+      if (current === 0 && offset.x > 0) return animateToIndex(current);
+      if (current === list.length - 1 && offset.x < 0)
+        return animateToIndex(current);
 
-    if (offset.x > 80 || velocity.x > 500) return prev();
-    if (offset.x < -80 || velocity.x < -500) return next();
+      if (offset.x > 80 || velocity.x > 500) return prev();
+      if (offset.x < -80 || velocity.x < -500) return next();
 
-    animateToIndex(current);
-  };
+      animateToIndex(current);
+    },
+    [current, list.length, isAnimating, animateToIndex, prev, next],
+  );
 
   useEffect(() => {
-    if (!isOpen) return;
-    new Image().src = list[current]?.preview || '';
-  }, [current, isOpen]);
+    if (isOpen) new Image().src = list[current]?.preview || '';
+  }, [current, isOpen, list]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -149,17 +158,18 @@ export const LightBox = () => {
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [isOpen, current]);
+  }, [isOpen, prev, next, onClose]);
 
   if (!isOpen) return null;
 
-  const currentImg = list[current];
-  const hasDescription = showCaption && !!currentImg?.description?.trim();
+  const img = list[current];
+  const name = img.empId ? getCachedUserName(img.empId) : '';
+  const hasDesc = showCaption && !!img.description?.trim();
 
-  const cid = currentImg?.id;
-  const commentList = cid ? (commentsState[cid] ?? []) : [];
-  const commentCount = commentList.filter((c) => !c.deleted).length;
-  const likeCount = currentImg.likes ?? 0;
+  const cid = img.id;
+  const comments = cid ? (commentsState[cid] ?? []) : [];
+  const commentCount = comments.filter((c) => !c.deleted).length;
+  const likeCount = img.likes ?? 0;
 
   return (
     <AnimatePresence>
@@ -203,12 +213,12 @@ export const LightBox = () => {
               dragMomentum={false}
               onDragEnd={onDragEnd}
             >
-              {list.map((img, idx) => {
-                const isCurrent = idx === current;
+              {list.map((img, i) => {
+                const isCurrent = i === current;
 
                 return (
                   <Slide key={img.id} style={{ width: stageW, height: stageH }}>
-                    {!loadedMap[idx] && isCurrent && (
+                    {!loadedMap[i] && isCurrent && (
                       <div
                         style={{
                           position: 'absolute',
@@ -222,9 +232,9 @@ export const LightBox = () => {
                     <ViewerImage
                       src={img.preview}
                       draggable={false}
-                      onLoad={() => markLoaded(idx)}
+                      onLoad={() => markLoaded(i)}
                       style={{
-                        opacity: loadedMap[idx] ? 1 : 0,
+                        opacity: loadedMap[i] ? 1 : 0,
                         transition: 'opacity 200ms ease-out',
                       }}
                     />
@@ -263,11 +273,26 @@ export const LightBox = () => {
           )}
         </ImageBox>
 
-        {hasDescription && (
+        {(name || hasDesc) && (
           <DescriptionWrap showIcon={showIcon}>
-            <Description initial={false} animate={{ opacity: 1 }}>
-              {currentImg.description}
-            </Description>
+            {name && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'rgba(255,255,255,0.75)',
+                  marginBottom: hasDesc ? 6 : 12,
+                  lineHeight: 1.3,
+                }}
+              >
+                {name} 님이 올린 사진
+              </div>
+            )}
+
+            {hasDesc && (
+              <Description initial={false} animate={{ opacity: 1 }}>
+                {img.description}
+              </Description>
+            )}
           </DescriptionWrap>
         )}
 
@@ -276,13 +301,18 @@ export const LightBox = () => {
             <IconRow>
               <IconButton onClick={toggleLike}>
                 <Heart
-                  fill={currentImg.liked ? '#ff4d6d' : 'none'}
-                  color={currentImg.liked ? '#ff4d6d' : '#eee'}
+                  fill={img.liked ? '#ff4d6d' : 'none'}
+                  color={img.liked ? '#ff4d6d' : '#eee'}
                 />
               </IconButton>
               <CountBox>
-                <Count animate={{ opacity: likeCount > 0 ? 1 : 0 }}>
-                  {likeCount || ''}
+                <Count
+                  key={likeCount}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {likeCount}
                 </Count>
               </CountBox>
             </IconRow>
@@ -292,8 +322,13 @@ export const LightBox = () => {
                 <MessageCircle />
               </IconButton>
               <CountBox>
-                <Count animate={{ opacity: commentCount > 0 ? 1 : 0 }}>
-                  {commentCount || ''}
+                <Count
+                  key={commentCount}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {commentCount}
                 </Count>
               </CountBox>
             </IconRow>

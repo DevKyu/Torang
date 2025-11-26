@@ -109,6 +109,7 @@ const GalleryList = ({
         preview: i.url,
         description: i.caption ?? '',
         uploadedAt: i.uploadedAt,
+        empId: i.empId,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
       })),
