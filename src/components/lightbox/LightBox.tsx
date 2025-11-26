@@ -275,7 +275,7 @@ export const LightBox = () => {
 
         {(name || hasDesc) && (
           <DescriptionWrap showIcon={showIcon}>
-            {name && (
+            {!isUpload && name && (
               <div
                 style={{
                   fontSize: 12,
@@ -284,7 +284,7 @@ export const LightBox = () => {
                   lineHeight: 1.3,
                 }}
               >
-                {name} 님이 올린 사진
+                {name} 님의 사진
               </div>
             )}
 
@@ -296,44 +296,46 @@ export const LightBox = () => {
           </DescriptionWrap>
         )}
 
-        <Footer showIcon={showIcon}>
-          <FooterIcons>
-            <IconRow>
-              <IconButton onClick={toggleLike}>
-                <Heart
-                  fill={img.liked ? '#ff4d6d' : 'none'}
-                  color={img.liked ? '#ff4d6d' : '#eee'}
-                />
-              </IconButton>
-              <CountBox>
-                <Count
-                  key={likeCount}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  {likeCount}
-                </Count>
-              </CountBox>
-            </IconRow>
+        {!isUpload && (
+          <Footer showIcon={showIcon}>
+            <FooterIcons>
+              <IconRow>
+                <IconButton onClick={toggleLike}>
+                  <Heart
+                    fill={img.liked ? '#ff4d6d' : 'none'}
+                    color={img.liked ? '#ff4d6d' : '#eee'}
+                  />
+                </IconButton>
+                <CountBox>
+                  <Count
+                    key={likeCount}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {likeCount}
+                  </Count>
+                </CountBox>
+              </IconRow>
 
-            <IconRow>
-              <IconButton onClick={() => openComment(current)}>
-                <MessageCircle />
-              </IconButton>
-              <CountBox>
-                <Count
-                  key={commentCount}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  {commentCount}
-                </Count>
-              </CountBox>
-            </IconRow>
-          </FooterIcons>
-        </Footer>
+              <IconRow>
+                <IconButton onClick={() => openComment(current)}>
+                  <MessageCircle />
+                </IconButton>
+                <CountBox>
+                  <Count
+                    key={commentCount}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {commentCount}
+                  </Count>
+                </CountBox>
+              </IconRow>
+            </FooterIcons>
+          </Footer>
+        )}
       </Overlay>
     </AnimatePresence>
   );

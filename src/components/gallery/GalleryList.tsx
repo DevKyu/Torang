@@ -246,7 +246,7 @@ const GalleryList = ({
           </AnimatePresence>
 
           <AddButton onClick={onMoveUpload}>+ 사진 업로드</AddButton>
-          <SmallText top="narrow" onClick={onCancel}>
+          <SmallText top="middle" onClick={onCancel}>
             돌아가기
           </SmallText>
         </GalleryBox>

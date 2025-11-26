@@ -202,9 +202,9 @@ const GalleryUpload = ({
           <>
             <NoticeBox>
               {reason === 'before_activity' &&
-                '활동 이후부터 등록할 수 있어요.'}
+                '활동 다음 날부터 등록할 수 있어요.'}
               {reason === 'after_grace' && '업로드 가능 기간이 지났어요.'}
-              {reason === 'no_activity' && '활동일 정보가 없어요.'}
+              {reason === 'no_activity' && '이번 달 활동일 정보가 아직 없어요.'}
               {reason === 'loading' && '활동일 정보를 불러오는 중이에요.'}
             </NoticeBox>
 
@@ -235,7 +235,7 @@ const GalleryUpload = ({
 
               <span>
                 {items.length === 0
-                  ? `사진을 선택하거나 드래그하세요 (최대 ${maxSelectable}장)`
+                  ? `사진을 선택하세요 (최대 ${maxSelectable}장)`
                   : `+ 추가 선택 (${items.length}/${maxSelectable})`}
               </span>
             </DropArea>
@@ -287,7 +287,7 @@ const GalleryUpload = ({
             )}
 
             {items.length === 0 && (
-              <SmallText top="narrow" onClick={onCancel}>
+              <SmallText top="middle" onClick={onCancel}>
                 돌아가기
               </SmallText>
             )}
