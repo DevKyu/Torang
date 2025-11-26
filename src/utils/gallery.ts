@@ -3,16 +3,24 @@ import { useLightBoxStore } from '../stores/lightBoxStore';
 export const preloadImage = (src: string): Promise<void> => {
   if (!src) return Promise.resolve();
 
-  const img = new Image();
-
   return new Promise((resolve) => {
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
+    const img = new Image();
+    let resolved = false;
+
+    const done = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    img.onload = done;
+    img.onerror = done;
 
     img.src = src;
 
     if (img.decode) {
-      img.decode().then(resolve).catch(resolve);
+      img.decode().then(done).catch(done);
     }
   });
 };
@@ -23,6 +31,7 @@ export const preloadOpenLightBox = (index: number) => {
   if (!target) return;
 
   requestAnimationFrame(() => openLightBox(index));
+
   preloadImage(target.preview);
 };
 

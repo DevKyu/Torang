@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   AnimatePresence,
   motion,
@@ -72,8 +72,11 @@ export const LightBox = () => {
   const [stageW, setStageW] = useState(0);
   const [stageH, setStageH] = useState(0);
 
-  const [isReady, setIsReady] = useState(false);
-  const loadedRef = useRef(false);
+  const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
+
+  const markLoaded = useCallback((idx: number) => {
+    setLoadedMap((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
+  }, []);
 
   const measureStage = () => {
     const el = imageBoxRef.current;
@@ -85,8 +88,7 @@ export const LightBox = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-    loadedRef.current = false;
-    setIsReady(false);
+    setLoadedMap({});
     measureStage();
     const resize = () => measureStage();
     window.addEventListener('resize', resize);
@@ -124,6 +126,14 @@ export const LightBox = () => {
       });
     }
 
+    if (current === list.length - 1 && offset.x < 0) {
+      return animate(x, -stageW * current, {
+        type: 'spring',
+        stiffness: 300,
+        damping: 32,
+      });
+    }
+
     if (offset.x > 80 || velocity.x > 500) return prev();
     if (offset.x < -80 || velocity.x < -500) return next();
 
@@ -132,12 +142,6 @@ export const LightBox = () => {
       stiffness: 300,
       damping: 32,
     });
-  };
-
-  const handleImageReady = (node: HTMLImageElement | null, idx: number) => {
-    if (!node || idx !== current || loadedRef.current) return;
-    loadedRef.current = true;
-    requestAnimationFrame(() => setIsReady(true));
   };
 
   useEffect(() => {
@@ -207,9 +211,10 @@ export const LightBox = () => {
             >
               {list.map((img, idx) => {
                 const isCurrent = idx === current;
+
                 return (
                   <Slide key={img.id} style={{ width: stageW, height: stageH }}>
-                    {!isReady && isCurrent && (
+                    {!loadedMap[idx] && isCurrent && (
                       <div
                         style={{
                           position: 'absolute',
@@ -217,8 +222,6 @@ export const LightBox = () => {
                           background: 'rgba(0,0,0,0.32)',
                           backdropFilter: 'blur(10px)',
                           pointerEvents: 'none',
-                          opacity: isReady ? 0 : 1,
-                          transition: 'opacity 160ms ease-out',
                         }}
                       />
                     )}
@@ -226,17 +229,10 @@ export const LightBox = () => {
                     <ViewerImage
                       src={img.preview}
                       draggable={false}
-                      ref={(node) => {
-                        if (node && idx === current && node.complete)
-                          handleImageReady(node, idx);
-                      }}
-                      onLoad={(e) => handleImageReady(e.currentTarget, idx)}
+                      onLoad={() => markLoaded(idx)}
                       style={{
-                        opacity: isReady ? 1 : 0,
-                        transition:
-                          isInitial.current || !isReady
-                            ? 'opacity 200ms ease-out'
-                            : 'none',
+                        opacity: loadedMap[idx] ? 1 : 0,
+                        transition: 'opacity 200ms ease-out',
                       }}
                     />
                   </Slide>
@@ -276,11 +272,7 @@ export const LightBox = () => {
 
         {hasDescription && (
           <DescriptionWrap showIcon={showIcon}>
-            <Description
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0 }}
-            >
+            <Description initial={false} animate={{ opacity: 1, y: 0 }}>
               {currentImg.description}
             </Description>
           </DescriptionWrap>
@@ -299,8 +291,7 @@ export const LightBox = () => {
               <CountBox>
                 <Count
                   initial={false}
-                  animate={{ opacity: likeCount > 0 ? 1 : 0, y: 0 }}
-                  transition={{ duration: 0.18 }}
+                  animate={{ opacity: likeCount > 0 ? 1 : 0 }}
                 >
                   {likeCount > 0 ? likeCount : ''}
                 </Count>
@@ -315,8 +306,7 @@ export const LightBox = () => {
               <CountBox>
                 <Count
                   initial={false}
-                  animate={{ opacity: commentCount > 0 ? 1 : 0, y: 0 }}
-                  transition={{ duration: 0.18 }}
+                  animate={{ opacity: commentCount > 0 ? 1 : 0 }}
                 >
                   {commentCount > 0 ? commentCount : ''}
                 </Count>
