@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
+import { Heart, MessageCircle } from 'lucide-react';
 
 import {
   GalleryOuter,
@@ -24,6 +25,8 @@ import {
   GridItem,
   Thumb,
   Skeleton,
+  InfoBar,
+  InfoItem,
 } from '../../styles/galleryGridStyle';
 
 import { SmallText } from '../../styles/commonStyle';
@@ -60,25 +63,27 @@ const GalleryList = ({
   yyyymm,
   loading,
 }: Props) => {
-  const { setImages, open } = useLightBoxStore();
+  const { images: storeImages, setImages, open } = useLightBoxStore();
 
   const [year, setYear] = useState(Number(yyyymm.slice(0, 4)));
   const [month, setMonth] = useState(Number(yyyymm.slice(4, 6)));
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
     'latest',
   );
-  const [sortedImages, setSortedImages] = useState<GalleryItem[]>([]);
+
+  const [sorted, setSorted] = useState<GalleryItem[]>([]);
   const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
 
   const minYear = 2025;
   const minMonth = 10;
+
   const isPrevDisabled =
     year < minYear || (year === minYear && month === minMonth);
 
   useEffect(() => {
     setYear(Number(yyyymm.slice(0, 4)));
     setMonth(Number(yyyymm.slice(4, 6)));
-    setSortedImages([]);
+    setSorted([]);
     setPageLoadedCounts([]);
   }, [yyyymm]);
 
@@ -91,20 +96,20 @@ const GalleryList = ({
         : 0,
     }));
 
-    const sorted = [...base].sort((a, b) => {
+    const ordered = [...base].sort((a, b) => {
       if (filter === 'likes') return b.likesCount - a.likesCount;
       if (filter === 'comments') return b.commentsCount - a.commentsCount;
       return Number(b.uploadedAt) - Number(a.uploadedAt);
     });
 
-    setSortedImages(sorted);
+    setSorted(ordered);
   }, [filter, list]);
 
   useEffect(() => {
     if (open) return;
 
     setImages(
-      sortedImages.map((i) => ({
+      sorted.map((i) => ({
         id: i.id,
         preview: i.url,
         description: i.caption ?? '',
@@ -112,19 +117,22 @@ const GalleryList = ({
         empId: i.empId,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
+        commentCount: i.comments
+          ? Object.values(i.comments).filter((c: any) => !c.deleted).length
+          : 0,
       })),
     );
-  }, [sortedImages, setImages, open]);
+  }, [sorted, open, setImages]);
 
   const pages = useMemo(() => {
-    const arr: (GalleryItem | null)[][] = [];
-    for (let i = 0; i < sortedImages.length; i += 9) {
-      const slice = sortedImages.slice(i, i + 9);
+    const rows: (GalleryItem | null)[][] = [];
+    for (let i = 0; i < sorted.length; i += 9) {
+      const slice = sorted.slice(i, i + 9);
       const filled = [...slice, ...Array(9 - slice.length).fill(null)];
-      arr.push(filled);
+      rows.push(filled);
     }
-    return arr;
-  }, [sortedImages]);
+    return rows;
+  }, [sorted]);
 
   useEffect(() => {
     setPageLoadedCounts(new Array(pages.length).fill(0));
@@ -202,14 +210,13 @@ const GalleryList = ({
             >
               {loading ? (
                 <EmptyBox>불러오는 중…</EmptyBox>
-              ) : sortedImages.length === 0 ? (
+              ) : sorted.length === 0 ? (
                 <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
               ) : (
                 <Swiper
                   modules={[Pagination]}
                   slidesPerView={1}
                   pagination={{ clickable: true }}
-                  className="gallery-swiper"
                 >
                   {pages.map((page, pageIdx) => {
                     const filled = page;
@@ -218,36 +225,63 @@ const GalleryList = ({
                       filled.filter((x) => x !== null).length;
 
                     return (
-                      <SwiperSlide key={pageIdx} className="gallery-slide">
+                      <SwiperSlide key={pageIdx}>
                         <GridWrapper>
-                          {filled.map((img, i) => (
-                            <GridItem
-                              key={img ? img.id : `empty-${pageIdx}-${i}`}
-                              onClick={() =>
-                                img && preloadOpenLightBox(pageIdx * 9 + i)
-                              }
-                              style={{
-                                visibility: img ? 'visible' : 'hidden',
-                              }}
-                            >
-                              {img && (
-                                <>
-                                  <Skeleton hidden={allLoaded} />
-                                  <Thumb
-                                    src={img.url}
-                                    visible={allLoaded}
-                                    onLoad={() =>
-                                      setPageLoadedCounts((prev) => {
-                                        const next = [...prev];
-                                        next[pageIdx] += 1;
-                                        return next;
-                                      })
-                                    }
-                                  />
-                                </>
-                              )}
-                            </GridItem>
-                          ))}
+                          {filled.map((img, i) => {
+                            if (!img)
+                              return (
+                                <GridItem
+                                  key={`empty-${pageIdx}-${i}`}
+                                  style={{ visibility: 'hidden' }}
+                                />
+                              );
+
+                            const storeIdx = pageIdx * 9 + i;
+                            const storeImg = storeImages[storeIdx];
+                            const likes = storeImg?.likes ?? 0;
+                            const comments = storeImg?.commentCount ?? 0;
+
+                            return (
+                              <GridItem
+                                key={img.id}
+                                onClick={() => preloadOpenLightBox(storeIdx)}
+                              >
+                                <Skeleton hidden={allLoaded} />
+
+                                <Thumb
+                                  src={img.url}
+                                  visible={allLoaded}
+                                  onLoad={() =>
+                                    setPageLoadedCounts((p) => {
+                                      const next = [...p];
+                                      next[pageIdx] += 1;
+                                      return next;
+                                    })
+                                  }
+                                />
+
+                                <InfoBar>
+                                  <InfoItem
+                                    key={`l-${likes}`}
+                                    initial={{ opacity: 0, scale: 0.7 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                  >
+                                    <Heart />
+                                    {likes}
+                                  </InfoItem>
+
+                                  <InfoItem
+                                    key={`c-${comments}`}
+                                    initial={{ opacity: 0, scale: 0.7 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                  >
+                                    <MessageCircle />
+                                    {comments}
+                                  </InfoItem>
+                                </InfoBar>
+                              </GridItem>
+                            );
+                          })}
                         </GridWrapper>
                       </SwiperSlide>
                     );

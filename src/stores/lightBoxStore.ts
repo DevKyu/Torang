@@ -91,6 +91,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
         ...i,
         liked: i.liked ?? false,
         likes: i.likes ?? 0,
+        commentCount: i.commentCount ?? 0,
       })),
     }),
 
@@ -126,13 +127,33 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     s.commentUnsub?.();
     set({ commentUnsub: null });
 
-    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
-      get().setComments(img.id, list),
-    );
+    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) => {
+      get().setComments(img.id, list);
+
+      set((st) => {
+        const arr = [...st.images];
+        const t = arr[idx];
+        if (!t) return {};
+        arr[idx] = {
+          ...t,
+          commentCount: list.filter((c) => !c.deleted).length,
+        };
+        return { images: arr };
+      });
+    });
+
     set({ commentUnsub: unsub });
 
     const list = await fetchGalleryComments(img.uploadedAt, img.id);
     get().setComments(img.id, list);
+
+    set((st) => {
+      const arr = [...st.images];
+      const t = arr[idx];
+      if (!t) return {};
+      arr[idx] = { ...t, commentCount: list.filter((c) => !c.deleted).length };
+      return { images: arr };
+    });
   },
 
   openLightBox: (index) => {
@@ -216,9 +237,21 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   swipeNextUpload: () => get().nextUpload(),
 
   setComments: (imageId, list) =>
-    set((s) => ({
-      comments: { ...s.comments, [imageId]: list },
-    })),
+    set((s) => {
+      const next = { ...s.comments, [imageId]: list };
+
+      const idx = s.images.findIndex((i) => i.id === imageId);
+      if (idx === -1) return { comments: next };
+
+      const arr = [...s.images];
+      const t = arr[idx];
+      arr[idx] = {
+        ...t,
+        commentCount: list.filter((c) => !c.deleted).length,
+      };
+
+      return { comments: next, images: arr };
+    }),
 
   openComment: async (index) => {
     const s = get();
@@ -233,6 +266,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
       get().setComments(img.id, list),
     );
+
     set({ commentUnsub: unsub });
 
     const list = await fetchGalleryComments(img.uploadedAt, img.id);
