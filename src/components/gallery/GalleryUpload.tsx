@@ -26,7 +26,6 @@ import {
 import { SmallText } from '../../styles/commonStyle';
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import LightBox from '../lightbox/LightBox';
-import { CommentSheet } from '../lightbox/CommentSheet';
 import { preloadOpenUploadLightBox } from '../../utils/gallery';
 import { getCurrentUserId } from '../../services/firebase';
 

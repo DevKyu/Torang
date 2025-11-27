@@ -33,7 +33,6 @@ import { SmallText } from '../../styles/commonStyle';
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
-import { CommentSheet } from '../lightbox/CommentSheet';
 import { getCurrentUserId } from '../../services/firebase';
 
 type GalleryItem = {
