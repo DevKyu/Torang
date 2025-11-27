@@ -12,7 +12,7 @@ export const Dim = styled(motion.div)`
   inset: 0;
   background: rgba(0, 0, 0, 0.54);
   z-index: 20000;
-  pointer-events: auto;
+  pointer-events: none;
   ${gpu}
 `;
 

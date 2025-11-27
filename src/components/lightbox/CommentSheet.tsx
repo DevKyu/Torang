@@ -220,7 +220,13 @@ export const CommentSheet = () => {
   return (
     <AnimatePresence>
       <>
-        <Dim style={{ opacity: dimOpacity }} onClick={runClose} />
+        <Dim
+          style={{
+            opacity: dimOpacity,
+            pointerEvents: commentOpen ? 'auto' : 'none',
+          }}
+          onClick={runClose}
+        />
 
         <Sheet
           style={{ y, opacity: sheetOpacity }}
