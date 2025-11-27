@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AnimatePresence,
   motion,
@@ -34,6 +35,7 @@ import {
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
+import CommentSheet from '../lightbox/CommentSheet';
 
 export const LightBox = () => {
   const {
@@ -54,6 +56,8 @@ export const LightBox = () => {
     toggleLike,
     openComment,
     comments: commentsState,
+    commentOpen,
+    closeComment,
   } = useLightBoxStore();
 
   const isUpload = uploadOpen;
@@ -68,17 +72,20 @@ export const LightBox = () => {
 
   const x = useMotionValue(0);
   const isInitial = useRef(true);
-  const imageBoxRef = useRef<HTMLDivElement>(null);
 
+  const imageBoxRef = useRef<HTMLDivElement>(null);
   const [stageW, setStageW] = useState(0);
   const [stageH, setStageH] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
 
-  const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
-  const markLoaded = useCallback(
-    (i: number) => setLoadedMap((p) => (p[i] ? p : { ...p, [i]: true })),
-    [],
-  );
+  const loadedRef = useRef<Record<number, boolean>>({});
+  const [, forceUpdate] = useState({});
+
+  const markLoaded = useCallback((i: number) => {
+    if (!loadedRef.current[i]) {
+      loadedRef.current[i] = true;
+      forceUpdate({});
+    }
+  }, []);
 
   const measure = useCallback(() => {
     const el = imageBoxRef.current;
@@ -90,21 +97,42 @@ export const LightBox = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-    setLoadedMap({});
+    const scrollY = window.scrollY;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
+  const raf = useRef(0);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    loadedRef.current = {};
     measure();
-    const h = () => measure();
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
+
+    const resizeHandler = () => {
+      cancelAnimationFrame(raf.current);
+      raf.current = requestAnimationFrame(measure);
+    };
+
+    window.addEventListener('resize', resizeHandler);
+    return () => window.removeEventListener('resize', resizeHandler);
   }, [isOpen, measure]);
 
   const animateToIndex = useCallback(
     (i: number) => {
-      setIsAnimating(true);
       animate(x, -stageW * i, {
         type: 'spring',
-        stiffness: 300,
+        stiffness: 360,
         damping: 32,
-        onComplete: () => setIsAnimating(false),
       });
     },
     [stageW, x],
@@ -128,36 +156,50 @@ export const LightBox = () => {
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
-      if (isInitial.current) return;
-      if (isAnimating) return animateToIndex(current);
-
       const { offset, velocity } = info;
 
-      if (current === 0 && offset.x > 0) return animateToIndex(current);
-      if (current === list.length - 1 && offset.x < 0)
-        return animateToIndex(current);
+      const DRAG_THRESHOLD = 16;
+      const VELOCITY_THRESHOLD = 130;
 
-      if (offset.x > 80 || velocity.x > 500) return prev();
-      if (offset.x < -80 || velocity.x < -500) return next();
+      const toPrev =
+        offset.x > DRAG_THRESHOLD || velocity.x > VELOCITY_THRESHOLD;
+      const toNext =
+        offset.x < -DRAG_THRESHOLD || velocity.x < -VELOCITY_THRESHOLD;
+
+      if (toPrev && current > 0) return prev();
+      if (toNext && current < list.length - 1) return next();
 
       animateToIndex(current);
     },
-    [current, list.length, isAnimating, animateToIndex, prev, next],
+    [current, list.length, animateToIndex, prev, next],
   );
 
   useEffect(() => {
-    if (isOpen) new Image().src = list[current]?.preview || '';
+    if (!isOpen) return;
+
+    const load = (i: number) => {
+      const target = list[i];
+      if (!target) return;
+      const img = new Image();
+      img.src = target.preview;
+    };
+
+    load(current);
+    load(current - 1);
+    load(current + 1);
   }, [current, isOpen, list]);
 
   useEffect(() => {
     if (!isOpen) return;
-    const h = (e: KeyboardEvent) => {
+
+    const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
     };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [isOpen, prev, next, onClose]);
 
   if (!isOpen) return null;
@@ -171,171 +213,211 @@ export const LightBox = () => {
   const commentCount = comments.filter((c) => !c.deleted).length;
   const likeCount = img.likes ?? 0;
 
-  return (
-    <AnimatePresence>
-      <Overlay
-        key="overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <Header>
-          <TopCounter>
-            {current + 1} / {list.length}
-          </TopCounter>
-          <HeaderRight>
-            <IconButton onClick={onClose}>
-              <X />
-            </IconButton>
-          </HeaderRight>
-        </Header>
+  const overlayClick = () => {
+    if (commentOpen) closeComment();
+  };
 
-        <ImageBox ref={imageBoxRef} showIcon={showIcon}>
-          <div
-            style={{
-              width: stageW * list.length,
-              height: '100%',
-              display: 'flex',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
+  return (
+    <>
+      <AnimatePresence>
+        <Overlay
+          key="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={overlayClick}
+        >
+          <Header>
+            <TopCounter>
+              {current + 1} / {list.length}
+            </TopCounter>
+            <HeaderRight>
+              <IconButton onClick={onClose}>
+                <X />
+              </IconButton>
+            </HeaderRight>
+          </Header>
+
+          <ImageBox
+            ref={imageBoxRef}
+            showIcon={showIcon}
+            onClick={(e) => e.stopPropagation()}
           >
             <motion.div
               style={{
-                display: 'flex',
+                width: stageW * list.length,
                 height: '100%',
-                x,
-                pointerEvents: isAnimating ? 'none' : 'auto',
+                display: 'flex',
+                position: 'relative',
+                overflow: 'hidden',
               }}
-              drag="x"
-              dragElastic={0.2}
-              dragMomentum={false}
-              onDragEnd={onDragEnd}
             >
-              {list.map((img, i) => {
-                const isCurrent = i === current;
-                return (
-                  <Slide key={img.id} style={{ width: stageW, height: stageH }}>
-                    {!loadedMap[i] && isCurrent && (
-                      <div
+              <motion.div
+                style={{
+                  display: 'flex',
+                  height: '100%',
+                  x,
+                }}
+                drag="x"
+                dragElastic={0.05}
+                dragMomentum={false}
+                onDragEnd={onDragEnd}
+              >
+                {list.map((img, i) => {
+                  const isCurrent = i === current;
+
+                  return (
+                    <Slide
+                      key={`${img.id}-${i}`}
+                      style={{ width: stageW, height: stageH }}
+                    >
+                      {!loadedRef.current[i] && isCurrent && (
+                        <motion.div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'rgba(0,0,0,0.32)',
+                            backdropFilter: 'blur(10px)',
+                          }}
+                        />
+                      )}
+
+                      <ViewerImage
+                        src={img.preview}
+                        draggable={false}
+                        onLoad={() => markLoaded(i)}
                         style={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'rgba(0,0,0,0.32)',
-                          backdropFilter: 'blur(10px)',
+                          opacity: loadedRef.current[i] ? 1 : 0,
+                          transition:
+                            'opacity 180ms cubic-bezier(.25,.8,.25,1)',
                         }}
                       />
-                    )}
-
-                    <ViewerImage
-                      src={img.preview}
-                      draggable={false}
-                      onLoad={() => markLoaded(i)}
-                      style={{
-                        opacity: loadedMap[i] ? 1 : 0,
-                        transition: 'opacity 200ms ease-out',
-                      }}
-                    />
-                  </Slide>
-                );
-              })}
+                    </Slide>
+                  );
+                })}
+              </motion.div>
             </motion.div>
-          </div>
 
-          {current > 0 && (
-            <IconButton
-              style={{
-                position: 'absolute',
-                left: 12,
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-              onClick={prev}
-            >
-              <ChevronLeft />
-            </IconButton>
-          )}
-
-          {current < list.length - 1 && (
-            <IconButton
-              style={{
-                position: 'absolute',
-                right: 12,
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-              onClick={next}
-            >
-              <ChevronRight />
-            </IconButton>
-          )}
-        </ImageBox>
-
-        {(name || hasDesc) && (
-          <DescriptionWrap showIcon={showIcon}>
-            {!isUpload && name && (
-              <div
+            {current > 0 && (
+              <IconButton
                 style={{
-                  fontSize: 12,
-                  color: 'rgba(255,255,255,0.75)',
-                  marginBottom: hasDesc ? 6 : 12,
-                  lineHeight: 1.3,
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
                 }}
               >
-                {name} 님의 사진
-              </div>
+                <ChevronLeft />
+              </IconButton>
             )}
 
-            {hasDesc && (
-              <Description initial={false} animate={{ opacity: 1 }}>
-                {img.description}
-              </Description>
+            {current < list.length - 1 && (
+              <IconButton
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
+              >
+                <ChevronRight />
+              </IconButton>
             )}
-          </DescriptionWrap>
-        )}
+          </ImageBox>
 
-        {!isUpload && (
-          <Footer showIcon={showIcon}>
-            <FooterIcons>
-              <IconRow onClick={toggleLike}>
-                <IconButton>
-                  <Heart
-                    fill={img.liked ? '#ff4d6d' : 'none'}
-                    color={img.liked ? '#ff4d6d' : '#eee'}
-                  />
-                </IconButton>
-                <CountBox>
-                  <Count
-                    key={likeCount}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    {likeCount}
-                  </Count>
-                </CountBox>
-              </IconRow>
+          {(name || hasDesc) && (
+            <DescriptionWrap
+              showIcon={showIcon}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {!isUpload && name && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'rgba(255,255,255,0.75)',
+                    marginBottom: hasDesc ? 6 : 12,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {name} 님의 사진
+                </div>
+              )}
 
-              <IconRow onClick={() => openComment(current)}>
-                <IconButton>
-                  <MessageCircle />
-                </IconButton>
-                <CountBox>
-                  <Count
-                    key={commentCount}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    {commentCount}
-                  </Count>
-                </CountBox>
-              </IconRow>
-            </FooterIcons>
-          </Footer>
+              {hasDesc && (
+                <Description initial={false} animate={{ opacity: 1 }}>
+                  {img.description}
+                </Description>
+              )}
+            </DescriptionWrap>
+          )}
+
+          {!isUpload && (
+            <Footer showIcon={showIcon} onClick={(e) => e.stopPropagation()}>
+              <FooterIcons>
+                <IconRow
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike();
+                  }}
+                >
+                  <IconButton>
+                    <Heart
+                      fill={img.liked ? '#ff4d6d' : 'none'}
+                      color={img.liked ? '#ff4d6d' : '#eee'}
+                    />
+                  </IconButton>
+                  <CountBox>
+                    <Count
+                      key={likeCount}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      {likeCount}
+                    </Count>
+                  </CountBox>
+                </IconRow>
+
+                <IconRow
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openComment(current);
+                  }}
+                >
+                  <IconButton>
+                    <MessageCircle />
+                  </IconButton>
+                  <CountBox>
+                    <Count
+                      key={commentCount}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      {commentCount}
+                    </Count>
+                  </CountBox>
+                </IconRow>
+              </FooterIcons>
+            </Footer>
+          )}
+        </Overlay>
+      </AnimatePresence>
+
+      {commentOpen &&
+        createPortal(
+          <CommentSheet />,
+          document.getElementById('comment-portal')!,
         )}
-      </Overlay>
-    </AnimatePresence>
+    </>
   );
 };
 

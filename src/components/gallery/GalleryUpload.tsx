@@ -296,7 +296,6 @@ const GalleryUpload = ({
       </GalleryBox>
 
       <LightBox />
-      <CommentSheet />
     </GalleryOuter>
   );
 };

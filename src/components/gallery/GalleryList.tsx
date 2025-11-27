@@ -299,7 +299,6 @@ const GalleryList = ({
       </GalleryOuter>
 
       <LightBox />
-      <CommentSheet />
     </>
   );
 };

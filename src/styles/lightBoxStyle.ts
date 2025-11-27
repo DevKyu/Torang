@@ -22,11 +22,13 @@ export const Overlay = styled(motion.div)`
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   ${gpu}
 `;
 
@@ -38,6 +40,7 @@ export const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-top: env(safe-area-inset-top, 0px);
 `;
 
 export const TopCounter = styled.div`
@@ -48,6 +51,7 @@ export const TopCounter = styled.div`
   border-radius: 12px;
   color: white;
   font-size: 13px;
+  -webkit-font-smoothing: antialiased;
   ${gpu}
 `;
 
@@ -86,10 +90,12 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
   top: ${topOffset};
   width: 100%;
   height: ${({ showIcon }) => getImageBoxHeight(showIcon)};
+  min-height: 40vh;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: none;
   ${gpu}
 `;
 
@@ -100,6 +106,7 @@ export const Slide = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: none;
   ${gpu}
 `;
 
@@ -109,6 +116,7 @@ export const ViewerImage = styled.img`
   object-fit: contain;
   pointer-events: none;
   user-select: none;
+  touch-action: none;
   ${gpu}
 `;
 
@@ -122,6 +130,7 @@ export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
+  overscroll-behavior: contain;
   text-align: center;
 `;
 
@@ -131,10 +140,11 @@ export const Description = styled(motion.div)`
   padding: 10px 14px;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
   color: white;
   font-size: 14px;
   text-align: center;
+  -webkit-font-smoothing: antialiased;
   ${gpu}
 `;
 
@@ -147,10 +157,6 @@ export const Footer = styled.div<{ showIcon: boolean }>`
   display: ${({ showIcon }) => (showIcon ? 'flex' : 'none')};
   justify-content: center;
   align-items: flex-start;
-  background: ${({ showIcon }) =>
-    showIcon
-      ? 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
-      : 'none'};
   ${gpu}
 `;
 
@@ -167,12 +173,11 @@ export const IconRow = styled.div`
   justify-content: center;
   align-items: center;
   gap: 6px;
-
   cursor: pointer;
   padding: 6px 4px;
   border-radius: 8px;
 
-  & > * {
+  & * {
     pointer-events: none;
   }
 `;
@@ -181,6 +186,7 @@ export const Count = styled(motion.span)`
   font-size: 13px;
   color: #eee;
   line-height: 1;
+  -webkit-font-smoothing: antialiased;
 `;
 
 export const CountBox = styled.div`

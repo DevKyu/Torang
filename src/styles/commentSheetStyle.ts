@@ -4,16 +4,16 @@ import { motion } from 'framer-motion';
 const gpu = `
   transform: translateZ(0);
   backface-visibility: hidden;
-  will-change: opacity, transform;
+  will-change: transform, opacity;
 `;
 
 export const Dim = styled(motion.div)`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 9998;
+  background: rgba(0, 0, 0, 0.54);
+  z-index: 20000;
   pointer-events: auto;
-  ${gpu};
+  ${gpu}
 `;
 
 export const Sheet = styled(motion.div)`
@@ -24,18 +24,30 @@ export const Sheet = styled(motion.div)`
   max-height: 55vh;
   background: #fff;
   border-radius: 18px 18px 0 0;
-  z-index: 9999;
+  z-index: 20001;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
-  mask-image: radial-gradient(white, black);
-  ${gpu};
+  ${gpu}
+`;
+
+export const DragZone = styled(motion.div)`
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+`;
+
+export const HandleBar = styled.div`
+  width: 40px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 3px;
+  margin: 12px auto 8px;
 `;
 
 export const SheetHeader = styled.div`
-  padding: 16px 18px 14px;
+  padding: 4px 18px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,6 +57,7 @@ export const SheetHeader = styled.div`
     height: 24px;
     color: #333;
     cursor: pointer;
+    flex-shrink: 0;
   }
 `;
 
@@ -52,16 +65,19 @@ export const Title = styled.div`
   font-size: 15px;
   font-weight: 600;
   color: #222;
+  white-space: nowrap;
 `;
 
 export const SheetBody = styled.div`
   flex: 1;
-  padding: 6px 18px 20px;
+  padding: 6px 18px 18px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  touch-action: pan-y;
+
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 
   &::-webkit-scrollbar {
     display: none;
@@ -75,39 +91,39 @@ export const CommentItem = styled(motion.div)`
 
   .row1 {
     display: flex;
-    align-items: center;
     gap: 6px;
+    align-items: center;
+  }
 
-    .name {
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-    }
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
 
-    .time {
-      font-size: 11px;
-      color: #999;
-    }
+  .time {
+    font-size: 11px;
+    color: #999;
+    flex-shrink: 0;
   }
 
   .text {
     font-size: 14px;
     color: #444;
-    line-height: 1.45;
-    white-space: pre-wrap;
+    line-height: 1.48;
+    word-break: break-word;
   }
 
   .actions {
     display: flex;
     align-items: center;
-    min-height: 20px;
+    gap: 8px;
 
     .heart {
       display: flex;
       align-items: center;
       gap: 4px;
       cursor: pointer;
-      color: #aaa;
 
       &.on {
         color: #e63946;
@@ -126,20 +142,14 @@ export const CommentItem = styled(motion.div)`
       color: #666;
       font-size: 12px;
       padding: 2px 4px;
-      border-radius: 4px;
+      border-radius: 3px;
       cursor: pointer;
-
-      &:active {
-        opacity: 0.6;
-      }
     }
   }
 `;
 
 export const ReplyItem = styled(motion.div)`
-  margin-top: 2px;
-  margin-left: 20px;
-  padding-left: 4px;
+  margin-left: 22px;
   display: flex;
   gap: 8px;
 
@@ -147,65 +157,54 @@ export const ReplyItem = styled(motion.div)`
     display: flex;
     flex-direction: column;
     gap: 4px;
+  }
 
-    .row1 {
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .time {
+    font-size: 11px;
+    color: #999;
+    flex-shrink: 0;
+  }
+
+  .text {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.48;
+    word-break: break-word;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+
+    .heart {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      cursor: pointer;
 
-      .name {
-        font-size: 13px;
-        font-weight: 600;
-        color: #333;
+      &.on {
+        color: #e63946;
       }
 
-      .time {
-        font-size: 11px;
-        color: #999;
-      }
-    }
-
-    .text {
-      font-size: 13px;
-      color: #444;
-      line-height: 1.45;
-      white-space: pre-wrap;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-
-      .heart {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        cursor: pointer;
-        color: #aaa;
-
-        &.on {
-          color: #e63946;
-        }
-
-        span {
-          font-size: 12px;
-          min-width: 10px;
-        }
-      }
-
-      .delBtn {
-        background: none;
-        border: none;
-        color: #666;
+      span {
         font-size: 12px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        cursor: pointer;
-
-        &:active {
-          opacity: 0.6;
-        }
       }
+    }
+
+    .delBtn {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      cursor: pointer;
     }
   }
 `;
@@ -228,43 +227,32 @@ export const ReplyNotice = styled.div`
     border: none;
     font-size: 12px;
     color: #777;
-    padding: 2px 6px;
-    border-radius: 4px;
     cursor: pointer;
-
-    &:active {
-      opacity: 0.6;
-    }
   }
 `;
 
 export const InputBox = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #f3f3f5;
+  gap: 12px;
+  background: #f2f2f4;
   border-radius: 14px;
   padding: 12px 16px;
 
   input {
     flex: 1;
+    font-size: 14px;
     border: none;
     outline: none;
     background: none;
-    font-size: 14px;
-    color: #222;
-    line-height: 1.44;
   }
 
   .send {
+    cursor: pointer;
     width: 24px;
     height: 24px;
     color: #444;
-    cursor: pointer;
-
-    &:active {
-      opacity: 0.6;
-    }
+    flex-shrink: 0;
   }
 `;
 
