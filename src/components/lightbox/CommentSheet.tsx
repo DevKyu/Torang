@@ -225,6 +225,11 @@ export const CommentSheet = () => {
             opacity: dimOpacity,
             pointerEvents: commentOpen ? 'auto' : 'none',
           }}
+          exit={{
+            opacity: 0,
+            pointerEvents: 'none',
+            transition: { duration: 0.25 },
+          }}
           onClick={runClose}
         />
 
@@ -245,7 +250,8 @@ export const CommentSheet = () => {
           exit={{
             opacity: 0,
             y: 80,
-            transition: { duration: 0.35, ease: [0.3, 0.9, 0.4, 1] },
+            pointerEvents: 'none',
+            transition: { duration: 0.35 },
           }}
         >
           <DragZone>
