@@ -70,12 +70,13 @@ export const InfoBar = styled.div`
 export const InfoItem = styled(motion.div)`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 1px 4px;
   gap: 2px;
   height: 14px;
 
   font-size: 10px;
-  line-height: 1;
+  line-height: 1.1;
   font-weight: 500;
 
   background: rgba(0, 0, 0, 0.32);
@@ -86,9 +87,8 @@ export const InfoItem = styled(motion.div)`
   pointer-events: none;
 
   svg {
-    width: 10px;
-    height: 10px;
-    position: relative;
-    top: -0.5px;
+    width: 9px;
+    height: 9px;
+    display: block;
   }
 `;
