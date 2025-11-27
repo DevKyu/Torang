@@ -183,7 +183,6 @@ export const LightBox = () => {
           <TopCounter>
             {current + 1} / {list.length}
           </TopCounter>
-
           <HeaderRight>
             <IconButton onClick={onClose}>
               <X />
@@ -215,7 +214,6 @@ export const LightBox = () => {
             >
               {list.map((img, i) => {
                 const isCurrent = i === current;
-
                 return (
                   <Slide key={img.id} style={{ width: stageW, height: stageH }}>
                     {!loadedMap[i] && isCurrent && (
@@ -299,8 +297,8 @@ export const LightBox = () => {
         {!isUpload && (
           <Footer showIcon={showIcon}>
             <FooterIcons>
-              <IconRow>
-                <IconButton onClick={toggleLike}>
+              <IconRow onClick={toggleLike}>
+                <IconButton>
                   <Heart
                     fill={img.liked ? '#ff4d6d' : 'none'}
                     color={img.liked ? '#ff4d6d' : '#eee'}
@@ -318,8 +316,8 @@ export const LightBox = () => {
                 </CountBox>
               </IconRow>
 
-              <IconRow>
-                <IconButton onClick={() => openComment(current)}>
+              <IconRow onClick={() => openComment(current)}>
+                <IconButton>
                   <MessageCircle />
                 </IconButton>
                 <CountBox>

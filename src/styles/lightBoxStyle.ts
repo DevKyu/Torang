@@ -167,6 +167,14 @@ export const IconRow = styled.div`
   justify-content: center;
   align-items: center;
   gap: 6px;
+
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 8px;
+
+  & > * {
+    pointer-events: none;
+  }
 `;
 
 export const Count = styled(motion.span)`
