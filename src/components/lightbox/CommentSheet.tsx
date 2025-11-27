@@ -228,6 +228,7 @@ export const CommentSheet = () => {
           exit={{
             opacity: 0,
             pointerEvents: 'none',
+            visibility: 'hidden',
             transition: { duration: 0.25 },
           }}
           onClick={runClose}
@@ -251,6 +252,7 @@ export const CommentSheet = () => {
             opacity: 0,
             y: 80,
             pointerEvents: 'none',
+            visibility: 'hidden',
             transition: { duration: 0.35 },
           }}
         >

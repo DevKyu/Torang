@@ -13,6 +13,9 @@ export const Dim = styled(motion.div)`
   background: rgba(0, 0, 0, 0.54);
   z-index: 20000;
   pointer-events: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   ${gpu}
 `;
 
@@ -29,6 +32,10 @@ export const Sheet = styled(motion.div)`
   display: flex;
   flex-direction: column;
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
   ${gpu}
 `;
 
@@ -36,6 +43,8 @@ export const DragZone = styled(motion.div)`
   width: 100%;
   touch-action: none;
   user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 `;
 
 export const HandleBar = styled.div`
