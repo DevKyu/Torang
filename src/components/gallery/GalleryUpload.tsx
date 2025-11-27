@@ -72,9 +72,9 @@ const GalleryUpload = ({
   const compress = useCallback(async (file: File) => {
     try {
       const c = await imageCompression(file, {
-        maxWidthOrHeight: 1280,
-        maxSizeMB: 0.6,
-        initialQuality: 0.75,
+        maxWidthOrHeight: 1600,
+        maxSizeMB: 0.9,
+        initialQuality: 0.85,
         useWebWorker: true,
       });
 
