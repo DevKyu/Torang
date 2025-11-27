@@ -117,9 +117,11 @@ const GalleryList = ({
   }, [sortedImages, setImages, open]);
 
   const pages = useMemo(() => {
-    const arr: GalleryItem[][] = [];
+    const arr: (GalleryItem | null)[][] = [];
     for (let i = 0; i < sortedImages.length; i += 9) {
-      arr.push(sortedImages.slice(i, i + 9));
+      const slice = sortedImages.slice(i, i + 9);
+      const filled = [...slice, ...Array(9 - slice.length).fill(null)];
+      arr.push(filled);
     }
     return arr;
   }, [sortedImages]);
@@ -210,30 +212,40 @@ const GalleryList = ({
                   className="gallery-swiper"
                 >
                   {pages.map((page, pageIdx) => {
-                    const allLoaded = pageLoadedCounts[pageIdx] >= page.length;
+                    const filled = page;
+                    const allLoaded =
+                      pageLoadedCounts[pageIdx] >=
+                      filled.filter((x) => x !== null).length;
 
                     return (
                       <SwiperSlide key={pageIdx} className="gallery-slide">
                         <GridWrapper>
-                          {page.map((img, i) => (
+                          {filled.map((img, i) => (
                             <GridItem
-                              key={img.id}
+                              key={img ? img.id : `empty-${pageIdx}-${i}`}
                               onClick={() =>
-                                preloadOpenLightBox(pageIdx * 9 + i)
+                                img && preloadOpenLightBox(pageIdx * 9 + i)
                               }
+                              style={{
+                                visibility: img ? 'visible' : 'hidden',
+                              }}
                             >
-                              <Skeleton hidden={allLoaded} />
-                              <Thumb
-                                src={img.url}
-                                visible={allLoaded}
-                                onLoad={() =>
-                                  setPageLoadedCounts((prev) => {
-                                    const next = [...prev];
-                                    next[pageIdx] += 1;
-                                    return next;
-                                  })
-                                }
-                              />
+                              {img && (
+                                <>
+                                  <Skeleton hidden={allLoaded} />
+                                  <Thumb
+                                    src={img.url}
+                                    visible={allLoaded}
+                                    onLoad={() =>
+                                      setPageLoadedCounts((prev) => {
+                                        const next = [...prev];
+                                        next[pageIdx] += 1;
+                                        return next;
+                                      })
+                                    }
+                                  />
+                                </>
+                              )}
                             </GridItem>
                           ))}
                         </GridWrapper>
