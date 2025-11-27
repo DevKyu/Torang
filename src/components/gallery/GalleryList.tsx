@@ -266,7 +266,12 @@ const GalleryList = ({
                                     initial={{ opacity: 0, scale: 0.7 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                   >
-                                    <Heart />
+                                    <Heart
+                                      fill={storeImg?.liked ? 'red' : 'none'}
+                                      color={
+                                        storeImg?.liked ? 'red' : 'currentColor'
+                                      }
+                                    />
                                     {likes}
                                   </InfoItem>
 

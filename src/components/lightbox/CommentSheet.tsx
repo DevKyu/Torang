@@ -32,6 +32,7 @@ import {
   ReplyNotice,
   InputBox,
   SafeBottom,
+  EmptyState,
 } from '../../styles/commentSheetStyle';
 
 const formatTimeAgo = (ts: number) => {
@@ -274,7 +275,7 @@ export const CommentSheet = () => {
                     fontSize: 14,
                   }}
                 >
-                  아직 댓글이 없어요!
+                  <EmptyState>첫 댓글을 남겨보세요</EmptyState>
                 </motion.div>
               )}
 
@@ -385,8 +386,8 @@ export const CommentSheet = () => {
                 <ReplyNotice>
                   <span>
                     {replyTo.user === myName
-                      ? '나에게 답글 작성 중…'
-                      : `${replyTo.user}님에게 답글 작성 중…`}
+                      ? '나에게 답글 작성 중'
+                      : `${replyTo.user}님에게 답글 작성 중`}
                   </span>
                   <button onClick={() => setReplyTo(null)}>취소</button>
                 </ReplyNotice>
@@ -396,7 +397,7 @@ export const CommentSheet = () => {
                 <input
                   ref={inputRef}
                   value={text}
-                  placeholder="댓글 입력..."
+                  placeholder="댓글 남기기"
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => {
                     if (

@@ -24,8 +24,8 @@ export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 60vh;
-  max-height: 60vh;
+  height: 55vh;
+  max-height: 55vh;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -124,7 +124,7 @@ export const CommentItem = styled(motion.div)`
   .actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 
     .heart {
       display: flex;
@@ -184,8 +184,7 @@ export const ReplyItem = styled(motion.div)`
 
   .actions {
     display: flex;
-    gap: 8px;
-
+    gap: 4px;
     .heart {
       display: flex;
       align-items: center;
@@ -255,6 +254,18 @@ export const InputBox = styled.div`
     height: 24px;
     color: #444;
   }
+`;
+
+export const EmptyState = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 14px;
+  pointer-events: none;
+  text-align: center;
 `;
 
 export const SafeBottom = styled.div`
