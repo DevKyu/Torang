@@ -221,7 +221,7 @@ export const GalleryButton = styled.button`
 `;
 
 export const ClearText = styled.span`
-  margin-top: 8px;
+  margin-top: 15px;
   font-size: 12px;
   color: ${colors.textSub};
   text-decoration: underline;
