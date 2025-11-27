@@ -120,10 +120,14 @@ export const CommentSheet = () => {
   useEffect(() => setReplyTo(null), [commentIndex]);
 
   useEffect(() => {
-    document.body.style.overflow = commentOpen ? 'hidden' : '';
-
+    const html = document.documentElement;
+    if (commentOpen) {
+      html.style.overflow = 'hidden';
+    } else {
+      html.style.overflow = '';
+    }
     return () => {
-      document.body.style.overflow = '';
+      html.style.overflow = '';
     };
   }, [commentOpen]);
 
@@ -132,8 +136,14 @@ export const CommentSheet = () => {
     setClosing(true);
     try {
       await Promise.all([
-        animate(y, 360, { duration: 0.45, ease: [0.25, 0.8, 0.4, 1] }),
-        animate(sheetOpacity, 0, { duration: 0.4, ease: [0.3, 0.9, 0.4, 1] }),
+        animate(y, 420, {
+          duration: 0.42,
+          ease: [0.25, 0.8, 0.4, 1],
+        }),
+        animate(sheetOpacity, 0, {
+          duration: 0.38,
+          ease: [0.3, 0.9, 0.4, 1],
+        }),
       ]);
     } finally {
       closeComment();
@@ -147,8 +157,8 @@ export const CommentSheet = () => {
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
-      if (info.offset.y > 110) runClose();
-      else animate(y, 0, { duration: 0.35, ease: [0.25, 0.8, 0.4, 1] });
+      if (info.offset.y > 120) runClose();
+      else animate(y, 0, { duration: 0.3, ease: [0.25, 0.8, 0.4, 1] });
     },
     [runClose, y],
   );
@@ -160,6 +170,7 @@ export const CommentSheet = () => {
 
     sendingRef.current = true;
     const parentId = replyTo?.id ?? null;
+
     const tempId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     const optimistic: LightboxComment = {
@@ -228,8 +239,7 @@ export const CommentSheet = () => {
           exit={{
             opacity: 0,
             pointerEvents: 'none',
-            visibility: 'hidden',
-            transition: { duration: 0.25 },
+            transition: { duration: 0.22 },
           }}
           onClick={runClose}
         />
@@ -240,20 +250,17 @@ export const CommentSheet = () => {
           dragElastic={0.12}
           dragConstraints={{ top: 0, bottom: 0 }}
           dragMomentum={false}
-          dragPropagation={false}
           onDragEnd={onDragEnd}
-          initial={{ opacity: 0, y: 80 }}
+          initial={{ opacity: 0, y: 100 }}
           animate={{
             opacity: 1,
             y: 0,
-            transition: { duration: 0.45, ease: [0.25, 0.8, 0.4, 1] },
+            transition: { duration: 0.42, ease: [0.25, 0.8, 0.4, 1] },
           }}
           exit={{
             opacity: 0,
-            y: 80,
-            pointerEvents: 'none',
-            visibility: 'hidden',
-            transition: { duration: 0.35 },
+            y: 100,
+            transition: { duration: 0.35, ease: [0.3, 0.9, 0.4, 1] },
           }}
         >
           <DragZone>

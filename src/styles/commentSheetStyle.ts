@@ -12,10 +12,10 @@ export const Dim = styled(motion.div)`
   inset: 0;
   background: rgba(0, 0, 0, 0.54);
   z-index: 20000;
-  pointer-events: none;
+  pointer-events: auto;
   touch-action: none;
-  -webkit-touch-callout: none;
   -webkit-user-select: none;
+  user-select: none;
   ${gpu}
 `;
 
@@ -33,8 +33,8 @@ export const Sheet = styled(motion.div)`
   flex-direction: column;
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
   touch-action: none;
-  -webkit-touch-callout: none;
   -webkit-user-select: none;
+  user-select: none;
   overscroll-behavior: none;
   ${gpu}
 `;
@@ -42,9 +42,9 @@ export const Sheet = styled(motion.div)`
 export const DragZone = styled(motion.div)`
   width: 100%;
   touch-action: none;
-  user-select: none;
-  -webkit-touch-callout: none;
   -webkit-user-select: none;
+  user-select: none;
+  ${gpu}
 `;
 
 export const HandleBar = styled.div`
@@ -66,7 +66,6 @@ export const SheetHeader = styled.div`
     height: 24px;
     color: #333;
     cursor: pointer;
-    flex-shrink: 0;
   }
 `;
 
@@ -74,7 +73,6 @@ export const Title = styled.div`
   font-size: 15px;
   font-weight: 600;
   color: #222;
-  white-space: nowrap;
 `;
 
 export const SheetBody = styled.div`
@@ -84,9 +82,8 @@ export const SheetBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: 18px;
-
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
     display: none;
@@ -113,7 +110,6 @@ export const CommentItem = styled(motion.div)`
   .time {
     font-size: 11px;
     color: #999;
-    flex-shrink: 0;
   }
 
   .text {
@@ -146,12 +142,10 @@ export const CommentItem = styled(motion.div)`
 
     .replyBtn,
     .delBtn {
-      background: none;
       border: none;
-      color: #666;
+      background: none;
       font-size: 12px;
-      padding: 2px 4px;
-      border-radius: 3px;
+      color: #666;
       cursor: pointer;
     }
   }
@@ -177,7 +171,6 @@ export const ReplyItem = styled(motion.div)`
   .time {
     font-size: 11px;
     color: #999;
-    flex-shrink: 0;
   }
 
   .text {
@@ -207,12 +200,10 @@ export const ReplyItem = styled(motion.div)`
     }
 
     .delBtn {
-      background: none;
       border: none;
-      color: #666;
+      background: none;
       font-size: 12px;
-      padding: 2px 4px;
-      border-radius: 3px;
+      color: #666;
       cursor: pointer;
     }
   }
@@ -232,8 +223,8 @@ export const ReplyNotice = styled.div`
   color: #555;
 
   button {
-    background: none;
     border: none;
+    background: none;
     font-size: 12px;
     color: #777;
     cursor: pointer;
@@ -252,8 +243,8 @@ export const InputBox = styled.div`
     flex: 1;
     font-size: 14px;
     border: none;
-    outline: none;
     background: none;
+    outline: none;
   }
 
   .send {
@@ -261,7 +252,6 @@ export const InputBox = styled.div`
     width: 24px;
     height: 24px;
     color: #444;
-    flex-shrink: 0;
   }
 `;
 

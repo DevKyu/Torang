@@ -222,6 +222,9 @@ export const LightBox = () => {
       <AnimatePresence>
         <Overlay
           key="overlay"
+          style={{
+            pointerEvents: commentOpen ? 'none' : 'auto',
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
