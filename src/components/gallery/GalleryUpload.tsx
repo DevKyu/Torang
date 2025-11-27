@@ -260,6 +260,7 @@ const GalleryUpload = ({
 
                       <CaptionArea>
                         <CaptionBox
+                          key={`cap-${i.id}`}
                           value={i.caption}
                           placeholder="사진 설명"
                           onChange={(e) => setCaption(i.id, e.target.value)}

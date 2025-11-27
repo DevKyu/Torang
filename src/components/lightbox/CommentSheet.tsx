@@ -45,10 +45,9 @@ const formatTimeAgo = (ts: number) => {
   if (day < 2) return '어제';
   if (day < 7) return `${Math.floor(day)}일 전`;
   const d = new Date(ts);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(
-    2,
-    '0',
-  )}.${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
 };
 
 export const CommentSheet = () => {
@@ -81,11 +80,11 @@ export const CommentSheet = () => {
 
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
-  const [closing, setClosing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const y = useMotionValue(0);
   const sheetOpacity = useMotionValue(1);
-  const dimOpacity = useTransform(y, [0, 200], [1, 0]);
+  const dimOpacity = useTransform(y, [0, 180], [1, 0]);
 
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
@@ -109,7 +108,6 @@ export const CommentSheet = () => {
     return { top, replyMap };
   }, [list]);
 
-  const top = grouped.top;
   const replies = useCallback(
     (pid: string) => grouped.replyMap[pid] ?? [],
     [grouped.replyMap],
@@ -120,45 +118,35 @@ export const CommentSheet = () => {
   useEffect(() => setReplyTo(null), [commentIndex]);
 
   useEffect(() => {
-    const html = document.documentElement;
-    if (commentOpen) {
-      html.style.overflow = 'hidden';
-    } else {
-      html.style.overflow = '';
-    }
+    document.body.style.overflow = commentOpen ? 'hidden' : '';
     return () => {
-      html.style.overflow = '';
+      document.body.style.overflow = '';
     };
   }, [commentOpen]);
 
   const runClose = useCallback(async () => {
-    if (closing) return;
-    setClosing(true);
+    if (isClosing) return;
+    setIsClosing(true);
     try {
       await Promise.all([
-        animate(y, 420, {
-          duration: 0.42,
-          ease: [0.25, 0.8, 0.4, 1],
-        }),
-        animate(sheetOpacity, 0, {
-          duration: 0.38,
-          ease: [0.3, 0.9, 0.4, 1],
-        }),
+        animate(y, 360, { duration: 0.32, ease: [0.25, 0.8, 0.4, 1] }),
+        animate(sheetOpacity, 0, { duration: 0.26 }),
       ]);
     } finally {
       closeComment();
+
+      setIsClosing(false);
       requestAnimationFrame(() => {
         y.set(0);
         sheetOpacity.set(1);
-        setClosing(false);
       });
     }
-  }, [closing, closeComment, y, sheetOpacity]);
+  }, [isClosing, closeComment, y, sheetOpacity]);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
-      if (info.offset.y > 120) runClose();
-      else animate(y, 0, { duration: 0.3, ease: [0.25, 0.8, 0.4, 1] });
+      if (info.offset.y > 110) runClose();
+      else animate(y, 0, { duration: 0.22 });
     },
     [runClose, y],
   );
@@ -169,9 +157,9 @@ export const CommentSheet = () => {
     if (!t) return;
 
     sendingRef.current = true;
-    const parentId = replyTo?.id ?? null;
 
-    const tempId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const parentId = replyTo?.id ?? null;
+    const tempId = `tmp_${Date.now()}_${Math.random()}`;
 
     const optimistic: LightboxComment = {
       id: tempId,
@@ -226,203 +214,209 @@ export const CommentSheet = () => {
     [imageId, uploadedAt, deleteComment],
   );
 
-  if (!commentOpen) return null;
-
   return (
     <AnimatePresence>
-      <>
-        <Dim
+      {commentOpen && (
+        <motion.div
+          key="comment-wrapper"
           style={{
-            opacity: dimOpacity,
-            pointerEvents: commentOpen ? 'auto' : 'none',
-          }}
-          exit={{
-            opacity: 0,
-            pointerEvents: 'none',
-            transition: { duration: 0.22 },
-          }}
-          onClick={runClose}
-        />
-
-        <Sheet
-          style={{ y, opacity: sheetOpacity }}
-          drag="y"
-          dragElastic={0.12}
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragMomentum={false}
-          onDragEnd={onDragEnd}
-          initial={{ opacity: 0, y: 100 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.42, ease: [0.25, 0.8, 0.4, 1] },
-          }}
-          exit={{
-            opacity: 0,
-            y: 100,
-            transition: { duration: 0.35, ease: [0.3, 0.9, 0.4, 1] },
+            position: 'fixed',
+            inset: 0,
+            zIndex: 20000,
+            pointerEvents: isClosing ? 'none' : 'auto',
           }}
         >
-          <DragZone>
-            <HandleBar />
-            <SheetHeader>
-              <Title>댓글 {total}</Title>
-              <X className="close" onClick={runClose} />
-            </SheetHeader>
-          </DragZone>
+          <Dim
+            style={{ opacity: dimOpacity }}
+            onClick={runClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+          />
 
-          <SheetBody ref={bodyRef}>
-            {top.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                style={{
-                  textAlign: 'center',
-                  color: '#777',
-                  paddingTop: 22,
-                  fontSize: 14,
-                }}
-              >
-                아직 댓글이 없어요!
-              </motion.div>
-            )}
+          <Sheet
+            style={{ y, opacity: sheetOpacity }}
+            drag="y"
+            dragElastic={0.12}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragMomentum={false}
+            dragPropagation={false}
+            onDragEnd={onDragEnd}
+            initial={{ opacity: 0, y: 70 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.32 },
+            }}
+            exit={{
+              opacity: 0,
+              y: 70,
+              transition: { duration: 0.24 },
+            }}
+          >
+            <DragZone>
+              <HandleBar />
+              <SheetHeader>
+                <Title>댓글 {total}</Title>
+                <X className="close" onClick={runClose} />
+              </SheetHeader>
+            </DragZone>
 
-            <AnimatePresence mode="sync">
-              {top.map((c) => (
-                <CommentItem
-                  key={c.id}
+            <SheetBody ref={bodyRef}>
+              {grouped.top.length === 0 && (
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  style={{
+                    textAlign: 'center',
+                    color: '#777',
+                    paddingTop: 22,
+                    fontSize: 14,
+                  }}
                 >
-                  <div className="row1">
-                    <div className="name">{c.user}</div>
-                    <div className="time">{formatTimeAgo(c.createdAt)}</div>
-                  </div>
+                  아직 댓글이 없어요!
+                </motion.div>
+              )}
 
-                  <div className="text">{c.text}</div>
+              <AnimatePresence mode="sync">
+                {grouped.top.map((c) => (
+                  <CommentItem
+                    key={`${c.id}-${c.createdAt}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="row1">
+                      <div className="name">{c.user}</div>
+                      <div className="time">{formatTimeAgo(c.createdAt)}</div>
+                    </div>
 
-                  <div className="actions">
-                    <motion.div
-                      className={`heart ${c.likedByMe ? 'on' : ''}`}
-                      whileTap={{ scale: 0.88 }}
-                      onClick={() => handleLike(c)}
-                      key={c.id + c.likedByMe}
-                    >
-                      <Heart
-                        size={16}
-                        fill={c.likedByMe ? '#e63946' : 'none'}
-                        color={c.likedByMe ? '#e63946' : '#aaa'}
-                      />
-                      <span>{c.likes || ''}</span>
-                    </motion.div>
+                    <div className="text">{c.text}</div>
 
-                    <button
-                      className="replyBtn"
-                      onClick={() => {
-                        setReplyTo(c);
-                        requestAnimationFrame(() => inputRef.current?.focus());
-                      }}
-                    >
-                      답글
-                    </button>
-
-                    {c.user === myName && (
-                      <button
-                        className="delBtn"
-                        onClick={() => handleDelete(c.id)}
+                    <div className="actions">
+                      <motion.div
+                        className={`heart ${c.likedByMe ? 'on' : ''}`}
+                        whileTap={{ scale: 0.88 }}
+                        onClick={() => handleLike(c)}
+                        key={c.id + c.likedByMe}
                       >
-                        삭제
-                      </button>
-                    )}
-                  </div>
+                        <Heart
+                          size={16}
+                          fill={c.likedByMe ? '#e63946' : 'none'}
+                          color={c.likedByMe ? '#e63946' : '#aaa'}
+                        />
+                        <span>{c.likes || ''}</span>
+                      </motion.div>
 
-                  {replies(c.id).map((r) => (
-                    <ReplyItem
-                      key={r.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <CornerDownRight size={16} />
-                      <div className="inner">
-                        <div className="row1">
-                          <div className="name">{r.user}</div>
-                          <div className="time">
-                            {formatTimeAgo(r.createdAt)}
+                      <button
+                        className="replyBtn"
+                        onClick={() => {
+                          setReplyTo(c);
+                          requestAnimationFrame(() =>
+                            inputRef.current?.focus(),
+                          );
+                        }}
+                      >
+                        답글
+                      </button>
+
+                      {c.user === myName && (
+                        <button
+                          className="delBtn"
+                          onClick={() => handleDelete(c.id)}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+
+                    {replies(c.id).map((r) => (
+                      <ReplyItem
+                        key={`${r.id}-${r.createdAt}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <CornerDownRight size={16} />
+                        <div className="inner">
+                          <div className="row1">
+                            <div className="name">{r.user}</div>
+                            <div className="time">
+                              {formatTimeAgo(r.createdAt)}
+                            </div>
+                          </div>
+
+                          <div className="text">{r.text}</div>
+
+                          <div className="actions">
+                            <motion.div
+                              className={`heart ${r.likedByMe ? 'on' : ''}`}
+                              whileTap={{ scale: 0.88 }}
+                              onClick={() => handleLike(r)}
+                              key={r.id + r.likedByMe}
+                            >
+                              <Heart
+                                size={15}
+                                fill={r.likedByMe ? '#e63946' : 'none'}
+                                color={r.likedByMe ? '#e63946' : '#aaa'}
+                              />
+                              <span>{r.likes || ''}</span>
+                            </motion.div>
+
+                            {r.user === myName && (
+                              <button
+                                className="delBtn"
+                                onClick={() => handleDelete(r.id)}
+                              >
+                                삭제
+                              </button>
+                            )}
                           </div>
                         </div>
+                      </ReplyItem>
+                    ))}
+                  </CommentItem>
+                ))}
+              </AnimatePresence>
+            </SheetBody>
 
-                        <div className="text">{r.text}</div>
+            <InputWrap>
+              {replyTo && (
+                <ReplyNotice>
+                  <span>
+                    {replyTo.user === myName
+                      ? '나에게 답글 작성 중…'
+                      : `${replyTo.user}님에게 답글 작성 중…`}
+                  </span>
+                  <button onClick={() => setReplyTo(null)}>취소</button>
+                </ReplyNotice>
+              )}
 
-                        <div className="actions">
-                          <motion.div
-                            className={`heart ${r.likedByMe ? 'on' : ''}`}
-                            whileTap={{ scale: 0.88 }}
-                            onClick={() => handleLike(r)}
-                            key={r.id + r.likedByMe}
-                          >
-                            <Heart
-                              size={15}
-                              fill={r.likedByMe ? '#e63946' : 'none'}
-                              color={r.likedByMe ? '#e63946' : '#aaa'}
-                            />
-                            <span>{r.likes || ''}</span>
-                          </motion.div>
+              <InputBox>
+                <input
+                  ref={inputRef}
+                  value={text}
+                  placeholder="댓글 입력..."
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (
+                      !e.nativeEvent.isComposing &&
+                      e.key === 'Enter' &&
+                      !e.shiftKey
+                    ) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                />
+                <Send className="send" onClick={handleSend} />
+              </InputBox>
 
-                          {r.user === myName && (
-                            <button
-                              className="delBtn"
-                              onClick={() => handleDelete(r.id)}
-                            >
-                              삭제
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </ReplyItem>
-                  ))}
-                </CommentItem>
-              ))}
-            </AnimatePresence>
-          </SheetBody>
-
-          <InputWrap>
-            {replyTo && (
-              <ReplyNotice>
-                <span>
-                  {replyTo.user === myName
-                    ? '나에게 답글 작성 중…'
-                    : `${replyTo.user}님에게 답글 작성 중…`}
-                </span>
-                <button onClick={() => setReplyTo(null)}>취소</button>
-              </ReplyNotice>
-            )}
-
-            <InputBox>
-              <input
-                ref={inputRef}
-                value={text}
-                placeholder="댓글 입력..."
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (
-                    !e.nativeEvent.isComposing &&
-                    e.key === 'Enter' &&
-                    !e.shiftKey
-                  ) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-              />
-              <Send className="send" onClick={handleSend} />
-            </InputBox>
-
-            <SafeBottom />
-          </InputWrap>
-        </Sheet>
-      </>
+              <SafeBottom />
+            </InputWrap>
+          </Sheet>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 };

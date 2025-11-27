@@ -166,7 +166,7 @@ const GalleryPage = () => {
         }
 
         setMode('list');
-        setYyyymm(`${serverYear}${String(serverMonth).padStart(2, '0')}`); // 업로드 후 당월 갤러리로 이동 보장
+        setYyyymm(`${serverYear}${String(serverMonth).padStart(2, '0')}`);
       } finally {
         hideLoading();
       }

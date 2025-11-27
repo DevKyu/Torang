@@ -235,7 +235,8 @@ const GalleryList = ({
                                 />
                               );
 
-                            const storeIdx = pageIdx * 9 + i;
+                            const offset = pages[0].length;
+                            const storeIdx = pageIdx * offset + i;
                             const storeImg = storeImages[storeIdx];
                             const likes = storeImg?.likes ?? 0;
                             const comments = storeImg?.commentCount ?? 0;

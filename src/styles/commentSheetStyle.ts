@@ -16,6 +16,7 @@ export const Dim = styled(motion.div)`
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
+  overflow: hidden;
   ${gpu}
 `;
 
@@ -23,8 +24,8 @@ export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 55vh;
-  max-height: 55vh;
+  height: 60vh;
+  max-height: 60vh;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -82,6 +83,7 @@ export const SheetBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding-bottom: 24px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 
