@@ -41,6 +41,17 @@ export type GalleryUploadProps = {
 const MAX_FILES = 3;
 const MAX_CAPTION_LENGTH = 20;
 
+const waitForKeyboardToClose = () =>
+  new Promise((resolve) => {
+    const orig = window.visualViewport?.height || 0;
+    const check = () => {
+      const now = window.visualViewport?.height || 0;
+      if (now >= orig) resolve(true);
+      else requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+
 const GalleryUpload = ({
   onUpload,
   disabled,
@@ -76,7 +87,6 @@ const GalleryUpload = ({
         initialQuality: 0.85,
         useWebWorker: true,
       });
-
       return {
         id: nanoid(),
         file: c,
@@ -96,11 +106,9 @@ const GalleryUpload = ({
   const onDrop = useCallback(
     async (accepted: File[]) => {
       if (disabled || uploading || items.length >= maxSelectable) return;
-
       const limit = maxSelectable - items.length;
       const selected = accepted.slice(0, limit);
       const processed = await Promise.all(selected.map(compress));
-
       setItems((p) => [...p, ...processed]);
     },
     [disabled, uploading, items.length, maxSelectable, compress],
@@ -160,12 +168,10 @@ const GalleryUpload = ({
 
   const submit = useCallback(async () => {
     if (disabled || uploading) return;
-
     if (!items.length) {
       toast.error('업로드할 사진을 선택해주세요.');
       return;
     }
-
     setUploading(true);
     try {
       await onUpload(
@@ -231,7 +237,6 @@ const GalleryUpload = ({
               isDisabled={disabled || uploading || availableCount <= 0}
             >
               <input ref={fileRef} {...getInputProps()} />
-
               <span>
                 {items.length === 0
                   ? `사진을 선택하세요 (최대 ${maxSelectable}장)`
@@ -245,7 +250,7 @@ const GalleryUpload = ({
                   {items.map((i, index) => (
                     <PreviewCard key={i.id}>
                       <ImageWrapper
-                        onClick={() => {
+                        onClick={async () => {
                           const el = document.activeElement;
                           if (
                             el &&
@@ -253,10 +258,8 @@ const GalleryUpload = ({
                           ) {
                             (el as HTMLElement).blur();
                           }
-
-                          setTimeout(() => {
-                            preloadOpenUploadLightBox(index);
-                          }, 220);
+                          await waitForKeyboardToClose();
+                          preloadOpenUploadLightBox(index);
                         }}
                       >
                         <img src={i.preview} alt={i.file.name} />

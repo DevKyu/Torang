@@ -17,7 +17,7 @@ const colors = {
 };
 
 export const GalleryOuter = styled.div`
-  height: 100vh;
+  min-height: 100dvh;
   background: ${colors.bgSoft};
   display: flex;
   justify-content: center;

@@ -73,7 +73,9 @@ export const LightBox = () => {
   const x = useMotionValue(0);
   const isInitial = useRef(true);
 
+  const overlayOpacity = useMotionValue(1);
   const imageBoxRef = useRef<HTMLDivElement>(null);
+
   const [stageW, setStageW] = useState(0);
   const [stageH, setStageH] = useState(0);
 
@@ -91,24 +93,29 @@ export const LightBox = () => {
     const el = imageBoxRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const h = r.height || window.innerHeight * 0.6;
     setStageW(r.width);
-    setStageH(h);
+    setStageH(r.height || window.innerHeight * 0.6);
   }, []);
 
   useEffect(() => {
     if (!isOpen) return;
-    const scrollY = window.scrollY;
+
+    const y = window.scrollY;
     requestAnimationFrame(() => {
       document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
+      document.body.style.top = `-${y}px`;
       document.body.style.left = '0';
       document.body.style.right = '0';
     });
+
     return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      window.scrollTo(0, scrollY);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.style.position = '';
+          document.body.style.top = '';
+          window.scrollTo(0, y);
+        });
+      });
     };
   }, [isOpen]);
 
@@ -160,14 +167,11 @@ export const LightBox = () => {
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
       const { offset, velocity } = info;
+      const T = 16;
+      const V = 130;
 
-      const DRAG_THRESHOLD = 16;
-      const VELOCITY_THRESHOLD = 130;
-
-      const toPrev =
-        offset.x > DRAG_THRESHOLD || velocity.x > VELOCITY_THRESHOLD;
-      const toNext =
-        offset.x < -DRAG_THRESHOLD || velocity.x < -VELOCITY_THRESHOLD;
+      const toPrev = offset.x > T || velocity.x > V;
+      const toNext = offset.x < -T || velocity.x < -V;
 
       if (toPrev && current > 0) return prev();
       if (toNext && current < list.length - 1) return next();
@@ -192,18 +196,27 @@ export const LightBox = () => {
     preload(current + 1);
   }, [current, isOpen, list]);
 
+  const runClose = useCallback(async () => {
+    await animate(overlayOpacity, 0, { duration: 0.22 });
+    onClose();
+    requestAnimationFrame(() => overlayOpacity.set(1));
+  }, [overlayOpacity, onClose]);
+
   useEffect(() => {
     if (!isOpen) return;
 
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (commentOpen) closeComment();
+        else runClose();
+      }
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
     };
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, prev, next, onClose]);
+  }, [isOpen, commentOpen, prev, next, closeComment, runClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -212,12 +225,12 @@ export const LightBox = () => {
 
     const onPop = () => {
       if (commentOpen) closeComment();
-      else onClose();
+      else runClose();
     };
 
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [isOpen, commentOpen, onClose, closeComment]);
+  }, [isOpen, commentOpen, closeComment, runClose]);
 
   if (!isOpen) return null;
 
@@ -239,7 +252,7 @@ export const LightBox = () => {
       <AnimatePresence>
         <Overlay
           key="overlay"
-          style={{ pointerEvents: commentOpen ? 'none' : 'auto' }}
+          style={{ opacity: overlayOpacity }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -250,7 +263,12 @@ export const LightBox = () => {
               {current + 1} / {list.length}
             </TopCounter>
             <HeaderRight>
-              <IconButton onClick={onClose}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  runClose();
+                }}
+              >
                 <X />
               </IconButton>
             </HeaderRight>

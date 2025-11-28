@@ -35,6 +35,9 @@ export const Thumb = styled.img<{ visible?: boolean }>`
   object-fit: cover;
   opacity: ${(p) => (p.visible ? 1 : 0)};
   transition: opacity 0.3s ease;
+
+  border-radius: inherit;
+  transform: translateZ(0);
 `;
 
 export const Skeleton = styled.div<{ hidden: boolean }>`
