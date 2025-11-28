@@ -115,12 +115,18 @@ export const TargetBadge = styled.span<{ locked?: boolean }>`
   position: absolute;
   left: 50%;
   top: 0;
-  transform: translate(-50%, -60%);
+  transform: translate(-50%, -60%) translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
   font-size: 11px;
   white-space: nowrap;
   padding: 2px 8px;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+
   display: flex;
   align-items: center;
   gap: 4px;

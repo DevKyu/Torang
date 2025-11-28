@@ -19,7 +19,10 @@ export const GalleryOuter = styled.div`
   justify-content: center;
   align-items: center;
   padding: 24px;
-  overflow: visible;
+  overflow: hidden;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 `;
 
 export const GalleryBox = styled(motion.div)`
@@ -32,7 +35,10 @@ export const GalleryBox = styled(motion.div)`
   padding: 20px 18px 18px;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 `;
 
 export const GalleryTitle = styled.h2`
@@ -46,12 +52,16 @@ export const GalleryTitle = styled.h2`
 export const ScrollableList = styled.div`
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
 `;
 
 export const ListGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(121px, 1fr));
   gap: 12px;
+  will-change: transform;
+  transform: translateZ(0);
 `;
 
 export const ListCard = styled.div`
@@ -59,17 +69,31 @@ export const ListCard = styled.div`
   border: 1px solid ${colors.border};
   border-radius: 10px;
   overflow: hidden;
+  position: relative;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 `;
 
 export const ListImageWrapper = styled.div`
   height: 110px;
   background: ${colors.bgSoft};
   cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  will-change: transform;
+  transform: translateZ(0);
 
   img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+    will-change: opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 `;
 
@@ -96,6 +120,12 @@ export const AddButton = styled.button`
   color: white;
   font-size: 14px;
   cursor: pointer;
+  will-change: background-color, transform;
+  backface-visibility: hidden;
+
+  &:active {
+    transform: scale(0.96);
+  }
 
   &:hover {
     background: ${colors.primaryHover};

@@ -17,15 +17,14 @@ export const Dim = styled(motion.div)`
   -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
-  ${gpu}
 `;
 
 export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 55vh;
-  max-height: 55vh;
+  height: 55%;
+  max-height: 55%;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -185,6 +184,7 @@ export const ReplyItem = styled(motion.div)`
   .actions {
     display: flex;
     gap: 4px;
+
     .heart {
       display: flex;
       align-items: center;
@@ -211,7 +211,7 @@ export const ReplyItem = styled(motion.div)`
 `;
 
 export const InputWrap = styled.div`
-  padding: 14px 16px 10px;
+  padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
   background: #fff;
   border-top: 1px solid #eee;
 `;
@@ -242,7 +242,7 @@ export const InputBox = styled.div`
 
   input {
     flex: 1;
-    font-size: 14px;
+    font-size: 16px;
     border: none;
     background: none;
     outline: none;

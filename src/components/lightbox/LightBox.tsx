@@ -28,8 +28,8 @@ import {
   Footer,
   FooterIcons,
   IconButton,
-  Count,
   IconRow,
+  Count,
   CountBox,
 } from '../../styles/lightBoxStyle';
 
@@ -78,12 +78,12 @@ export const LightBox = () => {
   const [stageH, setStageH] = useState(0);
 
   const loadedRef = useRef<Record<number, boolean>>({});
-  const [, forceUpdate] = useState({});
+  const [, force] = useState({});
 
   const markLoaded = useCallback((i: number) => {
     if (!loadedRef.current[i]) {
       loadedRef.current[i] = true;
-      forceUpdate({});
+      force({});
     }
   }, []);
 
@@ -91,18 +91,21 @@ export const LightBox = () => {
     const el = imageBoxRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
+    const h = r.height || window.innerHeight * 0.6;
     setStageW(r.width);
-    setStageH(r.height);
+    setStageH(h);
   }, []);
 
   useEffect(() => {
     if (!isOpen) return;
     const scrollY = window.scrollY;
 
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
+    requestAnimationFrame(() => {
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+    });
 
     return () => {
       document.body.style.position = '';
@@ -111,20 +114,25 @@ export const LightBox = () => {
     };
   }, [isOpen]);
 
-  const raf = useRef(0);
   useEffect(() => {
     if (!isOpen) return;
 
     loadedRef.current = {};
-    measure();
+
+    const raf1 = requestAnimationFrame(() => {
+      const raf2 = requestAnimationFrame(measure);
+      return () => cancelAnimationFrame(raf2);
+    });
 
     const resizeHandler = () => {
-      cancelAnimationFrame(raf.current);
-      raf.current = requestAnimationFrame(measure);
+      requestAnimationFrame(measure);
     };
 
     window.addEventListener('resize', resizeHandler);
-    return () => window.removeEventListener('resize', resizeHandler);
+    return () => {
+      window.removeEventListener('resize', resizeHandler);
+      cancelAnimationFrame(raf1);
+    };
   }, [isOpen, measure]);
 
   const animateToIndex = useCallback(
@@ -178,10 +186,10 @@ export const LightBox = () => {
     if (!isOpen) return;
 
     const load = (i: number) => {
-      const target = list[i];
-      if (!target) return;
+      const t = list[i];
+      if (!t) return;
       const img = new Image();
-      img.src = target.preview;
+      img.src = t.preview;
     };
 
     load(current);
@@ -208,8 +216,8 @@ export const LightBox = () => {
   const name = img.empId ? getCachedUserName(img.empId) : '';
   const hasDesc = showCaption && !!img.description?.trim();
 
-  const cid = img.id;
-  const comments = cid ? (commentsState[cid] ?? []) : [];
+  const id = img.id;
+  const comments = id ? (commentsState[id] ?? []) : [];
   const commentCount = comments.filter((c) => !c.deleted).length;
   const likeCount = img.likes ?? 0;
 
@@ -355,7 +363,7 @@ export const LightBox = () => {
               )}
 
               {hasDesc && (
-                <Description initial={false} animate={{ opacity: 1 }}>
+                <Description animate={{ opacity: 1 }}>
                   {img.description}
                 </Description>
               )}

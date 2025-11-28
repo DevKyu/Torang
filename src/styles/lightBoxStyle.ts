@@ -6,16 +6,17 @@ export const DESC_H = 72;
 export const FOOTER_H = 60;
 
 export const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
+
 export const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
 
-export const getImageBoxHeight = (showIcon: boolean) =>
-  `calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)} - 30px)`;
+const stableHeight = (showIcon: boolean) => `
+  max(300px, calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)}));
+`;
 
 const gpu = `
-  transform: translateZ(0);
-  backface-visibility: hidden;
   will-change: transform, opacity;
+  backface-visibility: hidden;
 `;
 
 export const Overlay = styled(motion.div)`
@@ -52,7 +53,6 @@ export const TopCounter = styled.div`
   color: white;
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
-  ${gpu}
 `;
 
 export const HeaderRight = styled.div`
@@ -89,8 +89,8 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
   position: absolute;
   top: ${topOffset};
   width: 100%;
-  height: ${({ showIcon }) => getImageBoxHeight(showIcon)};
-  min-height: 40vh;
+  height: ${({ showIcon }) => stableHeight(showIcon)};
+  min-height: 300px;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -102,12 +102,12 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
 export const Slide = styled.div`
   flex: 0 0 auto;
   height: 100%;
+  width: 100%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   touch-action: none;
-  ${gpu}
 `;
 
 export const ViewerImage = styled.img`
@@ -117,7 +117,8 @@ export const ViewerImage = styled.img`
   pointer-events: none;
   user-select: none;
   touch-action: none;
-  ${gpu}
+  transition: opacity 200ms ease;
+  will-change: opacity;
 `;
 
 export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
@@ -130,7 +131,6 @@ export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  overscroll-behavior: contain;
   text-align: center;
 `;
 
@@ -145,7 +145,6 @@ export const Description = styled(motion.div)`
   font-size: 14px;
   text-align: center;
   -webkit-font-smoothing: antialiased;
-  ${gpu}
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
@@ -157,7 +156,6 @@ export const Footer = styled.div<{ showIcon: boolean }>`
   display: ${({ showIcon }) => (showIcon ? 'flex' : 'none')};
   justify-content: center;
   align-items: flex-start;
-  ${gpu}
 `;
 
 export const FooterIcons = styled.div`
