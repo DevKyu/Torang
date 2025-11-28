@@ -265,18 +265,9 @@ export const CommentSheet = () => {
 
             <SheetBody ref={bodyRef}>
               {grouped.top.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  style={{
-                    textAlign: 'center',
-                    color: '#777',
-                    paddingTop: 22,
-                    fontSize: 14,
-                  }}
-                >
-                  <EmptyState>첫 댓글을 남겨보세요</EmptyState>
-                </motion.div>
+                <EmptyState initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  첫 댓글을 남겨보세요
+                </EmptyState>
               )}
 
               <AnimatePresence mode="sync">

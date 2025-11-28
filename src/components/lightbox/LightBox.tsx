@@ -307,6 +307,7 @@ export const LightBox = () => {
                           style={{
                             position: 'absolute',
                             inset: 0,
+                            maxHeight: '100%',
                             background: 'rgba(0,0,0,0.32)',
                             backdropFilter: 'blur(10px)',
                           }}
