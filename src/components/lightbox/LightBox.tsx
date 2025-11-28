@@ -210,6 +210,26 @@ export const LightBox = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, prev, next, onClose]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    window.history.pushState({ lb: true }, '');
+
+    const onPop = () => {
+      if (commentOpen) {
+        closeComment();
+      } else {
+        onClose();
+      }
+    };
+
+    window.addEventListener('popstate', onPop);
+
+    return () => {
+      window.removeEventListener('popstate', onPop);
+    };
+  }, [isOpen, commentOpen, onClose, closeComment]);
+
   if (!isOpen) return null;
 
   const img = list[current];

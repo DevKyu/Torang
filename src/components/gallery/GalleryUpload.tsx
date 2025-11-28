@@ -245,7 +245,16 @@ const GalleryUpload = ({
                   {items.map((i, index) => (
                     <PreviewCard key={i.id}>
                       <ImageWrapper
-                        onClick={() => preloadOpenUploadLightBox(index)}
+                        onClick={() => {
+                          const el = document.activeElement;
+                          if (
+                            el &&
+                            typeof (el as HTMLElement).blur === 'function'
+                          ) {
+                            (el as HTMLElement).blur();
+                          }
+                          preloadOpenUploadLightBox(index);
+                        }}
                       >
                         <img src={i.preview} alt={i.file.name} />
                         <RemoveButton
