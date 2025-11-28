@@ -112,6 +112,7 @@ const Achievements = () => {
             const activityYm = activityYmd
               ? String(activityYmd).slice(0, 6)
               : ymServer;
+
             const rewardPath = `users/${empId}/rewards/${activityYm}/achievement/${readableTime}`;
 
             if (empId) {
@@ -137,12 +138,9 @@ const Achievements = () => {
           setAchievements(existing);
         }
 
-        // 기본 탭 설정
         if (achievementGroups.length > 0) {
           setActiveTab(achievementGroups[0].category);
         }
-      } catch (e) {
-        console.error('[Achievements:init] error:', e);
       } finally {
         hideLoading();
       }
@@ -153,24 +151,25 @@ const Achievements = () => {
 
   useEffect(() => {
     let ticking = false;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            const visible = entries.find((e) => e.isIntersecting);
-            if (visible) {
-              const id = visible.target.getAttribute(
-                'data-category',
-              ) as AchievementCategory;
-              if (id) setActiveTab(id);
-            }
-            ticking = false;
-          });
-          ticking = true;
-        }
+        if (ticking) return;
+        ticking = true;
+
+        requestAnimationFrame(() => {
+          const visible = entries.find((e) => e.isIntersecting);
+          if (visible) {
+            const id = visible.target.getAttribute(
+              'data-category',
+            ) as AchievementCategory;
+            if (id) setActiveTab(id);
+          }
+          ticking = false;
+        });
       },
       {
-        root: null,
+        root: document.querySelector('[data-scroll-container]'),
         rootMargin: '-10% 0px -40% 0px',
         threshold: 0.2,
       },
@@ -192,9 +191,13 @@ const Achievements = () => {
   );
 
   const scrollTo = useCallback((key: AchievementCategory) => {
-    refs.current.get(key)?.scrollIntoView({
+    const container = document.querySelector('[data-scroll-container]');
+    const target = refs.current.get(key);
+    if (!container || !target) return;
+    const top = target.offsetTop;
+    (container as HTMLElement).scrollTo({
+      top,
       behavior: 'smooth',
-      block: 'start',
     });
   }, []);
 
@@ -215,7 +218,7 @@ const Achievements = () => {
           ))}
         </TabBar>
 
-        <GridScrollContainer>
+        <GridScrollContainer data-scroll-container>
           {achievementGroups.map((group) => {
             const itemsWithStatus = group.items.map((a) => {
               const record = achievements[a.id as AchievementId];

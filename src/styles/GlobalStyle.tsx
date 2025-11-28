@@ -3,6 +3,20 @@ import { Global, css } from '@emotion/react';
 const GlobalStyle = () => (
   <Global
     styles={css`
+      html,
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo',
+          'Malgun Gothic', sans-serif;
+
+        height: 100%;
+        background: #fff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+
       *,
       *::before,
       *::after {
@@ -11,19 +25,11 @@ const GlobalStyle = () => (
         box-sizing: border-box;
       }
 
-      html,
-      body {
-        height: 100%;
-        background: #fff;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overflow-x: hidden;
-      }
-
       button {
         border: none;
         background: none;
         cursor: pointer;
+        font-family: inherit;
       }
 
       ul,
