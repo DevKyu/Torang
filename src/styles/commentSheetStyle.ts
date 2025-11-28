@@ -17,6 +17,11 @@ export const Dim = styled(motion.div)`
   -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
+
+  body.ios & {
+    transform: translateZ(0) !important;
+    will-change: opacity !important;
+  }
 `;
 
 export const Sheet = styled(motion.div)`
@@ -37,6 +42,11 @@ export const Sheet = styled(motion.div)`
   user-select: none;
   overscroll-behavior: none;
   ${gpu}
+
+  body.ios & {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+  }
 `;
 
 export const DragZone = styled(motion.div)`
@@ -85,9 +95,15 @@ export const SheetBody = styled.div`
   padding-bottom: 24px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  body.ios & {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
   }
 `;
 

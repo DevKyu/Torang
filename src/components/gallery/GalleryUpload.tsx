@@ -253,7 +253,10 @@ const GalleryUpload = ({
                           ) {
                             (el as HTMLElement).blur();
                           }
-                          preloadOpenUploadLightBox(index);
+
+                          setTimeout(() => {
+                            preloadOpenUploadLightBox(index);
+                          }, 220);
                         }}
                       >
                         <img src={i.preview} alt={i.file.name} />

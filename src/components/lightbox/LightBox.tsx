@@ -99,14 +99,12 @@ export const LightBox = () => {
   useEffect(() => {
     if (!isOpen) return;
     const scrollY = window.scrollY;
-
     requestAnimationFrame(() => {
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.left = '0';
       document.body.style.right = '0';
     });
-
     return () => {
       document.body.style.position = '';
       document.body.style.top = '';
@@ -124,11 +122,9 @@ export const LightBox = () => {
       return () => cancelAnimationFrame(raf2);
     });
 
-    const resizeHandler = () => {
-      requestAnimationFrame(measure);
-    };
-
+    const resizeHandler = () => requestAnimationFrame(measure);
     window.addEventListener('resize', resizeHandler);
+
     return () => {
       window.removeEventListener('resize', resizeHandler);
       cancelAnimationFrame(raf1);
@@ -154,7 +150,6 @@ export const LightBox = () => {
       requestAnimationFrame(() => (isInitial.current = false));
       return;
     }
-
     animateToIndex(current);
   }, [current, stageW, isOpen, animateToIndex, x]);
 
@@ -185,16 +180,16 @@ export const LightBox = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const load = (i: number) => {
+    const preload = (i: number) => {
       const t = list[i];
       if (!t) return;
       const img = new Image();
       img.src = t.preview;
     };
 
-    load(current);
-    load(current - 1);
-    load(current + 1);
+    preload(current);
+    preload(current - 1);
+    preload(current + 1);
   }, [current, isOpen, list]);
 
   useEffect(() => {
@@ -216,18 +211,12 @@ export const LightBox = () => {
     window.history.pushState({ lb: true }, '');
 
     const onPop = () => {
-      if (commentOpen) {
-        closeComment();
-      } else {
-        onClose();
-      }
+      if (commentOpen) closeComment();
+      else onClose();
     };
 
     window.addEventListener('popstate', onPop);
-
-    return () => {
-      window.removeEventListener('popstate', onPop);
-    };
+    return () => window.removeEventListener('popstate', onPop);
   }, [isOpen, commentOpen, onClose, closeComment]);
 
   if (!isOpen) return null;
@@ -250,9 +239,7 @@ export const LightBox = () => {
       <AnimatePresence>
         <Overlay
           key="overlay"
-          style={{
-            pointerEvents: commentOpen ? 'none' : 'auto',
-          }}
+          style={{ pointerEvents: commentOpen ? 'none' : 'auto' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -284,11 +271,7 @@ export const LightBox = () => {
               }}
             >
               <motion.div
-                style={{
-                  display: 'flex',
-                  height: '100%',
-                  x,
-                }}
+                style={{ display: 'flex', height: '100%', x }}
                 drag="x"
                 dragElastic={0.05}
                 dragMomentum={false}

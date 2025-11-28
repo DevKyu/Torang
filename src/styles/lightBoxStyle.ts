@@ -25,17 +25,18 @@ export const Overlay = styled(motion.div)`
   z-index: 9999;
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(3px);
+
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   ${gpu}
 `;
 
 export const Header = styled.div`
-  position: absolute;
-  top: 0;
+  position: relative;
   width: 100%;
   height: calc(${HEADER_H}px + env(safe-area-inset-top, 0px));
   display: flex;
@@ -50,7 +51,7 @@ export const TopCounter = styled.div`
   background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
   border-radius: 12px;
-  color: white;
+  color: #fff;
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
 `;
@@ -67,7 +68,7 @@ export const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: white;
+  color: #fff;
   opacity: 0.9;
   transition:
     opacity 0.12s ease,
@@ -86,15 +87,17 @@ export const IconButton = styled.button`
 `;
 
 export const ImageBox = styled.div<{ showIcon: boolean }>`
-  position: absolute;
-  top: ${topOffset};
   width: 100%;
   height: ${({ showIcon }) => stableHeight(showIcon)};
   min-height: 300px;
+
+  position: relative;
   overflow: hidden;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   touch-action: none;
   ${gpu}
 `;
@@ -103,11 +106,11 @@ export const Slide = styled.div`
   flex: 0 0 auto;
   height: 100%;
   width: 100%;
+
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  touch-action: none;
 `;
 
 export const ViewerImage = styled.img`
@@ -122,40 +125,46 @@ export const ViewerImage = styled.img`
 `;
 
 export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
-  position: absolute;
-  bottom: ${({ showIcon }) =>
-    showIcon
-      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px) + 16px)`
-      : `calc(env(safe-area-inset-bottom, 0px) + 24px)`};
   width: 100%;
+  margin-top: 16px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+
+  padding-bottom: ${({ showIcon }) =>
+    showIcon
+      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))`
+      : `calc(env(safe-area-inset-bottom, 0px) + 12px)`};
 `;
 
 export const Description = styled(motion.div)`
   width: 86%;
   max-width: 420px;
+
   padding: 10px 14px;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(12px);
-  color: white;
+
+  color: #fff;
   font-size: 14px;
   text-align: center;
   -webkit-font-smoothing: antialiased;
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
-  position: absolute;
-  bottom: 0;
   width: 100%;
   height: ${({ showIcon }) =>
     showIcon ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))` : '0'};
+
   display: ${({ showIcon }) => (showIcon ? 'flex' : 'none')};
   justify-content: center;
   align-items: flex-start;
+
+  position: fixed;
+  bottom: 0;
 `;
 
 export const FooterIcons = styled.div`
@@ -190,6 +199,6 @@ export const Count = styled(motion.span)`
 export const CountBox = styled.div`
   width: 18px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 `;

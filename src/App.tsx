@@ -6,6 +6,9 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import Router from './routes/Router';
 
 function App() {
+  if (/iP(hone|od|ad)/.test(navigator.userAgent)) {
+    document.body.classList.add('ios');
+  }
   return (
     <>
       <GlobalStyle />

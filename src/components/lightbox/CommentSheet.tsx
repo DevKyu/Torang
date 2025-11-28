@@ -11,11 +11,13 @@ import { X, Send, CornerDownRight, Heart } from 'lucide-react';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import type { LightboxComment } from '../../types/lightbox';
+
 import {
   addGalleryComment,
   toggleCommentLike,
   deleteGalleryComment,
 } from '../../utils/comments';
+
 import { getCurrentUserId, getCachedUserName } from '../../services/firebase';
 
 import {
@@ -60,7 +62,7 @@ export const CommentSheet = () => {
     comments,
     addComment,
     updateComment,
-    deleteComment,
+    deleteComment: storeDelete,
   } = useLightBoxStore();
 
   const image = images[commentIndex];
@@ -69,6 +71,7 @@ export const CommentSheet = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+
   const sendingRef = useRef(false);
 
   const empId = getCurrentUserId();
@@ -89,10 +92,12 @@ export const CommentSheet = () => {
 
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
-    if (el)
-      requestAnimationFrame(() =>
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }),
-      );
+    if (!el) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      });
+    });
   }, []);
 
   const grouped = useMemo(() => {
@@ -114,9 +119,14 @@ export const CommentSheet = () => {
     [grouped.replyMap],
   );
 
-  const total = list.filter((c) => !c.deleted).length;
+  const total =
+    grouped.top.length +
+    Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
 
-  useEffect(() => setReplyTo(null), [commentIndex]);
+  useEffect(() => {
+    setReplyTo(null);
+    setText('');
+  }, [commentIndex]);
 
   useEffect(() => {
     document.body.style.overflow = commentOpen ? 'hidden' : '';
@@ -135,7 +145,6 @@ export const CommentSheet = () => {
       ]);
     } finally {
       closeComment();
-
       setIsClosing(false);
       requestAnimationFrame(() => {
         y.set(0);
@@ -175,6 +184,7 @@ export const CommentSheet = () => {
     addComment(imageId, optimistic);
     setText('');
     setReplyTo(null);
+
     if (!parentId) scrollToBottom();
 
     try {
@@ -197,10 +207,12 @@ export const CommentSheet = () => {
   const handleLike = useCallback(
     (c: LightboxComment) => {
       if (!imageId || !uploadedAt) return;
+
       updateComment(imageId, c.id, {
         likedByMe: !c.likedByMe,
         likes: !c.likedByMe ? c.likes + 1 : Math.max(0, c.likes - 1),
       });
+
       toggleCommentLike(uploadedAt, imageId, c.id, !c.likedByMe);
     },
     [imageId, uploadedAt, updateComment],
@@ -209,10 +221,10 @@ export const CommentSheet = () => {
   const handleDelete = useCallback(
     (cid: string) => {
       if (!imageId || !uploadedAt) return;
-      deleteComment(imageId, cid);
+      storeDelete(imageId, cid);
       deleteGalleryComment(uploadedAt, imageId, cid);
     },
-    [imageId, uploadedAt, deleteComment],
+    [imageId, uploadedAt, storeDelete],
   );
 
   return (
@@ -244,16 +256,8 @@ export const CommentSheet = () => {
             dragPropagation={false}
             onDragEnd={onDragEnd}
             initial={{ opacity: 0, y: 70 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.32 },
-            }}
-            exit={{
-              opacity: 0,
-              y: 70,
-              transition: { duration: 0.24 },
-            }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.32 } }}
+            exit={{ opacity: 0, y: 70, transition: { duration: 0.24 } }}
           >
             <DragZone>
               <HandleBar />
@@ -273,7 +277,7 @@ export const CommentSheet = () => {
               <AnimatePresence mode="sync">
                 {grouped.top.map((c) => (
                   <CommentItem
-                    key={`${c.id}-${c.createdAt}`}
+                    key={c.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -290,7 +294,7 @@ export const CommentSheet = () => {
                         className={`heart ${c.likedByMe ? 'on' : ''}`}
                         whileTap={{ scale: 0.88 }}
                         onClick={() => handleLike(c)}
-                        key={c.id + c.likedByMe}
+                        key={c.id + '_like'}
                       >
                         <Heart
                           size={16}
@@ -324,7 +328,7 @@ export const CommentSheet = () => {
 
                     {replies(c.id).map((r) => (
                       <ReplyItem
-                        key={`${r.id}-${r.createdAt}`}
+                        key={r.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -345,7 +349,7 @@ export const CommentSheet = () => {
                               className={`heart ${r.likedByMe ? 'on' : ''}`}
                               whileTap={{ scale: 0.88 }}
                               onClick={() => handleLike(r)}
-                              key={r.id + r.likedByMe}
+                              key={r.id + '_like'}
                             >
                               <Heart
                                 size={15}
