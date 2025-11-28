@@ -242,7 +242,7 @@ export const InputBox = styled.div`
 
   input {
     flex: 1;
-    font-size: 16px;
+    font-size: 14px;
     border: none;
     background: none;
     outline: none;
