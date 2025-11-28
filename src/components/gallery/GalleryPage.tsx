@@ -210,25 +210,16 @@ const GalleryPage = () => {
 
   return (
     <>
-      {mode === 'list' &&
-        (galleryList === null ? (
-          <GalleryListPage
-            list={[]}
-            yyyymm={yyyymm}
-            onMoveUpload={() => setMode('upload')}
-            onCancel={() => navigate('/menu', { replace: true })}
-            onChangeMonth={(ym) => setYyyymm(ym)}
-            loading
-          />
-        ) : (
-          <GalleryListPage
-            list={galleryList}
-            yyyymm={yyyymm}
-            onMoveUpload={() => setMode('upload')}
-            onCancel={() => navigate('/menu', { replace: true })}
-            onChangeMonth={(ym) => setYyyymm(ym)}
-          />
-        ))}
+      {mode === 'list' && (
+        <GalleryListPage
+          list={galleryList ?? []}
+          yyyymm={yyyymm}
+          loading={galleryList === null}
+          onMoveUpload={() => setMode('upload')}
+          onCancel={() => navigate('/menu', { replace: true })}
+          onChangeMonth={(ym) => setYyyymm(ym)}
+        />
+      )}
 
       {mode === 'upload' && (
         <GalleryUpload
@@ -236,7 +227,10 @@ const GalleryPage = () => {
           availableCount={!isAdmin ? uploadCount : Infinity}
           reason={uploadPolicy.reason}
           onUpload={handleUpload}
-          onCancel={() => setMode('list')}
+          onCancel={() => {
+            setMode('list');
+            navigate('.', { replace: true });
+          }}
           onBoost={
             !isAdmin && uploadCount <= 0 && uploadPolicy.allowed
               ? handleBoost
