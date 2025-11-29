@@ -28,8 +28,9 @@ export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 55%;
-  max-height: 55%;
+  height: 58%;
+  max-height: 58%;
+  min-height: 300px;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -87,12 +88,11 @@ export const Title = styled.div`
 
 export const SheetBody = styled.div`
   flex: 1;
-  padding: 6px 18px 18px;
+  padding: 6px 18px calc(env(safe-area-inset-bottom, 0px) + 24px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding-bottom: 24px;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
@@ -169,7 +169,7 @@ export const CommentItem = styled(motion.div)`
 `;
 
 export const ReplyItem = styled(motion.div)`
-  margin-left: 22px;
+  margin-left: 18px;
   display: flex;
   gap: 8px;
 
@@ -282,6 +282,7 @@ export const EmptyState = styled(motion.div)`
   font-size: 14px;
   pointer-events: none;
   text-align: center;
+  z-index: 10;
 `;
 
 export const SafeBottom = styled.div`

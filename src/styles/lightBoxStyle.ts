@@ -11,7 +11,10 @@ export const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
 
 const stableHeight = (showIcon: boolean) => `
-  max(300px, calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)})  - 16px);
+  max(
+    300px,
+    calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)} - 16px)
+  )
 `;
 
 const gpu = `
@@ -132,17 +135,17 @@ export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
   position: absolute;
   bottom: ${({ showIcon }) =>
     showIcon
-      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))`
-      : `calc(env(safe-area-inset-bottom, 0px))`};
+      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px) + 4px)`
+      : `calc(env(safe-area-inset-bottom, 0px) + 4px)`};
 
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: 420px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   pointer-events: none;
 `;
 
@@ -152,16 +155,23 @@ export const Description = styled(motion.div)`
   max-height: 80px;
   overflow-y: auto;
   padding: 10px 14px;
+
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(12px);
+
   color: #fff;
   font-size: 14px;
-  text-align: center;
+  text-align: center; /* UI 유지 */
   pointer-events: auto;
   -webkit-font-smoothing: antialiased;
+
   font-family:
     'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+
+  letter-spacing: -0.1px;
+  word-break: keep-all;
+  white-space: normal;
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
