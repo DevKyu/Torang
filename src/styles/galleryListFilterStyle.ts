@@ -17,23 +17,28 @@ export const HeaderRow = styled.div`
 `;
 
 export const MonthNavButton = styled.button`
-  background: ${colors.primarySoft};
-  border: none;
-  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
   border-radius: 8px;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  color: ${colors.primary};
   cursor: pointer;
-  font-size: 14px;
-  color: ${colors.textMain};
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.1);
+  }
 
   &:active {
     transform: scale(0.92);
   }
 
   &:disabled {
-    opacity: 0.35;
+    opacity: 0.3;
     cursor: default;
     transform: none;
   }

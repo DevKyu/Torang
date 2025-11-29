@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-import { Heart, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, MessageCircle } from 'lucide-react';
 
 import {
   GalleryOuter,
@@ -169,14 +169,16 @@ const GalleryList = ({
               disabled={isPrevDisabled}
               onClick={() => moveMonth(-1)}
             >
-              ‹
+              <ChevronLeft size={15} />
             </MonthNavButton>
 
             <MonthText>
               {year}년 {month}월
             </MonthText>
 
-            <MonthNavButton onClick={() => moveMonth(1)}>›</MonthNavButton>
+            <MonthNavButton onClick={() => moveMonth(1)}>
+              <ChevronRight size={15} />
+            </MonthNavButton>
           </HeaderRow>
 
           <FilterRow>

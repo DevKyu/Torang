@@ -45,18 +45,18 @@ export const Skeleton = styled.div<{ hidden: boolean }>`
   inset: 0;
   border-radius: inherit;
   opacity: ${(p) => (p.hidden ? 0 : 1)};
-  transition: opacity 0.35s ease;
+  transition: opacity 0.45s ease;
 
-  background: linear-gradient(120deg, #f0f0f0 0%, #f7f7f7 50%, #f0f0f0 100%);
-  background-size: 200% 200%;
-  animation: shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, #f4f5f6 0%, #e9eaec 50%, #f4f5f6 100%);
+  background-size: 300% 100%;
+  animation: shimmer 2.4s linear infinite;
 
   @keyframes shimmer {
     0% {
-      background-position: 0% 50%;
+      background-position: -200% 0;
     }
     100% {
-      background-position: 100% 50%;
+      background-position: 200% 0;
     }
   }
 `;

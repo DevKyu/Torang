@@ -135,23 +135,12 @@ export const CommentSheet = () => {
     };
   }, [commentOpen]);
 
-  const runClose = useCallback(async () => {
+  const runClose = useCallback(() => {
     if (isClosing) return;
     setIsClosing(true);
-    try {
-      await Promise.all([
-        animate(y, 360, { duration: 0.32, ease: [0.25, 0.8, 0.4, 1] }),
-        animate(sheetOpacity, 0, { duration: 0.26 }),
-      ]);
-    } finally {
-      closeComment();
-      setIsClosing(false);
-      requestAnimationFrame(() => {
-        y.set(0);
-        sheetOpacity.set(1);
-      });
-    }
-  }, [isClosing, closeComment, y, sheetOpacity]);
+    closeComment();
+    setTimeout(() => setIsClosing(false), 350);
+  }, [isClosing, closeComment]);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {

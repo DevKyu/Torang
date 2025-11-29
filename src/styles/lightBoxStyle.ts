@@ -11,7 +11,7 @@ export const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
 
 const stableHeight = (showIcon: boolean) => `
-  max(300px, calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)}));
+  max(300px, calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)})  - 16px);
 `;
 
 const gpu = `
@@ -25,11 +25,9 @@ export const Overlay = styled(motion.div)`
   z-index: 9999;
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(3px);
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   ${gpu}
@@ -90,14 +88,11 @@ export const ImageBox = styled.div<{ showIcon: boolean }>`
   width: 100%;
   height: ${({ showIcon }) => stableHeight(showIcon)};
   min-height: 300px;
-
   position: relative;
   overflow: hidden;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   touch-action: none;
   ${gpu}
 `;
@@ -106,7 +101,6 @@ export const Slide = styled.div`
   flex: 0 0 auto;
   height: 100%;
   width: 100%;
-
   position: relative;
   display: flex;
   justify-content: center;
@@ -124,45 +118,59 @@ export const ViewerImage = styled.img`
   will-change: opacity;
 `;
 
-export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
-  width: 100%;
-  margin-top: 16px;
+export const NameBox = styled.div`
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.3;
+  margin-bottom: 8px;
+  pointer-events: none;
+  max-width: 420px;
+  text-align: center;
+`;
 
+export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
+  position: absolute;
+  bottom: ${({ showIcon }) =>
+    showIcon
+      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))`
+      : `calc(env(safe-area-inset-bottom, 0px))`};
+
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-
-  padding-bottom: ${({ showIcon }) =>
-    showIcon
-      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))`
-      : `calc(env(safe-area-inset-bottom, 0px) + 12px)`};
+  pointer-events: none;
 `;
 
 export const Description = styled(motion.div)`
   width: 86%;
   max-width: 420px;
-
+  max-height: 80px;
+  overflow-y: auto;
   padding: 10px 14px;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(12px);
-
   color: #fff;
   font-size: 14px;
   text-align: center;
+  pointer-events: auto;
   -webkit-font-smoothing: antialiased;
+  font-family:
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
   width: 100%;
   height: ${({ showIcon }) =>
     showIcon ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))` : '0'};
-
   display: ${({ showIcon }) => (showIcon ? 'flex' : 'none')};
   justify-content: center;
   align-items: flex-start;
-
   position: fixed;
   bottom: 0;
 `;
@@ -193,7 +201,6 @@ export const Count = styled(motion.span)`
   font-size: 13px;
   color: #eee;
   line-height: 1;
-  -webkit-font-smoothing: antialiased;
 `;
 
 export const CountBox = styled.div`

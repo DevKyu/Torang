@@ -31,6 +31,7 @@ import {
   IconRow,
   Count,
   CountBox,
+  NameBox,
 } from '../../styles/lightBoxStyle';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
@@ -220,8 +221,11 @@ export const LightBox = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-
     window.history.pushState({ lb: true }, '');
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     const onPop = () => {
       if (commentOpen) closeComment();
@@ -371,18 +375,7 @@ export const LightBox = () => {
               showIcon={showIcon}
               onClick={(e) => e.stopPropagation()}
             >
-              {!isUpload && name && (
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'rgba(255,255,255,0.75)',
-                    marginBottom: hasDesc ? 6 : 12,
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {name} 님의 사진
-                </div>
-              )}
+              {!isUpload && name && <NameBox>{name} 님의 사진</NameBox>}
 
               {hasDesc && (
                 <Description animate={{ opacity: 1 }}>
