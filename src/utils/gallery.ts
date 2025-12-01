@@ -1,4 +1,7 @@
+import type { ActivityDateAll } from '../services/firebase';
 import { useLightBoxStore } from '../stores/lightBoxStore';
+import { useUiStore } from '../stores/useUiStore';
+import { getDiffDaysServer } from './date';
 
 export const preloadImage = (src: string): Promise<void> => {
   if (!src) return Promise.resolve();
@@ -42,4 +45,34 @@ export const preloadOpenUploadLightBox = (index: number) => {
 
   requestAnimationFrame(() => openUploadLightBox(index));
   preloadImage(target.preview);
+};
+export const getInitialGalleryYm = (
+  activityMaps: ActivityDateAll,
+  serverYear: number,
+  serverMonth: number,
+  extraDays = 7,
+): string => {
+  const { formatServerDate } = useUiStore.getState();
+  const currentYm = formatServerDate('ym');
+
+  const findActivity = (y: number, m: number) =>
+    activityMaps?.[String(y)]?.[String(m)];
+
+  let activityYmd = findActivity(serverYear, serverMonth);
+
+  if (!activityYmd) {
+    const prevMonth = serverMonth === 1 ? 12 : serverMonth - 1;
+    const prevYear = serverMonth === 1 ? serverYear - 1 : serverYear;
+    activityYmd = findActivity(prevYear, prevMonth);
+  }
+
+  if (!activityYmd) return currentYm;
+
+  const diff = getDiffDaysServer(String(activityYmd));
+
+  if (diff >= 0 && diff <= extraDays) {
+    return String(activityYmd).slice(0, 6);
+  }
+
+  return currentYm;
 };

@@ -24,6 +24,7 @@ import {
 import { useLoading } from '../../contexts/LoadingContext';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useUiStore } from '../../stores/useUiStore';
+import { getInitialGalleryYm } from '../../utils/gallery';
 
 const BASE_UPLOAD = 3;
 
@@ -54,6 +55,11 @@ const GalleryPage = () => {
   const serverMonth = Number(formatServerDate('month'));
 
   const [yyyymm, setYyyymm] = useState(formatServerDate('ym'));
+
+  useEffect(() => {
+    if (activityLoading) return;
+    setYyyymm(getInitialGalleryYm(activityMaps, serverYear, serverMonth));
+  }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {
     try {
