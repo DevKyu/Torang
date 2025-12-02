@@ -131,6 +131,7 @@ const GalleryUpload = ({
         liked: false,
         likes: 0,
         uploadedAt: '',
+        ym: '',
       })),
     [items, empId],
   );

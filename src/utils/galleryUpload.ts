@@ -71,12 +71,9 @@ export const checkGalleryUploadAvailability = (
   if (!activityMaps) return { allowed: false, reason: 'no_data' };
 
   const yearMap = activityMaps[String(year)];
-  if (!yearMap) return { allowed: false, reason: 'no_data' };
+  if (!yearMap) return { allowed: false, reason: 'no_activity' };
 
   const thisMonth = yearMap[String(month)];
-  const prevMonth = month === 1 ? 12 : month - 1;
-  const prevYear = month === 1 ? year - 1 : year;
-  const prevMonthAct = activityMaps[String(prevYear)]?.[String(prevMonth)];
 
   const parse = (v?: string | number): Date | null => {
     if (!v) return null;
@@ -91,7 +88,6 @@ export const checkGalleryUploadAvailability = (
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const actThis = parse(thisMonth);
-  const actPrev = parse(prevMonthAct);
 
   const check = (act: Date) => {
     const diff = today.getTime() - act.getTime();
@@ -100,10 +96,8 @@ export const checkGalleryUploadAvailability = (
     return 'after_grace';
   };
 
-  if (actThis)
-    return { allowed: check(actThis) === 'ok', reason: check(actThis) };
-  if (actPrev)
-    return { allowed: check(actPrev) === 'ok', reason: check(actPrev) };
+  if (!actThis) return { allowed: false, reason: 'no_activity' };
 
-  return { allowed: false, reason: 'no_activity' };
+  const tag = check(actThis);
+  return { allowed: tag === 'ok', reason: tag };
 };

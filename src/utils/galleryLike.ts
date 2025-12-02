@@ -3,16 +3,14 @@ import { db, getCurrentUserId } from '../services/firebase';
 import { scheduleLikeUpdate } from './likeScheduler.ts';
 
 export const toggleGalleryLike = (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   nextLiked: boolean,
 ) => {
   const empId = getCurrentUserId();
-  if (!empId || !uploadedAt) return;
+  if (!empId || !ym) return;
 
-  const ym = uploadedAt.slice(0, 6);
   const key = `${ym}-${imageId}-${empId}`;
-
   const likeRef = ref(db, `gallery/${ym}/${imageId}/likes/${empId}`);
 
   scheduleLikeUpdate(key, nextLiked, async (liked) => {
@@ -25,13 +23,11 @@ export const toggleGalleryLike = (
 };
 
 export const subscribeGalleryLikes = (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   callback: (liked: boolean, count: number) => void,
 ) => {
-  const ym = uploadedAt.slice(0, 6);
   const empId = getCurrentUserId();
-
   const likeRef = ref(db, `gallery/${ym}/${imageId}/likes`);
 
   return onValue(likeRef, (snap) => {

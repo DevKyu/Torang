@@ -7,6 +7,7 @@ export type GalleryImage = {
   liked?: boolean;
   likes?: number;
   commentCount?: number;
+  ym: string;
 };
 
 export type LightBoxProps = {

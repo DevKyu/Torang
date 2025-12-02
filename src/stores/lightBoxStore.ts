@@ -98,23 +98,19 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   bindLikeSubscription: (idx) => {
     const s = get();
     const img = s.images[idx];
-    if (!img?.uploadedAt) return;
+    if (!img?.ym) return;
 
     s.likeUnsub?.();
 
-    const unsub = subscribeGalleryLikes(
-      img.uploadedAt,
-      img.id,
-      (liked, likes) => {
-        set((state) => {
-          const arr = [...state.images];
-          const t = arr[idx];
-          if (!t) return {};
-          arr[idx] = { ...t, liked, likes };
-          return { images: arr };
-        });
-      },
-    );
+    const unsub = subscribeGalleryLikes(img.ym, img.id, (liked, likes) => {
+      set((state) => {
+        const arr = [...state.images];
+        const t = arr[idx];
+        if (!t) return {};
+        arr[idx] = { ...t, liked, likes };
+        return { images: arr };
+      });
+    });
 
     set({ likeUnsub: unsub });
   },
@@ -122,12 +118,12 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   bindCommentSubscription: async (idx) => {
     const s = get();
     const img = s.images[idx];
-    if (!img?.uploadedAt) return;
+    if (!img?.ym) return;
 
     s.commentUnsub?.();
     set({ commentUnsub: null });
 
-    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) => {
+    const unsub = subscribeGalleryComments(img.ym, img.id, (list) => {
       get().setComments(img.id, list);
 
       set((st) => {
@@ -144,7 +140,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     set({ commentUnsub: unsub });
 
-    const list = await fetchGalleryComments(img.uploadedAt, img.id);
+    const list = await fetchGalleryComments(img.ym, img.id);
     get().setComments(img.id, list);
 
     set((st) => {
@@ -258,18 +254,18 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     const img = s.images[index];
     set({ commentOpen: true, commentIndex: index });
 
-    if (!img?.uploadedAt) return;
+    if (!img?.ym) return;
 
     s.commentUnsub?.();
     set({ commentUnsub: null });
 
-    const unsub = subscribeGalleryComments(img.uploadedAt, img.id, (list) =>
+    const unsub = subscribeGalleryComments(img.ym, img.id, (list) =>
       get().setComments(img.id, list),
     );
 
     set({ commentUnsub: unsub });
 
-    const list = await fetchGalleryComments(img.uploadedAt, img.id);
+    const list = await fetchGalleryComments(img.ym, img.id);
     get().setComments(img.id, list);
   },
 
@@ -310,7 +306,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   toggleLike: () => {
     const s = get();
     const img = s.images[s.index];
-    if (!img?.uploadedAt) return;
+    if (!img?.ym) return;
 
     const liked = !img.liked;
     const likes = liked
@@ -319,12 +315,10 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     set((st) => {
       const arr = [...st.images];
-      const base = arr[s.index];
-      if (!base) return {};
-      arr[s.index] = { ...base, liked, likes };
+      arr[s.index] = { ...arr[s.index], liked, likes };
       return { images: arr };
     });
 
-    toggleGalleryLike(img.uploadedAt, img.id, liked);
+    toggleGalleryLike(img.ym, img.id, liked);
   },
 }));

@@ -67,7 +67,7 @@ export const CommentSheet = () => {
 
   const image = images[commentIndex];
   const imageId = image?.id;
-  const uploadedAt = image?.uploadedAt;
+  const ym = image?.ym;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -77,10 +77,10 @@ export const CommentSheet = () => {
   const empId = getCurrentUserId();
   const myName = empId ? getCachedUserName(empId) : '나';
 
-  const list = useMemo(
-    () => (imageId ? (comments[imageId] ?? []) : []),
-    [comments, imageId],
-  );
+  const list = useMemo(() => {
+    if (!imageId) return [];
+    return comments[imageId] ?? [];
+  }, [comments, imageId]);
 
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
@@ -151,7 +151,7 @@ export const CommentSheet = () => {
   );
 
   const handleSend = useCallback(async () => {
-    if (sendingRef.current || !imageId || !uploadedAt) return;
+    if (sendingRef.current || !imageId || !ym) return;
     const t = text.trim();
     if (!t) return;
 
@@ -177,7 +177,7 @@ export const CommentSheet = () => {
     if (!parentId) scrollToBottom();
 
     try {
-      const realId = await addGalleryComment(uploadedAt, imageId, t, parentId);
+      const realId = await addGalleryComment(ym, imageId, t, parentId);
       if (realId) updateComment(imageId, tempId, { id: realId });
     } finally {
       sendingRef.current = false;
@@ -186,7 +186,7 @@ export const CommentSheet = () => {
     text,
     replyTo,
     imageId,
-    uploadedAt,
+    ym,
     myName,
     addComment,
     updateComment,
@@ -195,25 +195,25 @@ export const CommentSheet = () => {
 
   const handleLike = useCallback(
     (c: LightboxComment) => {
-      if (!imageId || !uploadedAt) return;
+      if (!imageId || !ym) return;
 
       updateComment(imageId, c.id, {
         likedByMe: !c.likedByMe,
         likes: !c.likedByMe ? c.likes + 1 : Math.max(0, c.likes - 1),
       });
 
-      toggleCommentLike(uploadedAt, imageId, c.id, !c.likedByMe);
+      toggleCommentLike(ym, imageId, c.id, !c.likedByMe);
     },
-    [imageId, uploadedAt, updateComment],
+    [imageId, ym, updateComment],
   );
 
   const handleDelete = useCallback(
     (cid: string) => {
-      if (!imageId || !uploadedAt) return;
+      if (!imageId || !ym) return;
       storeDelete(imageId, cid);
-      deleteGalleryComment(uploadedAt, imageId, cid);
+      deleteGalleryComment(ym, imageId, cid);
     },
-    [imageId, uploadedAt, storeDelete],
+    [imageId, ym, storeDelete],
   );
 
   return (

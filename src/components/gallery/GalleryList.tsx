@@ -87,7 +87,9 @@ const GalleryList = ({
   }, [yyyymm]);
 
   useEffect(() => {
-    const base = list.map((i) => ({
+    const clean = list.filter((i) => i.url && i.empId && i.uploadedAt);
+
+    const base = clean.map((i) => ({
       ...i,
       likesCount: i.likes ? Object.keys(i.likes).length : 0,
       commentsCount: i.comments
@@ -107,6 +109,8 @@ const GalleryList = ({
   useEffect(() => {
     if (open) return;
 
+    const finalYm = yyyymm;
+
     setImages(
       sorted.map((i) => ({
         id: i.id,
@@ -114,6 +118,7 @@ const GalleryList = ({
         description: i.caption ?? '',
         uploadedAt: i.uploadedAt,
         empId: i.empId,
+        ym: finalYm,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
         commentCount: i.comments
@@ -121,7 +126,7 @@ const GalleryList = ({
           : 0,
       })),
     );
-  }, [sorted, open, setImages]);
+  }, [sorted, open, setImages, yyyymm]);
 
   const pages = useMemo(() => {
     const rows: (GalleryItem | null)[][] = [];
@@ -171,11 +176,9 @@ const GalleryList = ({
             >
               <ChevronLeft size={15} />
             </MonthNavButton>
-
             <MonthText>
               {year}년 {month}월
             </MonthText>
-
             <MonthNavButton onClick={() => moveMonth(1)}>
               <ChevronRight size={15} />
             </MonthNavButton>
@@ -248,7 +251,7 @@ const GalleryList = ({
                                 key={img.id}
                                 onClick={() => preloadOpenLightBox(storeIdx)}
                               >
-                                <Skeleton hidden={allLoaded} />
+                                {!loading && <Skeleton hidden={allLoaded} />}
 
                                 <Thumb
                                   src={img.url}
@@ -298,7 +301,7 @@ const GalleryList = ({
             </motion.div>
           </AnimatePresence>
 
-          <AddButton onClick={onMoveUpload}>+ 사진 업로드</AddButton>
+          <AddButton onClick={onMoveUpload}>{month}월 사진 업로드</AddButton>
           <SmallText top="middle" onClick={onCancel}>
             돌아가기
           </SmallText>
