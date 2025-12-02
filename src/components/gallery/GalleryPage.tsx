@@ -82,14 +82,9 @@ const GalleryPage = () => {
   const fetchUploadCount = useCallback(async () => {
     if (!empId) return;
 
-    const snap = await get(
-      ref(
-        db,
-        `users/${empId}/uploadCount/${serverYear}${String(serverMonth).padStart(2, '0')}`,
-      ),
-    );
+    const snap = await get(ref(db, `users/${empId}/uploadCount/${yyyymm}`));
     setUploadCount(snap.exists() ? snap.val() : BASE_UPLOAD);
-  }, [empId, serverYear, serverMonth]);
+  }, [empId, yyyymm]);
 
   useEffect(() => {
     if (!empId) return;
@@ -125,12 +120,11 @@ const GalleryPage = () => {
   const uploadPolicy = useMemo(() => {
     if (activityLoading) return { allowed: false, reason: 'loading' };
 
-    return checkGalleryUploadAvailability(
-      activityMaps,
-      serverYear,
-      serverMonth,
-    );
-  }, [activityLoading, activityMaps, serverYear, serverMonth]);
+    const y = Number(yyyymm.slice(0, 4));
+    const m = Number(yyyymm.slice(4, 6));
+
+    return checkGalleryUploadAvailability(activityMaps, y, m);
+  }, [activityLoading, activityMaps, yyyymm]);
 
   const handleUpload = useCallback(
     async (files: File[], captions: string[]) => {
@@ -149,11 +143,11 @@ const GalleryPage = () => {
         for (let i = 0; i < files.length; i++) {
           const { imageId, url } = await uploadGalleryImage(
             files[i],
-            `${serverYear}${String(serverMonth).padStart(2, '0')}`,
+            `${yyyymm}`,
           );
 
           await saveGalleryMeta({
-            yyyymm: `${serverYear}${String(serverMonth).padStart(2, '0')}`,
+            yyyymm: `${yyyymm}`,
             imageId,
             url,
             caption: captions[i] ?? '',
@@ -164,28 +158,18 @@ const GalleryPage = () => {
           const next = uploadCount - needed;
 
           await update(ref(db), {
-            [`users/${empId}/uploadCount/${serverYear}${String(serverMonth).padStart(2, '0')}`]:
-              next,
+            [`users/${empId}/uploadCount/${yyyymm}`]: next,
           });
 
           setUploadCount(next);
         }
 
         setMode('list');
-        setYyyymm(`${serverYear}${String(serverMonth).padStart(2, '0')}`);
       } finally {
         hideLoading();
       }
     },
-    [
-      empId,
-      isAdmin,
-      uploadCount,
-      serverYear,
-      serverMonth,
-      showLoading,
-      hideLoading,
-    ],
+    [empId, isAdmin, uploadCount, yyyymm, showLoading, hideLoading],
   );
 
   const handleBoost = useCallback(async () => {
@@ -204,15 +188,14 @@ const GalleryPage = () => {
       const next = uploadCount + BASE_UPLOAD;
 
       await update(ref(db), {
-        [`users/${empId}/uploadCount/${serverYear}${String(serverMonth).padStart(2, '0')}`]:
-          next,
+        [`users/${empId}/uploadCount/${yyyymm}`]: next,
       });
 
       setUploadCount(next);
     } finally {
       hideLoading();
     }
-  }, [empId, uploadCount, serverYear, serverMonth, showLoading, hideLoading]);
+  }, [empId, uploadCount, yyyymm, showLoading, hideLoading]);
 
   return (
     <>
