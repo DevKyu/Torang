@@ -210,7 +210,7 @@ const GalleryUpload = ({
               {reason === 'before_activity' &&
                 '활동 다음 날부터 등록할 수 있어요.'}
               {reason === 'after_grace' && '업로드 가능 기간이 지났어요.'}
-              {reason === 'no_activity' && '이번 달 활동일 정보가 아직 없어요.'}
+              {reason === 'no_activity' && '활동일 정보가 아직 없어요.'}
               {reason === 'loading' && '활동일 정보를 불러오는 중이에요.'}
             </NoticeBox>
 
