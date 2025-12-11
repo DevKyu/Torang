@@ -201,11 +201,7 @@ const MatchNamePopover = ({
               ) : (
                 <div>
                   <Row>
-                    <Label>
-                      {type === 'pin'
-                        ? '핀 대결을 시작할까요?'
-                        : '도전장을 보낼까요?'}
-                    </Label>
+                    <Label>도전장을 보낼까요?</Label>
                   </Row>
                   <Actions>
                     <Popover.Close asChild>
