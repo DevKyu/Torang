@@ -51,7 +51,7 @@ const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 //const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
-const MATCH_TYPE: 'rival' | 'pin' = 'rival';
+const MATCH_TYPE: 'rival' | 'pin' = 'pin';
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',

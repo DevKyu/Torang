@@ -91,7 +91,7 @@ const MatchNamePopover = ({
       setShowLetter(false);
     }
   };
-
+  /*
   const pickAsync = async () => {
     if (busy) return;
     setBusy(true);
@@ -111,7 +111,7 @@ const MatchNamePopover = ({
       setBusy(false);
     }
   };
-
+*/
   const clearAsync = async () => {
     if (busy) return;
     setBusy(true);
@@ -211,13 +211,7 @@ const MatchNamePopover = ({
                     <Popover.Close asChild>
                       <PrimaryButton
                         type="button"
-                        onClick={() =>
-                          type === 'rival'
-                            ? setShowLetter(true)
-                            : typeof queueMicrotask === 'function'
-                              ? queueMicrotask(() => pickAsync())
-                              : setTimeout(pickAsync, 0)
-                        }
+                        onClick={() => setShowLetter(true)}
                         disabled={busy || !!disabled}
                       >
                         확인
@@ -235,14 +229,12 @@ const MatchNamePopover = ({
         </Popover.Portal>
       </Popover.Root>
 
-      {type === 'rival' && (
-        <LetterOverlay
-          targetName={targetName}
-          open={showLetter}
-          onSubmit={handleSendLetter}
-          onClose={() => setShowLetter(false)}
-        />
-      )}
+      <LetterOverlay
+        targetName={targetName}
+        open={showLetter}
+        onSubmit={handleSendLetter}
+        onClose={() => setShowLetter(false)}
+      />
     </>
   );
 };
