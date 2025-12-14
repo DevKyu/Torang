@@ -2,6 +2,15 @@
 @import 'swiper/css/pagination';
 
 .swiper-pagination {
-  margin-top: 8px;
+  display: block !important;
   position: relative;
+  margin-top: 8px;
+}
+
+.swiper-pagination-bullet {
+  opacity: 0.3;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 0.8;
 }

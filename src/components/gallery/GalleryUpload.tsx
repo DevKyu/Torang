@@ -28,6 +28,7 @@ import { useLightBoxStore } from '../../stores/lightBoxStore';
 import LightBox from '../lightbox/LightBox';
 import { preloadOpenUploadLightBox } from '../../utils/gallery';
 import { getCurrentUserId } from '../../services/firebase';
+import { GALLERY_POLICY } from '../../utils/galleryPolicy';
 
 export type GalleryUploadProps = {
   onUpload: (files: File[], captions: string[]) => Promise<void>;
@@ -38,7 +39,7 @@ export type GalleryUploadProps = {
   onBoost?: () => Promise<void>;
 };
 
-const MAX_FILES = 3;
+const MAX_FILES = GALLERY_POLICY.BASE_UPLOAD;
 const MAX_CAPTION_LENGTH = 20;
 
 const waitForKeyboardToClose = () =>
@@ -223,7 +224,7 @@ const GalleryUpload = ({
             <NoticeBox>이번 달 업로드 제한을 초과했습니다.</NoticeBox>
 
             <BoostButton onClick={onBoost}>
-              🔥 또랑핀 1개 사용 (업로드 +3)
+              🔥 또랑핀 1개 사용 (업로드 +{GALLERY_POLICY.BOOST_AMOUNT})
             </BoostButton>
 
             <SmallText top="narrow" onClick={onCancel}>

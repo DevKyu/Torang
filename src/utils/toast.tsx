@@ -187,6 +187,38 @@ export const showTargetWithPinToast = (amount: number) => {
   }, 1500);
 };
 
+export const showGalleryRewardToast = (amount: number) => {
+  toast('📸 사진 업로드 미션 성공!', {
+    ...baseToast,
+    duration: 2000,
+    style: {
+      ...baseToast.style,
+      backgroundColor: '#f0f9ff',
+      color: '#0369a1',
+      fontWeight: 600,
+    },
+  });
+
+  setTimeout(() => {
+    toast(
+      <span>
+        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
+        획득!
+      </span>,
+      {
+        ...baseToast,
+        duration: 2000,
+        style: {
+          ...baseToast.style,
+          backgroundColor: '#ecfdf5',
+          color: '#065f46',
+          fontWeight: 600,
+        },
+      },
+    );
+  }, 1500);
+};
+
 const formatPins = (value: number) => {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 };

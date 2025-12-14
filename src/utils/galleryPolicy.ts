@@ -1,0 +1,6 @@
+export const GALLERY_POLICY = {
+  BASE_UPLOAD: 5,
+  BOOST_AMOUNT: 5,
+  REWARD_THRESHOLD: 3,
+  REWARD_PIN: 0.5,
+};
