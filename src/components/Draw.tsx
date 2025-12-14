@@ -40,7 +40,7 @@ type Product = {
 
 type SupplementMap = Record<number, string[]>;
 
-const EVENT_YYYMM = '202509';
+const EVENT_YYYMM = '202512';
 
 const Draw = () => {
   const [products, setProducts] = useState<Product[]>([]);
