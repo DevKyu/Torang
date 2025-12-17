@@ -3,7 +3,7 @@ import { ref, get } from 'firebase/database';
 import { db, saveMatchResult } from '../services/firebase';
 import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
-//import { applyPinChangeBatch } from '../utils/pin';
+import { applyPinChangeBatch } from '../utils/pin';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
 import type { YearMonth, MatchType } from '../types/match';
 import { getDiffDaysServer } from '../utils/date';
@@ -106,8 +106,7 @@ export const useMatchResult = ({
                 ),
             ),
           );
-          // 핀로직 임시 제거
-          // await applyPinChangeBatch(activityYm, myId!, type, newResults);
+          await applyPinChangeBatch(activityYm, myId!, type, newResults);
         } catch (err) {
           console.error('DB update error:', err);
         }
