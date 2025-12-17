@@ -48,8 +48,9 @@ const baseMenuItems: MenuItem[] = [
   {
     id: 'reward',
     label: '상품 신청',
+    isSoon: true,
     icon: <GiftIcon size={20} />,
-    disabled: false,
+    disabled: true,
   },
   {
     id: 'gallery',
