@@ -40,7 +40,6 @@ const baseMenuItems: MenuItem[] = [
   {
     id: 'rank',
     label: '또랑 랭킹',
-    isClose: true,
     icon: <UsersIcon size={20} />,
     disabled: false,
   },
@@ -48,14 +47,14 @@ const baseMenuItems: MenuItem[] = [
   {
     id: 'reward',
     label: '상품 신청',
-    isSoon: true,
+    isNew: true,
     icon: <GiftIcon size={20} />,
-    disabled: true,
+    disabled: false,
   },
   {
     id: 'gallery',
     label: '또랑 갤러리',
-    isNew: true,
+    isClose: true,
     icon: <ImagesIcon size={20} />,
     disabled: false,
   },

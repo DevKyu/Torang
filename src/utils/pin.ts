@@ -1,4 +1,4 @@
-import { ref, get, update } from 'firebase/database';
+import { ref, get, update, increment } from 'firebase/database';
 import {
   db,
   getCurrentUserId,
@@ -19,30 +19,29 @@ export const applyPinChangeBatch = async (
   pinDelta: number = 0.5,
 ) => {
   const updates: Record<string, any> = {};
+
   let gainedPins = 0;
+  let myPinDelta = 0;
+  const opponentPinDeltas: Record<string, number> = {};
 
   for (const { opponentId, opponentName, result } of results) {
     const matchPath = `matchResults/${ym}/${type}/${myId}/${opponentId}`;
     const rewardPath = `users/${myId}/rewards/${ym}/match/${opponentId}`;
-    const pinUpdatedRef = ref(db, `${matchPath}/pinUpdated`);
 
-    const [pinUpdatedSnap, oppPinSnap] = await Promise.all([
-      get(pinUpdatedRef),
-      get(ref(db, `users/${opponentId}/pin`)),
-    ]);
-
-    const alreadyUpdated =
-      pinUpdatedSnap.exists() && pinUpdatedSnap.val() === true;
-    if (alreadyUpdated) continue;
+    const pinUpdatedSnap = await get(ref(db, `${matchPath}/pinUpdated`));
+    if (pinUpdatedSnap.exists() && pinUpdatedSnap.val() === true) continue;
 
     if (result === 'win') {
       gainedPins += pinDelta;
-      await incrementPinsByEmpId(myId, +pinDelta);
+      myPinDelta += pinDelta;
 
       if (type !== 'rival') {
+        const oppPinSnap = await get(ref(db, `users/${opponentId}/pin`));
         const oppPin = Number(oppPinSnap.val() ?? 0);
+
         if (oppPin >= pinDelta) {
-          await incrementPinsByEmpId(opponentId, -pinDelta);
+          opponentPinDeltas[opponentId] =
+            (opponentPinDeltas[opponentId] ?? 0) - pinDelta;
         }
       }
 
@@ -51,7 +50,7 @@ export const applyPinChangeBatch = async (
         opponentId,
         opponentName,
         result,
-        direction: result === 'win' ? 'gain' : 'loss',
+        direction: 'gain',
         pin: pinDelta,
         ym,
         createdAt: getReadableTimestamp(),
@@ -60,6 +59,14 @@ export const applyPinChangeBatch = async (
     }
 
     updates[`${matchPath}/pinUpdated`] = true;
+  }
+
+  if (myPinDelta > 0) {
+    updates[`users/${myId}/pin`] = increment(myPinDelta);
+  }
+
+  for (const [oppId, delta] of Object.entries(opponentPinDeltas)) {
+    updates[`users/${oppId}/pin`] = increment(delta);
   }
 
   if (Object.keys(updates).length > 0) {

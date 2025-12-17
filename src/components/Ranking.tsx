@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { getCurrentUserId, fetchAllUsers, db } from '../services/firebase';
+import {
+  getCurrentUserId,
+  fetchAllUsers,
+  db,
+  saveMatchResult,
+} from '../services/firebase';
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
 import { getYearMonth } from '../utils/date';
@@ -45,6 +50,7 @@ import { useActivityDates } from '../hooks/useActivityDates';
 import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
+import { applyPinChangeBatch } from '../utils/pin';
 
 // monthly 연동
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
@@ -89,14 +95,15 @@ const Ranking = () => {
   const year = Number(CUR_YEAR);
   const month = Number(CUR_MONTHN);
 
-  const activityYmd = (() => {
+  const activityYmd = useMemo(() => {
     const current = activityAll[String(year)]?.[String(month)];
     if (current) return String(current);
+
     const prevMonth = month === 1 ? 12 : month - 1;
     const prevYear = month === 1 ? year - 1 : year;
     const prev = activityAll[String(prevYear)]?.[String(prevMonth)];
     return prev ? String(prev) : undefined;
-  })();
+  }, [activityAll, year, month]);
 
   const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
@@ -198,6 +205,43 @@ const Ranking = () => {
     activityYmd,
     withinDays: 7,
   });
+
+  const appliedRef = useRef(false);
+
+  useEffect(() => {
+    if (!myId) return;
+    if (!matchResults) return;
+    if (appliedRef.current) return;
+
+    const shouldApply = hasMatchResults || hasIncoming;
+
+    if (!shouldApply) return;
+
+    appliedRef.current = true;
+
+    (async () => {
+      try {
+        await Promise.all(
+          matchResults.map((r) =>
+            saveMatchResult(
+              ym,
+              myId,
+              MATCH_TYPE,
+              r.opponentId,
+              r.myScore,
+              r.opponentScore,
+              r.delta,
+              r.result,
+            ),
+          ),
+        );
+
+        await applyPinChangeBatch(ym, myId, MATCH_TYPE, matchResults);
+      } catch (e) {
+        appliedRef.current = false;
+      }
+    })();
+  }, [matchResults, hasMatchResults, hasIncoming, myId, ym]);
 
   const resultMessages = useMemo(() => {
     if (!matchResults?.length) return [];
