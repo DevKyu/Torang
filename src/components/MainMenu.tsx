@@ -43,14 +43,14 @@ const baseMenuItems: MenuItem[] = [
     icon: <UsersIcon size={20} />,
     disabled: false,
   },
-
   {
-    id: 'reward',
-    label: '상품 신청',
+    id: 'draw',
+    label: '추첨 결과',
     isNew: true,
-    icon: <GiftIcon size={20} />,
+    icon: <TargetIcon size={20} />,
     disabled: false,
   },
+
   {
     id: 'gallery',
     label: '또랑 갤러리',
@@ -59,9 +59,9 @@ const baseMenuItems: MenuItem[] = [
     disabled: false,
   },
   {
-    id: 'draw',
-    label: '추첨 결과',
-    icon: <TargetIcon size={20} />,
+    id: 'reward',
+    label: '상품 신청',
+    icon: <GiftIcon size={20} />,
     disabled: true,
   },
 ];
