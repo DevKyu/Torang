@@ -32,22 +32,27 @@ const font = {
   lg: '15px',
 };
 
-export const ScrollableCardGridWrapper = styled.div`
+export const ScrollableCardGridWrapper = styled.div<{ scrollable: boolean }>`
   max-height: 55vh;
   overflow-y: auto;
   padding: 8px 12px 12px;
+  position: relative;
+
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
   }
-  position: relative;
 
   &:after {
     content: '';
     position: sticky;
     bottom: 0;
-    height: 24px;
+    height: ${({ scrollable }) => (scrollable ? '24px' : '0')};
+    pointer-events: none;
     background: linear-gradient(to bottom, transparent, #fefefe);
   }
 `;
@@ -135,7 +140,6 @@ export const WinnerNames = styled.div<{ count: number }>`
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  flex-wrap: wrap;
   gap: ${({ count }) => (count <= 2 ? '6px' : '4px')};
   text-align: center;
   margin: 4px 0;
@@ -148,7 +152,6 @@ export const WinnerNameItem = styled(motion.span)<{
   display: inline-flex;
   align-items: center;
   gap: 4px;
-
   font-size: ${({ count }) => (count <= 3 ? '14px' : '13px')};
   font-weight: 600;
   color: ${({ isSupplement }) => (isSupplement ? '#3b82f6' : '#f59e0b')};
@@ -167,9 +170,8 @@ export const SupporterCount = styled.p`
 
 export const SupporterList = styled.div`
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
 `;
 
 export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
@@ -183,16 +185,31 @@ export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
   font-weight: ${({ isSelf }) => (isSelf ? 'bold' : 'normal')};
 `;
 
-export const MoreText = styled.span`
+export const MoreText = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   font-size: ${font.xs};
   color: ${colors.text.subtle};
   background-color: ${colors.badge.defaultBg};
-  padding: 3px 6px;
-  border-radius: 10px;
-  cursor: default;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: none;
 
-  &:hover {
-    background-color: #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: #e5e7eb;
+    }
   }
 `;
 
@@ -230,6 +247,9 @@ export const CompletionMessage = styled(motion.div)`
 
 export const FooterWrapper = styled.div`
   margin-top: 16px;
+  position: sticky;
+  bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: center;

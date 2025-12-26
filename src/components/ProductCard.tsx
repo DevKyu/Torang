@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react';
+
 import {
   CardInner,
   CardBadge,
@@ -7,7 +9,6 @@ import {
   Front,
   Back,
   SupporterCount,
-  SupporterBadge,
   SupporterList,
   MoreText,
   WinnerNameItem,
@@ -15,8 +16,6 @@ import {
 
 import { getCachedUserName } from '../services/firebase';
 import { showHiddenNamesToast } from '../utils/toast';
-
-const MAX_BADGES = 0;
 
 type Props = {
   productName: string;
@@ -35,29 +34,44 @@ export const ProductCard = ({
   supplement = [],
   flipped,
   isWinner,
-  raffle,
+  raffle = [],
   currentEmpId,
   isBonus,
 }: Props) => {
-  const visibleRaffle = (raffle ?? []).slice(0, MAX_BADGES);
-  const hiddenCount = raffle ? Math.max(raffle.length - MAX_BADGES, 0) : 0;
+  const raffleCount = raffle.length;
 
-  const handleShowHiddenNames = () => {
-    const names = raffle?.slice(MAX_BADGES).map(getCachedUserName);
-    showHiddenNamesToast(productName, names);
-  };
+  const isSelfWinner = Boolean(
+    flipped && (isWinner || supplement.includes(currentEmpId)),
+  );
+
+  const raffleNames = useMemo(() => {
+    if (raffleCount === 0) return [];
+    return raffle.map(getCachedUserName);
+  }, [raffle, raffleCount]);
+
+  const handleShowHiddenNames = useCallback(() => {
+    if (raffleNames.length === 0) return;
+    showHiddenNamesToast(productName, raffleNames);
+  }, [productName, raffleNames]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      handleShowHiddenNames();
+    },
+    [handleShowHiddenNames],
+  );
 
   return (
     <CardInner
       animate={{ rotateY: flipped ? 180 : 0 }}
       initial={{ rotateY: 0 }}
-      transition={{
-        duration: 0.55,
-        ease: [0.25, 0.1, 0.25, 1],
-      }}
+      transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <Front>
         <Name>{productName}</Name>
+
         <HintText
           initial={{ opacity: 0.5 }}
           animate={{ opacity: [0.5, 1, 0.5] }}
@@ -69,11 +83,11 @@ export const ProductCard = ({
         {isBonus ? (
           <SupporterCount>미당첨자 중 추첨</SupporterCount>
         ) : (
-          <SupporterCount>총 {raffle?.length ?? 0}명 신청</SupporterCount>
+          <SupporterCount>총 {raffleCount}명 신청</SupporterCount>
         )}
       </Front>
 
-      <Back isWinner={isWinner}>
+      <Back isWinner={isSelfWinner}>
         <CardBadge>🎉 {productName}</CardBadge>
 
         <WinnerNames count={winners.length}>
@@ -107,16 +121,18 @@ export const ProductCard = ({
           )}
         </WinnerNames>
 
-        <SupporterList>
-          {visibleRaffle.map((id) => (
-            <SupporterBadge key={id} isSelf={id === currentEmpId}>
-              {getCachedUserName(id)}
-            </SupporterBadge>
-          ))}
-          {hiddenCount > 0 && (
-            <MoreText onClick={handleShowHiddenNames}>신청자 보기</MoreText>
-          )}
-        </SupporterList>
+        {flipped && raffleCount > 0 && (
+          <SupporterList>
+            <MoreText
+              role="button"
+              tabIndex={0}
+              onClick={handleShowHiddenNames}
+              onKeyDown={handleKeyDown}
+            >
+              신청자 보기
+            </MoreText>
+          </SupporterList>
+        )}
       </Back>
     </CardInner>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   GiftIcon,
@@ -19,156 +19,138 @@ import {
   IconWrapper,
   MenuBadge,
 } from '../styles/menuStyle';
+import { useEventStore, type MenuBadgeType } from '../stores/eventStore';
+import { useUiStore } from '../stores/useUiStore';
 
-type MenuItem = {
+type MenuItemBase = {
   id: string;
   label: string;
   icon: React.ReactNode;
-  isNew?: boolean;
-  isSoon?: boolean;
-  isClose?: boolean;
-  disabled?: boolean;
 };
 
-const baseMenuItems: MenuItem[] = [
-  {
-    id: 'user',
-    label: '내정보',
-    icon: <UserIcon size={20} />,
-    disabled: false,
-  },
-  {
-    id: 'rank',
-    label: '또랑 랭킹',
-    icon: <UsersIcon size={20} />,
-    disabled: false,
-  },
-  {
-    id: 'draw',
-    label: '추첨 결과',
-    isNew: true,
-    icon: <TargetIcon size={20} />,
-    disabled: false,
-  },
+type MenuItem = MenuItemBase & {
+  order: number;
+  badge?: MenuBadgeType;
+  disabled: boolean;
+  loading: boolean;
+};
 
-  {
+const BASE_MENU_MAP: Record<string, MenuItemBase> = {
+  user: { id: 'user', label: '내정보', icon: <UserIcon size={20} /> },
+  rank: { id: 'rank', label: '또랑 랭킹', icon: <UsersIcon size={20} /> },
+  reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
+  gallery: {
     id: 'gallery',
     label: '또랑 갤러리',
-    isClose: true,
     icon: <ImagesIcon size={20} />,
-    disabled: false,
   },
-  {
-    id: 'reward',
-    label: '상품 신청',
-    icon: <GiftIcon size={20} />,
-    disabled: true,
-  },
-];
+  draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
+};
 
-const adminMenu: MenuItem = {
+const ADMIN_MENU: MenuItemBase = {
   id: 'admin',
   label: '관리자 메뉴',
   icon: <ShieldIcon size={20} />,
-  disabled: false,
 };
-
-const BADGE_VARIANTS = [
-  { key: 'isNew', label: 'NEW', variant: 'new' },
-  { key: 'isSoon', label: 'SOON', variant: 'soon' },
-  { key: 'isClose', label: 'HOT', variant: 'hot' },
-] as const;
 
 const MainMenu = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const syncServerTime = useUiStore((s) => s.syncServerTime);
+  const loadEventConfig = useEventStore((s) => s.loadEventConfig);
+  const menuConfig = useEventStore((s) => s.menu);
+  const loaded = useEventStore((s) => s.loaded);
+
   useEffect(() => {
-    const init = async () => {
-      try {
-        const ok = await checkAdminId();
-        setIsAdmin(ok);
-      } catch (e) {
-        console.error('checkAdminId failed:', e);
-      }
+    syncServerTime();
+    loadEventConfig();
+    checkAdminId()
+      .then(setIsAdmin)
+      .catch(() => {});
+  }, [loadEventConfig, syncServerTime]);
+
+  const menuItems = useMemo<MenuItem[]>(() => {
+    const base = isAdmin
+      ? { ...BASE_MENU_MAP, admin: ADMIN_MENU }
+      : BASE_MENU_MAP;
+
+    const DEFAULT_DISABLED: Record<string, boolean> = {
+      reward: true,
+      draw: true,
     };
-    init();
-  }, []);
 
-  const handleClick = (id: string) => {
-    switch (id) {
-      case 'user':
-        navigate('/myinfo', { replace: true });
-        break;
-      case 'draw':
-        navigate('/draw', { replace: true });
-        break;
-      case 'reward':
-        navigate('/reward', { replace: true });
-        break;
-      case 'rank':
-        navigate('/ranking', { replace: true });
-        break;
-      case 'admin':
-        navigate('/admin', { replace: true });
-        break;
-      case 'gallery':
-        navigate('/gallery', { replace: true });
-        break;
-    }
+    return Object.keys(base)
+      .map((id) => {
+        const cfg = menuConfig[id];
+        const defaultDisabled = DEFAULT_DISABLED[id] ?? false;
+
+        const disabled = !loaded
+          ? true
+          : cfg?.disabled !== undefined
+            ? cfg.disabled
+            : defaultDisabled;
+
+        return {
+          ...base[id],
+          order: cfg?.order ?? 999,
+          badge: cfg?.badge as MenuBadgeType | undefined,
+          disabled,
+          loading: !loaded,
+        };
+      })
+      .sort((a, b) => a.order - b.order);
+  }, [menuConfig, isAdmin, loaded]);
+
+  const handleClick = (id: string, disabled: boolean) => {
+    if (disabled) return;
+
+    const map: Record<string, string> = {
+      user: '/myinfo',
+      draw: '/draw',
+      reward: '/reward',
+      rank: '/ranking',
+      admin: '/admin',
+      gallery: '/gallery',
+    };
+
+    navigate(map[id], { replace: true });
   };
-
-  const menuItems: MenuItem[] = isAdmin
-    ? [...baseMenuItems, adminMenu]
-    : baseMenuItems;
 
   return (
     <Layout title="또랑 메뉴🎳" padding="compact">
-      <MenuGrid
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-      >
-        {menuItems.map(
-          ({ id, label, icon, isNew, isSoon, isClose, disabled }) => {
-            const flags = { isNew, isSoon, isClose };
-
-            return (
-              <MotionMenuCard
-                key={id}
-                whileTap={disabled ? undefined : { scale: 0.98 }}
-                onClick={disabled ? undefined : () => handleClick(id)}
-                disabled={disabled}
+      <MenuGrid>
+        {menuItems.map(({ id, label, icon, badge, disabled, loading }) => (
+          <MotionMenuCard
+            key={id}
+            disabled={disabled}
+            whileTap={disabled ? undefined : { scale: 0.98 }}
+            onClick={() => handleClick(id, disabled)}
+          >
+            {!loading && badge && (
+              <MenuBadge
+                variant={badge}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
               >
-                {BADGE_VARIANTS.map(
-                  ({ key, label: badgeLabel, variant }) =>
-                    flags[key as keyof typeof flags] && (
-                      <MenuBadge
-                        key={variant}
-                        variant={variant as 'new' | 'soon' | 'hot'}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                      >
-                        {badgeLabel}
-                      </MenuBadge>
-                    ),
-                )}
-                <IconWrapper>{icon}</IconWrapper>
-                <MenuLabel>{label}</MenuLabel>
-              </MotionMenuCard>
-            );
-          },
-        )}
+                {badge.toUpperCase()}
+              </MenuBadge>
+            )}
+
+            <IconWrapper style={{ opacity: loading ? 0.55 : 1 }}>
+              {icon}
+            </IconWrapper>
+            <MenuLabel style={{ opacity: loading ? 0.55 : 1 }}>
+              {label}
+            </MenuLabel>
+          </MotionMenuCard>
+        ))}
       </MenuGrid>
 
       <SmallText
         top="far"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 8 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
         onClick={() => {
           logOut();
           navigate('/', { replace: true });

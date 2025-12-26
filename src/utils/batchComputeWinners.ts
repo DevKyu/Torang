@@ -21,7 +21,7 @@ function weightedPick(
       if (!user) return { id, weight: 0 };
 
       if (user.type === 'Member') weight *= 1.5;
-      if (globalWinners.has(id)) weight *= 0.8;
+      if (globalWinners.has(id)) weight *= 0.7;
 
       if (isPostFill) {
         const highPinFails = Object.values(losersPerProduct)

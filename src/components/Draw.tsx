@@ -1,5 +1,5 @@
 import confetti from 'canvas-confetti';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -27,6 +27,7 @@ import {
 import { useLoading } from '../contexts/LoadingContext';
 import { ProductCard } from './ProductCard';
 import { ensureBatchWinners } from '../utils/ensureBatchWinners';
+import { useUiStore } from '../stores/useUiStore';
 
 type DrawState = 'waiting' | 'drawing' | 'done';
 
@@ -40,28 +41,44 @@ type Product = {
 
 type SupplementMap = Record<number, string[]>;
 
-const EVENT_YYYMM = '202512';
-
 const Draw = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [supplement, setSupplement] = useState<SupplementMap>({});
   const [flippedSet, setFlippedSet] = useState<Set<number>>(new Set());
   const [drawState, setDrawState] = useState<DrawState>('waiting');
   const [currentEmpId, setCurrentEmpId] = useState<string>('');
+  const [isScrollable, setIsScrollable] = useState(false);
+
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const { showLoadingWithTimeout, hideLoading } = useLoading();
+  const { formatServerDate } = useUiStore();
   const navigate = useNavigate();
+
+  const yyyymm = useMemo(() => formatServerDate('ym'), [formatServerDate]);
+
+  useEffect(() => {
+    const el = scrollWrapperRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setIsScrollable(el.scrollHeight > el.clientHeight + 4);
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [products]);
 
   useEffect(() => {
     const init = async () => {
       showLoadingWithTimeout();
 
       try {
-        await ensureBatchWinners(EVENT_YYYMM, navigate);
+        await ensureBatchWinners(yyyymm, navigate);
 
         const userId = await getCurrentUserId();
-        const bundle = await getProductBundle(EVENT_YYYMM);
+        const bundle = await getProductBundle(yyyymm);
         if (!bundle) return;
 
         await preloadAllNames();
@@ -76,7 +93,7 @@ const Draw = () => {
     };
 
     init();
-  }, []);
+  }, [yyyymm]);
 
   const scrollToCard = (index: number) => {
     const el = cardRefs.current[index];
@@ -85,11 +102,7 @@ const Draw = () => {
 
     const targetOffset = el.offsetTop + el.offsetHeight / 2;
     const scrollPosition = targetOffset - wrapper.clientHeight / 2;
-
-    wrapper.scrollTo({
-      top: scrollPosition,
-      behavior: 'smooth',
-    });
+    wrapper.scrollTo({ top: scrollPosition, behavior: 'smooth' });
   };
 
   const fireConfettiAtCard = (index: number) => {
@@ -97,22 +110,22 @@ const Draw = () => {
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
-    const x = (rect.left + rect.width / 2) / window.innerWidth;
-    const y = (rect.top + rect.height / 2) / window.innerHeight;
-
     confetti({
       particleCount: 120,
       spread: 100,
       startVelocity: 35,
       decay: 0.9,
       scalar: 1.1,
-      origin: { x, y },
+      origin: {
+        x: (rect.left + rect.width / 2) / window.innerWidth,
+        y: (rect.top + rect.height / 2) / window.innerHeight,
+      },
       colors: ['#facc15', '#3b82f6', '#ef4444', '#10b981'],
       shapes: ['circle', 'square'],
     });
   };
 
-  const handleFlip = async (index: number): Promise<void> => {
+  const handleFlip = async (index: number) => {
     if (flippedSet.has(index)) return;
 
     const product = products.find((p) => p.index === index);
@@ -121,19 +134,11 @@ const Draw = () => {
     const winnerIds = product.winners ?? [];
     const supIds = supplement[product.index] ?? [];
 
-    setProducts((prev) =>
-      prev.map((p) => (p.index === index ? { ...p, winners: winnerIds } : p)),
-    );
-
     setFlippedSet((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(index);
-
-      if (newSet.size === products.length) {
-        setDrawState('done');
-      }
-
-      return newSet;
+      const next = new Set(prev);
+      next.add(index);
+      if (next.size === products.length) setDrawState('done');
+      return next;
     });
 
     scrollToCard(index);
@@ -148,9 +153,9 @@ const Draw = () => {
     setDrawState('drawing');
 
     const toReveal = products.filter((p) => !flippedSet.has(p.index));
-    for (const product of toReveal) {
-      await handleFlip(product.index);
-      await new Promise((resolve) => setTimeout(resolve, 800));
+    for (const p of toReveal) {
+      await handleFlip(p.index);
+      await new Promise((r) => setTimeout(r, 800));
     }
 
     setDrawState('done');
@@ -185,7 +190,10 @@ const Draw = () => {
           </CompletionMessage>
         </HeaderWrapper>
 
-        <ScrollableCardGridWrapper ref={scrollWrapperRef}>
+        <ScrollableCardGridWrapper
+          ref={scrollWrapperRef}
+          scrollable={isScrollable}
+        >
           <DrawGridContainer>
             {products.map((product) => {
               const supIds = supplement[product.index] ?? [];
@@ -207,7 +215,7 @@ const Draw = () => {
                     flipped={flippedSet.has(product.index)}
                     isWinner={product.winners?.includes(currentEmpId)}
                     raffle={product.raffle}
-                    currentEmpId={currentEmpId ?? ''}
+                    currentEmpId={currentEmpId}
                     isBonus={product.requiredPins === 0}
                   />
                 </CardContainer>
@@ -232,9 +240,7 @@ const Draw = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            onClick={() => {
-              navigate('/menu', { replace: true });
-            }}
+            onClick={() => navigate('/menu', { replace: true })}
           >
             돌아가기
           </SmallText>
