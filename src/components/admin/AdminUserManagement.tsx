@@ -38,6 +38,7 @@ import {
   InnerTrigger,
   InnerContent,
   NewUserForm,
+  AdminLinkSection,
 } from '../../styles/AdminUserManagementStyle';
 import { SmallText } from '../../styles/commonStyle';
 
@@ -301,6 +302,12 @@ const AdminUserManagement = () => {
           조회
         </button>
       </SearchRow>
+
+      <AdminLinkSection>
+        <button onClick={() => navigate('/admin/event')}>
+          ⚙️ 이벤트 / 메뉴 운영 설정
+        </button>
+      </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (
         <ResultList>

@@ -364,3 +364,18 @@ export const NewUserForm = styled.div`
     cursor: pointer;
   }
 `;
+
+export const AdminLinkSection = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 16px;
+
+  button {
+    background: #111827;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+`;

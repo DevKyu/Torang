@@ -8,6 +8,7 @@ import Ranking from '../components/Ranking';
 import Achievements from '../components/Achievements';
 import AdminUserManagement from '../components/admin/AdminUserManagement';
 import GalleryPage from '../components/gallery/GalleryPage';
+import AdminEvent from '../components/admin/AdminEvent';
 
 const Router = () => (
   <Routes>
@@ -19,6 +20,7 @@ const Router = () => (
     <Route path="/ranking" element={<Ranking />} />
     <Route path="/achievements" element={<Achievements />} />
     <Route path="/admin" element={<AdminUserManagement />} />
+    <Route path="/admin/event" element={<AdminEvent />} />
     <Route path="/gallery" element={<GalleryPage />} />
   </Routes>
 );
