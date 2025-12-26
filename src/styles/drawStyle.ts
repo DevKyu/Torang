@@ -33,7 +33,7 @@ const font = {
 };
 
 export const ScrollableCardGridWrapper = styled.div<{ scrollable: boolean }>`
-  max-height: 55vh;
+  max-height: 52vh;
   overflow-y: auto;
   padding: 8px 12px 12px;
   position: relative;
@@ -100,14 +100,17 @@ export const Front = styled(CardFace)`
   border: 1px solid ${colors.border.default};
 `;
 
-export const Back = styled(CardFace)<{ isWinner?: boolean }>`
+export const Back = styled(CardFace)<{
+  isWinner?: boolean;
+  winnerCount: number;
+}>`
   transform: rotateY(180deg);
   background: ${({ isWinner }) =>
     isWinner ? colors.bg.winner : colors.bg.back};
   border: 1px solid
     ${({ isWinner }) =>
       isWinner ? colors.border.winner : colors.border.default};
-  gap: 8px;
+  gap: ${({ winnerCount }) => (winnerCount <= 2 ? '8px' : '4px')};
 
   ${({ isWinner }) =>
     isWinner && `box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);`}
@@ -171,7 +174,7 @@ export const SupporterCount = styled.p`
 export const SupporterList = styled.div`
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
 `;
 
 export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
@@ -193,7 +196,7 @@ export const MoreText = styled.button`
   font-size: ${font.xs};
   color: ${colors.text.subtle};
   background-color: ${colors.badge.defaultBg};
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 999px;
   border: none;
 

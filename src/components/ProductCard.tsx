@@ -87,7 +87,7 @@ export const ProductCard = ({
         )}
       </Front>
 
-      <Back isWinner={isSelfWinner}>
+      <Back isWinner={isSelfWinner} winnerCount={winners.length}>
         <CardBadge>🎉 {productName}</CardBadge>
 
         <WinnerNames count={winners.length}>
