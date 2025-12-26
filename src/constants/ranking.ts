@@ -20,4 +20,4 @@ export const HEADER_TOAST_MAP: Record<
   league: () => `🏆 리그 : 소속된 리그`,
 };
 
-export const EXCLUDED_EMP_IDS = [''];
+export const EXCLUDED_EMP_IDS = ['20160000'];

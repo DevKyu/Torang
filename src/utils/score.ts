@@ -1,4 +1,5 @@
-import type { Month, Year } from '../types/UserInfo';
+import { useUiStore } from '../stores/useUiStore';
+import type { Month, UserScores, Year } from '../types/UserInfo';
 
 export const quarters = {
   '1분기': ['1', '2', '3'],
@@ -11,9 +12,9 @@ export type Quarter = keyof typeof quarters;
 export const quarterList = Object.keys(quarters) as Quarter[];
 
 export const monthToQuarter = (m: number): Quarter => {
-  if (m <= 2) return '1분기';
-  if (m <= 5) return '2분기';
-  if (m <= 8) return '3분기';
+  if (m <= 3) return '1분기';
+  if (m <= 6) return '2분기';
+  if (m <= 9) return '3분기';
   return '4분기';
 };
 
@@ -43,6 +44,36 @@ export const getPrevQuarter = (
   return idx === 0
     ? [String(Number(y) - 1), '4분기']
     : [y, quarterList[idx - 1]];
+};
+
+export const getRecent3MonthScores = (scores: UserScores): number[] => {
+  const { formatServerDate } = useUiStore.getState();
+  const baseYm = formatServerDate('ym');
+
+  const entries: string[] = [];
+
+  for (const y of Object.keys(scores)) {
+    const year = asYear(y);
+    for (const m of Object.keys(scores[year] ?? {})) {
+      const month = asMonth(m);
+      if (typeof scores[year]?.[month] === 'number') {
+        entries.push(`${y}${String(m).padStart(2, '0')}`);
+      }
+    }
+  }
+
+  const recentYms = entries
+    .filter((ym) => ym <= baseYm)
+    .sort((a, b) => Number(b) - Number(a))
+    .slice(0, 3);
+
+  return recentYms
+    .map((ym) => {
+      const y = asYear(ym.slice(0, 4));
+      const m = asMonth(ym.slice(4, 6));
+      return scores[y]?.[m];
+    })
+    .filter((v): v is number => typeof v === 'number');
 };
 
 export const asYear = <T extends string>(v: T | Year): Year => v as Year;

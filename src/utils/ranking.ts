@@ -1,5 +1,7 @@
 import type { Month, Year, UserScores, UserInfo } from '../types/UserInfo';
 import type { RankingEntry, RankingType } from '../types/Ranking';
+import { useUiStore } from '../stores/useUiStore';
+import { getRecent3MonthScores } from './score';
 
 const QUARTER_MONTHS_MAP: Record<number, Month[]> = {
   1: ['1', '2', '3'],
@@ -12,33 +14,46 @@ export const calculateScoreStats = (
   scores: UserScores | undefined,
   type: RankingType,
 ): { average: number; games: number; max: number } => {
-  let total = 0;
-  let games = 0;
-  let max = 0;
-
   if (!scores) return { average: 0, games: 0, max: 0 };
 
-  const now = new Date();
+  if (type === 'monthly') {
+    const recent = getRecent3MonthScores(scores);
+    const games = recent.length;
+    const total = recent.reduce((a, b) => a + b, 0);
+    const max = games ? Math.max(...recent) : 0;
+    const average = games ? Math.round(total / games) : 0;
+    return { average, games, max };
+  }
+
+  const { getServerNow } = useUiStore.getState();
+  const now = getServerNow();
+
   const currentYear = String(now.getFullYear()) as Year;
   const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
   const quarterMonths = QUARTER_MONTHS_MAP[currentQuarter] ?? [];
 
-  for (const year in scores) {
-    const yearScores = scores[year as Year];
+  let total = 0;
+  let games = 0;
+  let max = 0;
+
+  for (const y of Object.keys(scores)) {
+    const year = y as Year;
+    const yearScores = scores[year];
     if (!yearScores) continue;
 
-    for (const monthKey in yearScores) {
-      const score = yearScores[monthKey as Month];
+    for (const m of Object.keys(yearScores)) {
+      const month = m as Month;
+      const score = yearScores[month];
       if (typeof score !== 'number') continue;
 
-      const isInQuarter =
+      const isQuarter =
         type === 'quarter' &&
         year === currentYear &&
-        quarterMonths.includes(monthKey as Month);
+        quarterMonths.includes(month);
 
-      const isInYear = type === 'year' && year === currentYear;
+      const isYear = type === 'year' && year === currentYear;
 
-      if (type === 'total' || isInQuarter || isInYear || type === 'monthly') {
+      if (type === 'total' || isQuarter || isYear) {
         total += score;
         games++;
         if (score > max) max = score;
@@ -46,7 +61,7 @@ export const calculateScoreStats = (
     }
   }
 
-  const average = games > 0 ? Math.round(total / games) : 0;
+  const average = games ? Math.round(total / games) : 0;
   return { average, games, max };
 };
 

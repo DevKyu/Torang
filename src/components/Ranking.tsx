@@ -9,7 +9,7 @@ import {
 } from '../services/firebase';
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
-import { getYearMonth } from '../utils/date';
+import { getYearMonth, isWithinActivityDays } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
 
@@ -52,9 +52,7 @@ import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 import { applyPinChangeBatch } from '../utils/pin';
 
-// monthly 연동
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
-//const RANKING_TABS: RankingType[] = ['quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 const MATCH_TYPE: 'rival' | 'pin' = 'pin';
@@ -79,13 +77,7 @@ const Ranking = () => {
     String(CUR_MONTHN) as Month,
   );
 
-  // monthly 연동
-
-  const [rankingType, setRankingType] = useState<RankingType>(
-    participantsAll.length > 0 ? 'monthly' : 'quarter',
-  );
-
-  //const [rankingType, setRankingType] = useState<RankingType>('monthly');
+  const [rankingType, setRankingType] = useState<RankingType>('quarter');
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
@@ -110,6 +102,11 @@ const Ranking = () => {
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
   const hasRankingCongrats = hasShownCongrats.ranking;
+
+  const monthlyEnabled = useMemo(
+    () => participantsAll.length > 0 && isWithinActivityDays(activityYmd, 7),
+    [participantsAll, activityYmd],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -358,12 +355,6 @@ const Ranking = () => {
             ) : (
               user.average
             )}
-            {/*
-           {rankingType === 'quarter' ? (
-              <RankingPopover user={user} />
-            ) : (
-              user.average
-            )} */}
           </td>
           <td>{rankingType === 'monthly' ? user.league : user.max}</td>
           <td>{rankingType === 'monthly' ? user.pin : user.games}</td>
@@ -374,19 +365,21 @@ const Ranking = () => {
   );
 
   useEffect(() => {
-    if (participantsAll.length > 0) {
-      setRankingType('monthly');
-    }
-  }, [participantsAll]);
-
+    setRankingType((prev) => {
+      if (monthlyEnabled) {
+        return prev === 'quarter' || prev === 'monthly' ? 'monthly' : prev;
+      }
+      return prev === 'monthly' ? 'quarter' : prev;
+    });
+  }, [monthlyEnabled]);
   const availableTabs = useMemo(() => {
-    let base =
-      participantsAll.length > 0
-        ? RANKING_TABS
-        : RANKING_TABS.filter((t) => t !== 'monthly');
+    let base = monthlyEnabled
+      ? RANKING_TABS
+      : RANKING_TABS.filter((t) => t !== 'monthly');
+
     if (!hasQuarterData) base = base.filter((t) => t !== 'quarter');
     return base;
-  }, [participantsAll, hasQuarterData]);
+  }, [monthlyEnabled, hasQuarterData]);
 
   return (
     <Container>

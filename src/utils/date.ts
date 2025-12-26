@@ -67,3 +67,13 @@ export const getDiffDaysServer = (activityYmd: string): number => {
   const diffMs = serverNow.getTime() - actDate.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
+
+export const isWithinActivityDays = (
+  activityYmd?: string | null,
+  withinDays = 7,
+): boolean => {
+  if (!activityYmd) return false;
+
+  const diffDays = getDiffDaysServer(activityYmd);
+  return diffDays >= 0 && diffDays <= withinDays;
+};
