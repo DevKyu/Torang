@@ -9,22 +9,22 @@ import { SmallText } from '../../styles/commonStyle';
 import {
   Section,
   SectionTitle,
-  MenuGrid,
-  MenuHeader,
-  MenuRow,
-  MenuName,
-  OrderInput,
-  BadgeSelect,
-  ToggleLabel,
-  RewardGrid,
   MonthSelect,
   SaveButton,
   RewardActionRow,
   BulkRewardButton,
-  RateGroup,
+  RewardGrid,
   RewardCard,
   RewardToggle,
   RewardTitle,
+  RateGroup,
+  MenuCardGrid,
+  MenuCard,
+  MenuCardHeader,
+  MenuControlRow,
+  OrderInput,
+  BadgeSelect,
+  ToggleLabel,
 } from '../../styles/AdminEventStyle';
 
 const MENU_KEYS = ['user', 'rank', 'reward', 'gallery', 'draw'] as const;
@@ -115,60 +115,66 @@ export default function AdminEvent() {
     <AdminLayout title="이벤트 설정">
       <Section>
         <SectionTitle>📋 메뉴 설정</SectionTitle>
-        <MenuGrid>
-          <MenuHeader>메뉴</MenuHeader>
-          <MenuHeader>순서</MenuHeader>
-          <MenuHeader>뱃지</MenuHeader>
-          <MenuHeader>숨김</MenuHeader>
 
+        <MenuCardGrid>
           {MENU_KEYS.map((id) => {
             const cfg = menuDraft[id] ?? {};
             return (
-              <MenuRow key={id}>
-                <MenuName>{id}</MenuName>
-                <OrderInput
-                  type="number"
-                  value={cfg.order ?? 999}
-                  onChange={(e) =>
-                    setMenuDraft((p) => ({
-                      ...p,
-                      [id]: { ...cfg, order: Number(e.target.value) },
-                    }))
-                  }
-                />
-                <BadgeSelect
-                  value={cfg.badge ?? ''}
-                  onChange={(e) =>
-                    setMenuDraft((p) => {
-                      const next = { ...cfg };
-                      if (!e.target.value) delete next.badge;
-                      else next.badge = e.target.value as any;
-                      return { ...p, [id]: next };
-                    })
-                  }
-                >
-                  <option value="">없음</option>
-                  <option value="new">NEW</option>
-                  <option value="hot">HOT</option>
-                  <option value="soon">SOON</option>
-                </BadgeSelect>
-                <ToggleLabel>
-                  <input
-                    type="checkbox"
-                    checked={cfg.disabled ?? false}
+              <MenuCard key={id}>
+                <MenuCardHeader>
+                  <span>{id}</span>
+                  <ToggleLabel>
+                    <input
+                      type="checkbox"
+                      checked={cfg.disabled ?? false}
+                      onChange={(e) =>
+                        setMenuDraft((p) => ({
+                          ...p,
+                          [id]: { ...cfg, disabled: e.target.checked },
+                        }))
+                      }
+                    />
+                    비활성
+                  </ToggleLabel>
+                </MenuCardHeader>
+
+                <MenuControlRow>
+                  <span>순서</span>
+                  <OrderInput
+                    type="number"
+                    value={cfg.order ?? 999}
                     onChange={(e) =>
                       setMenuDraft((p) => ({
                         ...p,
-                        [id]: { ...cfg, disabled: e.target.checked },
+                        [id]: { ...cfg, order: Number(e.target.value) },
                       }))
                     }
                   />
-                  비활성
-                </ToggleLabel>
-              </MenuRow>
+                </MenuControlRow>
+
+                <MenuControlRow>
+                  <span>뱃지</span>
+                  <BadgeSelect
+                    value={cfg.badge ?? ''}
+                    onChange={(e) =>
+                      setMenuDraft((p) => {
+                        const next = { ...cfg };
+                        if (!e.target.value) delete next.badge;
+                        else next.badge = e.target.value as any;
+                        return { ...p, [id]: next };
+                      })
+                    }
+                  >
+                    <option value="">없음</option>
+                    <option value="new">NEW</option>
+                    <option value="hot">HOT</option>
+                    <option value="soon">SOON</option>
+                  </BadgeSelect>
+                </MenuControlRow>
+              </MenuCard>
             );
           })}
-        </MenuGrid>
+        </MenuCardGrid>
       </Section>
 
       <Section>

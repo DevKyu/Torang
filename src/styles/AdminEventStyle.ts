@@ -199,3 +199,40 @@ export const SaveButton = styled.button`
     transform: scale(0.98);
   }
 `;
+
+export const MenuCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+`;
+
+export const MenuCard = styled.div`
+  padding: 14px;
+  border-radius: 14px;
+  background: #f9fafb;
+  display: grid;
+  row-gap: 10px;
+`;
+
+export const MenuCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+`;
+
+export const MenuControlRow = styled.div`
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+`;
