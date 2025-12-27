@@ -1,9 +1,5 @@
 import { ref, get, update, increment } from 'firebase/database';
-import {
-  db,
-  getCurrentUserId,
-  incrementPinsByEmpId,
-} from '../services/firebase';
+import { db, incrementPinsByEmpId } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';

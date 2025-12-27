@@ -50,7 +50,6 @@ import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 import { applyPinChangeBatch } from '../utils/pin';
-import { useEventStore } from '../stores/eventStore';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
@@ -67,14 +66,10 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   league: '리그',
 };
 
-const getMatchRewardKey = (type: MatchType) =>
-  type === 'rival' ? 'rivalMatch' : 'pinMatch';
-
 const Ranking = () => {
   const navigate = useNavigate();
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityAll } = useActivityDates();
-  const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
 
   const { hasShownCongrats, setShownCongrats, formatServerDate, getServerNow } =
     useUiStore();
