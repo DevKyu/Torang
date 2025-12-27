@@ -32,12 +32,15 @@ export const applyPinChangeBatch = async (
   myId: string,
   type: MatchType,
   results: MatchResult[],
-  pinDelta: number = 0.5,
 ) => {
-  const updates: Record<string, any> = {};
+  const rate = useEventStore
+    .getState()
+    .getPinRewardRate(type === 'rival' ? 'rivalMatch' : 'pinMatch');
 
+  if (rate <= 0) return;
+
+  const updates: Record<string, any> = {};
   let gainedPins = 0;
-  let myPinDelta = 0;
   const opponentPinDeltas: Record<string, number> = {};
 
   for (const { opponentId, opponentName, result } of results) {
@@ -45,30 +48,29 @@ export const applyPinChangeBatch = async (
     const rewardPath = `users/${myId}/rewards/${ym}/match/${opponentId}`;
 
     const pinUpdatedSnap = await get(ref(db, `${matchPath}/pinUpdated`));
-    if (pinUpdatedSnap.exists() && pinUpdatedSnap.val() === true) continue;
+    if (pinUpdatedSnap.val() === true) continue;
 
     if (result === 'win') {
-      gainedPins += pinDelta;
-      myPinDelta += pinDelta;
+      gainedPins += rate;
 
       if (type !== 'rival') {
         const oppPinSnap = await get(ref(db, `users/${opponentId}/pin`));
         const oppPin = Number(oppPinSnap.val() ?? 0);
-
-        if (oppPin >= pinDelta) {
+        if (oppPin >= rate) {
           opponentPinDeltas[opponentId] =
-            (opponentPinDeltas[opponentId] ?? 0) - pinDelta;
+            (opponentPinDeltas[opponentId] ?? 0) - rate;
         }
       }
 
       updates[rewardPath] = {
-        type,
+        type: 'match',
+        matchType: type,
         opponentId,
         opponentName,
         result,
-        direction: 'gain',
-        pin: pinDelta,
+        pin: rate,
         ym,
+        direction: 'gain',
         createdAt: getReadableTimestamp(),
         createdAtMs: Date.now(),
       };
@@ -77,8 +79,8 @@ export const applyPinChangeBatch = async (
     updates[`${matchPath}/pinUpdated`] = true;
   }
 
-  if (myPinDelta > 0) {
-    updates[`users/${myId}/pin`] = increment(myPinDelta);
+  if (gainedPins > 0) {
+    updates[`users/${myId}/pin`] = increment(gainedPins);
   }
 
   for (const [oppId, delta] of Object.entries(opponentPinDeltas)) {
@@ -87,9 +89,6 @@ export const applyPinChangeBatch = async (
 
   if (Object.keys(updates).length > 0) {
     await update(ref(db), updates);
-  }
-
-  if (gainedPins > 0) {
     showMatchWithPinToast(gainedPins, type);
   }
 };
@@ -125,35 +124,6 @@ export const applyPinRewardBatch = async (
   if (winCount > 0) {
     await incrementPinsByEmpId(myId, winCount * pinDelta);
   }
-};
-
-export const addPinUsage = async (
-  delta: number,
-  type: string,
-  detail: string,
-) => {
-  const empId = getCurrentUserId();
-  const { getServerNow, getServerTimestamp, formatServerDate } =
-    useUiStore.getState();
-
-  const serverNow = getServerNow();
-  const usageId = getServerTimestamp();
-  const yyyymm = formatServerDate('ym');
-  const readable = getServerTimestamp();
-
-  const finalDelta = delta > 0 ? -delta : delta;
-
-  await incrementPinsByEmpId(empId, finalDelta);
-
-  await update(ref(db), {
-    [`users/${empId}/pinUsage/${yyyymm}/${usageId}`]: {
-      createdAt: readable,
-      createdAtMs: serverNow.getTime(),
-      type,
-      detail,
-      delta: finalDelta,
-    },
-  });
 };
 
 export const grantTargetPinReward = async ({

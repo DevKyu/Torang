@@ -9,7 +9,7 @@ import {
 } from '../services/firebase';
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
-import { getYearMonth, isWithinActivityDays } from '../utils/date';
+import { isWithinActivityDays } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
 
@@ -21,7 +21,7 @@ import LetterListOverlay from './LetterListOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import type { YearMonth } from '../types/match';
+import type { MatchType, YearMonth } from '../types/match';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
 import {
@@ -39,7 +39,6 @@ import {
   HEADER_TOAST_MAP,
   EXCLUDED_EMP_IDS,
 } from '../constants/ranking';
-import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 
 import { useMatchPickedOverlay } from '../hooks/useMatchPickedOverlay';
 import { useMatchResult } from '../hooks/useMatchResult';
@@ -51,11 +50,12 @@ import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 import { applyPinChangeBatch } from '../utils/pin';
+import { useEventStore } from '../stores/eventStore';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
-const MATCH_TYPE: 'rival' | 'pin' = 'pin';
+let MATCH_TYPE: MatchType = 'pin';
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
@@ -67,14 +67,26 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   league: '리그',
 };
 
+const getMatchRewardKey = (type: MatchType) =>
+  type === 'rival' ? 'rivalMatch' : 'pinMatch';
+
 const Ranking = () => {
   const navigate = useNavigate();
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityAll } = useActivityDates();
+  const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
+
+  const { hasShownCongrats, setShownCongrats, formatServerDate, getServerNow } =
+    useUiStore();
+
+  const ym = formatServerDate('ym') as YearMonth;
+  const serverNow = getServerNow();
+  const year = serverNow.getFullYear();
+  const month = serverNow.getMonth() + 1;
 
   const participantsAll = useActivityParticipants(
-    String(CUR_YEAR) as Year,
-    String(CUR_MONTHN) as Month,
+    String(year) as Year,
+    String(month) as Month,
   );
 
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
@@ -82,10 +94,6 @@ const Ranking = () => {
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
-
-  const ym: YearMonth = getYearMonth();
-  const year = Number(CUR_YEAR);
-  const month = Number(CUR_MONTHN);
 
   const activityYmd = useMemo(() => {
     const current = activityAll[String(year)]?.[String(month)];
@@ -100,7 +108,6 @@ const Ranking = () => {
   const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
-  const { hasShownCongrats, setShownCongrats } = useUiStore();
   const hasRankingCongrats = hasShownCongrats.ranking;
 
   const monthlyEnabled = useMemo(
@@ -206,13 +213,8 @@ const Ranking = () => {
   const appliedRef = useRef(false);
 
   useEffect(() => {
-    if (!myId) return;
-    if (!matchResults) return;
-    if (appliedRef.current) return;
-
-    const shouldApply = hasMatchResults || hasIncoming;
-
-    if (!shouldApply) return;
+    if (!myId || !matchResults || appliedRef.current) return;
+    if (!hasMatchResults && !hasIncoming) return;
 
     appliedRef.current = true;
 
@@ -234,11 +236,11 @@ const Ranking = () => {
         );
 
         await applyPinChangeBatch(ym, myId, MATCH_TYPE, matchResults);
-      } catch (e) {
+      } catch {
         appliedRef.current = false;
       }
     })();
-  }, [matchResults, hasMatchResults, hasIncoming, myId, ym]);
+  }, [matchResults, myId, ym]);
 
   const resultMessages = useMemo(() => {
     if (!matchResults?.length) return [];
@@ -372,6 +374,7 @@ const Ranking = () => {
       return prev === 'monthly' ? 'quarter' : prev;
     });
   }, [monthlyEnabled]);
+
   const availableTabs = useMemo(() => {
     let base = monthlyEnabled
       ? RANKING_TABS
