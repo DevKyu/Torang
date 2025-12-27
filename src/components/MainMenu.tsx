@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GiftIcon,
   TargetIcon,
@@ -53,8 +53,23 @@ const ADMIN_MENU: MenuItemBase = {
   icon: <ShieldIcon size={20} />,
 };
 
+const DEFAULT_DISABLED: Record<string, boolean> = {
+  reward: true,
+  draw: true,
+};
+
+const PATH_MAP: Record<string, string> = {
+  user: '/myinfo',
+  draw: '/draw',
+  reward: '/reward',
+  rank: '/ranking',
+  admin: '/admin',
+  gallery: '/gallery',
+};
+
 const MainMenu = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
 
   const syncServerTime = useUiStore((s) => s.syncServerTime);
@@ -68,28 +83,25 @@ const MainMenu = () => {
     checkAdminId()
       .then(setIsAdmin)
       .catch(() => {});
-  }, [loadEventConfig, syncServerTime]);
+  }, [syncServerTime, loadEventConfig]);
+
+  useEffect(() => {
+    loadEventConfig();
+  }, [location.pathname, loadEventConfig]);
 
   const menuItems = useMemo<MenuItem[]>(() => {
     const base = isAdmin
       ? { ...BASE_MENU_MAP, admin: ADMIN_MENU }
       : BASE_MENU_MAP;
 
-    const DEFAULT_DISABLED: Record<string, boolean> = {
-      reward: true,
-      draw: true,
-    };
-
     return Object.keys(base)
       .map((id) => {
         const cfg = menuConfig[id];
-        const defaultDisabled = DEFAULT_DISABLED[id] ?? false;
-
         const disabled = !loaded
           ? true
           : cfg?.disabled !== undefined
             ? cfg.disabled
-            : defaultDisabled;
+            : (DEFAULT_DISABLED[id] ?? false);
 
         return {
           ...base[id],
@@ -104,17 +116,7 @@ const MainMenu = () => {
 
   const handleClick = (id: string, disabled: boolean) => {
     if (disabled) return;
-
-    const map: Record<string, string> = {
-      user: '/myinfo',
-      draw: '/draw',
-      reward: '/reward',
-      rank: '/ranking',
-      admin: '/admin',
-      gallery: '/gallery',
-    };
-
-    navigate(map[id], { replace: true });
+    navigate(PATH_MAP[id], { replace: true });
   };
 
   return (

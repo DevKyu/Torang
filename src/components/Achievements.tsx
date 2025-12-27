@@ -2,15 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { ref, update } from 'firebase/database';
 
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import {
-  db,
   getCurrentUserData,
   getCurrentUserId,
-  incrementUserPins,
   saveAchievements,
 } from '../services/firebase';
 import { checkAllAchievements } from '../utils/checkAllAchievements';
@@ -38,8 +35,10 @@ import {
 } from '../styles/achievementStyle';
 import { containerVariants, cardVariants } from '../styles/achievementVariants';
 import { Check } from 'lucide-react';
-import { showAchievementWithPinToast } from '../utils/toast';
 import { useUiStore } from '../stores/useUiStore';
+import { useEventStore } from '../stores/eventStore';
+import { grantAchievementPinReward } from '../utils/pin';
+import { showAchievemenToast } from '../utils/toast';
 
 const toMonthLabel = (dateStr: string): string => {
   const digits = dateStr.replace(/\D/g, '');
@@ -55,13 +54,14 @@ const Achievements = () => {
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
 
+  const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
+
   const [activeTab, setActiveTab] =
     useState<AchievementCategory>('participation');
   const [achievements, setAchievements] = useState<AchievementResult>({});
   const refs = useRef(new Map<AchievementCategory, HTMLDivElement | null>());
 
-  const { formatServerDate, isBeforeCutoff, getServerTimestamp, getServerNow } =
-    useUiStore();
+  const { formatServerDate, isBeforeCutoff, getServerNow } = useUiStore();
 
   useEffect(() => {
     if (activityLoading) return;
@@ -86,54 +86,41 @@ const Achievements = () => {
             !isBeforeCutoff(String(activityYmd), '18:30') &&
             String(todayYmd) !== lastCheck);
 
-        if (shouldRun) {
-          const newResults = await checkAllAchievements(user, existing);
-          const merged = { ...existing, ...newResults };
+        if (!shouldRun) {
+          setAchievements(existing);
+          return;
+        }
 
-          if (Object.keys(newResults).length > 0) {
-            confetti({
-              particleCount: 150,
-              spread: 100,
-              origin: { x: 0.5, y: 0.6 },
-              scalar: 1,
-              ticks: 200,
-              colors: ['#22c55e', '#3b82f6', '#facc15'],
-            });
+        const newResults = await checkAllAchievements(user, existing);
+        const merged = { ...existing, ...newResults };
 
-            showAchievementWithPinToast(0.5);
-            await incrementUserPins(0.5);
+        if (Object.keys(newResults).length > 0) {
+          const empId = getCurrentUserId();
 
-            const empId = getCurrentUserId();
-            const pinReward = 0.5;
-            const readableTime = getServerTimestamp();
-            const nowMs = getServerNow().getTime();
+          confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { x: 0.5, y: 0.6 },
+            scalar: 1,
+            ticks: 200,
+            colors: ['#22c55e', '#3b82f6', '#facc15'],
+          });
+          showAchievemenToast();
 
-            const ymServer = formatServerDate('ym');
+          if (isPinRewardEnabled('achievement') && empId) {
             const activityYm = activityYmd
               ? String(activityYmd).slice(0, 6)
-              : ymServer;
+              : formatServerDate('ym');
 
-            const rewardPath = `users/${empId}/rewards/${activityYm}/achievement/${readableTime}`;
-
-            if (empId) {
-              await update(ref(db), {
-                [rewardPath]: {
-                  type: 'achievement',
-                  detail: Object.keys(newResults).join(', '),
-                  direction: 'gain',
-                  pin: pinReward,
-                  ym: activityYm,
-                  createdAt: readableTime,
-                  createdAtMs: nowMs,
-                },
-              });
-            }
-
-            await saveAchievements(merged, String(todayYmd), true);
-            setAchievements(merged);
-          } else {
-            setAchievements(existing);
+            grantAchievementPinReward({
+              empId,
+              ym: activityYm,
+              payload: { detail: Object.keys(newResults).join(', ') },
+            });
           }
+
+          await saveAchievements(merged, String(todayYmd), true);
+          setAchievements(merged);
         } else {
           setAchievements(existing);
         }
@@ -147,7 +134,7 @@ const Achievements = () => {
     };
 
     init();
-  }, [activityLoading, activityMaps]);
+  }, [activityLoading, activityMaps, isPinRewardEnabled]);
 
   useEffect(() => {
     let ticking = false;
@@ -194,9 +181,8 @@ const Achievements = () => {
     const container = document.querySelector('[data-scroll-container]');
     const target = refs.current.get(key);
     if (!container || !target) return;
-    const top = target.offsetTop;
     (container as HTMLElement).scrollTo({
-      top,
+      top: target.offsetTop,
       behavior: 'smooth',
     });
   }, []);

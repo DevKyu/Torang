@@ -36,7 +36,7 @@ const baseToast = {
   },
 };
 
-export const showAchievementWithPinToast = (amount: number) => {
+export const showAchievemenToast = () => {
   toast('🏆 새로운 업적 달성', {
     ...baseToast,
     duration: 2000,
@@ -47,23 +47,23 @@ export const showAchievementWithPinToast = (amount: number) => {
       fontWeight: 600,
     },
   });
+};
 
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{amount}</b>개 획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-        },
+export const showPinRewardToast = (amount: number) => {
+  toast(
+    <span>
+      🎳 또랑핀 <b style={{ fontWeight: 700 }}>{amount}</b>개 획득!
+    </span>,
+    {
+      ...baseToast,
+      duration: 2000,
+      style: {
+        ...baseToast.style,
+        backgroundColor: '#ecfdf5',
+        color: '#065f46',
       },
-    );
-  }, 1500);
+    },
+  );
 };
 
 const hiddenNamesBaseToast = {

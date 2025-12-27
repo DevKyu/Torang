@@ -67,6 +67,48 @@ export const findStreakYms = (
   return achieved;
 };
 
+export const findAfterPartyStreakYms = (
+  participation: Record<string, Record<string, boolean>>,
+  streakTargets: number[],
+): Record<number, string> => {
+  const entries: string[] = [];
+
+  for (const [y, months] of Object.entries(participation)) {
+    for (const m of Object.keys(months)) {
+      entries.push(`${y}${String(m).padStart(2, '0')}`);
+    }
+  }
+
+  if (entries.length === 0) return {};
+
+  entries.sort();
+
+  const achieved: Record<number, string> = {};
+  let streak = 1;
+
+  for (let i = 1; i < entries.length; i++) {
+    const prev = entries[i - 1];
+    const curr = entries[i];
+
+    const py = +prev.slice(0, 4);
+    const pm = +prev.slice(4, 6);
+    const cy = +curr.slice(0, 4);
+    const cm = +curr.slice(4, 6);
+
+    const nextY = pm === 12 ? py + 1 : py;
+    const nextM = pm === 12 ? 1 : pm + 1;
+
+    if (cy === nextY && cm === nextM) streak++;
+    else streak = 1;
+
+    for (const t of streakTargets) {
+      if (streak === t && !achieved[t]) achieved[t] = curr;
+    }
+  }
+
+  return achieved;
+};
+
 export const findScoreStreakYm = (
   scores: Partial<Record<string, Partial<Record<string, number>>>>,
   minScore: number,

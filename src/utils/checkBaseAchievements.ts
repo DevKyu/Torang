@@ -12,6 +12,7 @@ import {
   todayYm,
   findScoreStreakYm,
   findPersonalBestYm,
+  findAfterPartyStreakYms,
 } from '../utils/achievementHelpers';
 
 export const checkBaseAchievements = async (
@@ -36,7 +37,7 @@ export const checkBaseAchievements = async (
   }
 
   const afterPartyMap = await getAfterPartyParticipation(empId);
-  const afterStreaks = findStreakYms(afterPartyMap, [3]);
+  const afterStreaks = findAfterPartyStreakYms(afterPartyMap, [3]);
   const after3m = afterStreaks[3];
   if (after3m && !existing['participation_afterparty_3']) {
     results['participation_afterparty_3'] = { achievedAt: after3m };

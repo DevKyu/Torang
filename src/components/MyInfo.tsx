@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ import {
 } from '../utils/score';
 import { getTypeLabel } from '../utils/user';
 import { canEditTarget } from '../utils/policy';
-import { setTargetScore } from '../services/firebase';
+import { getCurrentUserId, setTargetScore } from '../services/firebase';
 import RadixSelect from '../components/RadixSelect';
 import MonthCell from './MonthCell';
 import TrendBlock from './TrendBlock';
@@ -44,6 +44,8 @@ import type {
   UserScores,
   UserTargets,
 } from '../types/UserInfo';
+import { grantTargetPinReward } from '../utils/pin';
+import { useEventStore } from '../stores/eventStore';
 
 const MyInfo = () => {
   const navigate = useNavigate();
@@ -87,6 +89,7 @@ const MyInfo = () => {
   const activityYmdStr = activityYmd ? String(activityYmd) : undefined;
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
   const targetResult = useTargetResult(userInfo, activityYm, activityYmdStr, 7);
+  const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
 
   const yearOptions = useMemo<Year[]>(() => {
     const allYears = new Set(Object.keys(scores) as Year[]);
@@ -158,6 +161,39 @@ const MyInfo = () => {
     },
     [year, rollbackTarget],
   );
+
+  useEffect(() => {
+    if (!targetResult.show || !targetResult.achieved) return;
+    if (!isPinRewardEnabled('targetScore')) return;
+    if (!activityYmdStr) return;
+
+    const { myScore, target, special } = targetResult;
+    if (myScore == null || target == null) return;
+
+    const empId = getCurrentUserId();
+    if (!empId) return;
+
+    grantTargetPinReward({
+      empId,
+      ym: activityYm,
+      activityYmd: activityYmdStr,
+      payload: {
+        myScore,
+        target,
+        achieved: true,
+        special,
+      },
+    });
+  }, [
+    targetResult.show,
+    targetResult.achieved,
+    targetResult.myScore,
+    targetResult.target,
+    targetResult.special,
+    activityYmdStr,
+    isPinRewardEnabled,
+    activityYm,
+  ]);
 
   const overallAvg = useMemo(() => calcOverallAvg(scores), [scores]);
 

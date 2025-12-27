@@ -7,9 +7,25 @@ import {
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';
-import { showMatchWithPinToast } from './toast';
-import { getReadableTimestamp } from './date';
+import {
+  showMatchWithPinToast,
+  showPinRewardToast,
+  showTargetWithPinToast,
+} from './toast';
+import { getReadableTimestamp, isWithinActivityDays } from './date';
 import { useUiStore } from '../stores/useUiStore';
+import { useEventStore } from '../stores/eventStore';
+
+type TargetRewardPayload = {
+  myScore: number;
+  target: number;
+  achieved: boolean;
+  special: boolean;
+};
+
+type AchievementRewardPayload = {
+  detail: string;
+};
 
 export const applyPinChangeBatch = async (
   ym: YearMonth,
@@ -93,13 +109,10 @@ export const applyPinRewardBatch = async (
   for (const opponentId of opponentIds) {
     const match = allMatches[opponentId];
     if (!match) continue;
-
     if (match.pinUpdated) continue;
 
     const result = results[opponentId];
-    if (result === 'win') {
-      winCount++;
-    }
+    if (result === 'win') winCount++;
 
     updates[`matchResults/${ym}/${type}/${myId}/${opponentId}/pinUpdated`] =
       true;
@@ -141,4 +154,88 @@ export const addPinUsage = async (
       delta: finalDelta,
     },
   });
+};
+
+export const grantTargetPinReward = async ({
+  empId,
+  ym,
+  activityYmd,
+  payload,
+}: {
+  empId: string;
+  ym: string;
+  activityYmd: string;
+  payload: TargetRewardPayload;
+}) => {
+  if (!isWithinActivityDays(activityYmd, 7)) return false;
+
+  const rate = useEventStore.getState().getPinRewardRate('targetScore');
+  if (rate <= 0) return false;
+
+  const rewardPath = `users/${empId}/rewards/${ym}/target`;
+  const snap = await get(ref(db, rewardPath));
+  if (snap.exists()) return false;
+
+  await incrementPinsByEmpId(empId, rate);
+
+  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const now = getServerNow();
+  const readable = getServerTimestamp();
+
+  await update(ref(db), {
+    [rewardPath]: {
+      type: 'target',
+      ...payload,
+      pin: rate,
+      ym,
+      direction: 'gain',
+      createdAt: readable,
+      createdAtMs: now.getTime(),
+    },
+  });
+
+  showTargetWithPinToast(rate);
+
+  return true;
+};
+
+export const grantAchievementPinReward = async ({
+  empId,
+  ym,
+  payload,
+}: {
+  empId: string;
+  ym: string;
+  payload: AchievementRewardPayload;
+}) => {
+  const rate = useEventStore.getState().getPinRewardRate('achievement');
+  if (rate <= 0) return false;
+
+  const rewardPath = `users/${empId}/rewards/${ym}/achievement`;
+  const snap = await get(ref(db, rewardPath));
+  if (snap.exists()) return false;
+
+  await incrementPinsByEmpId(empId, rate);
+
+  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const now = getServerNow();
+  const readable = getServerTimestamp();
+
+  await update(ref(db), {
+    [rewardPath]: {
+      type: 'achievement',
+      ...payload,
+      pin: rate,
+      ym,
+      direction: 'gain',
+      createdAt: readable,
+      createdAtMs: now.getTime(),
+    },
+  });
+
+  setTimeout(() => {
+    showPinRewardToast(rate);
+  }, 1500);
+
+  return true;
 };

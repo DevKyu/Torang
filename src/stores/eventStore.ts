@@ -4,11 +4,11 @@ import { db } from '../services/firebase';
 import { useUiStore } from './useUiStore';
 
 export type PinRewardConfig = {
-  isTargetScore: boolean;
-  isRivalMatch: boolean;
-  isPinMatch: boolean;
-  isAchievement: boolean;
-  isGalleryUpload: boolean;
+  targetScore: number;
+  rivalMatch: number;
+  pinMatch: number;
+  achievement: number;
+  galleryUpload: number;
 };
 
 export type MenuBadgeType = 'new' | 'soon' | 'hot';
@@ -27,11 +27,11 @@ const DEFAULT_MENU: MenuConfigItem = {
 };
 
 const DEFAULT_REWARD: PinRewardConfig = {
-  isTargetScore: false,
-  isRivalMatch: false,
-  isPinMatch: false,
-  isAchievement: false,
-  isGalleryUpload: false,
+  targetScore: 0,
+  rivalMatch: 0,
+  pinMatch: 0,
+  achievement: 0,
+  galleryUpload: 0,
 };
 
 type EventStore = {
@@ -45,6 +45,7 @@ type EventStore = {
   isMenuDisabled(id: string): boolean;
 
   getThisMonthPinReward(): PinRewardConfig;
+  getPinRewardRate(key: keyof PinRewardConfig): number;
   isPinRewardEnabled(key: keyof PinRewardConfig): boolean;
 };
 
@@ -94,7 +95,11 @@ export const useEventStore = create<EventStore>((set, get) => ({
     return { ...DEFAULT_REWARD, ...(get().pinReward[ym] ?? {}) };
   },
 
+  getPinRewardRate: (key) => {
+    return get().getThisMonthPinReward()[key] || 0;
+  },
+
   isPinRewardEnabled: (key) => {
-    return get().getThisMonthPinReward()[key];
+    return get().getPinRewardRate(key) > 0;
   },
 }));
