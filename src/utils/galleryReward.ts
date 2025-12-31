@@ -5,6 +5,7 @@ import {
   incrementPinsByEmpId,
 } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
+import { useEventStore } from '../stores/eventStore';
 import { GALLERY_POLICY } from './galleryPolicy';
 import { showGalleryRewardToast } from './toast';
 
@@ -13,15 +14,19 @@ export const rewardGalleryMaxUpload = async (yyyymm: string) => {
   if (!empId) return null;
 
   const rewardRef = ref(db, `users/${empId}/gallery/uploadReward/${yyyymm}`);
-
   const snap = await get(rewardRef);
+
   if (snap.exists()) return null;
 
   const { getServerNow, getServerTimestamp } = useUiStore.getState();
 
+  const { getPinRewardRate } = useEventStore.getState();
+  const pin = getPinRewardRate('galleryUpload');
+
+  if (!pin || pin <= 0) return null;
+
   const rewardedAt = getServerTimestamp();
   const nowMs = getServerNow().getTime();
-  const pin = GALLERY_POLICY.REWARD_PIN;
 
   await incrementPinsByEmpId(empId, pin);
   await update(ref(db), {
@@ -44,6 +49,5 @@ export const rewardGalleryMaxUpload = async (yyyymm: string) => {
   });
 
   showGalleryRewardToast(pin);
-
   return pin;
 };
