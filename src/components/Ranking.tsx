@@ -52,6 +52,7 @@ import { useUiStore } from '../stores/useUiStore';
 import { applyPinChangeBatch } from '../utils/pin';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
+const TAB_PRIORITY: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
 let MATCH_TYPE: MatchType = 'pin';
@@ -103,8 +104,6 @@ const Ranking = () => {
   const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
-  const hasRankingCongrats = hasShownCongrats.ranking;
-
   const monthlyEnabled = useMemo(
     () => participantsAll.length > 0 && isWithinActivityDays(activityYmd, 7),
     [participantsAll, activityYmd],
@@ -133,13 +132,6 @@ const Ranking = () => {
     };
   }, []);
 
-  const ranking: RankingEntry[] = useMemo(() => {
-    if (!Object.keys(users).length) return [];
-    return mapUsersToRankingEntries(users, rankingType, participants).filter(
-      (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
-    );
-  }, [users, rankingType, participants]);
-
   const hasQuarterData = useMemo(() => {
     return (
       mapUsersToRankingEntries(users, 'quarter').filter(
@@ -147,6 +139,39 @@ const Ranking = () => {
       ).length > 0
     );
   }, [users]);
+
+  const hasYearData = useMemo(() => {
+    return (
+      mapUsersToRankingEntries(users, 'year').filter(
+        (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
+      ).length > 0
+    );
+  }, [users]);
+
+  const availableTabs = useMemo(() => {
+    let base = monthlyEnabled
+      ? RANKING_TABS
+      : RANKING_TABS.filter((t) => t !== 'monthly');
+
+    if (!hasQuarterData) base = base.filter((t) => t !== 'quarter');
+    if (!hasYearData) base = base.filter((t) => t !== 'year');
+
+    return base;
+  }, [monthlyEnabled, hasQuarterData, hasYearData]);
+
+  useEffect(() => {
+    if (!availableTabs.length) return;
+    const first = TAB_PRIORITY.find((t) => availableTabs.includes(t));
+    if (!first) return;
+    setRankingType((prev) => (availableTabs.includes(prev) ? prev : first));
+  }, [availableTabs]);
+
+  const ranking: RankingEntry[] = useMemo(() => {
+    if (!Object.keys(users).length) return [];
+    return mapUsersToRankingEntries(users, rankingType, participants).filter(
+      (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
+    );
+  }, [users, rankingType, participants]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -210,9 +235,7 @@ const Ranking = () => {
   useEffect(() => {
     if (!myId || !matchResults || appliedRef.current) return;
     if (!hasMatchResults && !hasIncoming) return;
-
     appliedRef.current = true;
-
     (async () => {
       try {
         await Promise.all(
@@ -229,7 +252,6 @@ const Ranking = () => {
             ),
           ),
         );
-
         await applyPinChangeBatch(ym, myId, MATCH_TYPE, matchResults);
       } catch {
         appliedRef.current = false;
@@ -361,24 +383,6 @@ const Ranking = () => {
     [rankingType, ym, myId, timeAllowed, myLeague],
   );
 
-  useEffect(() => {
-    setRankingType((prev) => {
-      if (monthlyEnabled) {
-        return prev === 'quarter' || prev === 'monthly' ? 'monthly' : prev;
-      }
-      return prev === 'monthly' ? 'quarter' : prev;
-    });
-  }, [monthlyEnabled]);
-
-  const availableTabs = useMemo(() => {
-    let base = monthlyEnabled
-      ? RANKING_TABS
-      : RANKING_TABS.filter((t) => t !== 'monthly');
-
-    if (!hasQuarterData) base = base.filter((t) => t !== 'quarter');
-    return base;
-  }, [monthlyEnabled, hasQuarterData]);
-
   return (
     <Container>
       <RankingContentBox maxWidth="480px">
@@ -440,7 +444,7 @@ const Ranking = () => {
       />
 
       <CongratulationOverlay
-        open={showCongrats && !hasRankingCongrats}
+        open={showCongrats && !hasShownCongrats.ranking}
         mainResult={mainResults}
         message={messagesSafe}
         delta={deltas}
