@@ -29,6 +29,7 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isPasswordChangeMode, setIsPasswordChangeMode] = useState(false);
+  const [referrerName, setReferrerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,7 +49,7 @@ const Login = () => {
 
     switch (name) {
       case 'employeeId':
-        if (/^\d*$/.test(value) && isValid(value, 8)) setEmployeeId(value);
+        if (/^\d*$/.test(value)) setEmployeeId(value.slice(0, 8));
         break;
       case 'password':
         if (isValid(value)) setPassword(value);
@@ -58,6 +59,9 @@ const Login = () => {
         break;
       case 'newPasswordConfirm':
         if (isValid(value)) setNewPasswordConfirm(value);
+        break;
+      case 'referrerName':
+        setReferrerName(value.slice(0, 10));
         break;
     }
   };
@@ -201,7 +205,7 @@ const Login = () => {
       }
 
       const user = await linkAnonymousAccount(email, newPassword);
-      await registerUid(employeeId);
+      await registerUid(employeeId, referrerName);
       if (user) {
         toast.success('비밀번호를 설정했어요.');
         navigate('/menu', { replace: true });
@@ -219,12 +223,11 @@ const Login = () => {
       await deleteUser(user).catch(() => {});
     }
 
-    setTimeout(() => {
-      setIsPasswordChangeMode(false);
-      setError('');
-      setNewPassword('');
-      setNewPasswordConfirm('');
-    }, 150);
+    setIsPasswordChangeMode(false);
+    setError('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    setReferrerName('');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -253,6 +256,7 @@ const Login = () => {
         onChange={handleChange}
         disabled={isPasswordChangeMode}
         value={employeeId}
+        maxLength={8}
       />
       <Input
         type="password"
@@ -262,6 +266,7 @@ const Login = () => {
         onChange={handleChange}
         disabled={isPasswordChangeMode}
         value={password}
+        maxLength={20}
       />
     </>
   );
@@ -276,6 +281,7 @@ const Login = () => {
         autoComplete="new-password"
         onChange={handleChange}
         value={newPassword}
+        maxLength={20}
       />
       <Input
         type="password"
@@ -284,6 +290,15 @@ const Login = () => {
         autoComplete="new-password"
         onChange={handleChange}
         value={newPasswordConfirm}
+        maxLength={20}
+      />
+      <Input
+        type="text"
+        name="referrerName"
+        placeholder="추천인 이름 (선택)"
+        onChange={handleChange}
+        value={referrerName}
+        maxLength={10}
       />
     </>
   );

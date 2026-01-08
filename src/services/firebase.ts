@@ -25,7 +25,7 @@ import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
 import { CUR_MONTHN, CUR_YEAR } from '../constants/date';
-import { getReadableTimestamp } from '../utils/date';
+import { getReadableTimestamp, getYearMonth } from '../utils/date';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -87,9 +87,36 @@ export const checkEmpId = async (empId: string) => {
   return snapshot.exists() ? snapshot.val() : null;
 };
 
-export const registerUid = async (empId: string) => {
+export const registerUid = async (empId: string, referrerName?: string) => {
   const uid = getCurrentUserOrThrow().uid;
-  await set(ref(db, `users/${empId}/uid`), uid);
+  const join = getYearMonth();
+
+  const updates: Record<string, any> = { uid, join };
+
+  if (referrerName && referrerName.trim()) {
+    const refEmpId = await findEmpIdByName(referrerName.trim());
+
+    if (refEmpId) {
+      updates.referrer = {
+        empId: refEmpId,
+        name: referrerName.trim(),
+      };
+    }
+  }
+
+  await update(ref(db, `users/${empId}`), updates);
+};
+
+export const findEmpIdByName = async (name: string): Promise<string | null> => {
+  const snap = await get(ref(db, 'names'));
+  if (!snap.exists()) return null;
+
+  const names = snap.val() as Record<string, string>;
+  const entry = Object.entries(names).find(
+    ([, v]) => v.replace(/\s/g, '') === name.replace(/\s/g, ''),
+  );
+
+  return entry ? entry[0] : null;
 };
 
 export const getUsedItems = async (): Promise<Set<string>> => {
