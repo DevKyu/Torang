@@ -7,6 +7,7 @@ import {
   UserIcon,
   ShieldIcon,
   ImagesIcon,
+  History,
 } from 'lucide-react';
 import { logOut, checkAdminId } from '../services/firebase';
 
@@ -38,12 +39,19 @@ type MenuItem = MenuItemBase & {
 const BASE_MENU_MAP: Record<string, MenuItemBase> = {
   user: { id: 'user', label: '내정보', icon: <UserIcon size={20} /> },
   rank: { id: 'rank', label: '또랑 랭킹', icon: <UsersIcon size={20} /> },
-  reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
+  history: {
+    id: 'history',
+    label: '활동 기록',
+    icon: <History size={20} />,
+  },
+
   gallery: {
     id: 'gallery',
     label: '또랑 갤러리',
     icon: <ImagesIcon size={20} />,
   },
+
+  reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
   draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
 };
 
@@ -65,6 +73,7 @@ const PATH_MAP: Record<string, string> = {
   rank: '/ranking',
   admin: '/admin',
   gallery: '/gallery',
+  history: '/history',
 };
 
 const MainMenu = () => {
@@ -116,7 +125,10 @@ const MainMenu = () => {
 
   const handleClick = (id: string, disabled: boolean) => {
     if (disabled) return;
-    navigate(PATH_MAP[id], { replace: true });
+
+    const path = PATH_MAP[id];
+    if (!path) return;
+    navigate(path, { replace: true });
   };
 
   return (

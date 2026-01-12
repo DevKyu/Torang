@@ -27,8 +27,24 @@ import {
   ToggleLabel,
 } from '../../styles/AdminEventStyle';
 
-const MENU_KEYS = ['user', 'rank', 'reward', 'gallery', 'draw'] as const;
+const MENU_KEYS = [
+  'user',
+  'rank',
+  'history',
+  'gallery',
+  'reward',
+  'draw',
+] as const;
 type MenuKey = (typeof MENU_KEYS)[number];
+
+const MENU_LABEL: Record<MenuKey, string> = {
+  user: '내정보',
+  rank: '또랑 랭킹',
+  history: '활동 기록',
+  gallery: '또랑 갤러리',
+  reward: '상품 신청',
+  draw: '추첨 결과',
+};
 
 const PIN_KEYS = [
   'achievement',
@@ -90,7 +106,11 @@ export default function AdminEvent() {
   }, [loadEventConfig]);
 
   useEffect(() => {
-    setMenuDraft(menu as MenuDraft);
+    const next: MenuDraft = {} as MenuDraft;
+    MENU_KEYS.forEach((k) => {
+      next[k] = menu[k] ?? {};
+    });
+    setMenuDraft(next);
   }, [menu]);
 
   useEffect(() => {
@@ -122,7 +142,7 @@ export default function AdminEvent() {
             return (
               <MenuCard key={id}>
                 <MenuCardHeader>
-                  <span>{id}</span>
+                  <span>{MENU_LABEL[id]}</span>
                   <ToggleLabel>
                     <input
                       type="checkbox"

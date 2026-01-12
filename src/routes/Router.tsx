@@ -4,10 +4,11 @@ import Menu from '../components/MainMenu';
 import Reward from '../components/Reward';
 import Draw from '../components/Draw';
 import MyInfo from '../components/MyInfo';
+import History from '../components/History';
 import Ranking from '../components/Ranking';
 import Achievements from '../components/Achievements';
-import AdminUserManagement from '../components/admin/AdminUserManagement';
 import GalleryPage from '../components/gallery/GalleryPage';
+import AdminUserManagement from '../components/admin/AdminUserManagement';
 import AdminEvent from '../components/admin/AdminEvent';
 
 const Router = () => (
@@ -22,6 +23,7 @@ const Router = () => (
     <Route path="/admin" element={<AdminUserManagement />} />
     <Route path="/admin/event" element={<AdminEvent />} />
     <Route path="/gallery" element={<GalleryPage />} />
+    <Route path="/history" element={<History />} />
   </Routes>
 );
 
