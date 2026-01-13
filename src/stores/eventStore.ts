@@ -9,6 +9,7 @@ export type PinRewardConfig = {
   pinMatch: number;
   achievement: number;
   galleryUpload: number;
+  referral: number;
 };
 
 export type MenuBadgeType = 'new' | 'soon' | 'hot';
@@ -32,6 +33,7 @@ const DEFAULT_REWARD: PinRewardConfig = {
   pinMatch: 0,
   achievement: 0,
   galleryUpload: 0,
+  referral: 0,
 };
 
 type EventStore = {
