@@ -22,6 +22,7 @@ import {
 } from '../styles/menuStyle';
 import { useEventStore, type MenuBadgeType } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
+import { applyReferralRewardIfNeeded } from '../utils/pin';
 
 type MenuItemBase = {
   id: string;
@@ -87,11 +88,18 @@ const MainMenu = () => {
   const loaded = useEventStore((s) => s.loaded);
 
   useEffect(() => {
-    syncServerTime();
-    loadEventConfig();
-    checkAdminId()
-      .then(setIsAdmin)
-      .catch(() => {});
+    const run = async () => {
+      await syncServerTime();
+      await loadEventConfig();
+      await applyReferralRewardIfNeeded();
+
+      try {
+        const isAdmin = await checkAdminId();
+        setIsAdmin(isAdmin);
+      } catch {}
+    };
+
+    run();
   }, [syncServerTime, loadEventConfig]);
 
   useEffect(() => {

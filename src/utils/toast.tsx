@@ -211,6 +211,38 @@ export const showGalleryRewardToast = (amount: number) => {
         style: {
           ...baseToast.style,
           backgroundColor: '#ecfdf5',
+          color: '#0369a1',
+          fontWeight: 600,
+        },
+      },
+    );
+  }, 1500);
+};
+
+export const showReferrerRewardToast = (amount: number) => {
+  toast('🤝 친구 추천으로 가입 완료!', {
+    ...baseToast,
+    duration: 2000,
+    style: {
+      ...baseToast.style,
+      backgroundColor: '#f0f9ff',
+      color: '#0369a1',
+      fontWeight: 600,
+    },
+  });
+
+  setTimeout(() => {
+    toast(
+      <span>
+        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
+        지급!
+      </span>,
+      {
+        ...baseToast,
+        duration: 2000,
+        style: {
+          ...baseToast.style,
+          backgroundColor: '#ecfdf5',
           color: '#065f46',
           fontWeight: 600,
         },

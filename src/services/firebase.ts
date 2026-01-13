@@ -98,8 +98,8 @@ export const registerUid = async (empId: string, referrerName?: string) => {
 
     if (refEmpId) {
       updates.referrer = {
-        empId: refEmpId,
-        name: referrerName.trim(),
+        refEmpId: refEmpId,
+        referrerName: referrerName.trim(),
       };
     }
   }

@@ -52,6 +52,7 @@ const PIN_KEYS = [
   'rivalMatch',
   'pinMatch',
   'galleryUpload',
+  'referral',
 ] as const;
 type PinKey = (typeof PIN_KEYS)[number];
 
@@ -61,6 +62,7 @@ const PIN_LABEL: Record<PinKey, string> = {
   rivalMatch: '🥊 라이벌 매치',
   pinMatch: '📌 핀 매치',
   galleryUpload: '📸 갤러리 업로드',
+  referral: '🤝 친구 추천',
 };
 
 type MenuDraft = Record<
@@ -76,6 +78,7 @@ const DEFAULT_REWARD: RewardDraft = {
   rivalMatch: 0,
   pinMatch: 0,
   galleryUpload: 0,
+  referral: 0,
 };
 
 const RATE_OPTIONS = [0.5, 1, 1.5, 2];

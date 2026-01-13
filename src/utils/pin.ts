@@ -1,11 +1,16 @@
-import { ref, get, update, increment } from 'firebase/database';
-import { db, incrementPinsByEmpId } from '../services/firebase';
+import { ref, get, update, increment, runTransaction } from 'firebase/database';
+import {
+  db,
+  getCurrentUserId,
+  incrementPinsByEmpId,
+} from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import type { Result } from './ranking';
 import {
   showMatchWithPinToast,
   showPinRewardToast,
+  showReferrerRewardToast,
   showTargetWithPinToast,
 } from './toast';
 import { getReadableTimestamp, isWithinActivityDays } from './date';
@@ -21,6 +26,27 @@ type TargetRewardPayload = {
 
 type AchievementRewardPayload = {
   detail: string;
+};
+
+type ApplyPinRewardPayload = {
+  empId: string;
+  pin: number;
+  type: 'match' | 'referral';
+  ym: string;
+  detail?: string;
+};
+
+export const applyPinRewardServer = async (payload: ApplyPinRewardPayload) => {
+  const res = await fetch('/api/apply-pin-reward', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`applyPinRewardServer failed: ${text}`);
+  }
 };
 
 export const applyPinChangeBatch = async (
@@ -203,5 +229,54 @@ export const grantAchievementPinReward = async ({
     showPinRewardToast(rate);
   }, 1500);
 
+  return true;
+};
+export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
+  const empId = getCurrentUserId();
+  if (!empId) return false;
+
+  const pin = useEventStore.getState().getPinRewardRate('referral');
+  if (pin <= 0) return false;
+
+  const referrerRef = ref(db, `users/${empId}/referrer`);
+  const snap = await get(referrerRef);
+  if (!snap.exists()) return false;
+
+  const data = snap.val();
+  if (!data.refEmpId || data.rewarded) return false;
+
+  const { getServerTimestamp, formatServerDate } = useUiStore.getState();
+  const rewardedAt = getServerTimestamp();
+  const ym = formatServerDate('ym');
+
+  const tx = await runTransaction(referrerRef, (cur) => {
+    if (!cur || cur.rewarded) return cur;
+    return {
+      ...cur,
+      rewarded: true,
+      rewardedAt,
+    };
+  });
+
+  if (!tx.committed) return false;
+
+  await Promise.all([
+    applyPinRewardServer({
+      empId: data.refEmpId,
+      pin,
+      type: 'referral',
+      ym,
+      detail: `${data.referrerName ?? empId} 추천인 보상`,
+    }),
+    applyPinRewardServer({
+      empId,
+      pin,
+      type: 'referral',
+      ym,
+      detail: `${data.referrerName ?? ''} 추천 가입 보상`,
+    }),
+  ]);
+
+  setTimeout(() => showReferrerRewardToast(pin), 1500);
   return true;
 };
