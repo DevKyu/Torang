@@ -1,8 +1,10 @@
 import { ref, get, update, increment, runTransaction } from 'firebase/database';
 import {
   db,
+  getCachedUserName,
   getCurrentUserId,
   incrementPinsByEmpId,
+  preloadAllNames,
 } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
@@ -231,6 +233,7 @@ export const grantAchievementPinReward = async ({
 
   return true;
 };
+
 export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
   const empId = getCurrentUserId();
   if (!empId) return false;
@@ -260,20 +263,24 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
 
   if (!tx.committed) return false;
 
+  await preloadAllNames();
+  const myName = getCachedUserName(empId);
+  const referrerName = getCachedUserName(data.refEmpId);
+
   await Promise.all([
     applyPinRewardServer({
       empId: data.refEmpId,
       pin,
       type: 'referral',
       ym,
-      detail: `${data.referrerName ?? empId} 추천인 보상`,
+      detail: `${myName}님 추천 가입`,
     }),
     applyPinRewardServer({
       empId,
       pin,
       type: 'referral',
       ym,
-      detail: `${data.referrerName ?? ''} 추천 가입 보상`,
+      detail: `${referrerName}님 추천으로 가입`,
     }),
   ]);
 
