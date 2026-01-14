@@ -220,7 +220,7 @@ export const showGalleryRewardToast = (amount: number) => {
 };
 
 export const showReferrerRewardToast = (amount: number) => {
-  toast('🤝 친구 추천으로 가입 완료!', {
+  toast('🤝 친구 추천으로 가입했어요!', {
     ...baseToast,
     duration: 2000,
     style: {
@@ -235,7 +235,7 @@ export const showReferrerRewardToast = (amount: number) => {
     toast(
       <span>
         🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        지급!
+        획득!
       </span>,
       {
         ...baseToast,
