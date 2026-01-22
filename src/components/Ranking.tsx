@@ -9,7 +9,6 @@ import {
 } from '../services/firebase';
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
-import { isWithinActivityDays } from '../utils/date';
 import { showToast } from '../utils/toast';
 import { useLoading } from '../contexts/LoadingContext';
 
@@ -104,10 +103,10 @@ const Ranking = () => {
   const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
-  const monthlyEnabled = useMemo(
-    () => participantsAll.length > 0 && isWithinActivityDays(activityYmd, 7),
-    [participantsAll, activityYmd],
-  );
+  const monthlyEnabled = useMemo(() => {
+    if (!activityYmd) return false;
+    return participantsAll.length > 0 && timeAllowed;
+  }, [participantsAll, activityYmd, timeAllowed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,9 +160,14 @@ const Ranking = () => {
 
   useEffect(() => {
     if (!availableTabs.length) return;
+
+    if (availableTabs.includes('monthly')) {
+      setRankingType('monthly');
+      return;
+    }
+
     const first = TAB_PRIORITY.find((t) => availableTabs.includes(t));
-    if (!first) return;
-    setRankingType((prev) => (availableTabs.includes(prev) ? prev : first));
+    if (first) setRankingType(first);
   }, [availableTabs]);
 
   const ranking: RankingEntry[] = useMemo(() => {

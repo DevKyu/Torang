@@ -101,7 +101,7 @@ export const mapUsersToRankingEntries = (
   if (sorted.length === 0) return [];
 
   const total = sorted.length;
-  const leagueCount = Math.ceil(total / 4);
+  const leagueCount = Math.ceil(total / 6);
   const leagueSize = Math.ceil(total / leagueCount);
 
   return sorted.map((entry, idx) => {
