@@ -54,7 +54,7 @@ const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const TAB_PRIORITY: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
-let MATCH_TYPE: MatchType = 'pin';
+let MATCH_TYPE: MatchType = 'rival';
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
