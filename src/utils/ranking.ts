@@ -1,7 +1,7 @@
 import type { Month, Year, UserScores, UserInfo } from '../types/UserInfo';
 import type { RankingEntry, RankingType } from '../types/Ranking';
 import { useUiStore } from '../stores/useUiStore';
-import { getRecent3MonthScores } from './score';
+import { getRecent3Scores } from './score';
 
 const QUARTER_MONTHS_MAP: Record<number, Month[]> = {
   1: ['1', '2', '3'],
@@ -17,7 +17,7 @@ export const calculateScoreStats = (
   if (!scores) return { average: 0, games: 0, max: 0 };
 
   if (type === 'monthly') {
-    const recent = getRecent3MonthScores(scores);
+    const recent = getRecent3Scores(scores);
     const games = recent.length;
     const total = recent.reduce((a, b) => a + b, 0);
     const max = games ? Math.max(...recent) : 0;

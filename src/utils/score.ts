@@ -1,4 +1,3 @@
-import { useUiStore } from '../stores/useUiStore';
 import type { Month, UserScores, Year } from '../types/UserInfo';
 
 export const quarters = {
@@ -46,35 +45,39 @@ export const getPrevQuarter = (
     : [y, quarterList[idx - 1]];
 };
 
-export const getRecent3MonthScores = (scores: UserScores): number[] => {
-  const { formatServerDate } = useUiStore.getState();
-  const baseYm = formatServerDate('ym');
-
-  const entries: string[] = [];
+export const getRecent3Scores = (scores: UserScores): number[] => {
+  const entries: Array<{ y: Year; m: Month; ym: number }> = [];
 
   for (const y of Object.keys(scores)) {
     const year = asYear(y);
     for (const m of Object.keys(scores[year] ?? {})) {
-      const month = asMonth(m);
-      if (typeof scores[year]?.[month] === 'number') {
-        entries.push(`${y}${String(m).padStart(2, '0')}`);
+      const monthNum = Number(m);
+      const score = scores[year]?.[m as Month];
+
+      if (Number.isFinite(score)) {
+        entries.push({
+          y: year,
+          m: String(monthNum) as Month,
+          ym: Number(`${y}${String(monthNum).padStart(2, '0')}`),
+        });
       }
     }
   }
 
-  const recentYms = entries
-    .filter((ym) => ym <= baseYm)
-    .sort((a, b) => Number(b) - Number(a))
-    .slice(0, 3);
-
-  return recentYms
-    .map((ym) => {
-      const y = asYear(ym.slice(0, 4));
-      const m = asMonth(ym.slice(4, 6));
-      return scores[y]?.[m];
-    })
+  return entries
+    .sort((a, b) => b.ym - a.ym)
+    .slice(0, 3)
+    .map(({ y, m }) => scores[y]?.[m])
     .filter((v): v is number => typeof v === 'number');
 };
 
 export const asYear = <T extends string>(v: T | Year): Year => v as Year;
 export const asMonth = <T extends string>(v: T | Month): Month => v as Month;
+
+export const normalizeMonth = (m: string | number): Month | null => {
+  const n = Number(m);
+  if (!Number.isInteger(n) || n < 1 || n > 12) {
+    return null;
+  }
+  return String(n) as Month;
+};

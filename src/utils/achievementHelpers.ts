@@ -1,30 +1,31 @@
-import { asYear, asMonth } from './score';
-import type { UserScores } from '../types/UserInfo';
+import type { Month, UserScores } from '../types/UserInfo';
 import { useUiStore } from '../stores/useUiStore';
+import { asYear, normalizeMonth } from './score';
 
-export const today = (): string => {
-  const { getServerNow } = useUiStore.getState();
-  return getServerNow().toISOString().slice(0, 10);
-};
+export const today = (): string =>
+  useUiStore.getState().getServerNow().toISOString().slice(0, 10);
 
-export const todayYm = (): string => {
-  const { formatServerDate } = useUiStore.getState();
-  return formatServerDate('ym');
-};
+export const todayYm = (): string =>
+  useUiStore.getState().formatServerDate('ym');
 
 export const formatYm = (year: number, month: number): string =>
   `${year}${String(month).padStart(2, '0')}`;
 
 export const findFirstParticipationYm = (scores: UserScores): string | null => {
-  const years = Object.keys(scores).sort();
+  const years = Object.keys(scores).sort((a, b) => Number(a) - Number(b));
+
   for (const y of years) {
-    const yearKey = asYear(y);
-    const months = Object.keys(scores[yearKey] ?? {})
-      .map((m) => parseInt(m, 10))
-      .filter((m) => typeof scores[yearKey]?.[asMonth(String(m))] === 'number')
-      .sort((a, b) => a - b);
-    if (months.length > 0) return `${y}${String(months[0]).padStart(2, '0')}`;
+    const yearScores = scores[asYear(y)];
+    if (!yearScores) continue;
+
+    const months = Object.keys(yearScores)
+      .map(normalizeMonth)
+      .filter((m): m is Month => !!m && typeof yearScores[m] === 'number')
+      .sort((a, b) => Number(a) - Number(b));
+
+    if (months.length) return formatYm(Number(y), Number(months[0]));
   }
+
   return null;
 };
 
@@ -32,38 +33,45 @@ export const findStreakYms = (
   scores: UserScores,
   streakTargets: number[],
 ): Record<number, string> => {
-  const entries: string[] = [];
+  const entries: number[] = [];
+
   for (const y of Object.keys(scores)) {
-    const yearKey = asYear(y);
-    for (const m of Object.keys(scores[yearKey] ?? {})) {
-      const mKey = asMonth(m);
-      if (
-        typeof scores[yearKey]?.[mKey] === 'number' ||
-        scores[yearKey]?.[mKey] === true
-      ) {
-        entries.push(`${y}${String(m).padStart(2, '0')}`);
+    const yearScores = scores[asYear(y)];
+    if (!yearScores) continue;
+
+    for (const m of Object.keys(yearScores)) {
+      const mKey = normalizeMonth(m);
+      if (!mKey) continue;
+
+      const v = yearScores[mKey];
+      if (typeof v === 'number' || v === true) {
+        entries.push(Number(`${y}${String(mKey).padStart(2, '0')}`));
       }
     }
   }
-  if (entries.length === 0) return {};
-  entries.sort();
+
+  if (!entries.length) return {};
+
+  entries.sort((a, b) => a - b);
+
   const achieved: Record<number, string> = {};
   let streak = 1;
+
   for (let i = 1; i < entries.length; i++) {
-    const prev = entries[i - 1];
-    const curr = entries[i];
-    const prevY = +prev.slice(0, 4);
-    const prevM = +prev.slice(4, 6);
-    const currY = +curr.slice(0, 4);
-    const currM = +curr.slice(4, 6);
-    const nextY = prevM === 12 ? prevY + 1 : prevY;
-    const nextM = prevM === 12 ? 1 : prevM + 1;
-    if (currY === nextY && currM === nextM) streak++;
-    else streak = 1;
-    streakTargets.forEach((target) => {
-      if (streak >= target && !achieved[target]) achieved[target] = curr;
-    });
+    const [py, pm] = [Math.floor(entries[i - 1] / 100), entries[i - 1] % 100];
+    const [cy, cm] = [Math.floor(entries[i] / 100), entries[i] % 100];
+
+    const isNext =
+      (pm === 12 && cy === py + 1 && cm === 1) ||
+      (pm !== 12 && cy === py && cm === pm + 1);
+
+    streak = isNext ? streak + 1 : 1;
+
+    for (const t of streakTargets) {
+      if (streak >= t && !achieved[t]) achieved[t] = String(entries[i]);
+    }
   }
+
   return achieved;
 };
 
@@ -71,38 +79,32 @@ export const findAfterPartyStreakYms = (
   participation: Record<string, Record<string, boolean>>,
   streakTargets: number[],
 ): Record<number, string> => {
-  const entries: string[] = [];
+  const entries = Object.entries(participation)
+    .flatMap(([y, months]) =>
+      Object.keys(months)
+        .map(normalizeMonth)
+        .filter((m): m is Month => !!m)
+        .map((m) => Number(`${y}${String(m).padStart(2, '0')}`)),
+    )
+    .sort((a, b) => a - b);
 
-  for (const [y, months] of Object.entries(participation)) {
-    for (const m of Object.keys(months)) {
-      entries.push(`${y}${String(m).padStart(2, '0')}`);
-    }
-  }
-
-  if (entries.length === 0) return {};
-
-  entries.sort();
+  if (!entries.length) return {};
 
   const achieved: Record<number, string> = {};
   let streak = 1;
 
   for (let i = 1; i < entries.length; i++) {
-    const prev = entries[i - 1];
-    const curr = entries[i];
+    const [py, pm] = [Math.floor(entries[i - 1] / 100), entries[i - 1] % 100];
+    const [cy, cm] = [Math.floor(entries[i] / 100), entries[i] % 100];
 
-    const py = +prev.slice(0, 4);
-    const pm = +prev.slice(4, 6);
-    const cy = +curr.slice(0, 4);
-    const cm = +curr.slice(4, 6);
+    const isNext =
+      (pm === 12 && cy === py + 1 && cm === 1) ||
+      (pm !== 12 && cy === py && cm === pm + 1);
 
-    const nextY = pm === 12 ? py + 1 : py;
-    const nextM = pm === 12 ? 1 : pm + 1;
-
-    if (cy === nextY && cm === nextM) streak++;
-    else streak = 1;
+    streak = isNext ? streak + 1 : 1;
 
     for (const t of streakTargets) {
-      if (streak === t && !achieved[t]) achieved[t] = curr;
+      if (streak === t && !achieved[t]) achieved[t] = String(entries[i]);
     }
   }
 
@@ -114,51 +116,55 @@ export const findScoreStreakYm = (
   minScore: number,
   streak: number,
 ): string | null => {
-  const yms = Object.keys(scores)
-    .flatMap((y) => Object.keys(scores[y] ?? {}).map((m) => `${y}${m}`))
-    .sort((a, b) => Number(a) - Number(b));
-  if (yms.length < streak) return null;
+  const entries = Object.entries(scores)
+    .flatMap(([y, months]) =>
+      Object.entries(months ?? {})
+        .map(([m, v]) => {
+          const mKey = normalizeMonth(m);
+          return typeof v === 'number' && mKey
+            ? Number(`${y}${String(mKey).padStart(2, '0')}`)
+            : null;
+        })
+        .filter((v): v is number => v !== null),
+    )
+    .sort((a, b) => a - b);
+
   let count = 0;
-  for (const ym of yms) {
-    const year = ym.slice(0, 4);
-    const month = ym.slice(4);
-    const score = scores[year]?.[month];
+
+  for (const ym of entries) {
+    const y = String(Math.floor(ym / 100));
+    const m = String(ym % 100) as Month;
+    const score = scores[y]?.[m];
+
     if ((score ?? 0) >= minScore) {
-      count++;
-      if (count >= streak) return `${year}${String(month).padStart(2, '0')}`;
-    } else count = 0;
+      if (++count >= streak) return formatYm(Number(y), Number(m));
+    } else {
+      count = 0;
+    }
   }
+
   return null;
 };
 
 export const findPersonalBestYm = (
   scores: Partial<Record<string, Partial<Record<string, number>>>>,
 ): string | null => {
-  const sorted = Object.keys(scores)
-    .flatMap((y) =>
-      Object.keys(scores[y] ?? {}).map((m) => ({
-        year: +y,
-        month: +m,
-        score: scores[y]?.[m] ?? 0,
+  const list = Object.entries(scores)
+    .flatMap(([y, months]) =>
+      Object.entries(months ?? {}).map(([m, s]) => ({
+        y: Number(y),
+        m: Number(m),
+        s: s ?? 0,
       })),
     )
-    .sort((a, b) => a.year - b.year || a.month - b.month);
-  if (sorted.length <= 1) return null;
-  const latest = sorted[sorted.length - 1];
-  const maxBefore = Math.max(...sorted.slice(0, -1).map((s) => s.score));
-  return latest.score > maxBefore
-    ? `${latest.year}${String(latest.month).padStart(2, '0')}`
-    : null;
-};
+    .sort((a, b) => a.y - b.y || a.m - b.m);
 
-export const getActiveYm = (join: string, months: number): string => {
-  let year = +join.slice(0, 4);
-  let month = +join.slice(4, 6) + months;
-  while (month > 12) {
-    year++;
-    month -= 12;
-  }
-  return formatYm(year, month);
+  if (list.length <= 1) return null;
+
+  const last = list[list.length - 1];
+  const prevMax = Math.max(...list.slice(0, -1).map((v) => v.s));
+
+  return last.s > prevMax ? formatYm(last.y, last.m) : null;
 };
 
 export const findScoreYms = (
@@ -166,29 +172,46 @@ export const findScoreYms = (
   milestones: number[],
 ): Record<number, string> => {
   const achieved: Record<number, string> = {};
-  const years = Object.keys(scores).sort();
-  for (const y of years) {
-    const yearKey = asYear(y);
-    const months = Object.keys(scores[yearKey] ?? {}).sort((a, b) => +a - +b);
+
+  for (const y of Object.keys(scores).sort((a, b) => Number(a) - Number(b))) {
+    const yearScores = scores[asYear(y)];
+    if (!yearScores) continue;
+
+    const months = Object.keys(yearScores)
+      .map(normalizeMonth)
+      .filter((m): m is Month => !!m && typeof yearScores[m] === 'number')
+      .sort((a, b) => Number(a) - Number(b));
+
     for (const m of months) {
-      const mKey = asMonth(m);
-      const score = scores[yearKey]?.[mKey];
-      if (typeof score !== 'number') continue;
-      milestones.forEach((ms) => {
-        if (score >= ms && !achieved[ms])
-          achieved[ms] = `${y}${String(m).padStart(2, '0')}`;
-      });
+      const score = yearScores[m]!;
+      for (const ms of milestones) {
+        if (score >= ms && !achieved[ms]) {
+          achieved[ms] = formatYm(Number(y), Number(m));
+        }
+      }
     }
   }
+
   return achieved;
+};
+
+export const getActiveYm = (join: string, months: number): string => {
+  let y = +join.slice(0, 4);
+  let m = +join.slice(4, 6) + months;
+
+  while (m > 12) {
+    y++;
+    m -= 12;
+  }
+
+  return formatYm(y, m);
 };
 
 export const getActiveAchievementYm = (
   joinYm: string,
   months: number,
 ): string | null => {
-  const { formatServerDate } = useUiStore.getState();
-  const todayYm = formatServerDate('ym');
-  const targetYm = getActiveYm(joinYm, months);
-  return todayYm >= targetYm ? targetYm : null;
+  const today = useUiStore.getState().formatServerDate('ym');
+  const target = getActiveYm(joinYm, months);
+  return today >= target ? target : null;
 };
