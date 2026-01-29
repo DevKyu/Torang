@@ -29,6 +29,7 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isPasswordChangeMode, setIsPasswordChangeMode] = useState(false);
+  const [isPasswordResetMode, setIsPasswordResetMode] = useState(false);
   const [referrerName, setReferrerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -129,6 +130,7 @@ const Login = () => {
 
       if (user) {
         if (password === '00000000') {
+          setIsPasswordResetMode(true);
           toast.info('임시 비밀번호입니다.\n새로운 비밀번호를 설정해 주세요.', {
             style: { whiteSpace: 'pre-line' },
           });
@@ -224,6 +226,7 @@ const Login = () => {
     }
 
     setIsPasswordChangeMode(false);
+    setIsPasswordResetMode(false);
     setError('');
     setNewPassword('');
     setNewPasswordConfirm('');
@@ -292,14 +295,16 @@ const Login = () => {
         value={newPasswordConfirm}
         maxLength={20}
       />
-      <Input
-        type="text"
-        name="referrerName"
-        placeholder="추천인 이름 (선택)"
-        onChange={handleChange}
-        value={referrerName}
-        maxLength={10}
-      />
+      {!isPasswordResetMode && (
+        <Input
+          type="text"
+          name="referrerName"
+          placeholder="추천인 이름 (선택)"
+          onChange={handleChange}
+          value={referrerName}
+          maxLength={10}
+        />
+      )}
     </>
   );
 
