@@ -81,6 +81,15 @@ const GalleryUpload = ({
   }, []);
 
   const compress = useCallback(async (file: File) => {
+    if (file.type === 'image/gif') {
+      return {
+        id: nanoid(),
+        file,
+        preview: URL.createObjectURL(file),
+        caption: '',
+      };
+    }
+
     try {
       const c = await imageCompression(file, {
         maxWidthOrHeight: 1600,
@@ -88,6 +97,7 @@ const GalleryUpload = ({
         initialQuality: 0.85,
         useWebWorker: true,
       });
+
       return {
         id: nanoid(),
         file: c,
