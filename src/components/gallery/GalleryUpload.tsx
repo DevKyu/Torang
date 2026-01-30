@@ -84,7 +84,7 @@ const GalleryUpload = ({
   const compress = useCallback(async (file: File) => {
     if (file.type === 'image/gif') {
       if (file.size > MAX_GIF_SIZE) {
-        toast.error('GIF는 8MB 이하만 업로드할 수 있어요.');
+        toast.error('GIF는 6MB 이하만 업로드할 수 있어요.');
         return null;
       }
 
