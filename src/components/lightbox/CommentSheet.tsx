@@ -79,7 +79,10 @@ export const CommentSheet = () => {
 
   const list = useMemo(() => {
     if (!imageId) return [];
-    return comments[imageId] ?? [];
+
+    return [...(comments[imageId] ?? [])].sort(
+      (a, b) => a.createdAt - b.createdAt,
+    );
   }, [comments, imageId]);
 
   const [text, setText] = useState('');
@@ -103,6 +106,7 @@ export const CommentSheet = () => {
   const grouped = useMemo(() => {
     const top: LightboxComment[] = [];
     const replyMap: Record<string, LightboxComment[]> = {};
+
     for (const c of list) {
       if (c.deleted) continue;
       if (!c.parentId) top.push(c);
@@ -111,6 +115,12 @@ export const CommentSheet = () => {
         replyMap[c.parentId].push(c);
       }
     }
+
+    top.sort((a, b) => a.createdAt - b.createdAt);
+    Object.values(replyMap).forEach((arr) =>
+      arr.sort((a, b) => a.createdAt - b.createdAt),
+    );
+
     return { top, replyMap };
   }, [list]);
 
