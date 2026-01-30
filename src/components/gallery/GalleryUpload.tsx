@@ -80,8 +80,14 @@ const GalleryUpload = ({
     }
   }, []);
 
+  const MAX_GIF_SIZE = 6 * 1024 * 1024;
   const compress = useCallback(async (file: File) => {
     if (file.type === 'image/gif') {
+      if (file.size > MAX_GIF_SIZE) {
+        toast.error('GIF는 8MB 이하만 업로드할 수 있어요.');
+        return null;
+      }
+
       return {
         id: nanoid(),
         file,
@@ -119,7 +125,12 @@ const GalleryUpload = ({
       if (disabled || uploading || items.length >= maxSelectable) return;
       const limit = maxSelectable - items.length;
       const selected = accepted.slice(0, limit);
-      const processed = await Promise.all(selected.map(compress));
+      const processed = (await Promise.all(selected.map(compress))).filter(
+        (
+          v,
+        ): v is { id: string; file: File; preview: string; caption: string } =>
+          Boolean(v),
+      );
       setItems((p) => [...p, ...processed]);
     },
     [disabled, uploading, items.length, maxSelectable, compress],
