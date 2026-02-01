@@ -2,7 +2,8 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
 export const Container = styled.div<{ backgroundColor?: string }>`
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
