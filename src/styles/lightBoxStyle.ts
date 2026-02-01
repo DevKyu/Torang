@@ -162,7 +162,8 @@ export const Description = styled(motion.div)`
 
   color: #fff;
   font-size: 14px;
-  text-align: center; /* UI 유지 */
+  line-height: 1.4;
+  text-align: center;
   pointer-events: auto;
   -webkit-font-smoothing: antialiased;
 
@@ -173,10 +174,11 @@ export const Description = styled(motion.div)`
   word-break: keep-all;
   white-space: normal;
 
-  body.ios & {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  transform: translateZ(0);
+  backface-visibility: hidden;
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
