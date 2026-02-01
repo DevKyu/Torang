@@ -178,11 +178,19 @@ const Achievements = () => {
   );
 
   const scrollTo = useCallback((key: AchievementCategory) => {
-    const container = document.querySelector('[data-scroll-container]');
+    const container = document.querySelector(
+      '[data-scroll-container]',
+    ) as HTMLElement | null;
     const target = refs.current.get(key);
     if (!container || !target) return;
-    (container as HTMLElement).scrollTo({
-      top: target.offsetTop,
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+
+    const top = container.scrollTop + (targetRect.top - containerRect.top);
+
+    container.scrollTo({
+      top,
       behavior: 'smooth',
     });
   }, []);
