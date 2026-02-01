@@ -247,6 +247,7 @@ export const CommentSheet = () => {
           />
 
           <Sheet
+            key={imageId}
             style={{ y, opacity: sheetOpacity }}
             drag="y"
             dragElastic={0.12}

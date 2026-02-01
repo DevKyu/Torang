@@ -28,9 +28,8 @@ export const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 58%;
-  max-height: 58%;
-  min-height: 300px;
+  min-height: 320px;
+  max-height: 420px;
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -283,6 +282,7 @@ export const EmptyState = styled(motion.div)`
   pointer-events: none;
   text-align: center;
   z-index: 10;
+  height: 280px;
 `;
 
 export const SafeBottom = styled.div`

@@ -107,9 +107,7 @@ const GalleryList = ({
   }, [filter, list]);
 
   useEffect(() => {
-    if (open) return;
-
-    const finalYm = yyyymm;
+    if (open || loading) return;
 
     setImages(
       sorted.map((i) => ({
@@ -118,7 +116,7 @@ const GalleryList = ({
         description: i.caption ?? '',
         uploadedAt: i.uploadedAt,
         empId: i.empId,
-        ym: finalYm,
+        ym: yyyymm,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
         commentCount: i.comments

@@ -172,6 +172,11 @@ export const Description = styled(motion.div)`
   letter-spacing: -0.1px;
   word-break: keep-all;
   white-space: normal;
+
+  body.ios & {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
