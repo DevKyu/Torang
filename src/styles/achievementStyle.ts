@@ -54,6 +54,9 @@ export const GridScrollContainer = styled.div`
   overflow-y: auto;
   padding: 0 12px 4px;
 
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {

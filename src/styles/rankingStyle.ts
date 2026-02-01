@@ -54,11 +54,18 @@ export const StyledRankingTable = styled.table`
     max-height: 40vh;
     overflow-y: auto;
     width: 100%;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   tbody::-webkit-scrollbar {
     width: 0;
     height: 0;
+    display: none;
   }
 
   tbody tr {
