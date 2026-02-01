@@ -179,6 +179,15 @@ export const Description = styled(motion.div)`
 
   transform: translateZ(0);
   backface-visibility: hidden;
+
+  body.ios & {
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans',
+      sans-serif;
+
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
