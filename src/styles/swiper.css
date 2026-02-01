@@ -2,12 +2,21 @@
 @import 'swiper/css/pagination';
 
 .swiper-pagination {
-  display: block !important;
   position: relative;
-  margin-top: 8px;
+  padding-top: 16px;
+  line-height: 0;
+}
+
+.swiper-pagination-bullets {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
 .swiper-pagination-bullet {
+  flex-shrink: 0;
+  margin: 0 !important;
   opacity: 0.3;
 }
 
