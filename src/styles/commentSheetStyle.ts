@@ -2,9 +2,8 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
 const gpu = `
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  will-change: transform, opacity;
 `;
 
 export const Dim = styled(motion.div)`
@@ -14,13 +13,13 @@ export const Dim = styled(motion.div)`
   z-index: 20000;
   pointer-events: auto;
   touch-action: none;
-  -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
 
+  ${gpu}
+
   body.ios & {
-    transform: translateZ(0) !important;
-    will-change: opacity !important;
+    will-change: opacity;
   }
 `;
 
@@ -33,26 +32,24 @@ export const Sheet = styled(motion.div)`
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
-  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
+
   touch-action: none;
-  -webkit-user-select: none;
   user-select: none;
-  overscroll-behavior: none;
+
   ${gpu}
 
   body.ios & {
-    transform: translateZ(0) !important;
-    will-change: transform !important;
+    will-change: transform;
   }
 `;
 
 export const DragZone = styled(motion.div)`
   width: 100%;
   touch-action: none;
-  -webkit-user-select: none;
   user-select: none;
   ${gpu}
 `;
@@ -86,12 +83,15 @@ export const Title = styled.div`
 `;
 
 export const SheetBody = styled.div`
+  position: relative;
   flex: 1;
   padding: 6px 18px calc(env(safe-area-inset-bottom, 0px) + 24px);
+
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
+
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
@@ -100,10 +100,7 @@ export const SheetBody = styled.div`
     display: none;
   }
 
-  body.ios & {
-    transform: translateZ(0) !important;
-    will-change: transform !important;
-  }
+  ${gpu}
 `;
 
 export const CommentItem = styled(motion.div)`
@@ -274,15 +271,16 @@ export const InputBox = styled.div`
 export const EmptyState = styled(motion.div)`
   position: absolute;
   inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: #777;
   font-size: 14px;
-  pointer-events: none;
   text-align: center;
+  pointer-events: none;
   z-index: 10;
-  height: 280px;
 `;
 
 export const SafeBottom = styled.div`

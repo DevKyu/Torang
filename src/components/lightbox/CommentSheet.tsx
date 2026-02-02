@@ -149,11 +149,16 @@ export const CommentSheet = () => {
     if (isClosing) return;
     setIsClosing(true);
     closeComment();
-    setTimeout(() => setIsClosing(false), 350);
   }, [isClosing, closeComment]);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
+      const el = bodyRef.current;
+      if (el && el.scrollTop > 0) {
+        animate(y, 0, { duration: 0.2 });
+        return;
+      }
+
       if (info.offset.y > 110) runClose();
       else animate(y, 0, { duration: 0.22 });
     },
@@ -269,12 +274,17 @@ export const CommentSheet = () => {
 
             <SheetBody ref={bodyRef}>
               {grouped.top.length === 0 && (
-                <EmptyState initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <EmptyState
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
                   첫 댓글을 남겨보세요
                 </EmptyState>
               )}
 
-              <AnimatePresence mode="sync">
+              <AnimatePresence>
                 {grouped.top.map((c) => (
                   <CommentItem
                     key={c.id}
