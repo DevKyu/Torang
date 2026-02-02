@@ -158,36 +158,24 @@ export const Description = styled(motion.div)`
 
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
 
   color: #fff;
   font-size: 14px;
   line-height: 1.4;
   text-align: center;
   pointer-events: auto;
-  -webkit-font-smoothing: antialiased;
 
   font-family:
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans',
+    system-ui, sans-serif;
 
-  letter-spacing: -0.1px;
+  letter-spacing: 0;
   word-break: keep-all;
   white-space: normal;
 
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-
-  transform: translateZ(0);
-  backface-visibility: hidden;
-
-  body.ios & {
-    font-family:
-      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans',
-      sans-serif;
-
-    line-height: 1.4;
-    letter-spacing: 0;
-  }
 `;
 
 export const Footer = styled.div<{ showIcon: boolean }>`
