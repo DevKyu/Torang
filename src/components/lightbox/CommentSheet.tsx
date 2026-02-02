@@ -53,22 +53,6 @@ const formatTimeAgo = (ts: number) => {
   ).padStart(2, '0')}`;
 };
 
-const SHEET_OPEN = {
-  type: 'tween' as const,
-  duration: 0.28,
-  ease: 'easeOut' as const,
-};
-const SHEET_CLOSE = {
-  type: 'tween' as const,
-  duration: 0.22,
-  ease: 'easeIn' as const,
-};
-const DRAG_RETURN = {
-  type: 'tween' as const,
-  duration: 0.32,
-  ease: 'easeOut' as const,
-};
-
 export const CommentSheet = () => {
   const {
     commentOpen,
@@ -87,21 +71,37 @@ export const CommentSheet = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+
   const sendingRef = useRef(false);
 
   const empId = getCurrentUserId();
   const myName = empId ? getCachedUserName(empId) : '나';
 
-  const [text, setText] = useState('');
-  const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
-
   const list = useMemo(() => {
     if (!imageId) return [];
+
     return [...(comments[imageId] ?? [])].sort(
       (a, b) => a.createdAt - b.createdAt,
     );
   }, [comments, imageId]);
+
+  const [text, setText] = useState('');
+  const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const y = useMotionValue(0);
+  const sheetOpacity = useMotionValue(1);
+  const dimOpacity = useTransform(y, [0, 180], [1, 0]);
+
+  const scrollToBottom = useCallback(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      });
+    });
+  }, []);
 
   const grouped = useMemo(() => {
     const top: LightboxComment[] = [];
@@ -110,18 +110,28 @@ export const CommentSheet = () => {
     for (const c of list) {
       if (c.deleted) continue;
       if (!c.parentId) top.push(c);
-      else (replyMap[c.parentId] ||= []).push(c);
+      else {
+        if (!replyMap[c.parentId]) replyMap[c.parentId] = [];
+        replyMap[c.parentId].push(c);
+      }
     }
+
+    top.sort((a, b) => a.createdAt - b.createdAt);
+    Object.values(replyMap).forEach((arr) =>
+      arr.sort((a, b) => a.createdAt - b.createdAt),
+    );
 
     return { top, replyMap };
   }, [list]);
 
+  const replies = useCallback(
+    (pid: string) => grouped.replyMap[pid] ?? [],
+    [grouped.replyMap],
+  );
+
   const total =
     grouped.top.length +
     Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
-
-  const y = useMotionValue(0);
-  const dimOpacity = useTransform(y, [0, 180], [1, 0]);
 
   useEffect(() => {
     setReplyTo(null);
@@ -130,7 +140,6 @@ export const CommentSheet = () => {
 
   useEffect(() => {
     document.body.style.overflow = commentOpen ? 'hidden' : '';
-    if (!commentOpen) setIsClosing(false);
     return () => {
       document.body.style.overflow = '';
     };
@@ -142,23 +151,16 @@ export const CommentSheet = () => {
     closeComment();
   }, [isClosing, closeComment]);
 
-  const scrollToBottom = useCallback(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
-  }, []);
-
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
       const el = bodyRef.current;
       if (el && el.scrollTop > 0) {
-        y.set(0);
+        animate(y, 0, { duration: 0.2 });
         return;
       }
-      if (info.offset.y > 120) runClose();
-      else animate(y, 0, DRAG_RETURN);
+
+      if (info.offset.y > 110) runClose();
+      else animate(y, 0, { duration: 0.22 });
     },
     [runClose, y],
   );
@@ -173,7 +175,7 @@ export const CommentSheet = () => {
     const parentId = replyTo?.id ?? null;
     const tempId = `tmp_${Date.now()}_${Math.random()}`;
 
-    addComment(imageId, {
+    const optimistic: LightboxComment = {
       id: tempId,
       parentId,
       user: myName,
@@ -181,10 +183,12 @@ export const CommentSheet = () => {
       createdAt: Date.now(),
       likes: 0,
       likedByMe: false,
-    });
+    };
 
+    addComment(imageId, optimistic);
     setText('');
     setReplyTo(null);
+
     if (!parentId) scrollToBottom();
 
     try {
@@ -207,10 +211,12 @@ export const CommentSheet = () => {
   const handleLike = useCallback(
     (c: LightboxComment) => {
       if (!imageId || !ym) return;
+
       updateComment(imageId, c.id, {
         likedByMe: !c.likedByMe,
         likes: !c.likedByMe ? c.likes + 1 : Math.max(0, c.likes - 1),
       });
+
       toggleCommentLike(ym, imageId, c.id, !c.likedByMe);
     },
     [imageId, ym, updateComment],
@@ -241,20 +247,22 @@ export const CommentSheet = () => {
             style={{ opacity: dimOpacity }}
             onClick={runClose}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: SHEET_OPEN }}
-            exit={{ opacity: 0, transition: SHEET_CLOSE }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
           />
 
           <Sheet
             key={imageId}
-            style={{ y }}
+            style={{ y, opacity: sheetOpacity }}
             drag="y"
-            dragElastic={0.06}
+            dragElastic={0.12}
+            dragConstraints={{ top: 0, bottom: 0 }}
             dragMomentum={false}
+            dragPropagation={false}
             onDragEnd={onDragEnd}
             initial={{ opacity: 0, y: 70 }}
-            animate={{ opacity: 1, y: 0, transition: SHEET_OPEN }}
-            exit={{ opacity: 0, y: 70, transition: SHEET_CLOSE }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.32 } }}
+            exit={{ opacity: 0, y: 70, transition: { duration: 0.24 } }}
           >
             <DragZone>
               <HandleBar />
@@ -266,93 +274,116 @@ export const CommentSheet = () => {
 
             <SheetBody ref={bodyRef}>
               {grouped.top.length === 0 && (
-                <EmptyState>첫 댓글을 남겨보세요</EmptyState>
+                <EmptyState
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  첫 댓글을 남겨보세요
+                </EmptyState>
               )}
 
-              {grouped.top.map((c) => (
-                <CommentItem key={c.id}>
-                  <div className="row1">
-                    <div className="name">{c.user}</div>
-                    <div className="time">{formatTimeAgo(c.createdAt)}</div>
-                  </div>
+              <AnimatePresence>
+                {grouped.top.map((c) => (
+                  <CommentItem
+                    key={c.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="row1">
+                      <div className="name">{c.user}</div>
+                      <div className="time">{formatTimeAgo(c.createdAt)}</div>
+                    </div>
 
-                  <div className="text">{c.text}</div>
+                    <div className="text">{c.text}</div>
 
-                  <div className="actions">
-                    <motion.div
-                      className={`heart ${c.likedByMe ? 'on' : ''}`}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleLike(c)}
-                    >
-                      <Heart
-                        size={16}
-                        fill={c.likedByMe ? '#e63946' : 'none'}
-                        color={c.likedByMe ? '#e63946' : '#aaa'}
-                      />
-                      <span>{c.likes || ''}</span>
-                    </motion.div>
-
-                    <button
-                      className="replyBtn"
-                      onClick={() => {
-                        setReplyTo(c);
-                        requestAnimationFrame(() => inputRef.current?.focus());
-                      }}
-                    >
-                      답글
-                    </button>
-
-                    {c.user === myName && (
-                      <button
-                        className="delBtn"
-                        onClick={() => handleDelete(c.id)}
+                    <div className="actions">
+                      <motion.div
+                        className={`heart ${c.likedByMe ? 'on' : ''}`}
+                        whileTap={{ scale: 0.88 }}
+                        onClick={() => handleLike(c)}
+                        key={c.id + '_like'}
                       >
-                        삭제
-                      </button>
-                    )}
-                  </div>
+                        <Heart
+                          size={16}
+                          fill={c.likedByMe ? '#e63946' : 'none'}
+                          color={c.likedByMe ? '#e63946' : '#aaa'}
+                        />
+                        <span>{c.likes || ''}</span>
+                      </motion.div>
 
-                  {(grouped.replyMap[c.id] ?? []).map((r) => (
-                    <ReplyItem key={r.id}>
-                      <CornerDownRight size={16} />
-                      <div className="inner">
-                        <div className="row1">
-                          <div className="name">{r.user}</div>
-                          <div className="time">
-                            {formatTimeAgo(r.createdAt)}
+                      <button
+                        className="replyBtn"
+                        onClick={() => {
+                          setReplyTo(c);
+                          requestAnimationFrame(() =>
+                            inputRef.current?.focus(),
+                          );
+                        }}
+                      >
+                        답글
+                      </button>
+
+                      {c.user === myName && (
+                        <button
+                          className="delBtn"
+                          onClick={() => handleDelete(c.id)}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+
+                    {replies(c.id).map((r) => (
+                      <ReplyItem
+                        key={r.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <CornerDownRight size={16} />
+                        <div className="inner">
+                          <div className="row1">
+                            <div className="name">{r.user}</div>
+                            <div className="time">
+                              {formatTimeAgo(r.createdAt)}
+                            </div>
+                          </div>
+
+                          <div className="text">{r.text}</div>
+
+                          <div className="actions">
+                            <motion.div
+                              className={`heart ${r.likedByMe ? 'on' : ''}`}
+                              whileTap={{ scale: 0.88 }}
+                              onClick={() => handleLike(r)}
+                              key={r.id + '_like'}
+                            >
+                              <Heart
+                                size={15}
+                                fill={r.likedByMe ? '#e63946' : 'none'}
+                                color={r.likedByMe ? '#e63946' : '#aaa'}
+                              />
+                              <span>{r.likes || ''}</span>
+                            </motion.div>
+
+                            {r.user === myName && (
+                              <button
+                                className="delBtn"
+                                onClick={() => handleDelete(r.id)}
+                              >
+                                삭제
+                              </button>
+                            )}
                           </div>
                         </div>
-
-                        <div className="text">{r.text}</div>
-
-                        <div className="actions">
-                          <motion.div
-                            className={`heart ${r.likedByMe ? 'on' : ''}`}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleLike(r)}
-                          >
-                            <Heart
-                              size={15}
-                              fill={r.likedByMe ? '#e63946' : 'none'}
-                              color={r.likedByMe ? '#e63946' : '#aaa'}
-                            />
-                            <span>{r.likes || ''}</span>
-                          </motion.div>
-
-                          {r.user === myName && (
-                            <button
-                              className="delBtn"
-                              onClick={() => handleDelete(r.id)}
-                            >
-                              삭제
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </ReplyItem>
-                  ))}
-                </CommentItem>
-              ))}
+                      </ReplyItem>
+                    ))}
+                  </CommentItem>
+                ))}
+              </AnimatePresence>
             </SheetBody>
 
             <InputWrap>

@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
-const layer = `
+const gpu = `
+  transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  -webkit-font-smoothing: antialiased;
 `;
 
 export const Dim = styled(motion.div)`
@@ -11,25 +11,24 @@ export const Dim = styled(motion.div)`
   inset: 0;
   background: rgba(0, 0, 0, 0.54);
   z-index: 20000;
-
   pointer-events: auto;
   touch-action: none;
   user-select: none;
   overflow: hidden;
 
-  ${layer}
+  ${gpu}
+
+  body.ios & {
+    will-change: opacity;
+  }
 `;
 
 export const Sheet = styled(motion.div)`
   position: fixed;
-  left: 0;
-  right: 0;
   bottom: 0;
-
   width: 100%;
   min-height: 320px;
   max-height: 420px;
-
   background: #fff;
   border-radius: 18px 18px 0 0;
   z-index: 20001;
@@ -41,14 +40,18 @@ export const Sheet = styled(motion.div)`
   touch-action: none;
   user-select: none;
 
-  will-change: transform;
-  ${layer}
+  ${gpu}
+
+  body.ios & {
+    will-change: transform;
+  }
 `;
 
-export const DragZone = styled.div`
+export const DragZone = styled(motion.div)`
   width: 100%;
   touch-action: none;
   user-select: none;
+  ${gpu}
 `;
 
 export const HandleBar = styled.div`
@@ -70,7 +73,6 @@ export const SheetHeader = styled.div`
     height: 24px;
     color: #333;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
   }
 `;
 
@@ -97,28 +99,14 @@ export const SheetBody = styled.div`
   &::-webkit-scrollbar {
     display: none;
   }
+
+  ${gpu}
 `;
 
-const fadeIn = `
-  opacity: 0;
-  transform: translateY(4px);
-  animation: commentFadeIn 0.22s ease-out forwards;
-
-  @keyframes commentFadeIn {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
-
-export const CommentItem = styled.div`
+export const CommentItem = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 2px 0;
-
-  ${fadeIn}
 
   .row1 {
     display: flex;
@@ -154,7 +142,6 @@ export const CommentItem = styled.div`
       align-items: center;
       gap: 4px;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
 
       &.on {
         color: #e63946;
@@ -173,22 +160,14 @@ export const CommentItem = styled.div`
       font-size: 12px;
       color: #666;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .delBtn:active {
-      opacity: 0.6;
-      transform: scale(0.94);
     }
   }
 `;
 
-export const ReplyItem = styled.div`
+export const ReplyItem = styled(motion.div)`
   margin-left: 18px;
   display: flex;
   gap: 8px;
-
-  ${fadeIn}
 
   .inner {
     display: flex;
@@ -223,7 +202,6 @@ export const ReplyItem = styled.div`
       align-items: center;
       gap: 4px;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
 
       &.on {
         color: #e63946;
@@ -240,12 +218,6 @@ export const ReplyItem = styled.div`
       font-size: 12px;
       color: #666;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .delBtn:active {
-      opacity: 0.6;
-      transform: scale(0.94);
     }
   }
 `;
@@ -269,7 +241,6 @@ export const ReplyNotice = styled.div`
     font-size: 12px;
     color: #777;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
   }
 `;
 
@@ -294,7 +265,6 @@ export const InputBox = styled.div`
     width: 24px;
     height: 24px;
     color: #444;
-    -webkit-tap-highlight-color: transparent;
   }
 `;
 
