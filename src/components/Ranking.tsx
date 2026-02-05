@@ -100,6 +100,10 @@ const Ranking = () => {
     return prev ? String(prev) : undefined;
   }, [activityAll, year, month]);
 
+  const activityYm = useMemo<YearMonth>(() => {
+    return activityYmd ? (activityYmd.slice(0, 6) as YearMonth) : ym;
+  }, [activityYmd, ym]);
+
   const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
@@ -245,7 +249,7 @@ const Ranking = () => {
         await Promise.all(
           matchResults.map((r) =>
             saveMatchResult(
-              ym,
+              activityYm,
               myId,
               MATCH_TYPE,
               r.opponentId,
@@ -256,12 +260,12 @@ const Ranking = () => {
             ),
           ),
         );
-        await applyPinChangeBatch(ym, myId, MATCH_TYPE, matchResults);
+        await applyPinChangeBatch(activityYm, myId, MATCH_TYPE, matchResults);
       } catch {
         appliedRef.current = false;
       }
     })();
-  }, [matchResults, myId, ym]);
+  }, [matchResults, myId, activityYm]);
 
   const resultMessages = useMemo(() => {
     if (!matchResults?.length) return [];
