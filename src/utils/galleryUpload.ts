@@ -91,7 +91,7 @@ export const checkGalleryUploadAvailability = (
 
   const check = (act: Date) => {
     const diff = today.getTime() - act.getTime();
-    if (diff <= 0) return 'before_activity';
+    if (diff < 0) return 'before_activity';
     if (diff / 86400000 <= 7) return 'ok';
     return 'after_grace';
   };
