@@ -79,14 +79,14 @@ export const findAfterPartyStreakYms = (
   participation: Record<string, Record<string, boolean>>,
   streakTargets: number[],
 ): Record<number, string> => {
-  const entries = Object.entries(participation)
-    .flatMap(([y, months]) =>
-      Object.keys(months)
-        .map(normalizeMonth)
-        .filter((m): m is Month => !!m)
-        .map((m) => Number(`${y}${String(m).padStart(2, '0')}`)),
-    )
-    .sort((a, b) => a - b);
+  const rawEntries = Object.entries(participation).flatMap(([y, months]) =>
+    Object.keys(months)
+      .map(normalizeMonth)
+      .filter((m): m is Month => !!m)
+      .map((m) => Number(`${y}${String(m).padStart(2, '0')}`)),
+  );
+
+  const entries = Array.from(new Set(rawEntries)).sort((a, b) => a - b);
 
   if (!entries.length) return {};
 
@@ -94,8 +94,11 @@ export const findAfterPartyStreakYms = (
   let streak = 1;
 
   for (let i = 1; i < entries.length; i++) {
-    const [py, pm] = [Math.floor(entries[i - 1] / 100), entries[i - 1] % 100];
-    const [cy, cm] = [Math.floor(entries[i] / 100), entries[i] % 100];
+    const prev = entries[i - 1];
+    const curr = entries[i];
+
+    const [py, pm] = [Math.floor(prev / 100), prev % 100];
+    const [cy, cm] = [Math.floor(curr / 100), curr % 100];
 
     const isNext =
       (pm === 12 && cy === py + 1 && cm === 1) ||
@@ -104,7 +107,9 @@ export const findAfterPartyStreakYms = (
     streak = isNext ? streak + 1 : 1;
 
     for (const t of streakTargets) {
-      if (streak === t && !achieved[t]) achieved[t] = String(entries[i]);
+      if (streak >= t && !achieved[t]) {
+        achieved[t] = String(curr);
+      }
     }
   }
 
