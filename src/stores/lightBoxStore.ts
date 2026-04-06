@@ -102,15 +102,19 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     s.likeUnsub?.();
 
-    const unsub = subscribeGalleryLikes(img.ym, img.id, (liked, likes) => {
-      set((state) => {
-        const arr = [...state.images];
-        const t = arr[idx];
-        if (!t) return {};
-        arr[idx] = { ...t, liked, likes };
-        return { images: arr };
-      });
-    });
+    const unsub = subscribeGalleryLikes(
+      img.ym,
+      img.id,
+      (liked, likes, userIds) => {
+        set((state) => {
+          const arr = [...state.images];
+          const t = arr[idx];
+          if (!t) return {};
+          arr[idx] = { ...t, liked, likes, likedUsers: userIds };
+          return { images: arr };
+        });
+      },
+    );
 
     set({ likeUnsub: unsub });
   },

@@ -25,15 +25,17 @@ export const toggleGalleryLike = (
 export const subscribeGalleryLikes = (
   ym: string,
   imageId: string,
-  callback: (liked: boolean, count: number) => void,
+  callback: (liked: boolean, count: number, userIds: string[]) => void,
 ) => {
   const empId = getCurrentUserId();
   const likeRef = ref(db, `gallery/${ym}/${imageId}/likes`);
 
   return onValue(likeRef, (snap) => {
     const data = snap.val() || {};
+
+    const userIds = Object.keys(data);
     const count = Object.keys(data).length;
     const liked = empId ? Boolean(data[empId]) : false;
-    callback(liked, count);
+    callback(liked, count, userIds);
   });
 };
