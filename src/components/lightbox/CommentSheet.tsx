@@ -35,7 +35,11 @@ import {
   InputBox,
   SafeBottom,
   EmptyState,
+  MetaBar,
+  LikeUsers,
+  LikeCount,
 } from '../../styles/commentSheetStyle';
+import { LikeSheet } from './LikeSheet';
 
 const formatTimeAgo = (ts: number) => {
   const diff = Date.now() - ts;
@@ -76,6 +80,11 @@ export const CommentSheet = () => {
 
   const empId = getCurrentUserId();
   const myName = empId ? getCachedUserName(empId) : '나';
+  const likedUsers = image?.likedUsers ?? [];
+  const likedNames = useMemo(
+    () => likedUsers.map((id) => getCachedUserName(id)),
+    [likedUsers],
+  );
 
   const list = useMemo(() => {
     if (!imageId) return [];
@@ -88,6 +97,7 @@ export const CommentSheet = () => {
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [likeOpen, setLikeOpen] = useState(false);
 
   const y = useMotionValue(0);
   const sheetOpacity = useMotionValue(1);
@@ -231,6 +241,14 @@ export const CommentSheet = () => {
     [imageId, ym, storeDelete],
   );
 
+  const renderNames = (names: string[]) => {
+    if (names.length === 0) return '';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]}, ${names[1]}`;
+
+    return `${names[0]}, ${names[1]} 외 ${names.length - 2}명`;
+  };
+
   return (
     <AnimatePresence>
       {commentOpen && (
@@ -270,6 +288,18 @@ export const CommentSheet = () => {
                 <Title>댓글 {total}</Title>
                 <X className="close" onClick={runClose} />
               </SheetHeader>
+              {likedUsers.length > 0 && (
+                <MetaBar
+                  onClick={() => {
+                    if (!likeOpen) setLikeOpen(true);
+                  }}
+                >
+                  <Heart size={14} fill="#ff6b6b" stroke="#ff6b6b" />
+                  <LikeCount>{image?.likes ?? 0}</LikeCount>
+                  <span>·</span>
+                  <LikeUsers>{renderNames(likedNames)}</LikeUsers>
+                </MetaBar>
+              )}
             </DragZone>
 
             <SheetBody ref={bodyRef}>
@@ -421,6 +451,13 @@ export const CommentSheet = () => {
               <SafeBottom />
             </InputWrap>
           </Sheet>
+
+          <LikeSheet
+            open={likeOpen}
+            onClose={() => setLikeOpen(false)}
+            users={image?.likedUsers ?? []}
+            myId={empId}
+          />
         </motion.div>
       )}
     </AnimatePresence>

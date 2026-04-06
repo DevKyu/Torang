@@ -90,7 +90,7 @@ export const SheetBody = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -128,7 +128,7 @@ export const CommentItem = styled(motion.div)`
   .text {
     font-size: 14px;
     color: #444;
-    line-height: 1.48;
+    line-height: 1.5;
     word-break: break-word;
   }
 
@@ -189,7 +189,7 @@ export const ReplyItem = styled(motion.div)`
   .text {
     font-size: 13px;
     color: #444;
-    line-height: 1.48;
+    line-height: 1.5;
     word-break: break-word;
   }
 
@@ -250,7 +250,7 @@ export const InputBox = styled.div`
   gap: 12px;
   background: #f2f2f4;
   border-radius: 14px;
-  padding: 12px 16px;
+  padding: 10px 14px;
 
   input {
     flex: 1;
@@ -285,4 +285,34 @@ export const EmptyState = styled(motion.div)`
 
 export const SafeBottom = styled.div`
   height: calc(env(safe-area-inset-bottom, 0px) + 10px);
+`;
+
+export const MetaBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 16px 10px;
+  font-size: 13px;
+  color: #888;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: opacity 0.12s ease;
+
+  &:active {
+    opacity: 0.6;
+  }
+`;
+export const LikeCount = styled.span`
+  font-weight: 500;
+  color: #555;
+`;
+
+export const LikeUsers = styled.span`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
