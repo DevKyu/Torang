@@ -133,8 +133,13 @@ export const saveUsedItems = async (items: Set<string>) => {
 export const addUser = async (empId: string, user: UserInfo) => {
   const userRef = ref(db, `users/${empId}`);
   const snapshot = await get(userRef);
+
   if (snapshot.exists()) throw new Error('이미 존재하는 사번입니다.');
-  await set(userRef, user);
+
+  await update(ref(db), {
+    [`users/${empId}`]: user,
+    [`names/${empId}`]: user.name,
+  });
 };
 
 export const deleteUser = async (empId: string) => {
