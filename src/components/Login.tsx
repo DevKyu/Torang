@@ -144,8 +144,9 @@ const Login = () => {
     } catch (error: any) {
       const code = error.code;
       const isInitialPassword =
-        employeeId.length === 8 && employeeId === password;
-
+        employeeId.length === 8 &&
+        employeeId === password &&
+        employeeId.startsWith('2016');
       if (
         [
           'auth/invalid-credential',
@@ -164,6 +165,8 @@ const Login = () => {
               { style: { whiteSpace: 'pre-line' } },
             );
             await safeLogout();
+          } else if (!userData) {
+            toast.info('등록되지 않은 계정이에요.');
           } else {
             setIsPasswordChangeMode(true);
           }
