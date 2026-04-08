@@ -64,7 +64,6 @@ export const calculateScoreStats = (
   const average = games ? Math.round(total / games) : 0;
   return { average, games, max };
 };
-
 export const sortByAvgThenGamesThenMax = (
   a: RankingEntry,
   b: RankingEntry,
@@ -100,14 +99,24 @@ export const mapUsersToRankingEntries = (
 
   if (sorted.length === 0) return [];
 
-  const total = sorted.length;
-  const leagueCount = Math.ceil(total / 4);
-  const leagueSize = Math.ceil(total / leagueCount);
+  const chunks: RankingEntry[][] = [];
 
-  return sorted.map((entry, idx) => {
-    const leagueNum = Math.floor(idx / leagueSize) + 1;
-    return { ...entry, league: `${leagueNum}부` };
-  });
+  for (let i = 0; i < sorted.length; i += 5) {
+    chunks.push(sorted.slice(i, i + 5));
+  }
+
+  const last = chunks[chunks.length - 1];
+  if (last && last.length > 0 && last.length < 3 && chunks.length > 1) {
+    chunks[chunks.length - 2].push(...last);
+    chunks.pop();
+  }
+
+  return chunks.flatMap((group, idx) =>
+    group.map((entry) => ({
+      ...entry,
+      league: `${idx + 1}부`,
+    })),
+  );
 };
 
 export type Result = 'win' | 'lose' | 'draw' | 'none';
