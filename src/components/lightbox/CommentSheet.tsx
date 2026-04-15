@@ -142,6 +142,7 @@ export const CommentSheet = () => {
   const total =
     grouped.top.length +
     Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
+  const isScrollable = total > 3;
 
   useEffect(() => {
     setReplyTo(null);
@@ -302,7 +303,13 @@ export const CommentSheet = () => {
               )}
             </DragZone>
 
-            <SheetBody ref={bodyRef}>
+            <SheetBody
+              ref={bodyRef}
+              style={{
+                overflowY: isScrollable ? 'auto' : 'hidden',
+                touchAction: isScrollable ? 'pan-y' : 'none',
+              }}
+            >
               {grouped.top.length === 0 && (
                 <EmptyState
                   key="empty"
