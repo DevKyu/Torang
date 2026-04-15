@@ -292,7 +292,7 @@ export const MetaBar = styled.div`
   align-items: center;
   gap: 6px;
 
-  padding: 6px 16px 10px;
+  padding: 6px 16px 8px;
   font-size: 13px;
   color: #888;
 
