@@ -152,13 +152,13 @@ const GalleryUpload = ({
         empId,
         liked: false,
         likes: 0,
-        uploadedAt: '',
         ym: '',
       })),
     [items, empId],
   );
 
   useEffect(() => {
+    if (!uploadImages.length) return;
     setUploadImages(uploadImages);
   }, [uploadImages, setUploadImages]);
 

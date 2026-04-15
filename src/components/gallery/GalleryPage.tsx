@@ -33,7 +33,8 @@ export type GalleryItem = {
   url: string;
   caption: string;
   empId: string;
-  uploadedAt: string;
+  uploadedAt: number;
+  order?: number;
   likes?: Record<string, any>;
   comments?: Record<string, any>;
 };
@@ -104,7 +105,8 @@ const GalleryPage = () => {
         url: v.url,
         caption: v.caption ?? '',
         empId: v.empId,
-        uploadedAt: String(v.uploadedAt ?? ''),
+        uploadedAt: Number(v.uploadedAt ?? 0),
+        order: v.order ?? 0,
         likes: v.likes ?? {},
         comments: v.comments ?? {},
       }));
@@ -136,6 +138,8 @@ const GalleryPage = () => {
       showLoading();
 
       try {
+        const baseTime = useUiStore.getState().getServerNow().getTime();
+
         for (let i = 0; i < files.length; i++) {
           const { imageId, url } = await uploadGalleryImage(files[i], yyyymm);
 
@@ -144,6 +148,8 @@ const GalleryPage = () => {
             imageId,
             url,
             caption: captions[i] ?? '',
+            uploadedAt: baseTime + i,
+            order: i,
           });
         }
 

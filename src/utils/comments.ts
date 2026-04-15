@@ -14,8 +14,6 @@ type Raw = {
   likes?: Record<string, true>;
 };
 
-const getYm = (uploadedAt: string) => uploadedAt.slice(0, 6);
-
 const createCommentId = (empId: string) => {
   const fmt = useUiStore.getState().formatServerDate;
   return `${empId}_${fmt('ymdhmsms')}`;
@@ -37,7 +35,7 @@ const convertRaw = (
   }));
 
 export const addGalleryComment = async (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   text: string,
   parentId: string | null = null,
@@ -45,9 +43,8 @@ export const addGalleryComment = async (
   const empId = getCurrentUserId();
   const t = text.trim();
 
-  if (!empId || !uploadedAt || !imageId || !t) return null;
+  if (!empId || !ym || !imageId || !t) return null;
 
-  const ym = getYm(uploadedAt);
   const cid = createCommentId(empId);
   const now = useUiStore.getState().getServerNow().getTime();
 
@@ -64,13 +61,12 @@ export const addGalleryComment = async (
 };
 
 export const deleteGalleryComment = async (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   cid: string,
 ) => {
-  if (!uploadedAt || !imageId || !cid) return;
+  if (!ym || !imageId || !cid) return;
 
-  const ym = getYm(uploadedAt);
   const base = `gallery/${ym}/${imageId}/comments`;
 
   const snap = await get(ref(db, base));
@@ -93,15 +89,14 @@ export const deleteGalleryComment = async (
 };
 
 export const toggleCommentLike = (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   cid: string,
   nextLiked: boolean,
 ) => {
   const empId = getCurrentUserId();
-  if (!empId || !uploadedAt) return;
+  if (!empId || !ym) return;
 
-  const ym = getYm(uploadedAt);
   const likeRef = ref(
     db,
     `gallery/${ym}/${imageId}/comments/${cid}/likes/${empId}`,
@@ -116,13 +111,12 @@ export const toggleCommentLike = (
 };
 
 export const subscribeGalleryComments = (
-  uploadedAt: string,
+  ym: string,
   imageId: string,
   cb: (list: LightboxComment[]) => void,
 ) => {
-  if (!uploadedAt || !imageId) return () => {};
+  if (!ym || !imageId) return () => {};
 
-  const ym = getYm(uploadedAt);
   const commentsRef = ref(db, `gallery/${ym}/${imageId}/comments`);
   const empId = getCurrentUserId();
 
@@ -140,13 +134,9 @@ export const subscribeGalleryComments = (
   return () => off(commentsRef, 'value', handler);
 };
 
-export const fetchGalleryComments = async (
-  uploadedAt: string,
-  imageId: string,
-) => {
-  if (!uploadedAt || !imageId) return [];
+export const fetchGalleryComments = async (ym: string, imageId: string) => {
+  if (!ym || !imageId) return [];
 
-  const ym = getYm(uploadedAt);
   const snap = await get(ref(db, `gallery/${ym}/${imageId}/comments`));
 
   if (!snap.exists()) return [];

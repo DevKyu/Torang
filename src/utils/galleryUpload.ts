@@ -30,10 +30,11 @@ export const saveGalleryMeta = async (params: {
   imageId: string;
   url: string;
   caption: string;
+  uploadedAt: number;
+  order: number;
 }) => {
-  const { yyyymm, imageId, url, caption } = params;
+  const { yyyymm, imageId, url, caption, uploadedAt, order } = params;
   const empId = getCurrentUserId();
-  const uploadedAt = useUiStore.getState().formatServerDate('ymdhm');
   const ref = dbRef(db, `gallery/${yyyymm}/${imageId}`);
 
   await set(ref, {
@@ -41,6 +42,7 @@ export const saveGalleryMeta = async (params: {
     empId,
     caption,
     uploadedAt,
+    order,
     likes: {},
     comments: {},
   });

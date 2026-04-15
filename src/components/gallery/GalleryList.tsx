@@ -39,7 +39,8 @@ type GalleryItem = {
   id: string;
   url: string;
   caption: string;
-  uploadedAt: string;
+  uploadedAt: number;
+  order?: number;
   empId: string;
   likes?: Record<string, any>;
   comments?: Record<string, any>;
@@ -87,7 +88,9 @@ const GalleryList = ({
   }, [yyyymm]);
 
   useEffect(() => {
-    const clean = list.filter((i) => i.url && i.empId && i.uploadedAt);
+    const clean = list.filter(
+      (i) => i.url && i.empId && i.uploadedAt !== undefined,
+    );
 
     const base = clean.map((i) => ({
       ...i,
@@ -98,9 +101,23 @@ const GalleryList = ({
     }));
 
     const ordered = [...base].sort((a, b) => {
-      if (filter === 'likes') return b.likesCount - a.likesCount;
-      if (filter === 'comments') return b.commentsCount - a.commentsCount;
-      return Number(b.uploadedAt) - Number(a.uploadedAt);
+      if (filter === 'likes') {
+        return (
+          b.likesCount - a.likesCount ||
+          b.uploadedAt - a.uploadedAt ||
+          (a.order ?? 0) - (b.order ?? 0)
+        );
+      }
+
+      if (filter === 'comments') {
+        return (
+          b.commentsCount - a.commentsCount ||
+          b.uploadedAt - a.uploadedAt ||
+          (a.order ?? 0) - (b.order ?? 0)
+        );
+      }
+
+      return b.uploadedAt - a.uploadedAt || (a.order ?? 0) - (b.order ?? 0);
     });
 
     setSorted(ordered);

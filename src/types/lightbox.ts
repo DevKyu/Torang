@@ -2,7 +2,7 @@ export type GalleryImage = {
   id: string;
   preview: string;
   description?: string;
-  uploadedAt?: string;
+  uploadedAt?: number;
   empId: string;
   liked?: boolean;
   likes?: number;
