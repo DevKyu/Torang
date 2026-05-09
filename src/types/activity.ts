@@ -27,6 +27,7 @@ export type ActivityItem =
       description: string;
       delta: number;
       category?: 'activity' | 'achievement' | 'target' | 'match' | 'referral' | 'gallery' | 'mission';
+      targetMeta?: { myScore: number; target: number; special: boolean };
     }
   | {
       id: string;

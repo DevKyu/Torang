@@ -35,6 +35,13 @@ import {
   ScoreVal,
   ScoreSep,
   TeamDivider,
+  TargetScoreRow,
+  TargetArrow,
+  TargetScoreBox,
+  TargetScoreLabel,
+  TargetScoreValue,
+  TargetScoreUnit,
+  TargetDelta,
 } from './ActivityBottomSheetStyle';
 
 type Props = {
@@ -186,7 +193,35 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                       {categoryLabel[item.category]}
                     </RewardBadge>
                   )}
-                  <Desc>{item.description}</Desc>
+                  {item.category === 'target' && item.targetMeta ? (() => {
+                    const { myScore, target, special } = item.targetMeta;
+                    const achievedVariant = special ? 'special' : 'regular';
+                    const diff = myScore - target;
+                    return (
+                      <>
+                        <TargetScoreRow>
+                          <TargetScoreBox variant="goal">
+                            <TargetScoreLabel variant="goal">목표</TargetScoreLabel>
+                            <TargetScoreValue variant="goal">
+                              {target}<TargetScoreUnit>점</TargetScoreUnit>
+                            </TargetScoreValue>
+                          </TargetScoreBox>
+                          <TargetArrow>→</TargetArrow>
+                          <TargetScoreBox variant={achievedVariant}>
+                            <TargetScoreLabel variant={achievedVariant}>달성</TargetScoreLabel>
+                            <TargetScoreValue variant={achievedVariant}>
+                              {myScore}<TargetScoreUnit>점</TargetScoreUnit>
+                            </TargetScoreValue>
+                          </TargetScoreBox>
+                        </TargetScoreRow>
+                        <TargetDelta special={special}>
+                          {special ? '정확히 목표 달성!' : `+${diff}점 초과 달성`}
+                        </TargetDelta>
+                      </>
+                    );
+                  })() : (
+                    <Desc>{item.description}</Desc>
+                  )}
                   <DateLine>{formatDate(item.date)}</DateLine>
                 </>
               )}

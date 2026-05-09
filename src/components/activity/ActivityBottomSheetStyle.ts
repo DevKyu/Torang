@@ -177,6 +177,65 @@ export const Desc = styled.div`
   line-height: 1.5;
 `;
 
+export const TargetScoreRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 14px;
+`;
+
+export const TargetArrow = styled.div`
+  flex-shrink: 0;
+  font-size: 14px;
+  color: #d1d5db;
+`;
+
+export const TargetScoreBox = styled.div<{ variant: 'goal' | 'regular' | 'special' }>`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: ${({ variant }) =>
+    variant === 'goal' ? '#f9fafb' : variant === 'special' ? '#faf5ff' : '#f0fdf4'};
+  border-top: 3px solid ${({ variant }) =>
+    variant === 'goal' ? '#e5e7eb' : variant === 'special' ? '#d8b4fe' : '#86efac'};
+`;
+
+export const TargetScoreLabel = styled.div<{ variant: 'goal' | 'regular' | 'special' }>`
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: ${({ variant }) =>
+    variant === 'goal' ? '#9ca3af' : variant === 'special' ? '#c084fc' : '#4ade80'};
+`;
+
+export const TargetScoreValue = styled.div<{ variant: 'goal' | 'regular' | 'special' }>`
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: ${({ variant }) =>
+    variant === 'goal' ? '#374151' : variant === 'special' ? '#9333ea' : '#16a34a'};
+`;
+
+export const TargetScoreUnit = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.7;
+`;
+
+export const TargetDelta = styled.div<{ special: boolean }>`
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: ${({ special }) => (special ? '#9333ea' : '#16a34a')};
+`;
+
 export const DateLine = styled.div`
   font-size: 12px;
   color: #9ca3af;

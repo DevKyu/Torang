@@ -52,8 +52,12 @@ const makeDescription = (
   switch (category) {
     case 'match':
       return `${entry.opponentName ?? '상대방'}과의 매치 승리`;
-    case 'target':
-      return `목표 ${entry.target}점 달성 (내 점수 ${entry.myScore}점)`;
+    case 'target': {
+      const special = entry.myScore === entry.target;
+      return special
+        ? `목표 ${entry.myScore}점 완벽 달성`
+        : `${entry.myScore}점 달성 · 목표 ${entry.target}점`;
+    }
     case 'achievement':
       return typeof entry.detail === 'string' && entry.detail
         ? parseAchievementDetail(entry.detail)
@@ -74,18 +78,31 @@ const toRewardItem = (
   category: RewardCategory,
   key: string,
   entry: Record<string, unknown>,
-): ActivityItem => ({
-  id: `reward_${category}_${key}`,
-  type: 'reward',
-  date: parseDate(entry),
-  title: CATEGORY_TITLE[category],
-  description: makeDescription(category, entry),
-  delta: (() => {
-    const p = typeof entry.pin === 'number' ? entry.pin : 0;
-    return entry.direction === 'loss' ? -p : p;
-  })(),
-  category,
-});
+): ActivityItem => {
+  const base = {
+    id: `reward_${category}_${key}`,
+    type: 'reward' as const,
+    date: parseDate(entry),
+    title: CATEGORY_TITLE[category],
+    description: makeDescription(category, entry),
+    delta: (() => {
+      const p = typeof entry.pin === 'number' ? entry.pin : 0;
+      return entry.direction === 'loss' ? -p : p;
+    })(),
+    category,
+  };
+  if (category === 'target') {
+    return {
+      ...base,
+      targetMeta: {
+        myScore: typeof entry.myScore === 'number' ? entry.myScore : 0,
+        target: typeof entry.target === 'number' ? entry.target : 0,
+        special: entry.myScore === entry.target,
+      },
+    };
+  }
+  return base;
+};
 
 export const useActivityRewards = (yyyymm: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
