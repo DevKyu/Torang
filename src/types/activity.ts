@@ -6,7 +6,7 @@ export type MatchTeams = {
 export type LeaguePlayer = {
   empId: string;
   name: string;
-  score: number;
+  scores: [number, number];
 };
 
 export type ActivityItem =

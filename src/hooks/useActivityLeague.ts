@@ -7,12 +7,16 @@ import type { ActivityItem, LeaguePlayer } from '../types/activity';
 export type RawGroup = {
   winner: 'team1' | 'team2' | 'draw';
   date: number;
-  team1?: Record<string, { name: string; score: number }>;
-  team2?: Record<string, { name: string; score: number }>;
+  team1?: Record<string, { name: string; score1: number; score2: number }>;
+  team2?: Record<string, { name: string; score1: number; score2: number }>;
 };
 
-const toPlayers = (raw?: Record<string, { name: string; score: number }>): LeaguePlayer[] =>
-  raw ? Object.entries(raw).map(([empId, p]) => ({ empId, name: p.name, score: p.score })) : [];
+const toPlayers = (raw?: Record<string, { name: string; score1: number; score2: number }>): LeaguePlayer[] =>
+  raw
+    ? Object.entries(raw)
+        .map(([empId, p]) => ({ empId, name: p.name, scores: [p.score1 ?? 0, p.score2 ?? 0] as [number, number] }))
+        .sort((a, b) => b.scores[1] - a.scores[1])
+    : [];
 
 export const useActivityLeague = (yyyymm: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
@@ -81,9 +85,9 @@ export const useActivityLeague = (yyyymm: string) => {
             result: leagueResult,
             myTeamNum,
             myTeam,
-            myTotalScore: myTeam.reduce((s, p) => s + p.score, 0),
+            myTotalScore: myTeam.reduce((s, p) => s + p.scores[1], 0),
             opponentTeam,
-            opponentTotalScore: opponentTeam.reduce((s, p) => s + p.score, 0),
+            opponentTotalScore: opponentTeam.reduce((s, p) => s + p.scores[1], 0),
           });
         }
 

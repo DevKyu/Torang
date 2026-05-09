@@ -38,7 +38,7 @@ import {
 } from './AdminLeagueStyle';
 import type { RawGroup } from '../../hooks/useActivityLeague';
 
-type PlayerEntry = { empId: string; name: string; score: string };
+type PlayerEntry = { empId: string; name: string; score1: string; score2: string };
 type GroupDraft = {
   groupId: string;
   date: string;
@@ -56,8 +56,10 @@ const toDateInput = (n: number) => {
 
 const fromDateInput = (s: string) => Number(s.replace(/-/g, ''));
 
-const rawToPlayerEntries = (raw?: Record<string, { name: string; score: number }>): PlayerEntry[] =>
-  raw ? Object.entries(raw).map(([id, p]) => ({ empId: id, name: p.name, score: String(p.score) })) : [];
+const rawToPlayerEntries = (raw?: Record<string, { name: string; score1: number; score2: number }>): PlayerEntry[] =>
+  raw ? Object.entries(raw).map(([id, p]) => ({
+    empId: id, name: p.name, score1: String(p.score1 ?? 0), score2: String(p.score2 ?? 0),
+  })) : [];
 
 const AdminLeague = () => {
   const navigate = useNavigate();
@@ -127,8 +129,8 @@ const AdminLeague = () => {
     setEditing({
       groupId: nextId,
       date: defaultDate,
-      team1: [{ empId: '', name: '', score: '' }],
-      team2: [{ empId: '', name: '', score: '' }],
+      team1: [{ empId: '', name: '', score1: '', score2: '' }],
+      team2: [{ empId: '', name: '', score1: '', score2: '' }],
       winner: 'team1',
     });
   };
@@ -183,7 +185,7 @@ const AdminLeague = () => {
   const addPlayer = (teamKey: 'team1' | 'team2') => {
     setEditing((prev) => {
       if (!prev) return prev;
-      return { ...prev, [teamKey]: [...prev[teamKey], { empId: '', name: '', score: '' }] };
+      return { ...prev, [teamKey]: [...prev[teamKey], { empId: '', name: '', score1: '', score2: '' }] };
     });
   };
 
@@ -203,7 +205,7 @@ const AdminLeague = () => {
       Object.fromEntries(
         players
           .filter((p) => p.empId.trim())
-          .map((p) => [p.empId.trim(), { name: p.name.trim(), score: Number(p.score) || 0 }]),
+          .map((p) => [p.empId.trim(), { name: p.name.trim(), score1: Number(p.score1) || 0, score2: Number(p.score2) || 0 }]),
       );
     const data = {
       winner: editing.winner,
@@ -269,6 +271,7 @@ const AdminLeague = () => {
                 placeholder="이름 검색"
                 value={p.name}
                 onChange={(e) => updatePlayer(teamKey, idx, 'name', e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') lookupByName(teamKey, idx); }}
               />
               <LookupBtn type="button" onClick={() => lookupByName(teamKey, idx)}>
                 조회
@@ -278,9 +281,15 @@ const AdminLeague = () => {
               <EmpIdBadge>{p.empId || '사번'}</EmpIdBadge>
               <PlayerInput
                 type="number"
-                placeholder="점수"
-                value={p.score}
-                onChange={(e) => updatePlayer(teamKey, idx, 'score', e.target.value)}
+                placeholder="1차"
+                value={p.score1}
+                onChange={(e) => updatePlayer(teamKey, idx, 'score1', e.target.value)}
+              />
+              <PlayerInput
+                type="number"
+                placeholder="2차"
+                value={p.score2}
+                onChange={(e) => updatePlayer(teamKey, idx, 'score2', e.target.value)}
               />
               <RemoveBtn type="button" onClick={() => removePlayer(teamKey, idx)}>
                 ×
