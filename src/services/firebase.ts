@@ -44,6 +44,9 @@ export const db = getDatabase(app);
 export const storage = getStorage(app);
 
 // 3. 공통 유틸
+export const empIdFromEmail = (email?: string | null): string =>
+  email?.replace('@torang.com', '') ?? '';
+
 export const getCurrentUserOrThrow = () => {
   const user = auth.currentUser;
   if (!user) throw new Error('로그인이 필요합니다.');
