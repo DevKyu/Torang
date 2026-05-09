@@ -216,11 +216,17 @@ const ActivityHistory = () => {
                       </ContentCell>
 
                       {item.type === 'league' ? (
-                        <Value positive={item.result === 'win'}>
+                        <Value
+                          draw={item.result === 'draw'}
+                          positive={item.result === 'win' ? true : item.result === 'lose' ? false : undefined}
+                        >
                           {item.result === 'win' ? '승' : item.result === 'lose' ? '패' : '무'}
                         </Value>
                       ) : item.type === 'match' ? (
-                        <Value positive={item.delta > 0}>
+                        <Value
+                          draw={item.delta === 0}
+                          positive={item.delta > 0 ? true : item.delta < 0 ? false : undefined}
+                        >
                           {item.delta > 0 ? '승' : item.delta < 0 ? '패' : '무'}
                         </Value>
                       ) : item.delta === 0 ? (

@@ -120,11 +120,11 @@ export const TeamInline = styled.div`
   }
 `;
 
-export const Value = styled.div<{ positive?: boolean }>`
+export const Value = styled.div<{ positive?: boolean; draw?: boolean }>`
   min-width: 34px;
   text-align: right;
   font-size: 12px;
   font-weight: 700;
-  color: ${({ positive }) =>
-    positive === true ? C.pos : positive === false ? C.neg : C.textSub};
+  color: ${({ draw, positive }) =>
+    draw ? '#d97706' : positive === true ? C.pos : positive === false ? C.neg : C.textSub};
 `;

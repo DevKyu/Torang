@@ -31,6 +31,9 @@ import {
   Title,
   LeaguePlayerRow,
   LeaguePlayerScore,
+  ScoreGroup,
+  ScoreVal,
+  ScoreSep,
   TeamDivider,
 } from './ActivityBottomSheetStyle';
 
@@ -122,7 +125,7 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
               <Header>
                 <Title>{item.title}</Title>
                 {item.type === 'league' ? (
-                  <Delta positive={item.result === 'win'}>
+                  <Delta draw={item.result === 'draw'} positive={item.result === 'win'}>
                     {item.result === 'win' ? '승리' : item.result === 'lose' ? '패배' : '무승부'}
                   </Delta>
                 ) : 'delta' in item ? (
@@ -203,7 +206,11 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                         {item.myTeam.map((p) => (
                           <LeaguePlayerRow key={p.empId}>
                             <span>{p.name}</span>
-                            <LeaguePlayerScore status={myStatus}>{p.score}</LeaguePlayerScore>
+                            <ScoreGroup>
+                              <ScoreVal>{p.scores[0] || '–'}</ScoreVal>
+                              <ScoreSep>/</ScoreSep>
+                              <LeaguePlayerScore status={myStatus}>{p.scores[1] || '–'}</LeaguePlayerScore>
+                            </ScoreGroup>
                           </LeaguePlayerRow>
                         ))}
                       </TeamBlock>
@@ -216,7 +223,11 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                         {item.opponentTeam.map((p) => (
                           <LeaguePlayerRow key={p.empId}>
                             <span>{p.name}</span>
-                            <LeaguePlayerScore status={oppStatus}>{p.score}</LeaguePlayerScore>
+                            <ScoreGroup>
+                              <ScoreVal>{p.scores[0] || '–'}</ScoreVal>
+                              <ScoreSep>/</ScoreSep>
+                              <LeaguePlayerScore status={oppStatus}>{p.scores[1] || '–'}</LeaguePlayerScore>
+                            </ScoreGroup>
                           </LeaguePlayerRow>
                         ))}
                       </TeamBlock>

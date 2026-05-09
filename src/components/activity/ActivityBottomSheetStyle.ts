@@ -71,12 +71,12 @@ export const Title = styled.h3`
   line-height: 1.3;
 `;
 
-export const Delta = styled.div<{ positive: boolean }>`
+export const Delta = styled.div<{ positive: boolean; draw?: boolean }>`
   flex-shrink: 0;
   font-size: 14px;
   font-weight: 700;
   padding-top: 2px;
-  color: ${({ positive }) => (positive ? '#2563eb' : '#dc2626')};
+  color: ${({ draw, positive }) => draw ? '#d97706' : positive ? '#2563eb' : '#dc2626'};
 `;
 
 export const Month = styled.div`
@@ -99,22 +99,22 @@ type TeamStatus = 'winner' | 'loser' | 'neutral';
 const teamBg: Record<TeamStatus, string> = {
   winner:  'linear-gradient(to bottom, #eff6ff, #ffffff)',
   loser:   'linear-gradient(to bottom, #fef2f2, #ffffff)',
-  neutral: 'linear-gradient(to bottom, #f9fafb, #ffffff)',
+  neutral: 'linear-gradient(to bottom, #fffbeb, #ffffff)',
 };
 const teamBorder: Record<TeamStatus, string> = {
   winner: '#3b82f6',
   loser:  '#f87171',
-  neutral: '#e5e7eb',
+  neutral: '#fcd34d',
 };
 const teamLabelColor: Record<TeamStatus, string> = {
   winner: '#2563eb',
   loser:  '#dc2626',
-  neutral: '#6b7280',
+  neutral: '#b45309',
 };
 const teamScoreColor: Record<TeamStatus, string> = {
   winner: '#1d4ed8',
   loser:  '#b91c1c',
-  neutral: '#374151',
+  neutral: '#92400e',
 };
 
 export const TeamBlock = styled.div<{ status?: TeamStatus }>`
@@ -196,18 +196,40 @@ export const LeaguePlayerRow = styled.div`
   line-height: 1.5;
 `;
 
+export const ScoreGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+`;
+
+export const ScoreVal = styled.span`
+  min-width: 3ch;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #9ca3af;
+`;
+
+export const ScoreSep = styled.span`
+  padding: 0 2px;
+  font-size: 11px;
+  color: #d1d5db;
+`;
+
 const playerScoreColor: Record<TeamStatus, string> = {
   winner:  '#3b82f6',
   loser:   '#f87171',
-  neutral: '#9ca3af',
+  neutral: '#d97706',
 };
 
 export const LeaguePlayerScore = styled.span<{ status?: TeamStatus }>`
+  min-width: 3ch;
+  text-align: right;
   font-size: 12px;
   color: ${({ status = 'neutral' }) => playerScoreColor[status]};
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
 `;
 
 export const TeamDivider = styled.div`
