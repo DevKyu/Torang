@@ -368,6 +368,8 @@ export const NewUserForm = styled.div`
 export const AdminLinkSection = styled.div`
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 8px 0 16px;
 
   button {
@@ -377,5 +379,7 @@ export const AdminLinkSection = styled.div`
     border-radius: 6px;
     font-size: 13px;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 `;

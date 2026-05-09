@@ -307,6 +307,9 @@ const AdminUserManagement = () => {
         <button onClick={() => navigate('/admin/event')}>
           ⚙️ 이벤트 / 메뉴 운영 설정
         </button>
+        <button onClick={() => navigate('/admin/league')}>
+          🏆 정기전 관리
+        </button>
       </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (

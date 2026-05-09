@@ -37,19 +37,18 @@ const OuterWrapper = styled.div`
 
 const AdminBox = styled(ContentBox)`
   max-width: 720px;
-  padding: 24px 28px;
+  padding: 28px 32px;
   text-align: left;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
-  max-height: 80vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 3px;
+  @media (max-width: 768px) {
+    padding: 20px;
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar { display: none; }
   }
 `;
 
