@@ -237,7 +237,7 @@ const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
             animate={{ opacity: [0, 1, 1], scale: [0.5, 1.1, 1.0], y: [10, 0, 0] }}
             transition={{ duration: 0.45, times: [0, 0.4, 1], ease: 'easeOut' }}
           >
-            또랑또랑!
+            또랑!
           </motion.p>
         </div>
       )}
