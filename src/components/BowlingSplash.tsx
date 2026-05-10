@@ -94,9 +94,11 @@ const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
         justifyContent: 'center',
         overflow: 'hidden',
         touchAction: 'none',
+        cursor: 'pointer',
       }}
       animate={{ opacity: phase === 'fadeout' ? 0 : 1 }}
       transition={{ duration: 0.9 }}
+      onClick={onComplete}
     >
       <div style={{
         position: 'absolute', inset: 0,
