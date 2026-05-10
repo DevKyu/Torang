@@ -5,6 +5,7 @@ import {
   type FormEvent,
   type ChangeEvent,
 } from 'react';
+import BowlingSplash from './BowlingSplash';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -33,6 +34,7 @@ const Login = () => {
   const [referrerName, setReferrerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showSplash, setShowSplash] = useState(true);
 
   const { showLoading, hideLoading } = useLoading();
   const navigate = useNavigate();
@@ -312,7 +314,9 @@ const Login = () => {
   );
 
   return (
-    <Layout title="또랑 로그인🎳">
+    <>
+      {showSplash && <BowlingSplash onComplete={() => setShowSplash(false)} />}
+      <Layout title="또랑 로그인🎳">
       <AnimatePresence mode="wait" initial={false}>
         <motion.form
           key={isPasswordChangeMode ? 'change' : 'login'}
@@ -339,6 +343,7 @@ const Login = () => {
         </motion.form>
       </AnimatePresence>
     </Layout>
+    </>
   );
 };
 
