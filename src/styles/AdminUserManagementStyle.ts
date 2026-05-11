@@ -192,7 +192,7 @@ export const ResultList = styled.ul`
 
 export const ResultItem = styled.li`
   display: grid;
-  grid-template-columns: minmax(74px, auto) 1fr auto;
+  grid-template-columns: 78px 1fr auto;
   align-items: center;
 
   gap: 10px;
@@ -224,7 +224,6 @@ export const ResultItem = styled.li`
   .emp {
     font-size: 0.78rem;
     font-weight: 700;
-
     color: #111827;
   }
 
@@ -245,9 +244,8 @@ export const ResultItem = styled.li`
     align-items: center;
     justify-content: center;
 
-    min-width: 54px;
-
-    height: 26px;
+    min-width: 58px;
+    height: 28px;
 
     padding: 0 10px;
 
@@ -259,13 +257,29 @@ export const ResultItem = styled.li`
 
     font-size: 0.72rem;
     font-weight: 700;
+
+    flex-shrink: 0;
   }
 
   @media (max-width: 640px) {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 72px 1fr auto;
+    gap: 8px;
+
+    padding: 10px 12px;
+
+    .emp {
+      font-size: 0.74rem;
+    }
+
+    .name {
+      font-size: 0.82rem;
+    }
 
     .pin {
-      grid-row: 1 / 3;
+      min-width: 54px;
+      height: 26px;
+
+      font-size: 0.7rem;
     }
   }
 `;

@@ -525,6 +525,11 @@ const AdminUserManagement = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
+        style={{
+          position: 'relative',
+          zIndex: 20,
+          pointerEvents: 'auto',
+        }}
         onClick={() => {
           navigate('/menu', { replace: true });
         }}

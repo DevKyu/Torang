@@ -35,7 +35,7 @@ import {
   PlayerRowWrap,
   PlayerRowMain,
   PlayerRowSub,
-} from './AdminLeagueStyle';
+} from '../../styles/AdminLeagueStyle';
 import type { RawGroup } from '../../hooks/useActivityLeague';
 
 type PlayerEntry = {
