@@ -70,10 +70,17 @@ const rowVariants = {
   },
 };
 
-const TYPE_PRIORITY: Record<string, number> = { match: 0, league: 0, reward: 1, activity: 2 };
+const TYPE_PRIORITY: Record<string, number> = {
+  match: 0,
+  league: 0,
+  reward: 1,
+  activity: 2,
+};
 
 const joinNames = (names: string[], max = 3) =>
-  names.length <= max ? names.join(' · ') : names.slice(0, max).join(' · ') + ' · …';
+  names.length <= max
+    ? names.join(' · ')
+    : names.slice(0, max).join(' · ') + ' · …';
 
 const ActivityHistory = () => {
   const navigate = useNavigate();
@@ -85,13 +92,21 @@ const ActivityHistory = () => {
   const [category, setCategory] = useState<Category>('all');
   const [selected, setSelected] = useState<ActivityItem | null>(null);
 
-  const { items: rewardItems, loading: rewardLoading } = useActivityRewards(yyyymm);
-  const { items: matchItems, loading: matchLoading } = useActivityMatches(yyyymm);
-  const { item: summaryItem, loading: summaryLoading } = useActivitySummary(yyyymm);
-  const { items: leagueItems, loading: leagueLoading } = useActivityLeague(yyyymm);
+  const { items: rewardItems, loading: rewardLoading } =
+    useActivityRewards(yyyymm);
+  const { items: matchItems, loading: matchLoading } =
+    useActivityMatches(yyyymm);
+  const { item: summaryItem, loading: summaryLoading } =
+    useActivitySummary(yyyymm);
+  const { items: leagueItems, loading: leagueLoading } =
+    useActivityLeague(yyyymm);
 
   const monthly = useMemo(() => {
-    const base: ActivityItem[] = [...rewardItems, ...matchItems, ...leagueItems];
+    const base: ActivityItem[] = [
+      ...rewardItems,
+      ...matchItems,
+      ...leagueItems,
+    ];
     if (summaryItem) base.push(summaryItem);
     return base;
   }, [rewardItems, matchItems, summaryItem, leagueItems]);
@@ -119,7 +134,12 @@ const ActivityHistory = () => {
         <MyInfoBox>
           <PageTitle size="small">활동 기록</PageTitle>
 
-          <MonthNavigator yyyymm={yyyymm} onChange={setYyyymm} minYm="202508" maxYm={currentYm} />
+          <MonthNavigator
+            yyyymm={yyyymm}
+            onChange={setYyyymm}
+            minYm="202507"
+            maxYm={currentYm}
+          />
 
           <CategoryRow>
             {(['all', 'match', 'reward', 'activity'] as Category[]).map((c) => (
@@ -148,10 +168,15 @@ const ActivityHistory = () => {
             animate="visible"
             key={`${yyyymm}-${category}`}
           >
-            {rewardLoading || matchLoading || summaryLoading || leagueLoading ? (
+            {rewardLoading ||
+            matchLoading ||
+            summaryLoading ||
+            leagueLoading ? (
               <EmptyState variants={rowVariants}>불러오는 중...</EmptyState>
             ) : filtered.length === 0 ? (
-              <EmptyState variants={rowVariants}>해당 월의 내역이 없습니다.</EmptyState>
+              <EmptyState variants={rowVariants}>
+                해당 월의 내역이 없습니다.
+              </EmptyState>
             ) : (
               filtered.map((item) => (
                 <Row
@@ -218,14 +243,30 @@ const ActivityHistory = () => {
                       {item.type === 'league' ? (
                         <Value
                           draw={item.result === 'draw'}
-                          positive={item.result === 'win' ? true : item.result === 'lose' ? false : undefined}
+                          positive={
+                            item.result === 'win'
+                              ? true
+                              : item.result === 'lose'
+                                ? false
+                                : undefined
+                          }
                         >
-                          {item.result === 'win' ? '승' : item.result === 'lose' ? '패' : '무'}
+                          {item.result === 'win'
+                            ? '승'
+                            : item.result === 'lose'
+                              ? '패'
+                              : '무'}
                         </Value>
                       ) : item.type === 'match' ? (
                         <Value
                           draw={item.delta === 0}
-                          positive={item.delta > 0 ? true : item.delta < 0 ? false : undefined}
+                          positive={
+                            item.delta > 0
+                              ? true
+                              : item.delta < 0
+                                ? false
+                                : undefined
+                          }
                         >
                           {item.delta > 0 ? '승' : item.delta < 0 ? '패' : '무'}
                         </Value>
@@ -244,7 +285,12 @@ const ActivityHistory = () => {
             )}
           </ListFrame>
 
-          <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>돌아가기</SmallText>
+          <SmallText
+            top="middle"
+            onClick={() => navigate('/menu', { replace: true })}
+          >
+            돌아가기
+          </SmallText>
         </MyInfoBox>
       </MyInfoContainer>
 

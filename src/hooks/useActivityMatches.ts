@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ref, get } from 'firebase/database';
-import { db, auth, empIdFromEmail, preloadAllNames, getCachedUserName } from '../services/firebase';
+import {
+  db,
+  auth,
+  empIdFromEmail,
+  preloadAllNames,
+  getCachedUserName,
+} from '../services/firebase';
 import type { ActivityItem } from '../types/activity';
 import type { MatchType } from '../types/match';
 
@@ -13,8 +19,18 @@ type MatchResult = {
 };
 
 const TITLE: Record<MatchType, Record<string, string>> = {
-  rival: { win: '라이벌 매치 승리', lose: '라이벌 매치 패배', draw: '라이벌 매치 무승부', none: '라이벌 매치' },
-  pin:   { win: '핀 매치 승리',    lose: '핀 매치 패배',    draw: '핀 매치 무승부',    none: '핀 매치' },
+  rival: {
+    win: '라이벌 매치 승리',
+    lose: '라이벌 매치 패배',
+    draw: '라이벌 매치 무승부',
+    none: '라이벌 매치',
+  },
+  pin: {
+    win: '핀 쟁탈전 승리',
+    lose: '핀 쟁탈전 패배',
+    draw: '핀 쟁탈전 무승부',
+    none: '핀 쟁탈전',
+  },
 };
 
 const fallbackDate = (yyyymm: string): number =>
@@ -29,9 +45,15 @@ const toMatchItem = (
 ): ActivityItem => ({
   id: `match_${type}_${opponentId}`,
   type: 'match',
-  date: typeof entry.finalizedAt === 'number' ? entry.finalizedAt : fallbackDate(yyyymm),
+  date:
+    typeof entry.finalizedAt === 'number'
+      ? entry.finalizedAt
+      : fallbackDate(yyyymm),
   title: TITLE[type][entry.result] ?? TITLE[type].none,
-  delta: typeof entry.delta === 'number' ? entry.delta : entry.myScore - entry.opponentScore,
+  delta:
+    typeof entry.delta === 'number'
+      ? entry.delta
+      : entry.myScore - entry.opponentScore,
   teams: {
     my: [getCachedUserName(myId)],
     opponent: [getCachedUserName(opponentId)],
