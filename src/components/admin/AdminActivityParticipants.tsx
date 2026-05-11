@@ -37,7 +37,7 @@ import {
   BottomSection,
   SaveButton,
   EmptyText,
-} from './AdminActivityParticipantsStyle';
+} from '../../styles/AdminActivityParticipantsStyle';
 
 const createMonthOptions = () => {
   const now = new Date();
