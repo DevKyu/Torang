@@ -4,7 +4,7 @@ import {
   HeaderRow,
   MonthNavButton,
   MonthText,
-} from './MonthNavigatorStyle';
+} from '../../styles/MonthNavigatorStyle';
 
 type Props = {
   yyyymm: string;

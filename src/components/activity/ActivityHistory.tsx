@@ -19,7 +19,7 @@ import {
   Value,
   ContentCell,
   ActivitySummaryCell,
-} from './ActivityHistoryStyle';
+} from '../../styles/ActivityHistoryStyle';
 import { SmallText } from '../../styles/commonStyle';
 
 import type { ActivityItem } from '../../types/activity';
