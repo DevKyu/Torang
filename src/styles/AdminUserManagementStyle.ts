@@ -322,16 +322,16 @@ export const UserCard = styled.div`
 
 export const UserCardHeader = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 
   gap: 12px;
 
   margin-bottom: 14px;
 
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
+  h3 {
+    flex: 1;
+    min-width: 0;
   }
 `;
 
