@@ -39,6 +39,9 @@ import {
   InnerContent,
   NewUserForm,
   AdminLinkSection,
+  AdminMainLink,
+  AdminSubLinkRow,
+  AdminSubLink,
 } from '../../styles/AdminUserManagementStyle';
 import { SmallText } from '../../styles/commonStyle';
 
@@ -304,12 +307,21 @@ const AdminUserManagement = () => {
       </SearchRow>
 
       <AdminLinkSection>
-        <button onClick={() => navigate('/admin/event')}>
+        <AdminMainLink onClick={() => navigate('/admin/event')}>
           ⚙️ 이벤트 / 메뉴 운영 설정
-        </button>
-        <button onClick={() => navigate('/admin/league')}>
-          🏆 정기전 관리
-        </button>
+        </AdminMainLink>
+
+        <AdminSubLinkRow>
+          <AdminSubLink onClick={() => navigate('/admin/league')}>
+            🏆 정기전 관리
+          </AdminSubLink>
+
+          <AdminSubLink
+            onClick={() => navigate('/admin/activity-participants')}
+          >
+            ✅ 활동 참여자 관리
+          </AdminSubLink>
+        </AdminSubLinkRow>
       </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (
