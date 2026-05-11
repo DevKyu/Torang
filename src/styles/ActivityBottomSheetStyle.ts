@@ -129,7 +129,7 @@ export const Month = styled.div`
 
 export const TeamsRow = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 12px;
 `;
 
@@ -141,6 +141,10 @@ export const TeamBlock = styled.div<{ status?: TeamStatus }>`
   background: ${({ status = 'neutral' }) => teamTone[status].bg};
   border-top: 3.5px solid ${({ status = 'neutral' }) => teamTone[status].border};
   border-radius: 14px;
+
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 `;
 
 export const TeamLabelRow = styled.div`
@@ -232,7 +236,7 @@ export const DateLine = styled.div`
 export const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
 `;
 
 export const StatItem = styled.div<{ kind: string }>`
@@ -243,6 +247,10 @@ export const StatItem = styled.div<{ kind: string }>`
   border-radius: 14px;
   background: ${({ kind }) => statTone[kind]?.bg || '#f9fafb'};
   border-top: 3px solid ${({ kind }) => statTone[kind]?.border || '#eee'};
+
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 `;
 
 export const StatEmoji = styled.div`
@@ -264,7 +272,7 @@ export const StatLabel = styled.div`
 export const TargetScoreRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 `;
 
 export const TargetArrow = styled.div`
@@ -289,6 +297,10 @@ export const TargetScoreBox = styled.div<{ variant: string }>`
         : variant === 'special'
           ? '#d8b4fe'
           : '#86efac'};
+
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 `;
 
 export const TargetScoreLabel = styled.div<{ variant: string }>`
