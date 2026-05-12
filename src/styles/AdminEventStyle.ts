@@ -71,6 +71,19 @@ export const ToggleLabel = styled.label`
   align-items: center;
   gap: 6px;
   font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  input {
+    transform: scale(0.9);
+  }
+`;
+
+export const ToggleGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 `;
 
 export const MonthSelect = styled.select`

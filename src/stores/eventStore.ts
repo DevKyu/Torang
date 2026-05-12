@@ -18,6 +18,7 @@ export type MenuConfigItem = {
   order?: number;
   badge?: MenuBadgeType;
   disabled?: boolean;
+  hidden?: boolean;
 };
 
 export type MenuConfig = Record<string, MenuConfigItem>;

@@ -8,6 +8,7 @@ import {
   ShieldIcon,
   ImagesIcon,
   History,
+  ClipboardListIcon,
 } from 'lucide-react';
 import { logOut, checkAdminId } from '../services/firebase';
 
@@ -35,6 +36,7 @@ type MenuItem = MenuItemBase & {
   badge?: MenuBadgeType;
   disabled: boolean;
   loading: boolean;
+  hidden: boolean;
 };
 
 const BASE_MENU_MAP: Record<string, MenuItemBase> = {
@@ -44,6 +46,11 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
     id: 'history',
     label: '활동 기록',
     icon: <History size={20} />,
+  },
+  mission: {
+    id: 'mission',
+    label: '활동 미션',
+    icon: <ClipboardListIcon size={20} />,
   },
 
   gallery: {
@@ -75,6 +82,7 @@ const PATH_MAP: Record<string, string> = {
   admin: '/admin',
   gallery: '/gallery',
   history: '/history',
+  mission: '/mission',
 };
 
 const MainMenu = () => {
@@ -125,9 +133,11 @@ const MainMenu = () => {
           order: cfg?.order ?? 999,
           badge: cfg?.badge as MenuBadgeType | undefined,
           disabled,
+          hidden: cfg?.hidden ?? false,
           loading: !loaded,
         };
       })
+      .filter((item) => !item.hidden)
       .sort((a, b) => a.order - b.order);
   }, [menuConfig, isAdmin, loaded]);
 

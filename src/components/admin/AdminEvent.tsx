@@ -25,12 +25,14 @@ import {
   OrderInput,
   BadgeSelect,
   ToggleLabel,
+  ToggleGroup,
 } from '../../styles/AdminEventStyle';
 
 const MENU_KEYS = [
   'user',
   'rank',
   'history',
+  'mission',
   'gallery',
   'reward',
   'draw',
@@ -41,6 +43,7 @@ const MENU_LABEL: Record<MenuKey, string> = {
   user: '내정보',
   rank: '또랑 랭킹',
   history: '활동 기록',
+  mission: '활동 미션',
   gallery: '또랑 갤러리',
   reward: '상품 신청',
   draw: '추첨 결과',
@@ -67,7 +70,12 @@ const PIN_LABEL: Record<PinKey, string> = {
 
 type MenuDraft = Record<
   MenuKey,
-  { order?: number; badge?: 'new' | 'hot' | 'soon'; disabled?: boolean }
+  {
+    order?: number;
+    badge?: 'new' | 'hot' | 'soon';
+    disabled?: boolean;
+    hidden?: boolean;
+  }
 >;
 
 type RewardDraft = Partial<Record<PinKey, number>>;
@@ -146,19 +154,35 @@ export default function AdminEvent() {
               <MenuCard key={id}>
                 <MenuCardHeader>
                   <span>{MENU_LABEL[id]}</span>
-                  <ToggleLabel>
-                    <input
-                      type="checkbox"
-                      checked={cfg.disabled ?? false}
-                      onChange={(e) =>
-                        setMenuDraft((p) => ({
-                          ...p,
-                          [id]: { ...cfg, disabled: e.target.checked },
-                        }))
-                      }
-                    />
-                    비활성
-                  </ToggleLabel>
+                  <ToggleGroup>
+                    <ToggleLabel>
+                      <input
+                        type="checkbox"
+                        checked={cfg.hidden ?? false}
+                        onChange={(e) =>
+                          setMenuDraft((p) => ({
+                            ...p,
+                            [id]: { ...cfg, hidden: e.target.checked },
+                          }))
+                        }
+                      />
+                      숨김
+                    </ToggleLabel>
+
+                    <ToggleLabel>
+                      <input
+                        type="checkbox"
+                        checked={cfg.disabled ?? false}
+                        onChange={(e) =>
+                          setMenuDraft((p) => ({
+                            ...p,
+                            [id]: { ...cfg, disabled: e.target.checked },
+                          }))
+                        }
+                      />
+                      비활성
+                    </ToggleLabel>
+                  </ToggleGroup>
                 </MenuCardHeader>
 
                 <MenuControlRow>
