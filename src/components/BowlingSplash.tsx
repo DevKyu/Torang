@@ -97,10 +97,13 @@ const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
   useEffect(() => {
     const timers = [
       setTimeout(() => setPhase('rolling'), 400),
-      setTimeout(
-        () => setPhase(trajectory === 'center' ? 'impact' : 'gutter'),
-        1300,
-      ),
+
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          setPhase(trajectory === 'center' ? 'impact' : 'gutter');
+        });
+      }, 1300),
+
       setTimeout(() => setPhase('fadeout'), 2100),
       setTimeout(onComplete, 3000),
     ];
