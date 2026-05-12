@@ -59,7 +59,6 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
     label: '또랑 갤러리',
     icon: <ImagesIcon size={20} />,
   },
-
   //draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
 };
 
