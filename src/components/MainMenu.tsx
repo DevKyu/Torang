@@ -52,6 +52,7 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
     label: '활동 미션',
     icon: <ClipboardListIcon size={20} />,
   },
+  reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
 
   gallery: {
     id: 'gallery',
@@ -59,8 +60,7 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
     icon: <ImagesIcon size={20} />,
   },
 
-  reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
-  draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
+  //draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
 };
 
 const ADMIN_MENU: MenuItemBase = {
