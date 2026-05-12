@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GiftIcon,
-  TargetIcon,
   UsersIcon,
   UserIcon,
   ShieldIcon,
