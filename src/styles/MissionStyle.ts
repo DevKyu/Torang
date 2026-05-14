@@ -24,6 +24,7 @@ export const HtmlBody = styled.div`
   p { margin: 0 0 2px; }
   p:last-child { margin-bottom: 0; }
   p:empty { height: 0.75em; }
+  p:has(> br:only-child) { height: 0.75em; line-height: 0; margin: 0; }
   strong { font-weight: 700; }
   em { font-style: italic; }
   u { text-decoration: underline; color: inherit; }
