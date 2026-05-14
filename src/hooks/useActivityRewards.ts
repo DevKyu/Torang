@@ -125,35 +125,57 @@ export const useActivityRewards = (yyyymm: string) => {
       }
 
       try {
-        const snap = await get(ref(db, `users/${empId}/rewards/${yyyymm}`));
+        const [rewardsSnap, referrerSnap] = await Promise.all([
+          get(ref(db, `users/${empId}/rewards/${yyyymm}`)),
+          get(ref(db, `users/${empId}/referrer`)),
+        ]);
         if (cancelled) return;
 
-        if (!snap.exists()) {
-          setItems([]);
-          setLoading(false);
-          return;
-        }
-
-        const data = snap.val() as Record<string, unknown>;
         const result: ActivityItem[] = [];
 
-        for (const [category, entries] of Object.entries(data)) {
-          const cat = category as RewardCategory;
-          if (!CATEGORY_TITLE[cat]) continue;
+        if (rewardsSnap.exists()) {
+          const data = rewardsSnap.val() as Record<string, unknown>;
 
-          if (cat === 'target') {
-            const e = entries as Record<string, unknown>;
-            const pin = typeof e.pin === 'number' ? e.pin : 0;
-            if (pin > 0) result.push(toRewardItem(cat, yyyymm, e));
-          } else {
-            for (const [key, entry] of Object.entries(
-              entries as Record<string, unknown>,
-            )) {
-              const e = entry as Record<string, unknown>;
+          for (const [category, entries] of Object.entries(data)) {
+            const cat = category as RewardCategory;
+            if (!CATEGORY_TITLE[cat]) continue;
+
+            if (cat === 'target') {
+              const e = entries as Record<string, unknown>;
               const pin = typeof e.pin === 'number' ? e.pin : 0;
-              if (pin <= 0) continue;
-              result.push(toRewardItem(cat, key, e));
+              if (pin > 0) result.push(toRewardItem(cat, yyyymm, e));
+            } else {
+              for (const [key, entry] of Object.entries(
+                entries as Record<string, unknown>,
+              )) {
+                const e = entry as Record<string, unknown>;
+                const pin = typeof e.pin === 'number' ? e.pin : 0;
+                if (pin <= 0) continue;
+                result.push(toRewardItem(cat, key, e));
+              }
             }
+          }
+        }
+
+        const hasReferralReward = result.some((i) => i.type === 'reward' && i.category === 'referral');
+        if (!hasReferralReward && referrerSnap.exists()) {
+          const r = referrerSnap.val() as Record<string, unknown>;
+          const rewardedAt = typeof r.rewardedAt === 'string' ? r.rewardedAt : '';
+          if (r.rewarded === true && rewardedAt.slice(0, 6) === yyyymm) {
+            const dateMs = rewardedAt.length >= 12
+              ? new Date(`${rewardedAt.slice(0, 4)}-${rewardedAt.slice(4, 6)}-${rewardedAt.slice(6, 8)}T${rewardedAt.slice(8, 10)}:${rewardedAt.slice(10, 12)}:00`).getTime()
+              : Date.now();
+            result.push({
+              id: 'reward_referral_fallback',
+              type: 'reward' as const,
+              date: dateMs,
+              title: CATEGORY_TITLE['referral'],
+              description: typeof r.referrerName === 'string'
+                ? `${r.referrerName}님 추천으로 가입`
+                : '추천인 보상',
+              delta: 0,
+              category: 'referral',
+            });
           }
         }
 

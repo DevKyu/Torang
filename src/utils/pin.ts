@@ -224,11 +224,7 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
 
   const tx = await runTransaction(referrerRef, (cur) => {
     if (!cur || cur.rewarded) return cur;
-    return {
-      ...cur,
-      rewarded: true,
-      rewardedAt,
-    };
+    return { ...cur, rewarded: true, rewardedAt };
   });
 
   if (!tx.committed) return false;
@@ -237,22 +233,33 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
   const myName = getCachedUserName(empId);
   const referrerName = getCachedUserName(data.refEmpId);
 
-  await Promise.all([
-    applyPinRewardServer({
-      empId: data.refEmpId,
-      pin,
-      type: 'referral',
-      ym,
-      detail: `${myName}님 추천 가입`,
-    }),
-    applyPinRewardServer({
-      empId,
-      pin,
-      type: 'referral',
-      ym,
-      detail: `${referrerName}님 추천으로 가입`,
-    }),
-  ]);
+  try {
+    await Promise.all([
+      applyPinRewardServer({
+        empId: data.refEmpId,
+        pin,
+        type: 'referral',
+        ym,
+        detail: `${myName}님 추천 가입`,
+      }),
+      applyPinRewardServer({
+        empId,
+        pin,
+        type: 'referral',
+        ym,
+        detail: `${referrerName}님 추천으로 가입`,
+      }),
+    ]);
+  } catch {
+    await runTransaction(referrerRef, (cur) => {
+      if (!cur) return cur;
+      const reset = { ...cur };
+      delete reset.rewarded;
+      delete reset.rewardedAt;
+      return reset;
+    });
+    return false;
+  }
 
   setTimeout(() => showReferrerRewardToast(pin), 1500);
   return true;
