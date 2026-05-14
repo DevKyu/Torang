@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
+import { checkAdminId } from '../../services/firebase';
 import { Container, ContentBox, Title } from '../../styles/commonStyle';
 
 type AdminLayoutProps = {
@@ -8,14 +11,23 @@ type AdminLayoutProps = {
 };
 
 const AdminLayout = ({ title, children }: AdminLayoutProps) => {
+  const navigate = useNavigate();
+  const [adminChecked, setAdminChecked] = useState(false);
+
+  useEffect(() => {
+    checkAdminId().then((ok) => {
+      if (!ok) navigate('/menu', { replace: true });
+      else setAdminChecked(true);
+    });
+  }, [navigate]);
+
+  if (!adminChecked) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        ease: 'easeOut',
-      }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <OuterWrapper>
         <Container backgroundColor="#f3f4f6">
