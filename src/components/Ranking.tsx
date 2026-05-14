@@ -327,7 +327,7 @@ const Ranking = () => {
   ) => {
     if (!myId) return;
     await set(ref(db, `match/${ym}/${MATCH_TYPE}/${myId}/${targetId}`), {
-      chosenAt: Date.now(),
+      chosenAt: useUiStore.getState().getServerNow().getTime(),
       message,
       anonymous,
     });

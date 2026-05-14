@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ref, onValue, runTransaction, remove } from 'firebase/database';
 import { db } from '../services/firebase';
+import { useUiStore } from '../stores/useUiStore';
 import type { YearMonth, MatchType } from '../types/match';
 
 export type MatchChoice = { chosenAt: number, message?: string };
@@ -29,23 +30,24 @@ export const useMatch = (
     async (targetId: string, message?: string) => {
       if (!myId) return;
 
+      const chosenAt = useUiStore.getState().getServerNow().getTime();
       const r = ref(db, `match/${ym}/${type}/${myId}`);
       await runTransaction(r, (current: MatchChoices | null) => {
         const next = current ?? {};
 
         if (next[targetId]) {
-          return { ...next, [targetId]: { chosenAt: Date.now() } };
+          return { ...next, [targetId]: { chosenAt } };
         }
 
         if (Object.keys(next).length >= maxChoices) return next;
 
         return {
-        ...next,
-        [targetId]: {
-          chosenAt: Date.now(),
-          ...(message ? { message } : {}),
-        },
-      };
+          ...next,
+          [targetId]: {
+            chosenAt,
+            ...(message ? { message } : {}),
+          },
+        };
       });
     },
     [ym, myId, type, maxChoices],
