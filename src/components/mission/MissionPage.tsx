@@ -290,7 +290,7 @@ const MissionPage = () => {
         <>
           <SectionLabel>이달의 미션</SectionLabel>
           <MissionCard>
-            <CardTitle>{data!.config!.title}</CardTitle>
+            {data!.config!.title && <CardTitle>{data!.config!.title}</CardTitle>}
             {renderBody(data!.config!.description)}
           </MissionCard>
 

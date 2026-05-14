@@ -121,6 +121,14 @@ export async function resetVotes(yyyymm: string): Promise<void> {
   await remove(ref(db, `missions/${yyyymm}/votes`));
 }
 
+export async function resetMissionState(yyyymm: string): Promise<void> {
+  await Promise.all([
+    remove(ref(db, `missions/${yyyymm}/votes`)),
+    remove(ref(db, `missions/${yyyymm}/result`)),
+    set(ref(db, `missions/${yyyymm}/config/status`), 'active'),
+  ]);
+}
+
 export async function revealMissionResult(
   yyyymm: string,
   data: MissionData,

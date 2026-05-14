@@ -46,6 +46,7 @@ import {
   setMissionStatus,
   revealMissionResult,
   resetVotes,
+  resetMissionState,
   type MissionConfig,
   type MissionHidden,
   type MissionStatus,
@@ -110,6 +111,7 @@ const AdminMission = () => {
   const [helperDropdown, setHelperDropdown] = useState<[string, string][]>([]);
   const [saving, setSaving] = useState(false);
   const [revealing, setRevealing] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -203,10 +205,6 @@ const AdminMission = () => {
   }, [yyyymm, allNames]);
 
   const handleSaveContent = async () => {
-    if (!configDraft.title.trim()) {
-      toast('미션 제목을 입력해주세요.', { position: 'top-center' });
-      return;
-    }
     setSaving(true);
     try {
       await saveMissionContent(yyyymm, configDraft, hiddenDraft);
@@ -263,6 +261,23 @@ const AdminMission = () => {
       toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.', { position: 'top-center' });
     } finally {
       setRevealing(false);
+    }
+  };
+
+  const handleResetMission = async () => {
+    setSaving(true);
+    try {
+      await resetMissionState(yyyymm);
+      setConfirmReset(false);
+      toast('✅ 미션 상태가 초기화되었습니다.', {
+        position: 'top-center',
+        duration: 2000,
+        style: toSuccessStyle,
+      });
+    } catch {
+      toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -570,6 +585,24 @@ const AdminMission = () => {
             >
               투표 초기화
             </StatusBtn>
+            {!confirmReset ? (
+              <StatusBtn
+                color="#dc2626"
+                disabled={saving}
+                onClick={() => setConfirmReset(true)}
+              >
+                미션 초기화
+              </StatusBtn>
+            ) : (
+              <>
+                <StatusBtn color="#dc2626" disabled={saving} onClick={handleResetMission}>
+                  정말 초기화
+                </StatusBtn>
+                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => setConfirmReset(false)}>
+                  취소
+                </StatusBtn>
+              </>
+            )}
           </VoteHeaderRow>
           {renderVoteStats()}
           {data?.result && (
