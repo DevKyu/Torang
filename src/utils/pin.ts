@@ -8,7 +8,7 @@ import {
 } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
-import { getResultType, type Result } from './ranking';
+import { getResultType } from './ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
 import { calcMatchMonthResult } from './matchResult';
 import {
