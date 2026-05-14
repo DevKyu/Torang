@@ -24,8 +24,8 @@ import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
-import { CUR_MONTHN, CUR_YEAR } from '../constants/date';
 import { getReadableTimestamp, getYearMonth } from '../utils/date';
+import { useUiStore } from '../stores/useUiStore';
 
 // 2. Firebase App 설정
 const firebaseConfig = {
@@ -252,8 +252,10 @@ export const resetAllUserPins = async (value: number = 0) => {
 
 export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
   try {
-    const year = CUR_YEAR;
-    const month = String(CUR_MONTHN);
+    const { getServerNow, getServerTimestamp } = useUiStore.getState();
+    const serverNow = getServerNow();
+    const year = String(serverNow.getFullYear()) as Year;
+    const month = String(serverNow.getMonth() + 1);
     const ym = `${year}${month.padStart(2, '0')}`;
 
     const [participantsSnap, usersSnap] = await Promise.all([
@@ -263,8 +265,8 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
     if (!participantsSnap.exists() || !usersSnap.exists()) return false;
 
     const participants = participantsSnap.val();
-    const nowMs = Date.now();
-    const readableTime = getReadableTimestamp();
+    const nowMs = serverNow.getTime();
+    const readableTime = getServerTimestamp();
 
     await Promise.all(
       Object.keys(participants).map(async (empId) => {

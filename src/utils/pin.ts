@@ -65,6 +65,11 @@ export const applyPinChangeBatch = async (
 
   if (rate <= 0) return;
 
+  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const serverNow = getServerNow();
+  const serverTs = serverNow.getTime();
+  const serverReadable = getServerTimestamp();
+
   const updates: Record<string, any> = {};
   let gainedPins = 0;
   const opponentPinDeltas: Record<string, number> = {};
@@ -97,8 +102,8 @@ export const applyPinChangeBatch = async (
         pin: rate,
         ym,
         direction: 'gain',
-        createdAt: getReadableTimestamp(),
-        createdAtMs: Date.now(),
+        createdAt: serverReadable,
+        createdAtMs: serverTs,
       };
     }
 
@@ -276,8 +281,10 @@ export const distributeMatchPins = async (
   const allMatches = matchSnap.val() as Record<string, Record<string, unknown>>;
   const year = ym.slice(0, 4) as Year;
   const month = String(Number(ym.slice(4, 6))) as Month;
-  const now = Date.now();
-  const createdAt = getReadableTimestamp(new Date(now));
+  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const serverNow = getServerNow();
+  const now = serverNow.getTime();
+  const createdAt = getServerTimestamp();
 
   const uniquePairs = new Set<string>();
   for (const [myId, opponents] of Object.entries(allMatches)) {
