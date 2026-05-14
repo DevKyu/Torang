@@ -17,7 +17,7 @@ import {
   showReferrerRewardToast,
   showTargetWithPinToast,
 } from './toast';
-import { getReadableTimestamp, isWithinActivityDays } from './date';
+import { isWithinActivityDays } from './date';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
 

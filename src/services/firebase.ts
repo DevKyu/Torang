@@ -24,7 +24,7 @@ import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
-import { getReadableTimestamp, getYearMonth } from '../utils/date';
+import { getYearMonth } from '../utils/date';
 import { useUiStore } from '../stores/useUiStore';
 
 // 2. Firebase App 설정
