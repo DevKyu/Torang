@@ -52,7 +52,7 @@ const makeDescription = (
 ): string => {
   switch (category) {
     case 'match':
-      return `${entry.opponentName ?? '상대방'}과의 매치 승리`;
+      return `${entry.opponentName ? `${entry.opponentName}님` : '상대방'}과의 매치 승리`;
     case 'target': {
       const special = entry.myScore === entry.target;
       return special

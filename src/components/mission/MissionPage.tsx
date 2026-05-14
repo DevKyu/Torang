@@ -144,7 +144,7 @@ const MissionPage = () => {
           <AlreadyVotedBox>
             <VotedEmoji>🎭</VotedEmoji>
             <VotedName>
-              <strong>{allNames[myVote] ?? myVote}</strong>에게 투표했습니다
+              <strong>{allNames[myVote] ?? myVote}</strong>님에게 투표했습니다
             </VotedName>
             <VotedSub>결과는 공개 후 확인할 수 있어요</VotedSub>
           </AlreadyVotedBox>
