@@ -20,7 +20,7 @@ const CATEGORY_TITLE: Record<RewardCategory, string> = {
   match: '매치 승리 보상',
   referral: '추천인 보상',
   gallery: '갤러리 활동 보상',
-  mission: '미션 달성 보상',
+  mission: '미션 성공 보상',
 };
 
 const ACHIEVEMENT_NAMES: Record<string, string> = Object.fromEntries(
@@ -70,7 +70,9 @@ const makeDescription = (
     case 'activity':
       return '활동 참여 PIN 지급';
     case 'mission':
-      return '미션 달성 PIN 지급';
+      return typeof entry.detail === 'string' && entry.detail
+        ? entry.detail
+        : '미션 달성 PIN 지급';
   }
 };
 
