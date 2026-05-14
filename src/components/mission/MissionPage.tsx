@@ -1,0 +1,323 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ref, get } from 'firebase/database';
+import { toast } from 'sonner';
+import Layout from '../layouts/Layout';
+import { SmallText } from '../../styles/commonStyle';
+import { db } from '../../services/firebase';
+import { useUiStore } from '../../stores/useUiStore';
+import { useMission, submitVote } from '../../hooks/useMission';
+import HiddenMissionModal from './HiddenMissionModal';
+import VoteResultModal from './VoteResultModal';
+import CorrectVotersModal from './CorrectVotersModal';
+import {
+  MissionCard,
+  CardTitle,
+  HtmlBody,
+  PlainBody,
+  SectionLabel,
+  HiddenMissionBtn,
+  VotingInstruction,
+  VoteListWrapper,
+  VoteListArea,
+  VoterCard,
+  VoteCheckmark,
+  SubmitBtn,
+  AlreadyVotedBox,
+  VotedEmoji,
+  VotedName,
+  VotedSub,
+  ResultRevealCard,
+  ResultRole,
+  ResultName,
+  ResultMeta,
+  VoteResultBtn,
+  VoterListBtn,
+  PinAmount,
+  LoadingText,
+  MyVoteResult,
+  UpcomingCard,
+  UpcomingDays,
+  UpcomingLabel,
+} from '../../styles/MissionStyle';
+
+const renderBody = (content: string) =>
+  content.includes('<')
+    ? <HtmlBody dangerouslySetInnerHTML={{ __html: content }} />
+    : <PlainBody>{content}</PlainBody>;
+
+const MissionPage = () => {
+  const navigate = useNavigate();
+
+  const currentYm = useMemo(() => {
+    const now = useUiStore.getState().getServerNow();
+    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  const { data, myEmpId, myVote, loading } = useMission(currentYm);
+  const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
+  const [allNames, setAllNames] = useState<Record<string, string>>({});
+  const [participants, setParticipants] = useState<string[]>([]);
+  const [selectedVote, setSelectedVote] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [voteModalOpen, setVoteModalOpen] = useState(false);
+  const [votersModalOpen, setVotersModalOpen] = useState(false);
+  const hasAutoOpenedRef = useRef(false);
+
+  useEffect(() => {
+    const year = currentYm.slice(0, 4);
+    const month = String(Number(currentYm.slice(4)));
+
+    Promise.all([
+      get(ref(db, `activityDate/${year}/${month}`)),
+      get(ref(db, 'names')),
+      get(ref(db, `activityParticipants/${year}/${month}`)),
+    ])
+      .then(([dateSnap, namesSnap, participantsSnap]) => {
+        if (dateSnap.exists()) setActivityDateNum(dateSnap.val() as number);
+        if (namesSnap.exists()) setAllNames(namesSnap.val() as Record<string, string>);
+        if (participantsSnap.exists())
+          setParticipants(Object.keys(participantsSnap.val() as Record<string, true>));
+      })
+      .catch(() => {});
+  }, [currentYm]);
+
+  const daysUntilReveal = useMemo(() => {
+    if (!activityDateNum || !data?.config) return null;
+    const revealDays = data.config.revealDays ?? 7;
+    const n = activityDateNum;
+    const y = Math.floor(n / 10000);
+    const m = Math.floor((n % 10000) / 100) - 1;
+    const d = n % 100;
+    const revealTimestamp = new Date(y, m, d).getTime() - revealDays * 86400000;
+    const now = useUiStore.getState().getServerNow().getTime();
+    return Math.ceil((revealTimestamp - now) / 86400000);
+  }, [activityDateNum, data]);
+
+  const viewState = useMemo(() => {
+    if (!data?.config || data.config.status === 'draft') return 'empty';
+    const status = data.config.status;
+    if (status === 'revealed') return 'revealed';
+    if (status === 'voting') return 'voting';
+    if (daysUntilReveal !== null && daysUntilReveal > 0) return 'upcoming';
+    return 'preview';
+  }, [data, daysUntilReveal]);
+
+  const isVillain = !!myEmpId && data?.roles?.villain === myEmpId;
+  const isHelper = !!myEmpId && data?.roles?.helper === myEmpId;
+  const myRole: 'villain' | 'helper' | null = isVillain ? 'villain' : isHelper ? 'helper' : null;
+
+  useEffect(() => {
+    if (viewState === 'preview' && myRole && !loading && !hasAutoOpenedRef.current) {
+      hasAutoOpenedRef.current = true;
+      const t = setTimeout(() => setModalOpen(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [viewState, myRole, loading]);
+
+  const handleVoteSubmit = async () => {
+    if (!selectedVote || !myEmpId) return;
+    setSubmitting(true);
+    try {
+      await submitVote(currentYm, myEmpId, selectedVote);
+      toast('✅ 투표가 완료되었습니다.', {
+        position: 'top-center',
+        duration: 2000,
+        style: { backgroundColor: '#f0fdf4', color: '#065f46', borderRadius: '10px' },
+      });
+    } catch {
+      toast.error('투표 중 오류가 발생했습니다.', { position: 'top-center' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (viewState === 'voting') {
+    const sortedParticipants = participants
+      .filter((id) => id !== myEmpId)
+      .sort((a, b) => (allNames[a] ?? a).localeCompare(allNames[b] ?? b, 'ko'));
+
+    return (
+      <Layout title="또랑 빌런 투표" maxWidth="480px">
+        {myVote ? (
+          <AlreadyVotedBox>
+            <VotedEmoji>🎭</VotedEmoji>
+            <VotedName>
+              <strong>{allNames[myVote] ?? myVote}</strong>에게 투표했습니다
+            </VotedName>
+            <VotedSub>결과는 공개 후 확인할 수 있어요</VotedSub>
+          </AlreadyVotedBox>
+        ) : (
+          <>
+            <VotingInstruction>이번 활동의 또랑 빌런은 누구였나요?</VotingInstruction>
+            <VoteListWrapper>
+              <VoteListArea>
+                {sortedParticipants.map((id) => (
+                  <VoterCard
+                    key={id}
+                    selected={selectedVote === id}
+                    onClick={() => setSelectedVote((prev) => (prev === id ? '' : id))}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {allNames[id] ?? id}
+                    {selectedVote === id && <VoteCheckmark>✓</VoteCheckmark>}
+                  </VoterCard>
+                ))}
+              </VoteListArea>
+            </VoteListWrapper>
+            <SubmitBtn onClick={handleVoteSubmit} disabled={!selectedVote || submitting}>
+              {submitting ? '제출 중...' : '투표하기'}
+            </SubmitBtn>
+          </>
+        )}
+        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+          돌아가기
+        </SmallText>
+      </Layout>
+    );
+  }
+
+  if (viewState === 'revealed') {
+    const result = data?.result;
+    const roles = data?.roles;
+    const votes = data?.votes ?? {};
+
+    const villainId = roles?.villain ?? '';
+    const helperId = roles?.helper ?? '';
+    const myVoteCorrect = myVote === villainId;
+
+    return (
+      <Layout title="활동 미션" maxWidth="480px">
+        <SectionLabel>또랑 빌런 공개</SectionLabel>
+
+        <ResultRevealCard role="villain">
+          <ResultRole role="villain">또랑 빌런</ResultRole>
+          <ResultName>{allNames[villainId] ?? villainId}</ResultName>
+          <ResultMeta>{result?.villainWon ? '아무도 못 잡았습니다 🎭' : '검거되었습니다 🎯'}</ResultMeta>
+        </ResultRevealCard>
+
+        <ResultRevealCard role="helper">
+          <ResultRole role="helper">빌런 조력자</ResultRole>
+          <ResultName>{allNames[helperId] ?? helperId}</ResultName>
+          <ResultMeta>{result?.helperWon ? '공동 수상 🎉' : '함께 속였습니다 😈'}</ResultMeta>
+        </ResultRevealCard>
+
+        {result?.villainWon && !result.helperWon && (
+          <ResultRevealCard role="reward">
+            <ResultRole role="reward">빌런 생존 🎭</ResultRole>
+            <ResultName style={{ fontSize: 15 }}>{allNames[villainId] ?? villainId}</ResultName>
+            <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+          </ResultRevealCard>
+        )}
+
+        {result?.villainWon && result.helperWon && (
+          <ResultRevealCard role="reward">
+            <ResultRole role="reward">공동 보상 🎉</ResultRole>
+            <ResultName style={{ fontSize: 15 }}>
+              {allNames[villainId] ?? villainId} + {allNames[helperId] ?? helperId}
+            </ResultName>
+            <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+          </ResultRevealCard>
+        )}
+
+        {!result?.villainWon && result && (result.correctVoters?.length ?? 0) > 0 && (
+          <ResultRevealCard role="reward">
+            <ResultRole role="reward">정답 투표자</ResultRole>
+            <ResultName style={{ fontSize: 15 }}>{(result.correctVoters ?? []).length}명 적중</ResultName>
+            <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+            <VoterListBtn onClick={() => setVotersModalOpen(true)}>
+              명단 보기 →
+            </VoterListBtn>
+          </ResultRevealCard>
+        )}
+
+        <VoteResultBtn onClick={() => setVoteModalOpen(true)}>
+          투표 현황 보기 ({Object.keys(votes).length}명 참여)
+        </VoteResultBtn>
+
+        {myVote && (
+          <MyVoteResult correct={myVoteCorrect}>
+            내 투표: {allNames[myVote] ?? myVote} — {myVoteCorrect ? '정답 🎉' : '오답'}
+          </MyVoteResult>
+        )}
+
+        {data?.roles && (
+          <VoteResultModal
+            isOpen={voteModalOpen}
+            onClose={() => setVoteModalOpen(false)}
+            votes={votes}
+            roles={data.roles}
+            allNames={allNames}
+          />
+        )}
+
+        {result && (result.correctVoters?.length ?? 0) > 0 && (
+          <CorrectVotersModal
+            isOpen={votersModalOpen}
+            onClose={() => setVotersModalOpen(false)}
+            correctVoters={result.correctVoters}
+            allNames={allNames}
+          />
+        )}
+
+        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+          돌아가기
+        </SmallText>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout title="활동 미션" maxWidth="480px">
+      {loading && <LoadingText>불러오는 중...</LoadingText>}
+
+      {!loading && viewState === 'empty' && (
+        <MissionCard>
+          <CardTitle>이달의 미션</CardTitle>
+          <PlainBody style={{ color: '#9ca3af', textAlign: 'center' }}>이달의 미션을 준비중입니다.</PlainBody>
+        </MissionCard>
+      )}
+
+      {!loading && viewState === 'upcoming' && (
+        <UpcomingCard>
+          <UpcomingDays>D-{daysUntilReveal}</UpcomingDays>
+          <UpcomingLabel>이달의 미션이 {daysUntilReveal}일 후 공개됩니다</UpcomingLabel>
+        </UpcomingCard>
+      )}
+
+      {!loading && viewState === 'preview' && (
+        <>
+          <SectionLabel>이달의 미션</SectionLabel>
+          <MissionCard>
+            <CardTitle>{data!.config!.title}</CardTitle>
+            {renderBody(data!.config!.description)}
+          </MissionCard>
+
+          {myRole && data?.hidden?.[myRole] && (
+            <>
+              <HiddenMissionBtn
+                role={myRole}
+                onClick={() => setModalOpen(true)}
+              >
+                {myRole === 'villain' ? '🎭 나의 히든 미션 보기' : '🤝 나의 히든 미션 보기'}
+              </HiddenMissionBtn>
+              <HiddenMissionModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                role={myRole}
+                hidden={data.hidden[myRole]!}
+              />
+            </>
+          )}
+        </>
+      )}
+
+      <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+        돌아가기
+      </SmallText>
+    </Layout>
+  );
+};
+
+export default MissionPage;
