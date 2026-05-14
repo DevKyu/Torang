@@ -28,6 +28,7 @@ import { useActivityRewards } from '../../hooks/useActivityRewards';
 import { useActivityMatches } from '../../hooks/useActivityMatches';
 import { useActivitySummary } from '../../hooks/useActivitySummary';
 import { useActivityLeague } from '../../hooks/useActivityLeague';
+import { useActivityDraw } from '../../hooks/useActivityDraw';
 
 type Category = 'all' | 'match' | 'reward' | 'activity';
 
@@ -36,6 +37,7 @@ const iconMap: Record<ActivityItem['type'], string> = {
   reward: '🎁',
   activity: '📊',
   league: '🏆',
+  draw: '🎀',
 };
 
 const ym = (t: number) => {
@@ -100,16 +102,19 @@ const ActivityHistory = () => {
     useActivitySummary(yyyymm);
   const { items: leagueItems, loading: leagueLoading } =
     useActivityLeague(yyyymm);
+  const { items: drawItems, loading: drawLoading } =
+    useActivityDraw(yyyymm);
 
   const monthly = useMemo(() => {
     const base: ActivityItem[] = [
       ...rewardItems,
       ...matchItems,
       ...leagueItems,
+      ...drawItems,
     ];
     if (summaryItem) base.push(summaryItem);
     return base;
-  }, [rewardItems, matchItems, summaryItem, leagueItems]);
+  }, [rewardItems, matchItems, summaryItem, leagueItems, drawItems]);
 
   const filtered = useMemo(() => {
     const base =
@@ -118,7 +123,9 @@ const ActivityHistory = () => {
         : monthly.filter((a) =>
             category === 'match'
               ? a.type === 'match' || a.type === 'league'
-              : a.type === category,
+              : category === 'reward'
+                ? a.type === 'reward' || a.type === 'draw'
+                : a.type === category,
           );
     return [...base].sort((a, b) => {
       if (a.type === 'activity' && b.type !== 'activity') return 1;
@@ -171,7 +178,8 @@ const ActivityHistory = () => {
             {rewardLoading ||
             matchLoading ||
             summaryLoading ||
-            leagueLoading ? (
+            leagueLoading ||
+            drawLoading ? (
               <EmptyState variants={rowVariants}>불러오는 중...</EmptyState>
             ) : filtered.length === 0 ? (
               <EmptyState variants={rowVariants}>
@@ -222,7 +230,7 @@ const ActivityHistory = () => {
                           </TeamInline>
                         )}
 
-                        {item.type === 'reward' && item.description && (
+                        {(item.type === 'reward' || item.type === 'draw') && item.description && (
                           <Desc>{item.description}</Desc>
                         )}
 
@@ -240,7 +248,15 @@ const ActivityHistory = () => {
                         )}
                       </ContentCell>
 
-                      {item.type === 'league' ? (
+                      {item.type === 'draw' ? (
+                        item.requiredPins > 0 ? (
+                          <Value positive={false}>
+                            -{item.requiredPins.toFixed(1)}
+                          </Value>
+                        ) : (
+                          <Value />
+                        )
+                      ) : item.type === 'league' ? (
                         <Value
                           draw={item.result === 'draw'}
                           positive={

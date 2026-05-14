@@ -133,7 +133,7 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
           </DragZone>
           <Content ref={contentRef}>
             <Header>
-              <Title>{item.title}</Title>
+              <Title>{item.type === 'draw' ? '분기 상품 추첨' : item.title}</Title>
               {item.type === 'league' ? (
                 <Delta
                   draw={item.result === 'draw'}
@@ -145,6 +145,14 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                       ? '패배'
                       : '무승부'}
                 </Delta>
+              ) : item.type === 'draw' ? (
+                item.requiredPins > 0 ? (
+                  <Delta positive={false}>
+                    -{item.requiredPins.toFixed(1)} PIN
+                  </Delta>
+                ) : (
+                  <Month>{formatMonth(item.date)}</Month>
+                )
               ) : 'delta' in item ? (
                 <Delta positive={item.delta > 0}>
                   {item.type === 'match'
@@ -320,6 +328,18 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                   </>
                 );
               })()}
+
+            {item.type === 'draw' && (
+              <>
+                <RewardBadge category={item.won ? 'referral' : 'activity'}>
+                  {item.won ? '🎀 상품 당첨' : '😢 미당첨'}
+                </RewardBadge>
+                <Desc>
+                  {item.won ? `${item.productName} 당첨` : `${item.productName} 미당첨`}
+                </Desc>
+                <DateLine>{formatDate(item.date)}</DateLine>
+              </>
+            )}
 
             {item.type === 'activity' &&
               (item.stats ? (

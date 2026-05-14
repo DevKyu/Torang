@@ -54,4 +54,14 @@ export type ActivityItem =
       myTotalScore: number;
       opponentTeam: LeaguePlayer[];
       opponentTotalScore: number;
+    }
+  | {
+      id: string;
+      type: 'draw';
+      date: number;
+      title: string;
+      description: string;
+      productName: string;
+      won: boolean;
+      requiredPins: number;
     };
