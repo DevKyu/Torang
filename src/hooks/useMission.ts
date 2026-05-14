@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ref, set, get, remove, onValue, update } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth, empIdFromEmail } from '../services/firebase';
-import { getReadableTimestamp } from '../utils/date';
+import { useUiStore } from '../stores/useUiStore';
 
 export type MissionStatus = 'draft' | 'active' | 'voting' | 'revealed';
 
@@ -98,7 +98,7 @@ export async function assignRoles(
   await set(ref(db, `missions/${yyyymm}/roles`), {
     villain: villainId,
     helper: helperId,
-    assignedAt: Date.now(),
+    assignedAt: useUiStore.getState().getServerNow().getTime(),
   });
 }
 
@@ -133,6 +133,14 @@ export async function revealMissionResult(
   yyyymm: string,
   data: MissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
+  if (data.result?.revealed === true) {
+    return {
+      villainWon: data.result.villainWon,
+      helperWon: data.result.helperWon,
+      correctVoters: data.result.correctVoters ?? [],
+    };
+  }
+
   const { config, roles, votes } = data;
   if (!config || !roles) throw new Error('미션 데이터가 없습니다.');
 
@@ -166,8 +174,9 @@ export async function revealMissionResult(
   }
 
   const recipients = Object.keys(recipientDetails);
-  const now = Date.now();
-  const createdAt = getReadableTimestamp(new Date(now));
+  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const now = getServerNow().getTime();
+  const createdAt = getServerTimestamp();
   const allWrites: Record<string, unknown> = {
     [`missions/${yyyymm}/result`]: {
       revealed: true,
