@@ -166,7 +166,7 @@ export const useActivityRewards = (yyyymm: string) => {
               ? new Date(`${rewardedAt.slice(0, 4)}-${rewardedAt.slice(4, 6)}-${rewardedAt.slice(6, 8)}T${rewardedAt.slice(8, 10)}:${rewardedAt.slice(10, 12)}:00`).getTime()
               : Date.now();
             result.push({
-              id: 'reward_referral_fallback',
+              id: `reward_referral_fallback_${rewardedAt || Date.now()}`,
               type: 'reward' as const,
               date: dateMs,
               title: CATEGORY_TITLE['referral'],
