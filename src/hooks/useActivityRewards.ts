@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { ref, get } from 'firebase/database';
 import { db, auth, empIdFromEmail } from '../services/firebase';
 import type { ActivityItem } from '../types/activity';
@@ -111,17 +112,18 @@ export const useActivityRewards = (yyyymm: string) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const empId = empIdFromEmail(auth.currentUser?.email);
-    if (!empId) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
 
-    (async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      unsubscribe();
+      const empId = empIdFromEmail(user?.email);
+      if (!empId) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const snap = await get(ref(db, `users/${empId}/rewards/${yyyymm}`));
         if (cancelled) return;
@@ -163,10 +165,11 @@ export const useActivityRewards = (yyyymm: string) => {
           setLoading(false);
         }
       }
-    })();
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [yyyymm]);
 

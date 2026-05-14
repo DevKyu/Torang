@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { ref, get } from 'firebase/database';
 import {
   db,
@@ -66,17 +67,18 @@ export const useActivityMatches = (yyyymm: string) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const myId = empIdFromEmail(auth.currentUser?.email);
-    if (!myId) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
 
-    (async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      unsubscribe();
+      const myId = empIdFromEmail(user?.email);
+      if (!myId) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         await preloadAllNames();
 
@@ -111,10 +113,11 @@ export const useActivityMatches = (yyyymm: string) => {
           setLoading(false);
         }
       }
-    })();
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [yyyymm]);
 

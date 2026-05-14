@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { ref, get } from 'firebase/database';
 import { db, auth, empIdFromEmail } from '../services/firebase';
 import type { ActivityItem } from '../types/activity';
@@ -8,20 +9,21 @@ export const useActivitySummary = (yyyymm: string) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const empId = empIdFromEmail(auth.currentUser?.email);
-    if (!empId) {
-      setItem(null);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
 
     const year = yyyymm.slice(0, 4);
     const month = String(Number(yyyymm.slice(4)));
 
-    (async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      unsubscribe();
+      const empId = empIdFromEmail(user?.email);
+      if (!empId) {
+        setItem(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const participantSnap = await get(
           ref(db, `activityParticipants/${year}/${month}/${empId}`),
@@ -97,10 +99,11 @@ export const useActivitySummary = (yyyymm: string) => {
           setLoading(false);
         }
       }
-    })();
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [yyyymm]);
 

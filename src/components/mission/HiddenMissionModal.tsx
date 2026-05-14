@@ -29,7 +29,10 @@ const COUNTDOWN_SEC = 5;
 const HiddenMissionModal = ({ isOpen, onClose, role, hidden }: Props) => {
   const [progress, setProgress] = useState(100);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onCloseRef = useRef(onClose);
   const color = ROLE_COLOR[role];
+
+  useEffect(() => { onCloseRef.current = onClose; });
 
   useEffect(() => {
     if (!isOpen) {
@@ -47,14 +50,14 @@ const HiddenMissionModal = ({ isOpen, onClose, role, hidden }: Props) => {
 
     const closeTimer = setTimeout(() => {
       clearInterval(intervalRef.current!);
-      onClose();
+      onCloseRef.current();
     }, COUNTDOWN_SEC * 1000);
 
     return () => {
       clearInterval(intervalRef.current!);
       clearTimeout(closeTimer);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
