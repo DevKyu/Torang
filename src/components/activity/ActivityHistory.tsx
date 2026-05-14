@@ -40,7 +40,7 @@ const iconMap: Record<ActivityItem['type'], string> = {
   draw: '🎀',
 };
 
-const ym = (t: number) => {
+const toYm = (t: number) => {
   const d = new Date(t);
   return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
@@ -87,7 +87,7 @@ const joinNames = (names: string[], max = 3) =>
 const ActivityHistory = () => {
   const navigate = useNavigate();
   const currentYm = useMemo(
-    () => ym(useUiStore.getState().getServerNow().getTime()),
+    () => toYm(useUiStore.getState().getServerNow().getTime()),
     [],
   );
   const [ym, setYm] = useState(currentYm);
