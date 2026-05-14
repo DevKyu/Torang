@@ -12,6 +12,8 @@ import AdminUserManagement from '../components/admin/AdminUserManagement';
 import AdminEvent from '../components/admin/AdminEvent';
 import AdminLeague from '../components/admin/AdminLeague';
 import AdminActivityParticipants from '../components/admin/AdminActivityParticipants';
+import AdminMission from '../components/admin/AdminMission';
+import MissionPage from '../components/mission/MissionPage';
 
 const Router = () => (
   <Routes>
@@ -31,6 +33,8 @@ const Router = () => (
     />
     <Route path="/gallery" element={<GalleryPage />} />
     <Route path="/history" element={<ActivityHistory />} />
+    <Route path="/mission" element={<MissionPage />} />
+    <Route path="/admin/mission" element={<AdminMission />} />
   </Routes>
 );
 
