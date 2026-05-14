@@ -29,15 +29,6 @@ export const getQuarterEndYm = (date = new Date()): string => {
   return `${year}${String(endMonth).padStart(2, '0')}`;
 };
 
-export const getReadableTimestamp = (d = new Date()): string => {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}${mm}${dd}${hh}${mi}`;
-};
-
 export const getDiffDays = (activityYmd: string): number => {
   if (!activityYmd || activityYmd.length !== 8) return Infinity;
 
