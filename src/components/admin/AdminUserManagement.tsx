@@ -229,9 +229,11 @@ const AdminUserManagement = () => {
   const handleResetPassword = async () => {
     if (!selectedEmpId) return;
 
+    const DEFAULT_PASSWORD = '00000000';
+
     if (
       !window.confirm(
-        `⚠️ ${selectedEmpId}의 비밀번호를 '00000000'으로 초기화할까요?`,
+        `⚠️ ${selectedEmpId}의 비밀번호를 '${DEFAULT_PASSWORD}'으로 초기화할까요?`,
       )
     )
       return;
@@ -242,7 +244,7 @@ const AdminUserManagement = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           empId: selectedEmpId,
-          newPassword: '00000000',
+          newPassword: DEFAULT_PASSWORD,
         }),
       });
 
