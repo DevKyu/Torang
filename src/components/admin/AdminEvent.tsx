@@ -3,9 +3,11 @@ import { ref, set } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import { useEventStore } from '../../stores/eventStore';
-import { db } from '../../services/firebase';
+import type { MatchType } from '../../types/match';
+import { db, fetchAllUsers } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/commonStyle';
+import { distributeMatchPins } from '../../utils/pin';
 import {
   Section,
   SectionTitle,
@@ -101,7 +103,7 @@ const getYmList = (base: string, count = 4) => {
 };
 
 export default function AdminEvent() {
-  const { menu, pinReward, loadEventConfig } = useEventStore();
+  const { menu, pinReward, matchType: storedMatchType, loadEventConfig } = useEventStore();
   const ui = useUiStore();
   const navigate = useNavigate();
 
@@ -111,10 +113,16 @@ export default function AdminEvent() {
   const [selectedYm, setSelectedYm] = useState(currentYm);
   const [menuDraft, setMenuDraft] = useState<MenuDraft>({} as MenuDraft);
   const [rewardDraft, setRewardDraft] = useState<RewardDraft>(DEFAULT_REWARD);
+  const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
+  const [distributing, setDistributing] = useState(false);
 
   useEffect(() => {
     loadEventConfig();
   }, [loadEventConfig]);
+
+  useEffect(() => {
+    setMatchTypeDraft(storedMatchType);
+  }, [storedMatchType]);
 
   useEffect(() => {
     const next: MenuDraft = {} as MenuDraft;
@@ -136,11 +144,33 @@ export default function AdminEvent() {
   }, [rewardDraft]);
 
   const saveAll = useCallback(async () => {
-    await set(ref(db, 'eventConfig/menu'), menuDraft);
-    await set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft);
+    await Promise.all([
+      set(ref(db, 'eventConfig/menu'), menuDraft),
+      set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft),
+      set(ref(db, 'eventConfig/matchType'), matchTypeDraft),
+    ]);
     await loadEventConfig();
     alert('✅ 저장 완료');
-  }, [menuDraft, rewardDraft, selectedYm, loadEventConfig]);
+  }, [menuDraft, rewardDraft, matchTypeDraft, selectedYm, loadEventConfig]);
+
+  const handleDistribute = useCallback(async () => {
+    const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
+    if (pinRate <= 0) {
+      alert('핀 매치 지급 금액이 0입니다. 먼저 저장하세요.');
+      return;
+    }
+    if (!confirm(`${selectedYm} 핀 매치 보상을 지급하시겠습니까?\n(미처리 건만 계산·지급됩니다)`)) return;
+    setDistributing(true);
+    try {
+      const users = await fetchAllUsers();
+      const count = await distributeMatchPins(selectedYm, users, pinRate);
+      alert(`✅ ${count}건 처리 완료`);
+    } catch (e) {
+      alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setDistributing(false);
+    }
+  }, [selectedYm, pinReward]);
 
   return (
     <AdminLayout title="이벤트 설정">
@@ -245,6 +275,44 @@ export default function AdminEvent() {
               : '전체 0.5핀'}
           </BulkRewardButton>
         </RewardActionRow>
+
+        <RewardActionRow>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>🥊 매치 방식</span>
+          <ToggleGroup>
+            <ToggleLabel>
+              <input
+                type="radio"
+                name="matchType"
+                value="rival"
+                checked={matchTypeDraft === 'rival'}
+                onChange={() => setMatchTypeDraft('rival')}
+              />
+              라이벌
+            </ToggleLabel>
+            <ToggleLabel>
+              <input
+                type="radio"
+                name="matchType"
+                value="pin"
+                checked={matchTypeDraft === 'pin'}
+                onChange={() => setMatchTypeDraft('pin')}
+              />
+              핀 매치
+            </ToggleLabel>
+          </ToggleGroup>
+        </RewardActionRow>
+
+        {matchTypeDraft === 'pin' && (
+          <RewardActionRow>
+            <BulkRewardButton
+              onClick={handleDistribute}
+              disabled={distributing}
+              style={{ width: '100%' }}
+            >
+              {distributing ? '처리 중...' : `📌 ${selectedYm} 핀 매치 보상 지급`}
+            </BulkRewardButton>
+          </RewardActionRow>
+        )}
 
         <RewardGrid>
           {PIN_KEYS.map((k) => {

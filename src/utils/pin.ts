@@ -8,7 +8,9 @@ import {
 } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
-import type { Result } from './ranking';
+import { getResultType, type Result } from './ranking';
+import type { UserInfo, Year, Month } from '../types/UserInfo';
+import { calcMatchMonthResult } from './matchResult';
 import {
   showMatchWithPinToast,
   showPinRewardToast,
@@ -117,38 +119,6 @@ export const applyPinChangeBatch = async (
   }
 };
 
-export const applyPinRewardBatch = async (
-  ym: YearMonth,
-  myId: string,
-  type: MatchType,
-  opponentIds: string[],
-  results: Record<string, Result>,
-  allMatches: Record<string, any>,
-  pinDelta: number = 0.5,
-) => {
-  const updates: Record<string, any> = {};
-  let winCount = 0;
-
-  for (const opponentId of opponentIds) {
-    const match = allMatches[opponentId];
-    if (!match) continue;
-    if (match.pinUpdated) continue;
-
-    const result = results[opponentId];
-    if (result === 'win') winCount++;
-
-    updates[`matchResults/${ym}/${type}/${myId}/${opponentId}/pinUpdated`] =
-      true;
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await update(ref(db), updates);
-  }
-
-  if (winCount > 0) {
-    await incrementPinsByEmpId(myId, winCount * pinDelta);
-  }
-};
 
 export const grantTargetPinReward = async ({
   empId,
@@ -286,4 +256,95 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
 
   setTimeout(() => showReferrerRewardToast(pin), 1500);
   return true;
+};
+
+export const distributeMatchPins = async (
+  ym: string,
+  users: Record<string, UserInfo>,
+  pinRate: number,
+): Promise<number> => {
+  const matchSnap = await get(ref(db, `match/${ym}/pin`));
+  if (!matchSnap.exists()) return 0;
+
+  const allMatches = matchSnap.val() as Record<string, Record<string, unknown>>;
+  const year = ym.slice(0, 4) as Year;
+  const month = String(Number(ym.slice(4, 6))) as Month;
+  const now = Date.now();
+  const createdAt = getReadableTimestamp(new Date(now));
+
+  const uniquePairs = new Set<string>();
+  for (const [myId, opponents] of Object.entries(allMatches)) {
+    for (const opponentId of Object.keys(opponents)) {
+      uniquePairs.add([myId, opponentId].sort().join(':'));
+    }
+  }
+
+  const pinDeltas: Record<string, number> = {};
+  const updates: Record<string, unknown> = {};
+  let processedCount = 0;
+
+  for (const pairKey of uniquePairs) {
+    const [idA, idB] = pairKey.split(':');
+
+    const [snapAB, snapBA] = await Promise.all([
+      get(ref(db, `matchResults/${ym}/pin/${idA}/${idB}/pinUpdated`)),
+      get(ref(db, `matchResults/${ym}/pin/${idB}/${idA}/pinUpdated`)),
+    ]);
+    if (snapAB.val() === true || snapBA.val() === true) continue;
+
+    const res = calcMatchMonthResult(idA, idB, users, year, month);
+    if (typeof res.deltaAvg !== 'number') continue;
+
+    const { deltaAvg, myScore, opponentScore } = res;
+    const result = getResultType(deltaAvg);
+    const resultInverse = getResultType(-deltaAvg);
+
+    updates[`matchResults/${ym}/pin/${idA}/${idB}`] = {
+      myScore, opponentScore, delta: deltaAvg, result, pinUpdated: true, finalizedAt: now,
+    };
+    updates[`matchResults/${ym}/pin/${idB}/${idA}`] = {
+      myScore: opponentScore, opponentScore: myScore, delta: -deltaAvg, result: resultInverse, pinUpdated: true, finalizedAt: now,
+    };
+
+    if (result !== 'draw') {
+      const winnerId = result === 'win' ? idA : idB;
+      const loserId = result === 'win' ? idB : idA;
+      const loserCurrentPin = users[loserId]?.pin ?? 0;
+
+      pinDeltas[winnerId] = (pinDeltas[winnerId] ?? 0) + pinRate;
+      updates[`users/${winnerId}/rewards/${ym}/match/${loserId}`] = {
+        type: 'match',
+        matchType: 'pin',
+        opponentId: loserId,
+        opponentName: users[loserId]?.name ?? loserId,
+        result: 'win',
+        pin: pinRate,
+        ym,
+        direction: 'gain',
+        createdAt,
+        createdAtMs: now,
+      };
+
+      if (loserCurrentPin >= pinRate) {
+        pinDeltas[loserId] = (pinDeltas[loserId] ?? 0) - pinRate;
+      }
+    }
+
+    processedCount++;
+  }
+
+  await Promise.all(
+    Object.entries(pinDeltas).map(async ([empId, delta]) => {
+      if (delta === 0) return;
+      const pinSnap = await get(ref(db, `users/${empId}/pin`));
+      const currentPin = (pinSnap.val() as number) ?? 0;
+      updates[`users/${empId}/pin`] = Math.max(0, currentPin + delta);
+    }),
+  );
+
+  if (Object.keys(updates).length > 0) {
+    await update(ref(db), updates);
+  }
+
+  return processedCount;
 };

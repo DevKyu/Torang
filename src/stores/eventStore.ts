@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { ref, get as dbGet } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from './useUiStore';
+import type { MatchType } from '../types/match';
+
+export type { MatchType };
 
 export type PinRewardConfig = {
   targetScore: number;
@@ -40,6 +43,7 @@ const DEFAULT_REWARD: PinRewardConfig = {
 type EventStore = {
   menu: MenuConfig;
   pinReward: Record<string, PinRewardConfig>;
+  matchType: MatchType;
   loaded: boolean;
 
   loadEventConfig(): Promise<void>;
@@ -55,6 +59,7 @@ type EventStore = {
 export const useEventStore = create<EventStore>((set, get) => ({
   menu: {},
   pinReward: {},
+  matchType: 'rival',
   loaded: false,
 
   loadEventConfig: async () => {
@@ -75,6 +80,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       set({
         menu: v.menu ?? {},
         pinReward: normalizedReward,
+        matchType: (v.matchType as MatchType) ?? 'rival',
         loaded: true,
       });
     } catch {

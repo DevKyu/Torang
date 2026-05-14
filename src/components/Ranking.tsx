@@ -20,7 +20,7 @@ import LetterListOverlay from './LetterListOverlay';
 
 import type { RankingEntry, RankingType } from '../types/Ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import type { MatchType, YearMonth } from '../types/match';
+import type { YearMonth } from '../types/match';
 
 import { Container, Title, SmallText } from '../styles/commonStyle';
 import {
@@ -48,13 +48,13 @@ import { useActivityDates } from '../hooks/useActivityDates';
 import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
+import { useEventStore } from '../stores/eventStore';
 import { applyPinChangeBatch } from '../utils/pin';
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const TAB_PRIORITY: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const ANIM_DURATION = 0.3;
-let MATCH_TYPE: MatchType = 'rival';
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
@@ -69,6 +69,7 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
 const Ranking = () => {
   const navigate = useNavigate();
   const { showLoading, hideLoading } = useLoading();
+  const MATCH_TYPE = useEventStore((s) => s.matchType);
   const { maps: activityAll } = useActivityDates();
 
   const { hasShownCongrats, setShownCongrats, formatServerDate, getServerNow } =
@@ -260,7 +261,9 @@ const Ranking = () => {
             ),
           ),
         );
-        await applyPinChangeBatch(activityYm, myId, MATCH_TYPE, matchResults);
+        if (MATCH_TYPE === 'rival') {
+          await applyPinChangeBatch(activityYm, myId, MATCH_TYPE, matchResults);
+        }
       } catch {
         appliedRef.current = false;
       }
