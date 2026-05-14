@@ -173,7 +173,7 @@ export const useActivityRewards = (yyyymm: string) => {
               description: typeof r.referrerName === 'string'
                 ? `${r.referrerName}님 추천으로 가입`
                 : '추천인 보상',
-              delta: 0,
+              delta: typeof r.pin === 'number' ? r.pin : 0.5,
               category: 'referral',
             });
           }

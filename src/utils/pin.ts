@@ -224,7 +224,7 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
 
   const tx = await runTransaction(referrerRef, (cur) => {
     if (!cur || cur.rewarded) return cur;
-    return { ...cur, rewarded: true, rewardedAt };
+    return { ...cur, rewarded: true, rewardedAt, pin };
   });
 
   if (!tx.committed) return false;
