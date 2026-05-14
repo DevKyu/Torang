@@ -9,11 +9,11 @@ import { useEventStore } from '../stores/eventStore';
 import { GALLERY_POLICY } from './galleryPolicy';
 import { showGalleryRewardToast } from './toast';
 
-export const rewardGalleryMaxUpload = async (yyyymm: string) => {
+export const rewardGalleryMaxUpload = async (ym: string) => {
   const empId = getCurrentUserId();
   if (!empId) return null;
 
-  const rewardRef = ref(db, `users/${empId}/gallery/uploadReward/${yyyymm}`);
+  const rewardRef = ref(db, `users/${empId}/gallery/uploadReward/${ym}`);
   const snap = await get(rewardRef);
 
   if (snap.exists()) return null;
@@ -30,19 +30,19 @@ export const rewardGalleryMaxUpload = async (yyyymm: string) => {
 
   await incrementPinsByEmpId(empId, pin);
   await update(ref(db), {
-    [`users/${empId}/gallery/uploadReward/${yyyymm}`]: {
+    [`users/${empId}/gallery/uploadReward/${ym}`]: {
       rewarded: true,
       pin,
       rewardedAt,
       rewardedAtMs: nowMs,
     },
 
-    [`users/${empId}/rewards/${yyyymm}/gallery/${rewardedAt}`]: {
+    [`users/${empId}/rewards/${ym}/gallery/${rewardedAt}`]: {
       type: 'gallery',
       detail: `사진 ${GALLERY_POLICY.REWARD_THRESHOLD}장 이상 업로드`,
       direction: 'gain',
       pin,
-      ym: yyyymm,
+      ym,
       createdAt: rewardedAt,
       createdAtMs: nowMs,
     },

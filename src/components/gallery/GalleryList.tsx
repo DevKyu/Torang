@@ -51,7 +51,7 @@ type Props = {
   onMoveUpload: () => void;
   onCancel: () => void;
   onChangeMonth: (ym: string) => void;
-  yyyymm: string;
+  ym: string;
   loading?: boolean;
 };
 
@@ -60,13 +60,13 @@ const GalleryList = ({
   onMoveUpload,
   onCancel,
   onChangeMonth,
-  yyyymm,
+  ym,
   loading,
 }: Props) => {
   const { images: storeImages, setImages, open } = useLightBoxStore();
 
-  const [year, setYear] = useState(Number(yyyymm.slice(0, 4)));
-  const [month, setMonth] = useState(Number(yyyymm.slice(4, 6)));
+  const [year, setYear] = useState(Number(ym.slice(0, 4)));
+  const [month, setMonth] = useState(Number(ym.slice(4, 6)));
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
     'latest',
   );
@@ -81,11 +81,11 @@ const GalleryList = ({
     year < minYear || (year === minYear && month === minMonth);
 
   useEffect(() => {
-    setYear(Number(yyyymm.slice(0, 4)));
-    setMonth(Number(yyyymm.slice(4, 6)));
+    setYear(Number(ym.slice(0, 4)));
+    setMonth(Number(ym.slice(4, 6)));
     setSorted([]);
     setPageLoadedCounts([]);
-  }, [yyyymm]);
+  }, [ym]);
 
   useEffect(() => {
     const clean = list.filter(
@@ -133,7 +133,7 @@ const GalleryList = ({
         description: i.caption ?? '',
         uploadedAt: i.uploadedAt,
         empId: i.empId,
-        ym: yyyymm,
+        ym,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
         commentCount: i.comments
@@ -141,7 +141,7 @@ const GalleryList = ({
           : 0,
       })),
     );
-  }, [sorted, open, setImages, yyyymm]);
+  }, [sorted, open, setImages, ym]);
 
   const pages = useMemo(() => {
     const rows: (GalleryItem | null)[][] = [];
@@ -222,7 +222,7 @@ const GalleryList = ({
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={`g-${yyyymm}-${filter}-${loading}`}
+              key={`g-${ym}-${filter}-${loading}`}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}

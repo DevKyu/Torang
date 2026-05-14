@@ -54,11 +54,11 @@ const GalleryPage = () => {
 
   const serverYear = Number(formatServerDate('year'));
   const serverMonth = Number(formatServerDate('month'));
-  const [yyyymm, setYyyymm] = useState(formatServerDate('ym'));
+  const [ym, setYm] = useState(formatServerDate('ym'));
 
   useEffect(() => {
     if (activityLoading) return;
-    setYyyymm(getInitialGalleryYm(activityMaps, serverYear, serverMonth));
+    setYm(getInitialGalleryYm(activityMaps, serverYear, serverMonth));
   }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {
@@ -79,13 +79,13 @@ const GalleryPage = () => {
     if (!empId) return;
 
     const snap = await get(
-      ref(db, `users/${empId}/gallery/uploadCount/${yyyymm}`),
+      ref(db, `users/${empId}/gallery/uploadCount/${ym}`),
     );
 
     setUploadCount(
       snap.exists() ? Number(snap.val()) : GALLERY_POLICY.BASE_UPLOAD,
     );
-  }, [empId, yyyymm]);
+  }, [empId, ym]);
 
   useEffect(() => {
     if (!empId) return;
@@ -93,7 +93,7 @@ const GalleryPage = () => {
     setGalleryList(null);
     fetchUploadCount();
 
-    const r = ref(db, `gallery/${yyyymm}`);
+    const r = ref(db, `gallery/${ym}`);
     const unsub = onValue(r, (snap) => {
       if (!snap.exists()) {
         setGalleryList([]);
@@ -115,14 +115,14 @@ const GalleryPage = () => {
     });
 
     return () => unsub();
-  }, [empId, yyyymm, fetchUploadCount]);
+  }, [empId, ym, fetchUploadCount]);
 
   const uploadPolicy = useMemo(() => {
     if (activityLoading) return { allowed: false, reason: 'loading' };
-    const y = Number(yyyymm.slice(0, 4));
-    const m = Number(yyyymm.slice(4, 6));
+    const y = Number(ym.slice(0, 4));
+    const m = Number(ym.slice(4, 6));
     return checkGalleryUploadAvailability(activityMaps, y, m);
-  }, [activityLoading, activityMaps, yyyymm]);
+  }, [activityLoading, activityMaps, ym]);
 
   const handleUpload = useCallback(
     async (files: File[], captions: string[]) => {
@@ -141,10 +141,10 @@ const GalleryPage = () => {
         const baseTime = useUiStore.getState().getServerNow().getTime();
 
         for (let i = 0; i < files.length; i++) {
-          const { imageId, url } = await uploadGalleryImage(files[i], yyyymm);
+          const { imageId, url } = await uploadGalleryImage(files[i], ym);
 
           await saveGalleryMeta({
-            yyyymm,
+            ym,
             imageId,
             url,
             caption: captions[i] ?? '',
@@ -157,7 +157,7 @@ const GalleryPage = () => {
 
         const uploadedRef = ref(
           db,
-          `users/${empId}/gallery/uploadedCount/${yyyymm}`,
+          `users/${empId}/gallery/uploadedCount/${ym}`,
         );
 
         const uploadedSnap = await get(uploadedRef);
@@ -168,16 +168,16 @@ const GalleryPage = () => {
         const uploadedNext = prevUploaded + needed;
 
         await update(ref(db), {
-          [`users/${empId}/gallery/uploadCount/${yyyymm}`]: isAdmin
+          [`users/${empId}/gallery/uploadCount/${ym}`]: isAdmin
             ? uploadCount
             : nextCount,
-          [`users/${empId}/gallery/uploadedCount/${yyyymm}`]: uploadedNext,
+          [`users/${empId}/gallery/uploadedCount/${ym}`]: uploadedNext,
         });
 
         if (!isAdmin) setUploadCount(nextCount);
 
         if (uploadedNext >= GALLERY_POLICY.REWARD_THRESHOLD) {
-          rewardGalleryMaxUpload(yyyymm).catch(console.error);
+          rewardGalleryMaxUpload(ym).catch(console.error);
         }
 
         setMode('list');
@@ -185,7 +185,7 @@ const GalleryPage = () => {
         hideLoading();
       }
     },
-    [empId, isAdmin, uploadCount, yyyymm, showLoading, hideLoading],
+    [empId, isAdmin, uploadCount, ym, showLoading, hideLoading],
   );
 
   const handleBoost = useCallback(async () => {
@@ -199,23 +199,23 @@ const GalleryPage = () => {
 
     showLoading();
     try {
-      const next = await applyGalleryBoost(yyyymm);
+      const next = await applyGalleryBoost(ym);
       if (typeof next === 'number') setUploadCount(next);
     } finally {
       hideLoading();
     }
-  }, [empId, yyyymm, showLoading, hideLoading]);
+  }, [empId, ym, showLoading, hideLoading]);
 
   return (
     <>
       {mode === 'list' && (
         <GalleryListPage
           list={galleryList ?? []}
-          yyyymm={yyyymm}
+          ym={ym}
           loading={galleryList === null}
           onMoveUpload={() => setMode('upload')}
           onCancel={() => navigate('/menu', { replace: true })}
-          onChangeMonth={setYyyymm}
+          onChangeMonth={setYm}
         />
       )}
 

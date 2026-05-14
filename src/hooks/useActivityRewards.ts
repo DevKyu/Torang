@@ -107,7 +107,7 @@ const toRewardItem = (
   return base;
 };
 
-export const useActivityRewards = (yyyymm: string) => {
+export const useActivityRewards = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -126,7 +126,7 @@ export const useActivityRewards = (yyyymm: string) => {
 
       try {
         const [rewardsSnap, referrerSnap] = await Promise.all([
-          get(ref(db, `users/${empId}/rewards/${yyyymm}`)),
+          get(ref(db, `users/${empId}/rewards/${ym}`)),
           get(ref(db, `users/${empId}/referrer`)),
         ]);
         if (cancelled) return;
@@ -143,7 +143,7 @@ export const useActivityRewards = (yyyymm: string) => {
             if (cat === 'target') {
               const e = entries as Record<string, unknown>;
               const pin = typeof e.pin === 'number' ? e.pin : 0;
-              if (pin > 0) result.push(toRewardItem(cat, yyyymm, e));
+              if (pin > 0) result.push(toRewardItem(cat, ym, e));
             } else {
               for (const [key, entry] of Object.entries(
                 entries as Record<string, unknown>,
@@ -161,7 +161,7 @@ export const useActivityRewards = (yyyymm: string) => {
         if (!hasReferralReward && referrerSnap.exists()) {
           const r = referrerSnap.val() as Record<string, unknown>;
           const rewardedAt = typeof r.rewardedAt === 'string' ? r.rewardedAt : '';
-          if (r.rewarded === true && rewardedAt.slice(0, 6) === yyyymm) {
+          if (r.rewarded === true && rewardedAt.slice(0, 6) === ym) {
             const dateMs = rewardedAt.length >= 12
               ? new Date(`${rewardedAt.slice(0, 4)}-${rewardedAt.slice(4, 6)}-${rewardedAt.slice(6, 8)}T${rewardedAt.slice(8, 10)}:${rewardedAt.slice(10, 12)}:00`).getTime()
               : Date.now();
@@ -193,7 +193,7 @@ export const useActivityRewards = (yyyymm: string) => {
       cancelled = true;
       unsubscribe();
     };
-  }, [yyyymm]);
+  }, [ym]);
 
   return { items, loading };
 };

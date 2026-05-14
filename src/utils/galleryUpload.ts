@@ -14,9 +14,9 @@ import { useUiStore } from '../stores/useUiStore';
 import { nanoid } from 'nanoid';
 import { getDiffDaysServer } from './date';
 
-export const uploadGalleryImage = async (file: File, yyyymm: string) => {
+export const uploadGalleryImage = async (file: File, ym: string) => {
   const imageId = nanoid();
-  const path = `gallery/${yyyymm}/${imageId}`;
+  const path = `gallery/${ym}/${imageId}`;
   const ref = storageRef(storage, path);
 
   await uploadBytes(ref, file);
@@ -26,16 +26,16 @@ export const uploadGalleryImage = async (file: File, yyyymm: string) => {
 };
 
 export const saveGalleryMeta = async (params: {
-  yyyymm: string;
+  ym: string;
   imageId: string;
   url: string;
   caption: string;
   uploadedAt: number;
   order: number;
 }) => {
-  const { yyyymm, imageId, url, caption, uploadedAt, order } = params;
+  const { ym, imageId, url, caption, uploadedAt, order } = params;
   const empId = getCurrentUserId();
-  const ref = dbRef(db, `gallery/${yyyymm}/${imageId}`);
+  const ref = dbRef(db, `gallery/${ym}/${imageId}`);
 
   await set(ref, {
     url,

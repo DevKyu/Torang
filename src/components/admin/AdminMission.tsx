@@ -83,8 +83,8 @@ const AdminMission = () => {
     return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
   }, []);
 
-  const [yyyymm, setYyyymm] = useState(currentYm);
-  const { data, loading } = useMission(yyyymm);
+  const [ym, setYm] = useState(currentYm);
+  const { data, loading } = useMission(ym);
 
   const [configDraft, setConfigDraft] = useState<ConfigDraft>({
     title: '',
@@ -177,8 +177,8 @@ const AdminMission = () => {
   };
 
   const randomAssign = useCallback(async () => {
-    const year = yyyymm.slice(0, 4);
-    const month = String(Number(yyyymm.slice(4)));
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
     try {
       const snap = await get(ref(db, `activityParticipants/${year}/${month}`));
       if (!snap.exists()) {
@@ -202,12 +202,12 @@ const AdminMission = () => {
     } catch {
       toast.error('배정 중 오류가 발생했습니다.', { position: 'top-center' });
     }
-  }, [yyyymm, allNames]);
+  }, [ym, allNames]);
 
   const handleSaveContent = async () => {
     setSaving(true);
     try {
-      await saveMissionContent(yyyymm, configDraft, hiddenDraft);
+      await saveMissionContent(ym, configDraft, hiddenDraft);
       toast('✅ 미션 내용이 저장되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -227,7 +227,7 @@ const AdminMission = () => {
     }
     setSaving(true);
     try {
-      await assignRoles(yyyymm, roleDraft.villainId, roleDraft.helperId);
+      await assignRoles(ym, roleDraft.villainId, roleDraft.helperId);
       toast('✅ 역할 배정이 저장되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -239,7 +239,7 @@ const AdminMission = () => {
   const handleStatusChange = async (next: MissionStatus) => {
     setSaving(true);
     try {
-      await setMissionStatus(yyyymm, next);
+      await setMissionStatus(ym, next);
       toast(`✅ 상태가 '${STATUS_LABEL[next]}'로 변경되었습니다.`, { position: 'top-center', duration: 2000, style: toSuccessStyle });
     } catch {
       toast.error('상태 변경 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -252,7 +252,7 @@ const AdminMission = () => {
     if (!data) return;
     setRevealing(true);
     try {
-      const res = await revealMissionResult(yyyymm, data);
+      const res = await revealMissionResult(ym, data);
       const msg = res.villainWon
         ? `빌런 생존! ${res.helperWon ? '조력자 공동 수상 🎉' : '빌런 단독 수상 🎉'}`
         : `정답자 ${res.correctVoters.length}명 수상 🎉`;
@@ -267,7 +267,7 @@ const AdminMission = () => {
   const handleResetMission = async () => {
     setSaving(true);
     try {
-      await resetMissionState(yyyymm);
+      await resetMissionState(ym);
       setConfirmReset(false);
       toast('✅ 미션 상태가 초기화되었습니다.', {
         position: 'top-center',
@@ -332,7 +332,7 @@ const AdminMission = () => {
 
   return (
     <AdminLayout title="활동 미션 관리">
-      <MonthSelect value={yyyymm} onChange={(e) => setYyyymm(e.target.value)}>
+      <MonthSelect value={ym} onChange={(e) => setYm(e.target.value)}>
         {monthOptions.map((ym) => (
           <option key={ym} value={ym}>
             {ym.slice(0, 4)}년 {Number(ym.slice(4))}월
@@ -570,7 +570,7 @@ const AdminMission = () => {
               onClick={async () => {
                 setSaving(true);
                 try {
-                  await resetVotes(yyyymm);
+                  await resetVotes(ym);
                   toast('🗑️ 투표가 초기화되었습니다.', {
                     position: 'top-center',
                     duration: 2000,

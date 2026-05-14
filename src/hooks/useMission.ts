@@ -47,7 +47,7 @@ export type MissionData = {
   result?: MissionResult;
 };
 
-export const useMission = (yyyymm: string) => {
+export const useMission = (ym: string) => {
   const [data, setData] = useState<MissionData | null>(null);
   const [myEmpId, setMyEmpId] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -65,13 +65,13 @@ export const useMission = (yyyymm: string) => {
   }, []);
 
   useEffect(() => {
-    const r = ref(db, `missions/${yyyymm}`);
+    const r = ref(db, `missions/${ym}`);
     const unsub = onValue(r, (snap) => {
       setData(snap.exists() ? (snap.val() as MissionData) : null);
       setLoading(false);
     });
     return unsub;
-  }, [yyyymm]);
+  }, [ym]);
 
   const myVote = myEmpId && data?.votes ? data.votes[myEmpId] : undefined;
 
@@ -79,23 +79,23 @@ export const useMission = (yyyymm: string) => {
 };
 
 export async function saveMissionContent(
-  yyyymm: string,
+  ym: string,
   config: Omit<MissionConfig, 'status'>,
   hidden: MissionHidden,
 ): Promise<void> {
-  const existing = (await get(ref(db, `missions/${yyyymm}/config/status`))).val() as MissionStatus | null;
-  await update(ref(db, `missions/${yyyymm}`), {
+  const existing = (await get(ref(db, `missions/${ym}/config/status`))).val() as MissionStatus | null;
+  await update(ref(db, `missions/${ym}`), {
     config: { ...config, status: existing ?? 'draft' },
     hidden,
   });
 }
 
 export async function assignRoles(
-  yyyymm: string,
+  ym: string,
   villainId: string,
   helperId: string,
 ): Promise<void> {
-  await set(ref(db, `missions/${yyyymm}/roles`), {
+  await set(ref(db, `missions/${ym}/roles`), {
     villain: villainId,
     helper: helperId,
     assignedAt: useUiStore.getState().getServerNow().getTime(),
@@ -103,34 +103,34 @@ export async function assignRoles(
 }
 
 export async function setMissionStatus(
-  yyyymm: string,
+  ym: string,
   status: MissionStatus,
 ): Promise<void> {
-  await set(ref(db, `missions/${yyyymm}/config/status`), status);
+  await set(ref(db, `missions/${ym}/config/status`), status);
 }
 
 export async function submitVote(
-  yyyymm: string,
+  ym: string,
   voterEmpId: string,
   targetEmpId: string,
 ): Promise<void> {
-  await set(ref(db, `missions/${yyyymm}/votes/${voterEmpId}`), targetEmpId);
+  await set(ref(db, `missions/${ym}/votes/${voterEmpId}`), targetEmpId);
 }
 
-export async function resetVotes(yyyymm: string): Promise<void> {
-  await remove(ref(db, `missions/${yyyymm}/votes`));
+export async function resetVotes(ym: string): Promise<void> {
+  await remove(ref(db, `missions/${ym}/votes`));
 }
 
-export async function resetMissionState(yyyymm: string): Promise<void> {
+export async function resetMissionState(ym: string): Promise<void> {
   await Promise.all([
-    remove(ref(db, `missions/${yyyymm}/votes`)),
-    remove(ref(db, `missions/${yyyymm}/result`)),
-    set(ref(db, `missions/${yyyymm}/config/status`), 'active'),
+    remove(ref(db, `missions/${ym}/votes`)),
+    remove(ref(db, `missions/${ym}/result`)),
+    set(ref(db, `missions/${ym}/config/status`), 'active'),
   ]);
 }
 
 export async function revealMissionResult(
-  yyyymm: string,
+  ym: string,
   data: MissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
   if (data.result?.revealed === true) {
@@ -178,14 +178,14 @@ export async function revealMissionResult(
   const now = getServerNow().getTime();
   const createdAt = getServerTimestamp();
   const allWrites: Record<string, unknown> = {
-    [`missions/${yyyymm}/result`]: {
+    [`missions/${ym}/result`]: {
       revealed: true,
       revealedAt: now,
       villainWon,
       helperWon,
       correctVoters,
     },
-    [`missions/${yyyymm}/config/status`]: 'revealed',
+    [`missions/${ym}/config/status`]: 'revealed',
   };
 
   await Promise.all(
@@ -193,11 +193,11 @@ export async function revealMissionResult(
       const pinSnap = await get(ref(db, `users/${empId}/pin`));
       const currentPin = (pinSnap.val() as number) ?? 0;
       allWrites[`users/${empId}/pin`] = currentPin + rewardPin;
-      allWrites[`users/${empId}/rewards/${yyyymm}/mission/${now}_${empId}`] = {
+      allWrites[`users/${empId}/rewards/${ym}/mission/${now}_${empId}`] = {
         type: 'mission',
         direction: 'gain',
         pin: rewardPin,
-        ym: yyyymm,
+        ym,
         createdAt,
         createdAtMs: now,
         detail: recipientDetails[empId],

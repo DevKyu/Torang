@@ -34,22 +34,22 @@ const TITLE: Record<MatchType, Record<string, string>> = {
   },
 };
 
-const fallbackDate = (yyyymm: string): number =>
-  new Date(`${yyyymm.slice(0, 4)}-${yyyymm.slice(4, 6)}-01`).getTime();
+const fallbackDate = (ym: string): number =>
+  new Date(`${ym.slice(0, 4)}-${ym.slice(4, 6)}-01`).getTime();
 
 const toMatchItem = (
   type: MatchType,
   myId: string,
   opponentId: string,
   entry: MatchResult,
-  yyyymm: string,
+  ym: string,
 ): ActivityItem => ({
   id: `match_${type}_${opponentId}`,
   type: 'match',
   date:
     typeof entry.finalizedAt === 'number'
       ? entry.finalizedAt
-      : fallbackDate(yyyymm),
+      : fallbackDate(ym),
   title: TITLE[type][entry.result] ?? TITLE[type].none,
   delta:
     typeof entry.delta === 'number'
@@ -62,7 +62,7 @@ const toMatchItem = (
   scores: { my: entry.myScore, opponent: entry.opponentScore },
 });
 
-export const useActivityMatches = (yyyymm: string) => {
+export const useActivityMatches = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,8 +83,8 @@ export const useActivityMatches = (yyyymm: string) => {
         await preloadAllNames();
 
         const [rivalSnap, pinSnap] = await Promise.all([
-          get(ref(db, `matchResults/${yyyymm}/rival/${myId}`)),
-          get(ref(db, `matchResults/${yyyymm}/pin/${myId}`)),
+          get(ref(db, `matchResults/${ym}/rival/${myId}`)),
+          get(ref(db, `matchResults/${ym}/pin/${myId}`)),
         ]);
 
         if (cancelled) return;
@@ -94,14 +94,14 @@ export const useActivityMatches = (yyyymm: string) => {
         if (rivalSnap.exists()) {
           const entries = rivalSnap.val() as Record<string, MatchResult>;
           for (const [opponentId, entry] of Object.entries(entries)) {
-            result.push(toMatchItem('rival', myId, opponentId, entry, yyyymm));
+            result.push(toMatchItem('rival', myId, opponentId, entry, ym));
           }
         }
 
         if (pinSnap.exists()) {
           const entries = pinSnap.val() as Record<string, MatchResult>;
           for (const [opponentId, entry] of Object.entries(entries)) {
-            result.push(toMatchItem('pin', myId, opponentId, entry, yyyymm));
+            result.push(toMatchItem('pin', myId, opponentId, entry, ym));
           }
         }
 
@@ -119,7 +119,7 @@ export const useActivityMatches = (yyyymm: string) => {
       cancelled = true;
       unsubscribe();
     };
-  }, [yyyymm]);
+  }, [ym]);
 
   return { items, loading };
 };

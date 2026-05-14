@@ -18,7 +18,7 @@ const toPlayers = (raw?: Record<string, { name: string; score1: number; score2: 
         .sort((a, b) => b.scores[1] - a.scores[1])
     : [];
 
-export const useActivityLeague = (yyyymm: string) => {
+export const useActivityLeague = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,7 @@ export const useActivityLeague = (yyyymm: string) => {
       }
 
       try {
-        const snap = await get(ref(db, `team/${yyyymm}`));
+        const snap = await get(ref(db, `team/${ym}`));
         if (cancelled) return;
 
         if (!snap.exists()) {
@@ -73,11 +73,11 @@ export const useActivityLeague = (yyyymm: string) => {
             const d = n % 100;
             date = new Date(y, m, d).getTime();
           } else {
-            date = new Date(`${yyyymm.slice(0, 4)}-${yyyymm.slice(4)}-01`).getTime();
+            date = new Date(`${ym.slice(0, 4)}-${ym.slice(4)}-01`).getTime();
           }
 
           result.push({
-            id: `league_${yyyymm}_${groupId}`,
+            id: `league_${ym}_${groupId}`,
             type: 'league',
             date,
             title: `${groupId}조 정기전`,
@@ -107,7 +107,7 @@ export const useActivityLeague = (yyyymm: string) => {
       cancelled = true;
       unsubscribe();
     };
-  }, [yyyymm]);
+  }, [ym]);
 
   return { items, loading };
 };

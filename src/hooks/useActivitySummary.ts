@@ -4,7 +4,7 @@ import { ref, get } from 'firebase/database';
 import { db, auth, empIdFromEmail } from '../services/firebase';
 import type { ActivityItem } from '../types/activity';
 
-export const useActivitySummary = (yyyymm: string) => {
+export const useActivitySummary = (ym: string) => {
   const [item, setItem] = useState<ActivityItem | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,8 +12,8 @@ export const useActivitySummary = (yyyymm: string) => {
     let cancelled = false;
     setLoading(true);
 
-    const year = yyyymm.slice(0, 4);
-    const month = String(Number(yyyymm.slice(4)));
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       unsubscribe();
@@ -37,7 +37,7 @@ export const useActivitySummary = (yyyymm: string) => {
         }
 
         const [gallerySnap, achievementsSnap, activityDateSnap] = await Promise.all([
-          get(ref(db, `gallery/${yyyymm}`)),
+          get(ref(db, `gallery/${ym}`)),
           get(ref(db, `users/${empId}/achievements`)),
           get(ref(db, `activityDate/${year}/${month}`)),
         ]);
@@ -69,7 +69,7 @@ export const useActivitySummary = (yyyymm: string) => {
         if (achievementsSnap.exists()) {
           const data = achievementsSnap.val() as Record<string, { achievedAt: string }>;
           for (const entry of Object.values(data)) {
-            if (entry.achievedAt === yyyymm) achievements++;
+            if (entry.achievedAt === ym) achievements++;
           }
         }
 
@@ -81,11 +81,11 @@ export const useActivitySummary = (yyyymm: string) => {
           const d = dateNum % 100;
           activityDate = new Date(y, m, d).getTime();
         } else {
-          activityDate = new Date(`${year}-${yyyymm.slice(4)}-01`).getTime();
+          activityDate = new Date(`${year}-${ym.slice(4)}-01`).getTime();
         }
 
         setItem({
-          id: `activity_${yyyymm}`,
+          id: `activity_${ym}`,
           type: 'activity',
           date: activityDate,
           title: '이번 달 활동 요약',
@@ -105,7 +105,7 @@ export const useActivitySummary = (yyyymm: string) => {
       cancelled = true;
       unsubscribe();
     };
-  }, [yyyymm]);
+  }, [ym]);
 
   return { item, loading };
 };

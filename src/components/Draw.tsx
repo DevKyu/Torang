@@ -55,7 +55,7 @@ const Draw = () => {
   const { formatServerDate } = useUiStore();
   const navigate = useNavigate();
 
-  const yyyymm = useMemo(() => formatServerDate('ym'), [formatServerDate]);
+  const ym = useMemo(() => formatServerDate('ym'), [formatServerDate]);
 
   useEffect(() => {
     const el = scrollWrapperRef.current;
@@ -75,10 +75,10 @@ const Draw = () => {
       showLoadingWithTimeout();
 
       try {
-        await ensureBatchWinners(yyyymm, navigate);
+        await ensureBatchWinners(ym, navigate);
 
         const userId = await getCurrentUserId();
-        const bundle = await getProductBundle(yyyymm);
+        const bundle = await getProductBundle(ym);
         if (!bundle) return;
 
         await preloadAllNames();
@@ -93,7 +93,7 @@ const Draw = () => {
     };
 
     init();
-  }, [yyyymm]);
+  }, [ym]);
 
   const scrollToCard = (index: number) => {
     const el = cardRefs.current[index];

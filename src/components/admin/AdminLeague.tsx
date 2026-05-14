@@ -91,7 +91,7 @@ const AdminLeague = () => {
     return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
   }, []);
 
-  const [yyyymm, setYyyymm] = useState(currentYm);
+  const [ym, setYm] = useState(currentYm);
   const [groups, setGroups] = useState<Record<string, RawGroup>>({});
   const [editing, setEditing] = useState<GroupDraft | null>(null);
   const [saving, setSaving] = useState(false);
@@ -112,9 +112,9 @@ const AdminLeague = () => {
   }, []);
 
   useEffect(() => {
-    loadGroups(yyyymm);
+    loadGroups(ym);
     setEditing(null);
-  }, [yyyymm, loadGroups]);
+  }, [ym, loadGroups]);
 
   useEffect(() => {
     (async () => {
@@ -148,8 +148,8 @@ const AdminLeague = () => {
         ? 'A'
         : String.fromCharCode(existing[existing.length - 1].charCodeAt(0) + 1);
 
-    const year = yyyymm.slice(0, 4);
-    const month = String(Number(yyyymm.slice(4)));
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
 
     let defaultDate = '';
 
@@ -368,9 +368,9 @@ const AdminLeague = () => {
     };
 
     try {
-      await set(ref(db, `team/${yyyymm}/${editing.groupId}`), data);
+      await set(ref(db, `team/${ym}/${editing.groupId}`), data);
 
-      await loadGroups(yyyymm);
+      await loadGroups(ym);
 
       setEditing(null);
       setConfirmDelete(false);
@@ -400,7 +400,7 @@ const AdminLeague = () => {
     }
 
     try {
-      await remove(ref(db, `team/${yyyymm}/${editing.groupId}`));
+      await remove(ref(db, `team/${ym}/${editing.groupId}`));
 
       toast(`🗑️ ${editing.groupId}조 삭제되었습니다.`, {
         position: 'top-center',
@@ -413,7 +413,7 @@ const AdminLeague = () => {
         },
       });
 
-      await loadGroups(yyyymm);
+      await loadGroups(ym);
 
       setEditing(null);
       setConfirmDelete(false);
@@ -533,7 +533,7 @@ const AdminLeague = () => {
 
   return (
     <AdminLayout title="정기전 관리">
-      <MonthSelect value={yyyymm} onChange={(e) => setYyyymm(e.target.value)}>
+      <MonthSelect value={ym} onChange={(e) => setYm(e.target.value)}>
         {monthOptions.map((ym) => (
           <option key={ym} value={ym}>
             {ym.slice(0, 4)}년 {Number(ym.slice(4))}월

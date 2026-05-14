@@ -90,20 +90,20 @@ const ActivityHistory = () => {
     () => ym(useUiStore.getState().getServerNow().getTime()),
     [],
   );
-  const [yyyymm, setYyyymm] = useState(currentYm);
+  const [ym, setYm] = useState(currentYm);
   const [category, setCategory] = useState<Category>('all');
   const [selected, setSelected] = useState<ActivityItem | null>(null);
 
   const { items: rewardItems, loading: rewardLoading } =
-    useActivityRewards(yyyymm);
+    useActivityRewards(ym);
   const { items: matchItems, loading: matchLoading } =
-    useActivityMatches(yyyymm);
+    useActivityMatches(ym);
   const { item: summaryItem, loading: summaryLoading } =
-    useActivitySummary(yyyymm);
+    useActivitySummary(ym);
   const { items: leagueItems, loading: leagueLoading } =
-    useActivityLeague(yyyymm);
+    useActivityLeague(ym);
   const { items: drawItems, loading: drawLoading } =
-    useActivityDraw(yyyymm);
+    useActivityDraw(ym);
 
   const monthly = useMemo(() => {
     const base: ActivityItem[] = [
@@ -142,8 +142,8 @@ const ActivityHistory = () => {
           <PageTitle size="small">활동 기록</PageTitle>
 
           <MonthNavigator
-            yyyymm={yyyymm}
-            onChange={setYyyymm}
+            ym={ym}
+            onChange={setYm}
             minYm="202507"
             maxYm={currentYm}
           />
@@ -173,7 +173,7 @@ const ActivityHistory = () => {
             variants={listVariants}
             initial="hidden"
             animate="visible"
-            key={`${yyyymm}-${category}`}
+            key={`${ym}-${category}`}
           >
             {rewardLoading ||
             matchLoading ||

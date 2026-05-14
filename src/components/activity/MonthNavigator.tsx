@@ -7,15 +7,15 @@ import {
 } from '../../styles/MonthNavigatorStyle';
 
 type Props = {
-  yyyymm: string;
+  ym: string;
   minYm?: string;
   maxYm?: string;
   onChange: (ym: string) => void;
 };
 
-const MonthNavigator = ({ yyyymm, minYm, maxYm, onChange }: Props) => {
-  const year = Number(yyyymm.slice(0, 4));
-  const month = Number(yyyymm.slice(4, 6));
+const MonthNavigator = ({ ym, minYm, maxYm, onChange }: Props) => {
+  const year = Number(ym.slice(0, 4));
+  const month = Number(ym.slice(4, 6));
 
   const minYear = minYm ? Number(minYm.slice(0, 4)) : undefined;
   const minMonth = minYm ? Number(minYm.slice(4, 6)) : undefined;

@@ -30,10 +30,10 @@ const waitForWinners = async (
 };
 
 export const ensureBatchWinners = async (
-  yyyymm: string,
+  ym: string,
   navigateFn: (path: string, opts?: NavigateOptions) => void,
 ): Promise<void> => {
-  const metaRef = ref(db, `products/${yyyymm}/meta`);
+  const metaRef = ref(db, `products/${ym}/meta`);
 
   const tx = await runTransaction(metaRef, (current) => {
     if (current?.winnersReady) return current;
@@ -59,7 +59,7 @@ export const ensureBatchWinners = async (
   if (meta?.winnersReady || meta?.status !== 'processing') return;
 
   try {
-    const products: ProductItem[] = await getProductData(yyyymm);
+    const products: ProductItem[] = await getProductData(ym);
     const allRaffleIds = Array.from(
       new Set(products.flatMap((p) => p.raffle ?? [])),
     );
@@ -73,9 +73,9 @@ export const ensureBatchWinners = async (
 
     const updates: Record<string, any> = {};
     for (const [index, winners] of Object.entries(winnersPerProduct)) {
-      updates[`products/${yyyymm}/items/${index}/winners`] = winners;
+      updates[`products/${ym}/items/${index}/winners`] = winners;
     }
-    updates[`products/${yyyymm}/meta`] = {
+    updates[`products/${ym}/meta`] = {
       status: 'done',
       winnersReady: true,
       supplement: supplementPerProduct,

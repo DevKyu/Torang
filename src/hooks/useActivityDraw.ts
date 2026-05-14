@@ -4,7 +4,7 @@ import { db, auth, empIdFromEmail } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import type { ActivityItem } from '../types/activity';
 
-export const useActivityDraw = (yyyymm: string) => {
+export const useActivityDraw = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,7 @@ export const useActivityDraw = (yyyymm: string) => {
       }
 
       try {
-        const snap = await get(ref(db, `products/${yyyymm}`));
+        const snap = await get(ref(db, `products/${ym}`));
         if (cancelled) return;
 
         if (!snap.exists()) {
@@ -32,7 +32,11 @@ export const useActivityDraw = (yyyymm: string) => {
         }
 
         const data = snap.val() as {
-          meta?: { status?: string; winnersReady?: boolean; generatedAt?: number };
+          meta?: {
+            status?: string;
+            winnersReady?: boolean;
+            generatedAt?: number;
+          };
           items?: Record<string, unknown>[];
         };
 
@@ -47,13 +51,17 @@ export const useActivityDraw = (yyyymm: string) => {
 
         for (const item of data.items ?? []) {
           const name = String(item.name ?? '상품');
-          const pins = typeof item.requiredPins === 'number' ? item.requiredPins : 0;
-          const winners: string[] = (item.winners as string[] | undefined) ?? (item.winner as string[] | undefined) ?? [];
+          const pins =
+            typeof item.requiredPins === 'number' ? item.requiredPins : 0;
+          const winners: string[] =
+            (item.winners as string[] | undefined) ??
+            (item.winner as string[] | undefined) ??
+            [];
           const raffle: string[] = (item.raffle as string[] | undefined) ?? [];
 
           if (winners.includes(empId)) {
             result.push({
-              id: `draw_${yyyymm}_${item.index}_won`,
+              id: `draw_${ym}_${item.index}_won`,
               type: 'draw',
               date,
               title: '분기 상품 당첨',
@@ -64,7 +72,7 @@ export const useActivityDraw = (yyyymm: string) => {
             });
           } else if (raffle.includes(empId) && pins > 0) {
             result.push({
-              id: `draw_${yyyymm}_${item.index}_lost`,
+              id: `draw_${ym}_${item.index}_lost`,
               type: 'draw',
               date,
               title: '분기 상품 추첨',
@@ -90,7 +98,7 @@ export const useActivityDraw = (yyyymm: string) => {
       cancelled = true;
       unsubscribe();
     };
-  }, [yyyymm]);
+  }, [ym]);
 
   return { items, loading };
 };

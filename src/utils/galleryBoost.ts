@@ -7,7 +7,7 @@ import {
 import { useUiStore } from '../stores/useUiStore';
 import { GALLERY_POLICY } from './galleryPolicy';
 
-export const applyGalleryBoost = async (yyyymm: string) => {
+export const applyGalleryBoost = async (ym: string) => {
   const empId = getCurrentUserId();
   if (!empId) return null;
 
@@ -16,7 +16,7 @@ export const applyGalleryBoost = async (yyyymm: string) => {
   const usageId = getServerTimestamp();
   const nowMs = getServerNow().getTime();
 
-  const countRef = ref(db, `users/${empId}/gallery/uploadCount/${yyyymm}`);
+  const countRef = ref(db, `users/${empId}/gallery/uploadCount/${ym}`);
 
   const snap = await get(countRef);
 
@@ -29,8 +29,8 @@ export const applyGalleryBoost = async (yyyymm: string) => {
   await incrementPinsByEmpId(empId, -1);
 
   await update(ref(db), {
-    [`users/${empId}/gallery/uploadCount/${yyyymm}`]: next,
-    [`users/${empId}/gallery/pinUsage/${yyyymm}/${usageId}`]: {
+    [`users/${empId}/gallery/uploadCount/${ym}`]: next,
+    [`users/${empId}/gallery/pinUsage/${ym}/${usageId}`]: {
       type: 'gallery_boost',
       detail: `업로드 횟수 +${GALLERY_POLICY.BOOST_AMOUNT}`,
       delta: -1,
