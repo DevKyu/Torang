@@ -56,11 +56,6 @@ const AdminBox = styled(ContentBox)`
 
   @media (max-width: 768px) {
     padding: 20px;
-    max-height: 85vh;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    &::-webkit-scrollbar { display: none; }
   }
 `;
 
