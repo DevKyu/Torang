@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ref, set, remove, get } from 'firebase/database';
+import { ref, set, remove, get, update } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
@@ -8,6 +8,7 @@ import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/commonStyle';
 import {
   CancelBtn,
+  ApplyScoreBtn,
   MonthSelect,
   GroupList,
   GroupRow,
@@ -96,6 +97,7 @@ const AdminLeague = () => {
   const [editing, setEditing] = useState<GroupDraft | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [allNames, setAllNames] = useState<Record<string, string>>({});
   const [playerDropdowns, setPlayerDropdowns] = useState<
     Record<string, [string, string][]>
@@ -424,6 +426,58 @@ const AdminLeague = () => {
     }
   };
 
+  const handleApplyScores = async () => {
+    if (Object.keys(groups).length === 0) return;
+
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
+
+    const allUpdates: Record<string, number> = {};
+
+    Object.values(groups).forEach((group) => {
+      (['team1', 'team2'] as const).forEach((teamKey) => {
+        Object.entries(group[teamKey] ?? {}).forEach(([empId, player]) => {
+          if (empId === 'guest' || empId.startsWith('guest_')) return;
+          const validScores = [player.score1, player.score2].filter((s) => s > 0);
+          if (validScores.length === 0) return;
+          const avg = Math.round(
+            validScores.reduce((a, b) => a + b, 0) / validScores.length,
+          );
+          allUpdates[`users/${empId}/scores/${year}/${month}`] = avg;
+        });
+      });
+    });
+
+    if (Object.keys(allUpdates).length === 0) {
+      toast('반영할 점수가 없습니다.', { position: 'top-center' });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `${year}년 ${month}월 정기전 점수를 반영할까요?\n총 ${Object.keys(allUpdates).length}명 — 기존 해당 월 점수가 덮어써집니다.`,
+    );
+    if (!confirmed) return;
+
+    setApplying(true);
+    try {
+      await update(ref(db), allUpdates);
+      toast(`✅ ${Object.keys(allUpdates).length}명의 점수가 반영되었습니다.`, {
+        position: 'top-center',
+        duration: 2500,
+        style: {
+          backgroundColor: '#f0fdf4',
+          color: '#065f46',
+          borderRadius: '10px',
+          fontSize: '0.875rem',
+        },
+      });
+    } catch {
+      toast.error('점수 반영 중 오류가 발생했습니다.', { position: 'top-center' });
+    } finally {
+      setApplying(false);
+    }
+  };
+
   const monthOptions = useMemo(() => {
     const options: string[] = [];
 
@@ -572,6 +626,12 @@ const AdminLeague = () => {
           </GroupList>
 
           <AddGroupBtn onClick={openNew}>+ 새 조 추가</AddGroupBtn>
+
+          {Object.keys(groups).length > 0 && (
+            <ApplyScoreBtn onClick={handleApplyScores} disabled={applying}>
+              {applying ? '반영 중...' : '📊 점수 반영'}
+            </ApplyScoreBtn>
+          )}
         </>
       )}
 

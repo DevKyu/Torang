@@ -70,6 +70,24 @@ export const AddGroupBtn = styled.button`
   &:active { background: #f9fafb; color: #374151; }
 `;
 
+export const ApplyScoreBtn = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px dashed #6366f1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: #eef2ff; }
+  }
+  &:active { background: #eef2ff; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
+
 export const FormSection = styled.div`
   display: flex;
   flex-direction: column;
