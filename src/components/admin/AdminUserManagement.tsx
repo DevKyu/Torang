@@ -327,6 +327,12 @@ const AdminUserManagement = () => {
           <AdminSubLink onClick={() => navigate('/admin/mission')}>
             🎭 활동 미션 관리
           </AdminSubLink>
+
+          <AdminSubLink
+            onClick={() => navigate('/admin/after-party-participants')}
+          >
+            🍻 뒤풀이 참여자 관리
+          </AdminSubLink>
         </AdminSubLinkRow>
       </AdminLinkSection>
 

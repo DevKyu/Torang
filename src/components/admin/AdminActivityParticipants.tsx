@@ -69,8 +69,20 @@ const buildParticipantMap = (
       .map(([empId]) => [empId, true]),
   ) as Record<string, true>;
 
-const AdminActivityParticipants = () => {
+type ParticipantMode = 'activity' | 'afterParty';
+
+const MODE_CONFIG: Record<ParticipantMode, { path: string; title: string }> = {
+  activity: { path: 'activityParticipants', title: '활동 참여자 관리' },
+  afterParty: { path: 'afterPartyParticipants', title: '뒤풀이 참여자 관리' },
+};
+
+interface Props {
+  mode?: ParticipantMode;
+}
+
+const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
   const navigate = useNavigate();
+  const { path, title } = MODE_CONFIG[mode];
 
   const monthOptions = useMemo(createMonthOptions, []);
 
@@ -107,7 +119,7 @@ const AdminActivityParticipants = () => {
     const month = String(Number(ym.slice(4)));
 
     try {
-      const snap = await get(ref(db, `activityParticipants/${year}/${month}`));
+      const snap = await get(ref(db, `${path}/${year}/${month}`));
 
       const data = snap.exists() ? (snap.val() as Record<string, true>) : {};
 
@@ -117,7 +129,7 @@ const AdminActivityParticipants = () => {
       setOriginalParticipants({});
       setDraftParticipants({});
     }
-  }, []);
+  }, [path]);
 
   useEffect(() => {
     loadUsers();
@@ -198,7 +210,7 @@ const AdminActivityParticipants = () => {
 
     try {
       await set(
-        ref(db, `activityParticipants/${year}/${month}`),
+        ref(db, `${path}/${year}/${month}`),
         draftParticipants,
       );
 
@@ -217,7 +229,7 @@ const AdminActivityParticipants = () => {
   };
 
   return (
-    <AdminLayout title="활동 참여자 관리">
+    <AdminLayout title={title}>
       <PageWrap>
         <TopSection>
           <SearchRow>
