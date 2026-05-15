@@ -207,7 +207,7 @@ const AdminMission = () => {
   const handleSaveContent = async () => {
     setSaving(true);
     try {
-      await saveMissionContent(ym, configDraft, hiddenDraft);
+      await saveMissionContent(ym, configDraft, hiddenDraft, data?.config?.status ?? null);
       toast('✅ 미션 내용이 저장되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ref, set, get, remove, onValue, update } from 'firebase/database';
+import { ref, set, remove, onValue, update, increment } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth, empIdFromEmail } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
@@ -82,10 +82,10 @@ export async function saveMissionContent(
   ym: string,
   config: Omit<MissionConfig, 'status'>,
   hidden: MissionHidden,
+  currentStatus: MissionStatus | null = null,
 ): Promise<void> {
-  const existing = (await get(ref(db, `missions/${ym}/config/status`))).val() as MissionStatus | null;
   await update(ref(db, `missions/${ym}`), {
-    config: { ...config, status: existing ?? 'draft' },
+    config: { ...config, status: currentStatus ?? 'draft' },
     hidden,
   });
 }
@@ -188,22 +188,18 @@ export async function revealMissionResult(
     [`missions/${ym}/config/status`]: 'revealed',
   };
 
-  await Promise.all(
-    recipients.map(async (empId) => {
-      const pinSnap = await get(ref(db, `users/${empId}/pin`));
-      const currentPin = (pinSnap.val() as number) ?? 0;
-      allWrites[`users/${empId}/pin`] = currentPin + rewardPin;
-      allWrites[`users/${empId}/rewards/${ym}/mission/${now}_${empId}`] = {
-        type: 'mission',
-        direction: 'gain',
-        pin: rewardPin,
-        ym,
-        createdAt,
-        createdAtMs: now,
-        detail: recipientDetails[empId],
-      };
-    }),
-  );
+  recipients.forEach((empId) => {
+    allWrites[`users/${empId}/pin`] = increment(rewardPin);
+    allWrites[`users/${empId}/rewards/${ym}/mission/${now}_${empId}`] = {
+      type: 'mission',
+      direction: 'gain',
+      pin: rewardPin,
+      ym,
+      createdAt,
+      createdAtMs: now,
+      detail: recipientDetails[empId],
+    };
+  });
 
   await update(ref(db), allWrites);
 
