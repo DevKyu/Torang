@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import Login from '../components/Login';
 import Menu from '../components/MainMenu';
 import Reward from '../components/Reward';
@@ -14,27 +14,37 @@ import AdminLeague from '../components/admin/AdminLeague';
 import AdminActivityParticipants from '../components/admin/AdminActivityParticipants';
 import AdminMission from '../components/admin/AdminMission';
 import MissionPage from '../components/mission/MissionPage';
+import ProtectedRoute from './ProtectedRoute';
 
 const Router = () => (
   <Routes>
     <Route path="/" element={<Login />} />
-    <Route path="/menu" element={<Menu />} />
-    <Route path="/reward" element={<Reward />} />
-    <Route path="/draw" element={<Draw />} />
-    <Route path="/myinfo" element={<MyInfo />} />
-    <Route path="/ranking" element={<Ranking />} />
-    <Route path="/achievements" element={<Achievements />} />
-    <Route path="/admin" element={<AdminUserManagement />} />
-    <Route path="/admin/event" element={<AdminEvent />} />
-    <Route path="/admin/league" element={<AdminLeague />} />
-    <Route
-      path="/admin/activity-participants"
-      element={<AdminActivityParticipants />}
-    />
-    <Route path="/gallery" element={<GalleryPage />} />
-    <Route path="/history" element={<ActivityHistory />} />
-    <Route path="/mission" element={<MissionPage />} />
-    <Route path="/admin/mission" element={<AdminMission />} />
+
+    <Route element={<ProtectedRoute />}>
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/reward" element={<Reward />} />
+      <Route path="/draw" element={<Draw />} />
+      <Route path="/myinfo" element={<MyInfo />} />
+      <Route path="/ranking" element={<Ranking />} />
+      <Route path="/achievements" element={<Achievements />} />
+      <Route path="/gallery" element={<GalleryPage />} />
+      <Route path="/history" element={<ActivityHistory />} />
+      <Route path="/mission" element={<MissionPage />} />
+      <Route path="/admin" element={<AdminUserManagement />} />
+      <Route path="/admin/event" element={<AdminEvent />} />
+      <Route path="/admin/league" element={<AdminLeague />} />
+      <Route
+        path="/admin/activity-participants"
+        element={<AdminActivityParticipants />}
+      />
+      <Route
+        path="/admin/after-party-participants"
+        element={<AdminActivityParticipants mode="afterParty" />}
+      />
+      <Route path="/admin/mission" element={<AdminMission />} />
+    </Route>
+
+    <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );
 
