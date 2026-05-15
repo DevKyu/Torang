@@ -50,16 +50,13 @@ export const useActivitySummary = (ym: string) => {
         if (gallerySnap.exists()) {
           const gallery = gallerySnap.val() as Record<string, Record<string, unknown>>;
           for (const image of Object.values(gallery)) {
-            if (image.empId !== empId) continue;
-            photos++;
-            if (typeof image.likes === 'number') {
-              likes += image.likes;
-            } else if (image.likes && typeof image.likes === 'object') {
-              likes += Object.keys(image.likes as object).length;
+            if (image.empId === empId) photos++;
+            if (image.likes && typeof image.likes === 'object') {
+              if ((image.likes as Record<string, unknown>)[empId]) likes++;
             }
             if (image.comments && typeof image.comments === 'object') {
               for (const c of Object.values(image.comments as Record<string, Record<string, unknown>>)) {
-                if (!c.deleted) comments++;
+                if (!c.deleted && c.empId === empId) comments++;
               }
             }
           }
