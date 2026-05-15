@@ -23,6 +23,7 @@ import { useLoading } from '../contexts/LoadingContext';
 import { Button, SmallText } from '../styles/commonStyle';
 import { Input, ErrorText } from '../styles/loginStyle';
 import Layout from './layouts/Layout';
+import { useUiStore } from '../stores/useUiStore';
 
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
@@ -34,7 +35,7 @@ const Login = () => {
   const [referrerName, setReferrerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => !useUiStore.getState().splashShown);
 
   const { showLoading, hideLoading } = useLoading();
   const navigate = useNavigate();
@@ -315,7 +316,7 @@ const Login = () => {
 
   return (
     <>
-      {showSplash && <BowlingSplash onComplete={() => setShowSplash(false)} />}
+      {showSplash && <BowlingSplash onComplete={() => { useUiStore.getState().markSplashShown(); setShowSplash(false); }} />}
       <Layout title="또랑 로그인🎳">
       <AnimatePresence mode="wait" initial={false}>
         <motion.form

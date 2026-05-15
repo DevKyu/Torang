@@ -7,6 +7,8 @@ type UiState = {
     myInfo: boolean;
     ranking: boolean;
   };
+  splashShown: boolean;
+  markSplashShown: () => void;
   serverOffset: number;
   serverDate: Date;
   lastSync: number | null;
@@ -35,6 +37,8 @@ export const useUiStore = create<UiState>((set, get) => ({
     myInfo: false,
     ranking: false,
   },
+  splashShown: false,
+  markSplashShown: () => set({ splashShown: true }),
   serverOffset: 0,
   serverDate: new Date(),
   lastSync: null,
