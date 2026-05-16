@@ -155,7 +155,9 @@ export async function revealMissionResult(
   if (votes) {
     for (const [voterEmpId, targetEmpId] of Object.entries(votes)) {
       voteMap[targetEmpId] = (voteMap[targetEmpId] ?? 0) + 1;
-      if (targetEmpId === villainId) correctVoters.push(voterEmpId);
+      if (targetEmpId === villainId && voterEmpId !== villainId && voterEmpId !== helperId) {
+        correctVoters.push(voterEmpId);
+      }
     }
   }
 

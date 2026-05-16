@@ -136,6 +136,7 @@ const MissionPage = () => {
   if (viewState === 'voting') {
     const sortedParticipants = participants
       .filter((id) => id !== myEmpId)
+      .filter((id) => !(isHelper && id === data?.roles?.villain))
       .sort((a, b) => (allNames[a] ?? a).localeCompare(allNames[b] ?? b, 'ko'));
 
     return (
@@ -150,7 +151,9 @@ const MissionPage = () => {
           </AlreadyVotedBox>
         ) : (
           <>
-            <VotingInstruction>이번 활동의 또랑 빌런은 누구였나요?</VotingInstruction>
+            <VotingInstruction>
+              {(isVillain || isHelper) ? '의심받지 않게 투표해주세요' : '이번 활동의 또랑 빌런은 누구였나요?'}
+            </VotingInstruction>
             <VoteListWrapper>
               <VoteListArea>
                 {sortedParticipants.map((id) => (
