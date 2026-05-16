@@ -37,6 +37,16 @@ export const MonthNavButton = styled.button`
     transform: scale(0.92);
   }
 
+  &:focus {
+    outline: none;
+  }
+
+  @media (hover: none) {
+    &:hover {
+      background: rgba(59, 130, 246, 0.06);
+    }
+  }
+
   &:disabled {
     opacity: 0.3;
     cursor: default;

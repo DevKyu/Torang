@@ -34,6 +34,7 @@ import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
 import { getCurrentUserId } from '../../services/firebase';
+import { useUiStore } from '../../stores/useUiStore';
 
 type GalleryItem = {
   id: string;
@@ -77,8 +78,15 @@ const GalleryList = ({
   const minYear = 2025;
   const minMonth = 10;
 
+  const serverNow = useUiStore.getState().getServerNow();
+  const maxYear = serverNow.getFullYear();
+  const maxMonth = serverNow.getMonth() + 1;
+
   const isPrevDisabled =
     year < minYear || (year === minYear && month === minMonth);
+
+  const isNextDisabled =
+    year > maxYear || (year === maxYear && month >= maxMonth);
 
   useEffect(() => {
     setYear(Number(ym.slice(0, 4)));
@@ -172,6 +180,9 @@ const GalleryList = ({
     if (nextYear < minYear || (nextYear === minYear && nextMonth < minMonth))
       return;
 
+    if (nextYear > maxYear || (nextYear === maxYear && nextMonth > maxMonth))
+      return;
+
     const ym = `${nextYear}${String(nextMonth).padStart(2, '0')}`;
     setYear(nextYear);
     setMonth(nextMonth);
@@ -194,7 +205,7 @@ const GalleryList = ({
             <MonthText>
               {year}년 {month}월
             </MonthText>
-            <MonthNavButton onClick={() => moveMonth(1)}>
+            <MonthNavButton disabled={isNextDisabled} onClick={() => moveMonth(1)}>
               <ChevronRight size={15} />
             </MonthNavButton>
           </HeaderRow>
@@ -271,7 +282,15 @@ const GalleryList = ({
                                 <Thumb
                                   src={img.url}
                                   visible={allLoaded}
+                                  loading={pageIdx === 0 ? 'eager' : 'lazy'}
                                   onLoad={() =>
+                                    setPageLoadedCounts((p) => {
+                                      const next = [...p];
+                                      next[pageIdx] += 1;
+                                      return next;
+                                    })
+                                  }
+                                  onError={() =>
                                     setPageLoadedCounts((p) => {
                                       const next = [...p];
                                       next[pageIdx] += 1;
