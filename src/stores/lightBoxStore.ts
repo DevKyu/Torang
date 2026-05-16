@@ -64,6 +64,8 @@ type LightBoxState = {
   bindCommentSubscription: (idx: number) => void;
 };
 
+let _navTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   images: [],
   open: false,
@@ -193,8 +195,11 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       ...(s.commentOpen && { commentIndex: next }),
     });
 
-    s.bindLikeSubscription(next);
-    s.bindCommentSubscription(next);
+    if (_navTimer) clearTimeout(_navTimer);
+    _navTimer = setTimeout(() => {
+      get().bindLikeSubscription(next);
+      get().bindCommentSubscription(next);
+    }, 150);
   },
 
   goNext: () => {
@@ -207,8 +212,11 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       ...(s.commentOpen && { commentIndex: next }),
     });
 
-    s.bindLikeSubscription(next);
-    s.bindCommentSubscription(next);
+    if (_navTimer) clearTimeout(_navTimer);
+    _navTimer = setTimeout(() => {
+      get().bindLikeSubscription(next);
+      get().bindCommentSubscription(next);
+    }, 150);
   },
 
   swipePrev: () => get().goPrev(),

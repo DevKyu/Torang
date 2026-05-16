@@ -282,7 +282,7 @@ const GalleryList = ({
 
                                 <InfoBar>
                                   <InfoItem
-                                    key={`l-${likes}`}
+                                    key={`like-${img.id}`}
                                     initial={{ opacity: 0, scale: 0.7 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                   >
@@ -296,7 +296,7 @@ const GalleryList = ({
                                   </InfoItem>
 
                                   <InfoItem
-                                    key={`c-${comments}`}
+                                    key={`comment-${img.id}`}
                                     initial={{ opacity: 0, scale: 0.7 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                   >
