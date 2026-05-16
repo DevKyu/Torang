@@ -41,11 +41,10 @@ import {
 
 import { useMatchPickedOverlay } from '../hooks/useMatchPickedOverlay';
 import { useMatchResult } from '../hooks/useMatchResult';
-import { useMatchIncoming } from '../hooks/useMatchIncoming';
+import { useMatchIncomingAndLetters } from '../hooks/useMatchIncomingAndLetters';
 import { useCongratulation } from '../hooks/useCongratulation';
 import { useActivityParticipants } from '../hooks/useActivityParticipants';
 import { useActivityDates } from '../hooks/useActivityDates';
-import { useReceivedLetters } from '../hooks/useReceivedLetters';
 import { canEditTarget } from '../utils/policy';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
@@ -223,8 +222,7 @@ const Ranking = () => {
     withinDays: 7,
   });
 
-  const incoming = useMatchIncoming(ym, myId, MATCH_TYPE, users, activityYmd);
-  const receivedLetters = useReceivedLetters(ym, myId, MATCH_TYPE, activityYmd);
+  const { incoming, letters: receivedLetters } = useMatchIncomingAndLetters(ym, myId, MATCH_TYPE, users, activityYmd);
 
   const hasMatchResults =
     matchResults?.some((r) => r.result !== 'none') ?? false;

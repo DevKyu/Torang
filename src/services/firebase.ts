@@ -376,7 +376,22 @@ export const getAllActivityDates = async (): Promise<ActivityDateAll> => {
 export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
   const snapshot = await get(ref(db, 'users'));
   if (!snapshot.exists()) return {};
-  return snapshot.val();
+  const raw = snapshot.val() as Record<string, Record<string, unknown>>;
+  return Object.fromEntries(
+    Object.entries(raw).map(([empId, u]) => [
+      empId,
+      {
+        name: u.name,
+        join: u.join,
+        pin: typeof u.pin === 'number' ? u.pin : 0,
+        type: u.type,
+        scores: u.scores,
+        targets: u.targets,
+        usedItems: u.usedItems,
+        invitedCount: u.invitedCount,
+      } as UserInfo,
+    ]),
+  );
 };
 
 export const saveMatchResult = async (

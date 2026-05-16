@@ -95,14 +95,12 @@ const MainMenu = () => {
 
   useEffect(() => {
     const run = async () => {
-      await syncServerTime();
-      await loadEventConfig();
-      await applyReferralRewardIfNeeded();
-
-      try {
-        const isAdmin = await checkAdminId();
-        setIsAdmin(isAdmin);
-      } catch {}
+      await Promise.all([syncServerTime(), loadEventConfig()]);
+      const [isAdminResult] = await Promise.all([
+        checkAdminId().catch(() => false),
+        applyReferralRewardIfNeeded(),
+      ]);
+      setIsAdmin(isAdminResult);
     };
 
     run();
