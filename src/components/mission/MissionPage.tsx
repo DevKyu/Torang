@@ -58,6 +58,7 @@ const MissionPage = () => {
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
   const [allNames, setAllNames] = useState<Record<string, string>>({});
   const [participants, setParticipants] = useState<string[]>([]);
+  const [participantsLoaded, setParticipantsLoaded] = useState(false);
   const [selectedVote, setSelectedVote] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -79,8 +80,9 @@ const MissionPage = () => {
         if (namesSnap.exists()) setAllNames(namesSnap.val() as Record<string, string>);
         if (participantsSnap.exists())
           setParticipants(Object.keys(participantsSnap.val() as Record<string, true>));
+        setParticipantsLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => { setParticipantsLoaded(true); });
   }, [currentYm]);
 
   const daysUntilReveal = useMemo(() => {
@@ -103,6 +105,8 @@ const MissionPage = () => {
     if (daysUntilReveal !== null && daysUntilReveal > 0) return 'upcoming';
     return 'preview';
   }, [data, daysUntilReveal]);
+
+  const isParticipant = participantsLoaded && myEmpId ? participants.includes(myEmpId) : null;
 
   const isVillain = !!myEmpId && data?.roles?.villain === myEmpId;
   const isHelper = !!myEmpId && data?.roles?.helper === myEmpId;
@@ -134,6 +138,32 @@ const MissionPage = () => {
   };
 
   if (viewState === 'voting') {
+    if (isParticipant === null) {
+      return (
+        <Layout title="또랑 빌런 투표" maxWidth="480px">
+          <LoadingText>불러오는 중...</LoadingText>
+          <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+            돌아가기
+          </SmallText>
+        </Layout>
+      );
+    }
+
+    if (!isParticipant) {
+      return (
+        <Layout title="또랑 빌런 투표" maxWidth="480px">
+          <AlreadyVotedBox>
+            <VotedEmoji>🚫</VotedEmoji>
+            <VotedName>이달의 활동에 참여하지 않았습니다</VotedName>
+            <VotedSub>투표는 활동 참여자만 할 수 있어요</VotedSub>
+          </AlreadyVotedBox>
+          <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+            돌아가기
+          </SmallText>
+        </Layout>
+      );
+    }
+
     const sortedParticipants = participants
       .filter((id) => id !== myEmpId)
       .filter((id) => !(isHelper && id === data?.roles?.villain))
