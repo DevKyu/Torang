@@ -106,7 +106,7 @@ const MissionPage = () => {
     return 'preview';
   }, [data, daysUntilReveal]);
 
-  const isParticipant = participantsLoaded && myEmpId ? participants.includes(myEmpId) : null;
+  const isParticipant = myEmpId ? participants.includes(myEmpId) : false;
 
   const isVillain = !!myEmpId && data?.roles?.villain === myEmpId;
   const isHelper = !!myEmpId && data?.roles?.helper === myEmpId;
@@ -138,7 +138,7 @@ const MissionPage = () => {
   };
 
   if (viewState === 'voting') {
-    if (isParticipant === null) {
+    if (loading || !participantsLoaded) {
       return (
         <Layout title="또랑 빌런 투표" maxWidth="480px">
           <LoadingText>불러오는 중...</LoadingText>
