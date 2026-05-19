@@ -58,8 +58,11 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   cursor: pointer;
   margin-bottom: 4px;
   touch-action: manipulation;
-  transition: opacity 0.15s;
-  &:active { opacity: 0.75; }
+  transition: background 0.15s ease, border-color 0.15s ease;
+  &:active {
+    background: ${({ role }) => (role === 'villain' ? '#fee2e2' : '#dbeafe')};
+    border-color: ${({ role }) => (role === 'villain' ? '#f87171' : '#60a5fa')};
+  }
 `;
 
 export const UpcomingCard = styled.div`
@@ -121,20 +124,21 @@ export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
   justify-content: space-between;
   padding: 13px 16px;
   border-radius: 10px;
-  border: 1.5px solid ${({ selected }) => (selected ? '#111827' : '#e5e7eb')};
-  background: ${({ selected }) => (selected ? '#f3f4f6' : '#fff')};
+  border: 1.5px solid ${({ selected }) => (selected ? '#3b82f6' : '#e5e7eb')};
+  background: ${({ selected }) => (selected ? '#eff6ff' : '#fff')};
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   color: #111827;
   touch-action: manipulation;
+  -webkit-user-select: none;
   user-select: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s ease, background 0.15s ease;
 `;
 
 export const VoteCheckmark = styled.span`
   font-size: 16px;
-  color: #111827;
+  color: #2563eb;
   flex-shrink: 0;
   transition: opacity 0.15s;
 `;
@@ -142,7 +146,7 @@ export const VoteCheckmark = styled.span`
 export const SubmitBtn = styled.button`
   width: 100%;
   padding: 13px;
-  background: #111827;
+  background: #3b82f6;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -150,8 +154,13 @@ export const SubmitBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background 0.15s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { background: #2563eb; }
+  }
   &:disabled {
-    opacity: 0.35;
+    background: #cbd5e1;
+    color: #fff;
     cursor: not-allowed;
   }
 `;
@@ -265,11 +274,4 @@ export const MyVoteResult = styled.div<{ correct: boolean }>`
   margin-top: 8px;
   background: ${({ correct }) => (correct ? '#f0fdf4' : '#fef2f2')};
   color: ${({ correct }) => (correct ? '#059669' : '#dc2626')};
-`;
-
-export const LoadingText = styled.div`
-  font-size: 13px;
-  color: #9ca3af;
-  text-align: center;
-  padding: 20px 0;
 `;

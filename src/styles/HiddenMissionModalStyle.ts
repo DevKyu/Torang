@@ -77,6 +77,6 @@ export const ConfirmBtn = styled.button<{ color: string }>`
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
-  transition: opacity 0.15s;
-  &:active { opacity: 0.8; }
+  transition: filter 0.12s ease;
+  &:active { filter: brightness(0.88); }
 `;
