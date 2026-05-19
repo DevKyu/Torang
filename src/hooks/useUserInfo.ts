@@ -18,26 +18,23 @@ const useUserInfo = () => {
       return;
     }
 
+    let hidden = false;
     const userRef = ref(db, `users/${empId}`);
     showLoading();
 
     const unsubscribe = onValue(
       userRef,
       (snap) => {
-        if (snap.exists()) {
-          setUserInfo(snap.val());
-        } else {
-          setUserInfo(null);
-        }
-        hideLoading();
+        setUserInfo(snap.exists() ? snap.val() : null);
+        if (!hidden) { hidden = true; hideLoading(); }
       },
       () => {
-        hideLoading();
+        if (!hidden) { hidden = true; hideLoading(); }
         logOut();
         navigate('/', { replace: true });
       },
     );
-    return () => unsubscribe();
+    return () => { unsubscribe(); if (!hidden) hideLoading(); };
   }, []);
 
   return userInfo;

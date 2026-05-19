@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import styled from '@emotion/styled';
+import { keyframes, css } from '@emotion/react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 
 const COLOR = {
@@ -34,7 +35,7 @@ export const MyInfoBox = styled.div<{ variant?: 'info' | 'achievements' }>`
 export const InfoSection = styled.div`
   margin: 16px 0;
   border-radius: 12px;
-  padding: 16px;
+  padding: 6px 16px;
   background: #fff;
   box-shadow: ${glass(0.05)};
 `;
@@ -158,6 +159,7 @@ export const InfoRow = styled.div`
   align-items: center;
   gap: 8px;
   padding: 6px 0;
+  min-height: 42px;
   border-bottom: 1px solid ${COLOR.border};
 
   &:last-of-type {
@@ -254,4 +256,35 @@ export const TrendChartWrapper = styled.div`
   padding: 0 4px;
   margin-top: 8px;
   pointer-events: none;
+`;
+
+const shimmer = keyframes`
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+`;
+
+const skeletonBg = css`
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 300% 100%;
+  animation: ${shimmer} 1.8s linear infinite;
+`;
+
+export const SkeletonBadge = styled.div`
+  ${skeletonBg}
+  width: 62px;
+  height: 24px;
+  border-radius: 12px;
+`;
+
+export const SkeletonScoreGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+`;
+
+export const SkeletonScoreItem = styled.div`
+  ${skeletonBg}
+  min-height: 64px;
+  border-radius: 12px;
 `;

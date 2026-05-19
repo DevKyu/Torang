@@ -21,13 +21,30 @@ export const HtmlBody = styled.div`
   color: #374151;
   line-height: 1.65;
 
-  p { margin: 0 0 2px; }
-  p:last-child { margin-bottom: 0; }
-  p:empty { height: 0.75em; }
-  p:has(> br:only-child) { height: 0.75em; line-height: 0; margin: 0; }
-  strong { font-weight: 700; }
-  em { font-style: italic; }
-  u { text-decoration: underline; color: inherit; }
+  p {
+    margin: 0 0 2px;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  p:empty {
+    height: 0.75em;
+  }
+  p:has(> br:only-child) {
+    height: 0.75em;
+    line-height: 0;
+    margin: 0;
+  }
+  strong {
+    font-weight: 700;
+  }
+  em {
+    font-style: italic;
+  }
+  u {
+    text-decoration: underline;
+    color: inherit;
+  }
 `;
 
 export const PlainBody = styled.div`
@@ -50,7 +67,8 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   width: 100%;
   padding: 13px;
   border-radius: 12px;
-  border: 1.5px solid ${({ role }) => (role === 'villain' ? '#fca5a5' : '#93c5fd')};
+  border: 1.5px solid
+    ${({ role }) => (role === 'villain' ? '#fca5a5' : '#93c5fd')};
   background: ${({ role }) => (role === 'villain' ? '#fef2f2' : '#eff6ff')};
   color: ${({ role }) => (role === 'villain' ? '#dc2626' : '#2563eb')};
   font-size: 14px;
@@ -58,7 +76,9 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   cursor: pointer;
   margin-bottom: 4px;
   touch-action: manipulation;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
   &:active {
     background: ${({ role }) => (role === 'villain' ? '#fee2e2' : '#dbeafe')};
     border-color: ${({ role }) => (role === 'villain' ? '#f87171' : '#60a5fa')};
@@ -115,7 +135,9 @@ export const VoteListArea = styled.div`
   overflow-y: auto;
   padding-bottom: 8px;
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
@@ -133,7 +155,9 @@ export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
   touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 `;
 
 export const VoteCheckmark = styled.span`
@@ -156,7 +180,9 @@ export const SubmitBtn = styled.button`
   touch-action: manipulation;
   transition: background 0.15s ease;
   @media (hover: hover) and (pointer: fine) {
-    &:hover { background: #2563eb; }
+    &:hover {
+      background: #2563eb;
+    }
   }
   &:disabled {
     background: #cbd5e1;
@@ -195,13 +221,20 @@ export const VotedSub = styled.div`
   margin-top: 4px;
 `;
 
-export const ResultRevealCard = styled.div<{ role: 'villain' | 'helper' | 'reward' }>`
+export const ResultRevealCard = styled.div<{
+  role: 'villain' | 'helper' | 'reward';
+}>`
   background: ${({ role }) =>
     role === 'villain' ? '#fef2f2' : role === 'helper' ? '#eff6ff' : '#f0fdf4'};
-  border: 1px solid ${({ role }) =>
-    role === 'villain' ? '#fecaca' : role === 'helper' ? '#bfdbfe' : '#bbf7d0'};
+  border: 1px solid
+    ${({ role }) =>
+      role === 'villain'
+        ? '#fecaca'
+        : role === 'helper'
+          ? '#bfdbfe'
+          : '#bbf7d0'};
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   margin-bottom: 10px;
   text-align: center;
 `;
@@ -260,9 +293,13 @@ export const VoteResultBtn = styled.button`
   margin-top: 8px;
   touch-action: manipulation;
   @media (hover: hover) and (pointer: fine) {
-    &:hover { background: #e5e7eb; }
+    &:hover {
+      background: #e5e7eb;
+    }
   }
-  &:active { background: #e5e7eb; }
+  &:active {
+    background: #e5e7eb;
+  }
 `;
 
 export const MyVoteResult = styled.div<{ correct: boolean }>`
@@ -274,4 +311,11 @@ export const MyVoteResult = styled.div<{ correct: boolean }>`
   margin-top: 8px;
   background: ${({ correct }) => (correct ? '#f0fdf4' : '#fef2f2')};
   color: ${({ correct }) => (correct ? '#059669' : '#dc2626')};
+`;
+
+export const MissionLoadingBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
 `;

@@ -34,13 +34,15 @@ import {
   ScoreGrid,
   LabelEmoji,
   BadgeButton,
+  SkeletonBadge,
+  SkeletonScoreGrid,
+  SkeletonScoreItem,
 } from '../styles/myInfoStyle';
 import { SmallText } from '../styles/commonStyle';
 import { ChevronRight } from 'lucide-react';
 import type {
   Month,
   Year,
-  UserInfo,
   UserScores,
   UserTargets,
 } from '../types/UserInfo';
@@ -49,8 +51,9 @@ import { useEventStore } from '../stores/eventStore';
 
 const MyInfo = () => {
   const navigate = useNavigate();
-  const userInfo = useUserInfo() ?? ({} as UserInfo);
-  const { name = '게스트', pin = 0, type = '' } = userInfo;
+  const userInfo = useUserInfo();
+  const isUserReady = userInfo !== null;
+  const { name = '', pin = 0, type = '' } = userInfo ?? {};
 
   const { formatServerDate } = useUiStore.getState();
   const serverYear = formatServerDate('year') as Year;
@@ -61,12 +64,13 @@ const MyInfo = () => {
   const [quarter, setQuarter] = useState(monthToQuarter(serverMonth));
   const [optimisticTargets, setOptimisticTargets] = useState<UserTargets>({});
 
-  const scores: UserScores = userInfo.scores ?? {};
-  const targets: UserTargets = userInfo.targets ?? {};
+  const scores: UserScores = userInfo?.scores ?? {};
+  const targets: UserTargets = userInfo?.targets ?? {};
   const typeLabel = getTypeLabel(type);
 
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
   const activityMap = activityAll[String(year)] ?? {};
+  const isReady = isUserReady && !activityLoading;
 
   const { hasShownCongrats, setShownCongrats } = useUiStore();
   const hasMyInfoCongrats = hasShownCongrats.myInfo;
@@ -206,31 +210,29 @@ const MyInfo = () => {
           <InfoRow>
             <LabelEmoji>👤</LabelEmoji>
             <Label>이름</Label>
-            <Badge>{name}</Badge>
+            {isReady ? <Badge>{name}</Badge> : <SkeletonBadge />}
           </InfoRow>
           <InfoRow>
             <LabelEmoji>🏷️</LabelEmoji>
             <Label>회원 구분</Label>
-            <Badge>{typeLabel}</Badge>
+            {isReady ? <Badge>{typeLabel}</Badge> : <SkeletonBadge />}
           </InfoRow>
-          {overallAvg !== null && (
-            <InfoRow>
-              <LabelEmoji>📊</LabelEmoji>
-              <Label>평균 점수</Label>
-              <Badge>{overallAvg}점</Badge>
-            </InfoRow>
-          )}
+          <InfoRow>
+            <LabelEmoji>📊</LabelEmoji>
+            <Label>평균 점수</Label>
+            {isReady
+              ? overallAvg !== null && <Badge>{overallAvg}점</Badge>
+              : <SkeletonBadge />}
+          </InfoRow>
           <InfoRow>
             <LabelEmoji>🎳</LabelEmoji>
             <Label>또랑핀</Label>
-            <Badge>{pin}개</Badge>
+            {isReady ? <Badge>{pin}개</Badge> : <SkeletonBadge />}
           </InfoRow>
           <InfoRow>
             <LabelEmoji>🏅</LabelEmoji>
             <Label>업적</Label>
-            <BadgeButton
-              onClick={() => navigate('/achievements', { replace: true })}
-            >
+            <BadgeButton onClick={() => navigate('/achievements', { replace: true })}>
               업적 보기 <ChevronRight size={14} strokeWidth={2} />
             </BadgeButton>
           </InfoRow>
@@ -256,14 +258,18 @@ const MyInfo = () => {
             />
           </FilterRow>
 
-          {!activityLoading && (
+          {!isReady ? (
+            <SkeletonScoreGrid>
+              {[0, 1, 2].map((i) => <SkeletonScoreItem key={i} />)}
+            </SkeletonScoreGrid>
+          ) : (
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${year}-${quarter}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <ScoreGrid>
                   {monthMeta.map((m) => {

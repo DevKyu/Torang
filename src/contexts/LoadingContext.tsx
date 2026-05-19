@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 type LoadingContextType = {
   loading: boolean;
@@ -15,22 +15,22 @@ type LoadingProviderProps = {
 };
 
 export function LoadingProvider({ children }: LoadingProviderProps) {
-  const [loading, setLoading] = useState(false);
+  const [count, setCount] = useState(0);
   const [loadingText, setLoadingText] = useState('잠시만 기다려 주세요.');
 
-  const showLoading = (text?: string) => {
+  const loading = count > 0;
+
+  const showLoading = useCallback((text?: string) => {
     setLoadingText(text || '잠시만 기다려 주세요.');
-    setLoading(true);
-  };
+    setCount(c => c + 1);
+  }, []);
 
-  const showLoadingWithTimeout = (text?: string, duration: number = 1000) => {
+  const hideLoading = useCallback(() => setCount(c => Math.max(0, c - 1)), []);
+
+  const showLoadingWithTimeout = useCallback((text?: string, duration: number = 1000) => {
     showLoading(text);
-    setTimeout(() => {
-      hideLoading();
-    }, duration);
-  };
-
-  const hideLoading = () => setLoading(false);
+    setTimeout(() => hideLoading(), duration);
+  }, [showLoading, hideLoading]);
 
   return (
     <LoadingContext.Provider

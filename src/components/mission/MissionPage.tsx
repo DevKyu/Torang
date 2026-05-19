@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
+import { ClipLoader } from 'react-spinners';
 import Layout from '../layouts/Layout';
 import { SmallText } from '../../styles/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { useLoading } from '../../contexts/LoadingContext';
 import { useMission, submitVote } from '../../hooks/useMission';
 import HiddenMissionModal from './HiddenMissionModal';
 import VoteResultModal from './VoteResultModal';
@@ -41,6 +41,7 @@ import {
   UpcomingCard,
   UpcomingDays,
   UpcomingLabel,
+  MissionLoadingBox,
 } from '../../styles/MissionStyle';
 
 type VoterCardItemProps = {
@@ -51,13 +52,23 @@ type VoterCardItemProps = {
   onSelect: (id: string) => void;
 };
 
-const VoterCardItem = ({ id, index, name, selected, onSelect }: VoterCardItemProps) => {
+const VoterCardItem = ({
+  id,
+  index,
+  name,
+  selected,
+  onSelect,
+}: VoterCardItemProps) => {
   const [entered, setEntered] = useState(false);
   return (
     <VoterCard
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={entered ? { duration: 0.12, ease: 'easeOut' } : { duration: 0.2, delay: index * 0.06, ease: 'easeOut' }}
+      transition={
+        entered
+          ? { duration: 0.12, ease: 'easeOut' }
+          : { duration: 0.2, delay: index * 0.06, ease: 'easeOut' }
+      }
       onAnimationComplete={() => setEntered(true)}
       whileTap={{ scale: 0.97, transition: { duration: 0.08 } }}
       selected={selected}
@@ -78,7 +89,6 @@ const renderBody = (content: string) =>
 
 const MissionPage = () => {
   const navigate = useNavigate();
-  const { showLoading, hideLoading } = useLoading();
 
   const currentYm = useMemo(() => {
     const now = useUiStore.getState().getServerNow();
@@ -98,15 +108,6 @@ const MissionPage = () => {
   const [villainMissionOpen, setVillainMissionOpen] = useState(false);
   const hasAutoOpenedRef = useRef(false);
 
-  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
-    showLoading();
-    return () => hideLoading();
-  }, []);
-
-  useEffect(() => {
-    if (!loading && participantsLoaded) hideLoading();
-  }, [loading, participantsLoaded]);
-
   useEffect(() => {
     const year = currentYm.slice(0, 4);
     const month = String(Number(currentYm.slice(4)));
@@ -117,9 +118,12 @@ const MissionPage = () => {
     ])
       .then(([dateSnap, namesSnap, participantsSnap]) => {
         if (dateSnap.exists()) setActivityDateNum(dateSnap.val() as number);
-        if (namesSnap.exists()) setAllNames(namesSnap.val() as Record<string, string>);
+        if (namesSnap.exists())
+          setAllNames(namesSnap.val() as Record<string, string>);
         if (participantsSnap.exists())
-          setParticipants(Object.keys(participantsSnap.val() as Record<string, true>));
+          setParticipants(
+            Object.keys(participantsSnap.val() as Record<string, true>),
+          );
         setParticipantsLoaded(true);
       })
       .catch(() => setParticipantsLoaded(true));
@@ -130,9 +134,16 @@ const MissionPage = () => {
     const revealDays = data.config.revealDays ?? 7;
     const n = activityDateNum;
     const revealTimestamp =
-      new Date(Math.floor(n / 10000), Math.floor((n % 10000) / 100) - 1, n % 100).getTime() -
+      new Date(
+        Math.floor(n / 10000),
+        Math.floor((n % 10000) / 100) - 1,
+        n % 100,
+      ).getTime() -
       revealDays * 86400000;
-    return Math.ceil((revealTimestamp - useUiStore.getState().getServerNow().getTime()) / 86400000);
+    return Math.ceil(
+      (revealTimestamp - useUiStore.getState().getServerNow().getTime()) /
+        86400000,
+    );
   }, [activityDateNum, data]);
 
   const viewState = useMemo(() => {
@@ -147,7 +158,11 @@ const MissionPage = () => {
   const isParticipant = myEmpId ? participants.includes(myEmpId) : false;
   const isVillain = !!myEmpId && data?.roles?.villain === myEmpId;
   const isHelper = !!myEmpId && data?.roles?.helper === myEmpId;
-  const myRole: 'villain' | 'helper' | null = isVillain ? 'villain' : isHelper ? 'helper' : null;
+  const myRole: 'villain' | 'helper' | null = isVillain
+    ? 'villain'
+    : isHelper
+      ? 'helper'
+      : null;
 
   useEffect(() => {
     if (viewState === 'preview' && myRole && !hasAutoOpenedRef.current) {
@@ -165,7 +180,11 @@ const MissionPage = () => {
       toast('✅ 투표가 완료되었습니다.', {
         position: 'top-center',
         duration: 2000,
-        style: { backgroundColor: '#f0fdf4', color: '#065f46', borderRadius: '10px' },
+        style: {
+          backgroundColor: '#f0fdf4',
+          color: '#065f46',
+          borderRadius: '10px',
+        },
       });
     } catch {
       toast.error('투표 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -182,9 +201,19 @@ const MissionPage = () => {
         ? participants
             .filter((id) => id !== myEmpId)
             .filter((id) => !(isHelper && id === data?.roles?.villain))
-            .sort((a, b) => (allNames[a] ?? a).localeCompare(allNames[b] ?? b, 'ko'))
+            .sort((a, b) =>
+              (allNames[a] ?? a).localeCompare(allNames[b] ?? b, 'ko'),
+            )
         : [],
-    [viewState, isParticipant, participants, myEmpId, isHelper, data?.roles?.villain, allNames],
+    [
+      viewState,
+      isParticipant,
+      participants,
+      myEmpId,
+      isHelper,
+      data?.roles?.villain,
+      allNames,
+    ],
   );
 
   const result = data?.result;
@@ -193,17 +222,29 @@ const MissionPage = () => {
   const helperId = data?.roles?.helper ?? '';
   const myVoteCorrect = myVote === villainId;
 
-  const pageTitle =
-    viewState === 'voting' ? '또랑 빌런 투표' :
-    viewState === 'revealed' ? '또랑 빌런 공개' :
-    '활동 미션';
+  const pageTitle = '활동 미션';
 
   const contentKey =
     viewState === 'voting'
-      ? !isParticipant ? 'no-access' : myVote ? 'voted' : 'voting'
+      ? !isParticipant
+        ? 'no-access'
+        : myVote
+          ? 'voted'
+          : 'voting'
       : viewState;
 
-  if (!isReady) return null;
+  if (!isReady) {
+    return (
+      <Layout title="활동 미션" maxWidth="480px">
+        <MissionLoadingBox>
+          <ClipLoader size={24} color="#9ca3af" />
+        </MissionLoadingBox>
+        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+          돌아가기
+        </SmallText>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title={pageTitle} maxWidth="480px">
@@ -226,7 +267,8 @@ const MissionPage = () => {
               <AlreadyVotedBox>
                 <VotedEmoji>🎯</VotedEmoji>
                 <VotedName>
-                  <strong>{allNames[myVote] ?? myVote}</strong>님에게 투표했습니다
+                  <strong>{allNames[myVote] ?? myVote}</strong>님에게
+                  투표했습니다
                 </VotedName>
                 <VotedSub>결과는 공개 후 확인할 수 있어요</VotedSub>
               </AlreadyVotedBox>
@@ -246,12 +288,17 @@ const MissionPage = () => {
                         index={index}
                         name={allNames[id] ?? id}
                         selected={selectedVote === id}
-                        onSelect={(v) => setSelectedVote((prev) => (prev === v ? '' : v))}
+                        onSelect={(v) =>
+                          setSelectedVote((prev) => (prev === v ? '' : v))
+                        }
                       />
                     ))}
                   </VoteListArea>
                 </VoteListWrapper>
-                <SubmitBtn onClick={handleVoteSubmit} disabled={!selectedVote || submitting}>
+                <SubmitBtn
+                  onClick={handleVoteSubmit}
+                  disabled={!selectedVote || submitting}
+                >
                   {submitting ? '투표 중...' : '투표하기'}
                 </SubmitBtn>
               </>
@@ -265,7 +312,9 @@ const MissionPage = () => {
                 <ResultRole role="villain">또랑 빌런</ResultRole>
                 <ResultName>{allNames[villainId] ?? villainId}</ResultName>
                 <ResultMeta>
-                  {result?.villainWon ? '모두를 속였습니다 😈' : '정체 발각! 🔍'}
+                  {result?.villainWon
+                    ? '모두를 속였습니다 😈'
+                    : '정체 발각! 🔍'}
                 </ResultMeta>
               </ResultRevealCard>
 
@@ -283,7 +332,7 @@ const MissionPage = () => {
                   <ResultName style={{ fontSize: 15 }}>
                     {allNames[villainId] ?? villainId}
                   </ResultName>
-                  <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+                  <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
                 </ResultRevealCard>
               )}
 
@@ -291,37 +340,42 @@ const MissionPage = () => {
                 <ResultRevealCard role="reward">
                   <ResultRole role="reward">공동 보상 🎉</ResultRole>
                   <ResultName style={{ fontSize: 15 }}>
-                    {allNames[villainId] ?? villainId} + {allNames[helperId] ?? helperId}
+                    {allNames[villainId] ?? villainId} +{' '}
+                    {allNames[helperId] ?? helperId}
                   </ResultName>
-                  <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+                  <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
                 </ResultRevealCard>
               )}
 
-              {!result?.villainWon && result && (result.correctVoters?.length ?? 0) > 0 && (
-                <ResultRevealCard role="reward">
-                  <ResultRole role="reward">정답 투표자</ResultRole>
-                  <ResultName style={{ fontSize: 15 }}>
-                    {(result.correctVoters ?? []).length}명 적중
-                  </ResultName>
-                  <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
-                  <VoterListBtn onClick={() => setVotersModalOpen(true)}>명단 보기</VoterListBtn>
-                </ResultRevealCard>
-              )}
+              {!result?.villainWon &&
+                result &&
+                (result.correctVoters?.length ?? 0) > 0 && (
+                  <ResultRevealCard role="reward">
+                    <ResultRole role="reward">정답 투표자</ResultRole>
+                    <ResultName style={{ fontSize: 15 }}>
+                      {(result.correctVoters ?? []).length}명
+                    </ResultName>
+                    <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
+                    <VoterListBtn onClick={() => setVotersModalOpen(true)}>
+                      명단 보기
+                    </VoterListBtn>
+                  </ResultRevealCard>
+                )}
 
               <VoteResultBtn onClick={() => setVoteModalOpen(true)}>
-                투표 현황 보기 ({Object.keys(votes).length}명 참여)
+                투표 현황
               </VoteResultBtn>
 
               {data?.hidden?.villain && (
                 <VoteResultBtn onClick={() => setVillainMissionOpen(true)}>
-                  빌런 미션 보기
+                  빌런 미션
                 </VoteResultBtn>
               )}
 
               {myVote && (
                 <MyVoteResult correct={myVoteCorrect}>
-                  내 투표: {allNames[myVote] ?? myVote} —{' '}
-                  {myVoteCorrect ? '맞혔어요 🎉' : '속았어요 🥲'}
+                  내 투표: {allNames[myVote] ?? myVote} -{' '}
+                  {myVoteCorrect ? '맞혔어요 🎉' : '속았어요 😥'}
                 </MyVoteResult>
               )}
             </>
@@ -349,12 +403,20 @@ const MissionPage = () => {
             <>
               <SectionLabel>이달의 미션</SectionLabel>
               <MissionCard>
-                {data?.config?.title && <CardTitle>{data.config.title}</CardTitle>}
-                {data?.config?.description && renderBody(data.config.description)}
+                {data?.config?.title && (
+                  <CardTitle>{data.config.title}</CardTitle>
+                )}
+                {data?.config?.description &&
+                  renderBody(data.config.description)}
               </MissionCard>
               {myRole && data?.hidden?.[myRole] && (
-                <HiddenMissionBtn role={myRole} onClick={() => setModalOpen(true)}>
-                  {myRole === 'villain' ? '🎭 나의 히든 미션 보기' : '🤝 나의 히든 미션 보기'}
+                <HiddenMissionBtn
+                  role={myRole}
+                  onClick={() => setModalOpen(true)}
+                >
+                  {myRole === 'villain'
+                    ? '🎭 나의 히든 미션 보기'
+                    : '🤝 나의 히든 미션 보기'}
                 </HiddenMissionBtn>
               )}
             </>
@@ -371,14 +433,16 @@ const MissionPage = () => {
           allNames={allNames}
         />
       )}
-      {viewState === 'revealed' && result && (result.correctVoters?.length ?? 0) > 0 && (
-        <CorrectVotersModal
-          isOpen={votersModalOpen}
-          onClose={() => setVotersModalOpen(false)}
-          correctVoters={result.correctVoters}
-          allNames={allNames}
-        />
-      )}
+      {viewState === 'revealed' &&
+        result &&
+        (result.correctVoters?.length ?? 0) > 0 && (
+          <CorrectVotersModal
+            isOpen={votersModalOpen}
+            onClose={() => setVotersModalOpen(false)}
+            correctVoters={result.correctVoters}
+            allNames={allNames}
+          />
+        )}
       {viewState === 'revealed' && data?.hidden?.villain && (
         <VillainMissionModal
           isOpen={villainMissionOpen}
@@ -395,7 +459,10 @@ const MissionPage = () => {
         />
       )}
 
-      <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+      <SmallText
+        top="middle"
+        onClick={() => navigate('/menu', { replace: true })}
+      >
         돌아가기
       </SmallText>
     </Layout>

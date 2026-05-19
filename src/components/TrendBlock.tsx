@@ -28,7 +28,12 @@ const TrendBlock = ({
   if (!show) return null;
 
   return (
-    <motion.div style={{ marginTop: 15 }}>
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      style={{ overflow: 'hidden', marginTop: 15 }}
+    >
       <div
         style={{
           display: 'flex',

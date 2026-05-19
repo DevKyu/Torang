@@ -85,10 +85,13 @@ const Ranking = () => {
   );
 
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
+  const [rankingReady, setRankingReady] = useState(false);
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
+  const rankingInitRef = useRef(false);
+  const rankingReadyRef = useRef(false);
 
   const activityYmd = useMemo(() => {
     const current = activityAll[String(year)]?.[String(month)];
@@ -113,6 +116,11 @@ const Ranking = () => {
   }, [participantsAll, activityYmd, timeAllowed]);
 
   useEffect(() => {
+    showLoading();
+    return () => { if (!rankingReadyRef.current) hideLoading(); };
+  }, [showLoading, hideLoading]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       showLoading();
@@ -132,6 +140,7 @@ const Ranking = () => {
     })();
     return () => {
       cancelled = true;
+      hideLoading();
     };
   }, []);
 
@@ -163,16 +172,19 @@ const Ranking = () => {
   }, [monthlyEnabled, hasQuarterData, hasYearData]);
 
   useEffect(() => {
-    if (!availableTabs.length) return;
+    if (!availableTabs.length || !Object.keys(users).length || rankingInitRef.current) return;
+    rankingInitRef.current = true;
 
     if (availableTabs.includes('monthly')) {
       setRankingType('monthly');
-      return;
+    } else {
+      const first = TAB_PRIORITY.find((t) => availableTabs.includes(t));
+      if (first) setRankingType(first);
     }
-
-    const first = TAB_PRIORITY.find((t) => availableTabs.includes(t));
-    if (first) setRankingType(first);
-  }, [availableTabs]);
+    rankingReadyRef.current = true;
+    setRankingReady(true);
+    hideLoading();
+  }, [availableTabs, users]);
 
   const ranking: RankingEntry[] = useMemo(() => {
     if (!Object.keys(users).length) return [];
@@ -409,7 +421,7 @@ const Ranking = () => {
           ))}
         </FilterTabs>
 
-        {ranking.length > 0 && (
+        {ranking.length > 0 && rankingReady && (
           <AnimatePresence mode="wait">
             <motion.div
               key={rankingType}
