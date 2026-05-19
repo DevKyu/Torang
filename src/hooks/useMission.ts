@@ -135,6 +135,7 @@ export async function revealMissionResult(
   data: MissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
   if (data.result?.revealed === true) {
+    await set(ref(db, `missions/${ym}/config/status`), 'revealed');
     return {
       villainWon: data.result.villainWon,
       helperWon: data.result.helperWon,
