@@ -267,8 +267,8 @@ const MissionPage = () => {
           <ResultName>{allNames[villainId] ?? villainId}</ResultName>
           <ResultMeta>
             {result?.villainWon
-              ? '아무도 못 잡았습니다 🎭'
-              : '검거되었습니다 🎯'}
+              ? '모두를 속였습니다 😈'
+              : '정체 발각! 🔍'}
           </ResultMeta>
         </ResultRevealCard>
 
@@ -329,7 +329,7 @@ const MissionPage = () => {
         {myVote && (
           <MyVoteResult correct={myVoteCorrect}>
             내 투표: {allNames[myVote] ?? myVote} —{' '}
-            {myVoteCorrect ? '정답 🎉' : '오답'}
+            {myVoteCorrect ? '맞혔어요 🎉' : '속았어요 🥲'}
           </MyVoteResult>
         )}
 
