@@ -115,10 +115,11 @@ const Ranking = () => {
     return participantsAll.length > 0 && timeAllowed;
   }, [participantsAll, activityYmd, timeAllowed]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     showLoading();
     return () => { if (!rankingReadyRef.current) hideLoading(); };
-  }, [showLoading, hideLoading]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
