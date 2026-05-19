@@ -30,11 +30,13 @@ import {
   VotedEmoji,
   VotedName,
   VotedSub,
+  ResultRevealRow,
   ResultRevealCard,
   ResultRole,
   ResultName,
   ResultMeta,
   VoteResultBtn,
+  VoteActionRow,
   VoterListBtn,
   PinAmount,
   MyVoteResult,
@@ -239,7 +241,10 @@ const MissionPage = () => {
         <MissionLoadingBox>
           <ClipLoader size={24} color="#9ca3af" />
         </MissionLoadingBox>
-        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+        <SmallText
+          top="middle"
+          onClick={() => navigate('/menu', { replace: true })}
+        >
           돌아가기
         </SmallText>
       </Layout>
@@ -308,23 +313,25 @@ const MissionPage = () => {
             <>
               <SectionLabel>또랑 빌런 공개</SectionLabel>
 
-              <ResultRevealCard role="villain">
-                <ResultRole role="villain">또랑 빌런</ResultRole>
-                <ResultName>{allNames[villainId] ?? villainId}</ResultName>
-                <ResultMeta>
-                  {result?.villainWon
-                    ? '모두를 속였습니다 😈'
-                    : '정체 발각! 🔍'}
-                </ResultMeta>
-              </ResultRevealCard>
+              <ResultRevealRow>
+                <ResultRevealCard role="villain">
+                  <ResultRole role="villain">또랑 빌런</ResultRole>
+                  <ResultName>{allNames[villainId] ?? villainId}</ResultName>
+                  <ResultMeta>
+                    {result?.villainWon
+                      ? '모두를 속였습니다 😈'
+                      : '정체 발각! 🔍'}
+                  </ResultMeta>
+                </ResultRevealCard>
 
-              <ResultRevealCard role="helper">
-                <ResultRole role="helper">빌런 조력자</ResultRole>
-                <ResultName>{allNames[helperId] ?? helperId}</ResultName>
-                <ResultMeta>
-                  {result?.helperWon ? '공동 수상 🎉' : '함께 속였습니다 😈'}
-                </ResultMeta>
-              </ResultRevealCard>
+                <ResultRevealCard role="helper">
+                  <ResultRole role="helper">빌런 조력자</ResultRole>
+                  <ResultName>{allNames[helperId] ?? helperId}</ResultName>
+                  <ResultMeta>
+                    {result?.helperWon ? '공동 수상 🎉' : '함께 속였습니다 😈'}
+                  </ResultMeta>
+                </ResultRevealCard>
+              </ResultRevealRow>
 
               {result?.villainWon && !result.helperWon && (
                 <ResultRevealCard role="reward">
@@ -332,7 +339,7 @@ const MissionPage = () => {
                   <ResultName style={{ fontSize: 15 }}>
                     {allNames[villainId] ?? villainId}
                   </ResultName>
-                  <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
+                  <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                 </ResultRevealCard>
               )}
 
@@ -343,34 +350,35 @@ const MissionPage = () => {
                     {allNames[villainId] ?? villainId} +{' '}
                     {allNames[helperId] ?? helperId}
                   </ResultName>
-                  <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
+                  <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                 </ResultRevealCard>
               )}
 
               {!result?.villainWon &&
                 result &&
                 (result.correctVoters?.length ?? 0) > 0 && (
-                  <ResultRevealCard role="reward">
+                  <ResultRevealCard role="reward" style={{ paddingBottom: 11 }}>
                     <ResultRole role="reward">정답 투표자</ResultRole>
                     <ResultName style={{ fontSize: 15 }}>
                       {(result.correctVoters ?? []).length}명
                     </ResultName>
-                    <PinAmount>+{data?.config?.rewardPin} PIN 지급</PinAmount>
+                    <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                     <VoterListBtn onClick={() => setVotersModalOpen(true)}>
                       명단 보기
                     </VoterListBtn>
                   </ResultRevealCard>
                 )}
 
-              <VoteResultBtn onClick={() => setVoteModalOpen(true)}>
-                투표 현황
-              </VoteResultBtn>
-
-              {data?.hidden?.villain && (
-                <VoteResultBtn onClick={() => setVillainMissionOpen(true)}>
-                  빌런 미션
+              <VoteActionRow>
+                <VoteResultBtn onClick={() => setVoteModalOpen(true)}>
+                  투표 결과 보기
                 </VoteResultBtn>
-              )}
+                {data?.hidden?.villain && (
+                  <VoteResultBtn onClick={() => setVillainMissionOpen(true)}>
+                    빌런 미션 보기
+                  </VoteResultBtn>
+                )}
+              </VoteActionRow>
 
               {myVote && (
                 <MyVoteResult correct={myVoteCorrect}>

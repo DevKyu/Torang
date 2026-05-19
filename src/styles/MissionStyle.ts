@@ -221,35 +221,50 @@ export const VotedSub = styled.div`
   margin-top: 4px;
 `;
 
+export const ResultRevealRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+  & > * {
+    margin-bottom: 0;
+  }
+`;
+
 export const ResultRevealCard = styled.div<{
   role: 'villain' | 'helper' | 'reward';
 }>`
   background: ${({ role }) =>
-    role === 'villain' ? '#fef2f2' : role === 'helper' ? '#eff6ff' : '#f0fdf4'};
+    role === 'villain' ? '#fff5f5' : role === 'helper' ? '#f5f8ff' : '#f5fdf8'};
   border: 1px solid
     ${({ role }) =>
       role === 'villain'
-        ? '#fecaca'
+        ? '#f5c6c6'
         : role === 'helper'
-          ? '#bfdbfe'
-          : '#bbf7d0'};
+          ? '#c6d8f5'
+          : '#c6ecd8'};
   border-radius: 12px;
-  padding: 12px;
+  padding: 13px 12px;
   margin-bottom: 10px;
   text-align: center;
 `;
 
 export const ResultRole = styled.div<{ role: 'villain' | 'helper' | 'reward' }>`
+  display: inline-block;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 5px;
+  background: ${({ role }) =>
+    role === 'villain' ? '#fef2f2' : role === 'helper' ? '#eff6ff' : '#f0fdf4'};
   color: ${({ role }) =>
     role === 'villain' ? '#dc2626' : role === 'helper' ? '#2563eb' : '#059669'};
-  margin-bottom: 4px;
 `;
 
 export const ResultName = styled.div`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #111827;
   margin-bottom: 4px;
@@ -257,40 +272,44 @@ export const ResultName = styled.div`
 
 export const ResultMeta = styled.div`
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
 `;
 
 export const PinAmount = styled.div`
   font-size: 13px;
   font-weight: 600;
   color: #059669;
-  margin-top: 2px;
 `;
 
 export const VoterListBtn = styled.button`
   display: block;
-  margin: 6px auto 0;
+  margin: 3px auto 0;
   font-size: 12px;
   color: #059669;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 4px 0;
   touch-action: manipulation;
   text-decoration: underline;
 `;
 
+export const VoteActionRow = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+`;
+
 export const VoteResultBtn = styled.button`
-  width: 100%;
+  flex: 1;
   padding: 11px;
-  background: #f3f4f6;
+  background: #f9fafb;
   color: #374151;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 8px;
   touch-action: manipulation;
   @media (hover: hover) and (pointer: fine) {
     &:hover {
@@ -304,13 +323,10 @@ export const VoteResultBtn = styled.button`
 
 export const MyVoteResult = styled.div<{ correct: boolean }>`
   text-align: center;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 8px;
-  background: ${({ correct }) => (correct ? '#f0fdf4' : '#fef2f2')};
-  color: ${({ correct }) => (correct ? '#059669' : '#dc2626')};
+  padding-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: ${({ correct }) => (correct ? '#059669' : '#9ca3af')};
 `;
 
 export const MissionLoadingBox = styled.div`
