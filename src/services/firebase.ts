@@ -415,12 +415,15 @@ export const saveMatchResult = async (
     return;
   }
 
+  const existingPinUpdated = snap.exists() ? snap.val().pinUpdated : undefined;
+
   await set(resultRef, {
     myScore,
     opponentScore,
     delta,
     result,
     finalizedAt: serverTimestamp(),
+    ...(existingPinUpdated === true ? { pinUpdated: true } : {}),
   });
 };
 
