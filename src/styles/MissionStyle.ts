@@ -248,7 +248,7 @@ export const VoteResultBtn = styled.button`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 4px;
+  margin-top: 8px;
   touch-action: manipulation;
   @media (hover: hover) and (pointer: fine) {
     &:hover { background: #e5e7eb; }
