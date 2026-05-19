@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import VillainMissionModal from '../mission/VillainMissionModal';
 import { ref, get } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -107,11 +108,14 @@ const AdminMission = () => {
   });
 
   const [allNames, setAllNames] = useState<Record<string, string>>({});
-  const [villainDropdown, setVillainDropdown] = useState<[string, string][]>([]);
+  const [villainDropdown, setVillainDropdown] = useState<[string, string][]>(
+    [],
+  );
   const [helperDropdown, setHelperDropdown] = useState<[string, string][]>([]);
   const [saving, setSaving] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [villainPreviewOpen, setVillainPreviewOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -135,6 +139,7 @@ const AdminMission = () => {
         villain: {
           title: data.hidden?.villain?.title ?? '또랑 빌런 미션',
           description: data.hidden?.villain?.description ?? '',
+          revealTitle: data.hidden?.villain?.revealTitle ?? '',
         },
         helper: {
           title: data.hidden?.helper?.title ?? '빌런 조력자 미션',
@@ -150,26 +155,50 @@ const AdminMission = () => {
         });
       }
     } else if (!loading) {
-      setConfigDraft({ title: '', description: '', revealDays: 7, rewardPin: 1, helperVoteThreshold: 3 });
+      setConfigDraft({
+        title: '',
+        description: '',
+        revealDays: 7,
+        rewardPin: 1,
+        helperVoteThreshold: 3,
+      });
       setHiddenDraft({
         villain: { title: '또랑 빌런 미션', description: '' },
         helper: { title: '빌런 조력자 미션', description: '' },
       });
-      setRoleDraft({ villainName: '', villainId: '', helperName: '', helperId: '' });
+      setRoleDraft({
+        villainName: '',
+        villainId: '',
+        helperName: '',
+        helperId: '',
+      });
     }
   }, [data, loading, allNames]);
 
   const lookupRole = (role: 'villain' | 'helper') => {
-    const query = (role === 'villain' ? roleDraft.villainName : roleDraft.helperName).trim().toLowerCase();
+    const query = (
+      role === 'villain' ? roleDraft.villainName : roleDraft.helperName
+    )
+      .trim()
+      .toLowerCase();
     if (!query) return;
-    const matches = Object.entries(allNames).filter(([, n]) => n.toLowerCase().includes(query));
+    const matches = Object.entries(allNames).filter(([, n]) =>
+      n.toLowerCase().includes(query),
+    );
     if (matches.length === 0) {
-      toast('등록된 회원이 없습니다.', { position: 'top-center', duration: 1800 });
+      toast('등록된 회원이 없습니다.', {
+        position: 'top-center',
+        duration: 1800,
+      });
       return;
     }
     if (matches.length === 1) {
       const [empId, name] = matches[0];
-      setRoleDraft((prev) => role === 'villain' ? { ...prev, villainId: empId, villainName: name } : { ...prev, helperId: empId, helperName: name });
+      setRoleDraft((prev) =>
+        role === 'villain'
+          ? { ...prev, villainId: empId, villainName: name }
+          : { ...prev, helperId: empId, helperName: name },
+      );
       return;
     }
     if (role === 'villain') setVillainDropdown(matches);
@@ -182,7 +211,9 @@ const AdminMission = () => {
     try {
       const snap = await get(ref(db, `activityParticipants/${year}/${month}`));
       if (!snap.exists()) {
-        toast('이번 달 활동 참여자 데이터가 없습니다.', { position: 'top-center' });
+        toast('이번 달 활동 참여자 데이터가 없습니다.', {
+          position: 'top-center',
+        });
         return;
       }
       const ids = Object.keys(snap.val() as Record<string, true>);
@@ -198,7 +229,11 @@ const AdminMission = () => {
         helperId: hId,
         helperName: allNames[hId] ?? hId,
       });
-      toast('✅ 랜덤 배정 완료', { position: 'top-center', duration: 1800, style: toSuccessStyle });
+      toast('✅ 랜덤 배정 완료', {
+        position: 'top-center',
+        duration: 1800,
+        style: toSuccessStyle,
+      });
     } catch {
       toast.error('배정 중 오류가 발생했습니다.', { position: 'top-center' });
     }
@@ -207,8 +242,17 @@ const AdminMission = () => {
   const handleSaveContent = async () => {
     setSaving(true);
     try {
-      await saveMissionContent(ym, configDraft, hiddenDraft, data?.config?.status ?? null);
-      toast('✅ 미션 내용이 저장되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
+      await saveMissionContent(
+        ym,
+        configDraft,
+        hiddenDraft,
+        data?.config?.status ?? null,
+      );
+      toast('✅ 미션 내용이 저장되었습니다.', {
+        position: 'top-center',
+        duration: 2000,
+        style: toSuccessStyle,
+      });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
     } finally {
@@ -222,13 +266,19 @@ const AdminMission = () => {
       return;
     }
     if (roleDraft.villainId === roleDraft.helperId) {
-      toast('빌런과 조력자는 다른 사람이어야 합니다.', { position: 'top-center' });
+      toast('빌런과 조력자는 다른 사람이어야 합니다.', {
+        position: 'top-center',
+      });
       return;
     }
     setSaving(true);
     try {
       await assignRoles(ym, roleDraft.villainId, roleDraft.helperId);
-      toast('✅ 역할 배정이 저장되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
+      toast('✅ 역할 배정이 저장되었습니다.', {
+        position: 'top-center',
+        duration: 2000,
+        style: toSuccessStyle,
+      });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
     } finally {
@@ -240,9 +290,15 @@ const AdminMission = () => {
     setSaving(true);
     try {
       await setMissionStatus(ym, next);
-      toast(`✅ 상태가 '${STATUS_LABEL[next]}'로 변경되었습니다.`, { position: 'top-center', duration: 2000, style: toSuccessStyle });
+      toast(`✅ 상태가 '${STATUS_LABEL[next]}'로 변경되었습니다.`, {
+        position: 'top-center',
+        duration: 2000,
+        style: toSuccessStyle,
+      });
     } catch {
-      toast.error('상태 변경 중 오류가 발생했습니다.', { position: 'top-center' });
+      toast.error('상태 변경 중 오류가 발생했습니다.', {
+        position: 'top-center',
+      });
     } finally {
       setSaving(false);
     }
@@ -256,9 +312,15 @@ const AdminMission = () => {
       const msg = res.villainWon
         ? `빌런 생존! ${res.helperWon ? '조력자 공동 수상 🎉' : '빌런 단독 수상 🎉'}`
         : `정답자 ${res.correctVoters.length}명 수상 🎉`;
-      toast(`✅ 결과 공개 완료 — ${msg}`, { position: 'top-center', duration: 3000, style: toSuccessStyle });
+      toast(`✅ 결과 공개 완료 — ${msg}`, {
+        position: 'top-center',
+        duration: 3000,
+        style: toSuccessStyle,
+      });
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.', { position: 'top-center' });
+      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.', {
+        position: 'top-center',
+      });
     } finally {
       setRevealing(false);
     }
@@ -317,14 +379,22 @@ const AdminMission = () => {
             <VoteStatLabel>{allNames[empId] ?? empId}</VoteStatLabel>
             <VoteBar
               pct={totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0}
-              color={empId === data?.roles?.villain ? '#ef4444' : empId === data?.roles?.helper ? '#3b82f6' : '#9ca3af'}
+              color={
+                empId === data?.roles?.villain
+                  ? '#ef4444'
+                  : empId === data?.roles?.helper
+                    ? '#3b82f6'
+                    : '#9ca3af'
+              }
             />
             <VoteStatCount>{count}표</VoteStatCount>
           </VoteStatRow>
         ))}
         <VoteStatRow>
           <VoteStatLabel style={{ color: '#6b7280' }}>총 투표</VoteStatLabel>
-          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>{totalVotes}명</VoteStatCount>
+          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>
+            {totalVotes}명
+          </VoteStatCount>
         </VoteStatRow>
       </VoteStatList>
     );
@@ -343,36 +413,64 @@ const AdminMission = () => {
       <StatusRow>
         <StatusBadge status={status}>{STATUS_LABEL[status]}</StatusBadge>
         {status === 'draft' && (
-          <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
+          <StatusBtn
+            color="#10b981"
+            disabled={saving}
+            onClick={() => handleStatusChange('active')}
+          >
             미션 공개
           </StatusBtn>
         )}
         {status === 'active' && (
           <>
-            <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
+            <StatusBtn
+              color="#f59e0b"
+              disabled={saving}
+              onClick={() => handleStatusChange('voting')}
+            >
               투표 시작
             </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
+            <StatusBtn
+              color="#9ca3af"
+              disabled={saving}
+              onClick={() => handleStatusChange('draft')}
+            >
               준비중으로
             </StatusBtn>
           </>
         )}
         {status === 'voting' && (
           <>
-            <StatusBtn color="#111827" disabled={saving || revealing} onClick={handleReveal}>
+            <StatusBtn
+              color="#111827"
+              disabled={saving || revealing}
+              onClick={handleReveal}
+            >
               {revealing ? '처리중...' : '결과 공개'}
             </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('active')}>
+            <StatusBtn
+              color="#9ca3af"
+              disabled={saving}
+              onClick={() => handleStatusChange('active')}
+            >
               미션공개로
             </StatusBtn>
           </>
         )}
         {status === 'revealed' && (
           <>
-            <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
+            <StatusBtn
+              color="#f59e0b"
+              disabled={saving}
+              onClick={() => handleStatusChange('voting')}
+            >
               투표중으로
             </StatusBtn>
-            <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
+            <StatusBtn
+              color="#10b981"
+              disabled={saving}
+              onClick={() => handleStatusChange('active')}
+            >
               미션공개로
             </StatusBtn>
           </>
@@ -385,7 +483,9 @@ const AdminMission = () => {
         <FieldLabel>미션 제목</FieldLabel>
         <MissionInput
           value={configDraft.title}
-          onChange={(e) => setConfigDraft((p) => ({ ...p, title: e.target.value }))}
+          onChange={(e) =>
+            setConfigDraft((p) => ({ ...p, title: e.target.value }))
+          }
           placeholder="예: 5월 활동 미션"
         />
       </SectionBlock>
@@ -394,7 +494,9 @@ const AdminMission = () => {
         <FieldLabel>미션 내용</FieldLabel>
         <MissionRichEditor
           value={configDraft.description}
-          onChange={(html) => setConfigDraft((p) => ({ ...p, description: html }))}
+          onChange={(html) =>
+            setConfigDraft((p) => ({ ...p, description: html }))
+          }
           placeholder="전체 참여자에게 공개될 미션 내용을 입력하세요."
         />
       </SectionBlock>
@@ -408,7 +510,12 @@ const AdminMission = () => {
             min={1}
             max={30}
             value={configDraft.revealDays}
-            onChange={(e) => setConfigDraft((p) => ({ ...p, revealDays: Number(e.target.value) }))}
+            onChange={(e) =>
+              setConfigDraft((p) => ({
+                ...p,
+                revealDays: Number(e.target.value),
+              }))
+            }
           />
           일 전부터 공개
         </NumberRow>
@@ -422,7 +529,12 @@ const AdminMission = () => {
             min={0}
             step={0.1}
             value={configDraft.rewardPin}
-            onChange={(e) => setConfigDraft((p) => ({ ...p, rewardPin: Number(e.target.value) }))}
+            onChange={(e) =>
+              setConfigDraft((p) => ({
+                ...p,
+                rewardPin: Number(e.target.value),
+              }))
+            }
           />
           PIN (정답 투표자 또는 빌런 수령)
         </NumberRow>
@@ -436,7 +548,12 @@ const AdminMission = () => {
             type="number"
             min={1}
             value={configDraft.helperVoteThreshold}
-            onChange={(e) => setConfigDraft((p) => ({ ...p, helperVoteThreshold: Number(e.target.value) }))}
+            onChange={(e) =>
+              setConfigDraft((p) => ({
+                ...p,
+                helperVoteThreshold: Number(e.target.value),
+              }))
+            }
           />
           표 이상
         </NumberRow>
@@ -448,18 +565,51 @@ const AdminMission = () => {
 
       <HiddenSection role="villain">
         <HiddenSectionTitle role="villain">또랑 빌런</HiddenSectionTitle>
-        <FieldLabel>미션 제목</FieldLabel>
+        <FieldLabel>미션 제목 (빌런 전용)</FieldLabel>
         <MissionInput
           value={hiddenDraft.villain.title}
-          onChange={(e) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, title: e.target.value } }))}
+          onChange={(e) =>
+            setHiddenDraft((p) => ({
+              ...p,
+              villain: { ...p.villain, title: e.target.value },
+            }))
+          }
           placeholder="예: 또랑 빌런 미션"
+        />
+        <FieldLabel style={{ marginTop: 8 }}>결과 공개 제목</FieldLabel>
+        <MissionInput
+          value={hiddenDraft.villain.revealTitle ?? ''}
+          onChange={(e) =>
+            setHiddenDraft((p) => ({
+              ...p,
+              villain: { ...p.villain, revealTitle: e.target.value },
+            }))
+          }
+          placeholder="예: 🎭 빌런에게 주어진 미션"
         />
         <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
         <MissionRichEditor
           value={hiddenDraft.villain.description}
-          onChange={(html) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, description: html } }))}
+          onChange={(html) =>
+            setHiddenDraft((p) => ({
+              ...p,
+              villain: { ...p.villain, description: html },
+            }))
+          }
           placeholder="빌런에게만 공개될 미션 내용을 입력하세요."
         />
+        <div style={{ textAlign: 'right', marginTop: 8 }}>
+          <LookupBtn
+            type="button"
+            style={{ background: '#ef4444' }}
+            disabled={
+              !hiddenDraft.villain.title && !hiddenDraft.villain.description
+            }
+            onClick={() => setVillainPreviewOpen(true)}
+          >
+            미리보기
+          </LookupBtn>
+        </div>
       </HiddenSection>
 
       <HiddenSection role="helper">
@@ -467,13 +617,23 @@ const AdminMission = () => {
         <FieldLabel>미션 제목</FieldLabel>
         <MissionInput
           value={hiddenDraft.helper.title}
-          onChange={(e) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, title: e.target.value } }))}
+          onChange={(e) =>
+            setHiddenDraft((p) => ({
+              ...p,
+              helper: { ...p.helper, title: e.target.value },
+            }))
+          }
           placeholder="예: 빌런 조력자 미션"
         />
         <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
         <MissionRichEditor
           value={hiddenDraft.helper.description}
-          onChange={(html) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, description: html } }))}
+          onChange={(html) =>
+            setHiddenDraft((p) => ({
+              ...p,
+              helper: { ...p.helper, description: html },
+            }))
+          }
           placeholder="조력자에게만 공개될 미션 내용을 입력하세요."
         />
       </HiddenSection>
@@ -493,13 +653,28 @@ const AdminMission = () => {
           <RoleLabel role="villain">또랑 빌런</RoleLabel>
           <RoleNameInput
             value={roleDraft.villainName}
-            onChange={(e) => setRoleDraft((p) => ({ ...p, villainName: e.target.value, villainId: '' }))}
+            onChange={(e) =>
+              setRoleDraft((p) => ({
+                ...p,
+                villainName: e.target.value,
+                villainId: '',
+              }))
+            }
             placeholder="이름 검색"
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); lookupRole('villain'); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                lookupRole('villain');
+              }
+            }}
           />
-          <LookupBtn type="button" onClick={() => lookupRole('villain')}>조회</LookupBtn>
+          <LookupBtn type="button" onClick={() => lookupRole('villain')}>
+            조회
+          </LookupBtn>
           {roleDraft.villainId && (
-            <EmpIdBadge style={{ borderColor: '#fca5a5' }}>{roleDraft.villainId}</EmpIdBadge>
+            <EmpIdBadge style={{ borderColor: '#fca5a5' }}>
+              {roleDraft.villainId}
+            </EmpIdBadge>
           )}
         </RoleRow>
         {villainDropdown.length > 0 && (
@@ -508,11 +683,16 @@ const AdminMission = () => {
               <NameDropdownItem
                 key={eid}
                 onClick={() => {
-                  setRoleDraft((p) => ({ ...p, villainId: eid, villainName: n }));
+                  setRoleDraft((p) => ({
+                    ...p,
+                    villainId: eid,
+                    villainName: n,
+                  }));
                   setVillainDropdown([]);
                 }}
               >
-                {n}<span>{eid}</span>
+                {n}
+                <span>{eid}</span>
               </NameDropdownItem>
             ))}
           </NameDropdown>
@@ -524,13 +704,28 @@ const AdminMission = () => {
           <RoleLabel role="helper">빌런 조력자</RoleLabel>
           <RoleNameInput
             value={roleDraft.helperName}
-            onChange={(e) => setRoleDraft((p) => ({ ...p, helperName: e.target.value, helperId: '' }))}
+            onChange={(e) =>
+              setRoleDraft((p) => ({
+                ...p,
+                helperName: e.target.value,
+                helperId: '',
+              }))
+            }
             placeholder="이름 검색"
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); lookupRole('helper'); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                lookupRole('helper');
+              }
+            }}
           />
-          <LookupBtn type="button" onClick={() => lookupRole('helper')}>조회</LookupBtn>
+          <LookupBtn type="button" onClick={() => lookupRole('helper')}>
+            조회
+          </LookupBtn>
           {roleDraft.helperId && (
-            <EmpIdBadge style={{ borderColor: '#bfdbfe' }}>{roleDraft.helperId}</EmpIdBadge>
+            <EmpIdBadge style={{ borderColor: '#bfdbfe' }}>
+              {roleDraft.helperId}
+            </EmpIdBadge>
           )}
         </RoleRow>
         {helperDropdown.length > 0 && (
@@ -543,7 +738,8 @@ const AdminMission = () => {
                   setHelperDropdown([]);
                 }}
               >
-                {n}<span>{eid}</span>
+                {n}
+                <span>{eid}</span>
               </NameDropdownItem>
             ))}
           </NameDropdown>
@@ -574,10 +770,17 @@ const AdminMission = () => {
                   toast('🗑️ 투표가 초기화되었습니다.', {
                     position: 'top-center',
                     duration: 2000,
-                    style: { backgroundColor: '#fef9c3', color: '#854d0e', borderRadius: '10px', fontSize: '0.875rem' },
+                    style: {
+                      backgroundColor: '#fef9c3',
+                      color: '#854d0e',
+                      borderRadius: '10px',
+                      fontSize: '0.875rem',
+                    },
                   });
                 } catch {
-                  toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
+                  toast.error('초기화 중 오류가 발생했습니다.', {
+                    position: 'top-center',
+                  });
                 } finally {
                   setSaving(false);
                 }
@@ -595,10 +798,18 @@ const AdminMission = () => {
               </StatusBtn>
             ) : (
               <>
-                <StatusBtn color="#dc2626" disabled={saving} onClick={handleResetMission}>
+                <StatusBtn
+                  color="#dc2626"
+                  disabled={saving}
+                  onClick={handleResetMission}
+                >
                   정말 초기화
                 </StatusBtn>
-                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => setConfirmReset(false)}>
+                <StatusBtn
+                  color="#9ca3af"
+                  disabled={saving}
+                  onClick={() => setConfirmReset(false)}
+                >
                   취소
                 </StatusBtn>
               </>
@@ -608,17 +819,25 @@ const AdminMission = () => {
           {data?.result && (
             <ResultArea>
               <div>
-                <strong>빌런:</strong> {allNames[data.roles?.villain ?? ''] ?? data.roles?.villain ?? '-'}
+                <strong>빌런:</strong>{' '}
+                {allNames[data.roles?.villain ?? ''] ??
+                  data.roles?.villain ??
+                  '-'}
                 {data.result.villainWon ? ' 🎉 생존' : ' 검거됨'}
               </div>
               <div>
-                <strong>조력자:</strong> {allNames[data.roles?.helper ?? ''] ?? data.roles?.helper ?? '-'}
+                <strong>조력자:</strong>{' '}
+                {allNames[data.roles?.helper ?? ''] ??
+                  data.roles?.helper ??
+                  '-'}
                 {data.result.helperWon ? ' 🎉 공동 수상' : ''}
               </div>
               {!data.result.villainWon && (
                 <div>
                   <strong>정답자:</strong>{' '}
-                  {(data.result.correctVoters ?? []).map((id) => allNames[id] ?? id).join(', ') || '없음'}
+                  {(data.result.correctVoters ?? [])
+                    .map((id) => allNames[id] ?? id)
+                    .join(', ') || '없음'}
                 </div>
               )}
             </ResultArea>
@@ -626,9 +845,18 @@ const AdminMission = () => {
         </>
       )}
 
-      <SmallText top="middle" onClick={() => navigate('/admin', { replace: true })}>
+      <SmallText
+        top="middle"
+        onClick={() => navigate('/admin', { replace: true })}
+      >
         돌아가기
       </SmallText>
+
+      <VillainMissionModal
+        isOpen={villainPreviewOpen}
+        onClose={() => setVillainPreviewOpen(false)}
+        hidden={hiddenDraft.villain}
+      />
     </AdminLayout>
   );
 };

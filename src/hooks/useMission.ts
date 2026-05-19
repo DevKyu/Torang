@@ -18,6 +18,7 @@ export type MissionConfig = {
 export type HiddenContent = {
   title: string;
   description: string;
+  revealTitle?: string;
 };
 
 export type MissionHidden = {

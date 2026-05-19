@@ -89,20 +89,30 @@ export const VotingInstruction = styled.div`
 `;
 
 export const VoteListWrapper = styled.div`
+  position: relative;
   margin-bottom: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, #fff);
+    pointer-events: none;
+  }
 `;
 
 export const VoteListArea = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 52vh;
+  max-height: 40vh;
   overflow-y: auto;
-  padding-bottom: 16px;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
-  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
 `;
 
 export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
@@ -115,14 +125,18 @@ export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
   background: ${({ selected }) => (selected ? '#f3f4f6' : '#fff')};
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
   color: #111827;
-  font-weight: ${({ selected }) => (selected ? '700' : '400')};
+  touch-action: manipulation;
+  user-select: none;
   transition: border-color 0.15s, background 0.15s;
 `;
 
 export const VoteCheckmark = styled.span`
   font-size: 16px;
   color: #111827;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
 `;
 
 export const SubmitBtn = styled.button`

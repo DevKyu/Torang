@@ -10,6 +10,7 @@ import { useMission, submitVote } from '../../hooks/useMission';
 import HiddenMissionModal from './HiddenMissionModal';
 import VoteResultModal from './VoteResultModal';
 import CorrectVotersModal from './CorrectVotersModal';
+import VillainMissionModal from './VillainMissionModal';
 import {
   MissionCard,
   CardTitle,
@@ -42,9 +43,11 @@ import {
 } from '../../styles/MissionStyle';
 
 const renderBody = (content: string) =>
-  content.includes('<')
-    ? <HtmlBody dangerouslySetInnerHTML={{ __html: content }} />
-    : <PlainBody>{content}</PlainBody>;
+  content.includes('<') ? (
+    <HtmlBody dangerouslySetInnerHTML={{ __html: content }} />
+  ) : (
+    <PlainBody>{content}</PlainBody>
+  );
 
 const MissionPage = () => {
   const navigate = useNavigate();
@@ -64,6 +67,7 @@ const MissionPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [voteModalOpen, setVoteModalOpen] = useState(false);
   const [votersModalOpen, setVotersModalOpen] = useState(false);
+  const [villainMissionOpen, setVillainMissionOpen] = useState(false);
   const hasAutoOpenedRef = useRef(false);
 
   useEffect(() => {
@@ -77,12 +81,17 @@ const MissionPage = () => {
     ])
       .then(([dateSnap, namesSnap, participantsSnap]) => {
         if (dateSnap.exists()) setActivityDateNum(dateSnap.val() as number);
-        if (namesSnap.exists()) setAllNames(namesSnap.val() as Record<string, string>);
+        if (namesSnap.exists())
+          setAllNames(namesSnap.val() as Record<string, string>);
         if (participantsSnap.exists())
-          setParticipants(Object.keys(participantsSnap.val() as Record<string, true>));
+          setParticipants(
+            Object.keys(participantsSnap.val() as Record<string, true>),
+          );
         setParticipantsLoaded(true);
       })
-      .catch(() => { setParticipantsLoaded(true); });
+      .catch(() => {
+        setParticipantsLoaded(true);
+      });
   }, [currentYm]);
 
   const daysUntilReveal = useMemo(() => {
@@ -110,10 +119,19 @@ const MissionPage = () => {
 
   const isVillain = !!myEmpId && data?.roles?.villain === myEmpId;
   const isHelper = !!myEmpId && data?.roles?.helper === myEmpId;
-  const myRole: 'villain' | 'helper' | null = isVillain ? 'villain' : isHelper ? 'helper' : null;
+  const myRole: 'villain' | 'helper' | null = isVillain
+    ? 'villain'
+    : isHelper
+      ? 'helper'
+      : null;
 
   useEffect(() => {
-    if (viewState === 'preview' && myRole && !loading && !hasAutoOpenedRef.current) {
+    if (
+      viewState === 'preview' &&
+      myRole &&
+      !loading &&
+      !hasAutoOpenedRef.current
+    ) {
       hasAutoOpenedRef.current = true;
       const t = setTimeout(() => setModalOpen(true), 800);
       return () => clearTimeout(t);
@@ -128,7 +146,11 @@ const MissionPage = () => {
       toast('✅ 투표가 완료되었습니다.', {
         position: 'top-center',
         duration: 2000,
-        style: { backgroundColor: '#f0fdf4', color: '#065f46', borderRadius: '10px' },
+        style: {
+          backgroundColor: '#f0fdf4',
+          color: '#065f46',
+          borderRadius: '10px',
+        },
       });
     } catch {
       toast.error('투표 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -142,7 +164,10 @@ const MissionPage = () => {
       return (
         <Layout title="또랑 빌런 투표" maxWidth="480px">
           <LoadingText>불러오는 중...</LoadingText>
-          <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+          <SmallText
+            top="middle"
+            onClick={() => navigate('/menu', { replace: true })}
+          >
             돌아가기
           </SmallText>
         </Layout>
@@ -157,7 +182,10 @@ const MissionPage = () => {
             <VotedName>이달의 활동에 참여하지 않았습니다</VotedName>
             <VotedSub>투표는 활동 참여자만 할 수 있어요</VotedSub>
           </AlreadyVotedBox>
-          <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+          <SmallText
+            top="middle"
+            onClick={() => navigate('/menu', { replace: true })}
+          >
             돌아가기
           </SmallText>
         </Layout>
@@ -182,7 +210,9 @@ const MissionPage = () => {
         ) : (
           <>
             <VotingInstruction>
-              {(isVillain || isHelper) ? '의심받지 않게 투표해주세요' : '이번 활동의 또랑 빌런은 누구였나요?'}
+              {isVillain || isHelper
+                ? '의심받지 않게 투표해주세요'
+                : '이번 활동의 또랑 빌런은 누구였나요?'}
             </VotingInstruction>
             <VoteListWrapper>
               <VoteListArea>
@@ -190,21 +220,29 @@ const MissionPage = () => {
                   <VoterCard
                     key={id}
                     selected={selectedVote === id}
-                    onClick={() => setSelectedVote((prev) => (prev === id ? '' : id))}
+                    onClick={() =>
+                      setSelectedVote((prev) => (prev === id ? '' : id))
+                    }
                     whileTap={{ scale: 0.98 }}
                   >
                     {allNames[id] ?? id}
-                    {selectedVote === id && <VoteCheckmark>✓</VoteCheckmark>}
+                    <VoteCheckmark style={{ opacity: selectedVote === id ? 1 : 0 }}>✓</VoteCheckmark>
                   </VoterCard>
                 ))}
               </VoteListArea>
             </VoteListWrapper>
-            <SubmitBtn onClick={handleVoteSubmit} disabled={!selectedVote || submitting}>
+            <SubmitBtn
+              onClick={handleVoteSubmit}
+              disabled={!selectedVote || submitting}
+            >
               {submitting ? '제출 중...' : '투표하기'}
             </SubmitBtn>
           </>
         )}
-        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+        <SmallText
+          top="middle"
+          onClick={() => navigate('/menu', { replace: true })}
+        >
           돌아가기
         </SmallText>
       </Layout>
@@ -227,19 +265,27 @@ const MissionPage = () => {
         <ResultRevealCard role="villain">
           <ResultRole role="villain">또랑 빌런</ResultRole>
           <ResultName>{allNames[villainId] ?? villainId}</ResultName>
-          <ResultMeta>{result?.villainWon ? '아무도 못 잡았습니다 🎭' : '검거되었습니다 🎯'}</ResultMeta>
+          <ResultMeta>
+            {result?.villainWon
+              ? '아무도 못 잡았습니다 🎭'
+              : '검거되었습니다 🎯'}
+          </ResultMeta>
         </ResultRevealCard>
 
         <ResultRevealCard role="helper">
           <ResultRole role="helper">빌런 조력자</ResultRole>
           <ResultName>{allNames[helperId] ?? helperId}</ResultName>
-          <ResultMeta>{result?.helperWon ? '공동 수상 🎉' : '함께 속였습니다 😈'}</ResultMeta>
+          <ResultMeta>
+            {result?.helperWon ? '공동 수상 🎉' : '함께 속였습니다 😈'}
+          </ResultMeta>
         </ResultRevealCard>
 
         {result?.villainWon && !result.helperWon && (
           <ResultRevealCard role="reward">
             <ResultRole role="reward">빌런 생존 🎭</ResultRole>
-            <ResultName style={{ fontSize: 15 }}>{allNames[villainId] ?? villainId}</ResultName>
+            <ResultName style={{ fontSize: 15 }}>
+              {allNames[villainId] ?? villainId}
+            </ResultName>
             <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
           </ResultRevealCard>
         )}
@@ -248,30 +294,42 @@ const MissionPage = () => {
           <ResultRevealCard role="reward">
             <ResultRole role="reward">공동 보상 🎉</ResultRole>
             <ResultName style={{ fontSize: 15 }}>
-              {allNames[villainId] ?? villainId} + {allNames[helperId] ?? helperId}
+              {allNames[villainId] ?? villainId} +{' '}
+              {allNames[helperId] ?? helperId}
             </ResultName>
             <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
           </ResultRevealCard>
         )}
 
-        {!result?.villainWon && result && (result.correctVoters?.length ?? 0) > 0 && (
-          <ResultRevealCard role="reward">
-            <ResultRole role="reward">정답 투표자</ResultRole>
-            <ResultName style={{ fontSize: 15 }}>{(result.correctVoters ?? []).length}명 적중</ResultName>
-            <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
-            <VoterListBtn onClick={() => setVotersModalOpen(true)}>
-              명단 보기 →
-            </VoterListBtn>
-          </ResultRevealCard>
-        )}
+        {!result?.villainWon &&
+          result &&
+          (result.correctVoters?.length ?? 0) > 0 && (
+            <ResultRevealCard role="reward">
+              <ResultRole role="reward">정답 투표자</ResultRole>
+              <ResultName style={{ fontSize: 15 }}>
+                {(result.correctVoters ?? []).length}명 적중
+              </ResultName>
+              <PinAmount>+{data!.config!.rewardPin} PIN 지급</PinAmount>
+              <VoterListBtn onClick={() => setVotersModalOpen(true)}>
+                명단 보기 →
+              </VoterListBtn>
+            </ResultRevealCard>
+          )}
 
         <VoteResultBtn onClick={() => setVoteModalOpen(true)}>
           투표 현황 보기 ({Object.keys(votes).length}명 참여)
         </VoteResultBtn>
 
+        {data?.hidden?.villain && (
+          <VoteResultBtn onClick={() => setVillainMissionOpen(true)}>
+            🎭 빌런 미션 보기
+          </VoteResultBtn>
+        )}
+
         {myVote && (
           <MyVoteResult correct={myVoteCorrect}>
-            내 투표: {allNames[myVote] ?? myVote} — {myVoteCorrect ? '정답 🎉' : '오답'}
+            내 투표: {allNames[myVote] ?? myVote} —{' '}
+            {myVoteCorrect ? '정답 🎉' : '오답'}
           </MyVoteResult>
         )}
 
@@ -294,7 +352,18 @@ const MissionPage = () => {
           />
         )}
 
-        <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+        {data?.hidden?.villain && (
+          <VillainMissionModal
+            isOpen={villainMissionOpen}
+            onClose={() => setVillainMissionOpen(false)}
+            hidden={data.hidden.villain}
+          />
+        )}
+
+        <SmallText
+          top="middle"
+          onClick={() => navigate('/menu', { replace: true })}
+        >
           돌아가기
         </SmallText>
       </Layout>
@@ -308,14 +377,18 @@ const MissionPage = () => {
       {!loading && viewState === 'empty' && (
         <MissionCard>
           <CardTitle>이달의 미션</CardTitle>
-          <PlainBody style={{ color: '#9ca3af', textAlign: 'center' }}>이달의 미션을 준비중입니다.</PlainBody>
+          <PlainBody style={{ color: '#9ca3af', textAlign: 'center' }}>
+            이달의 미션을 준비중입니다.
+          </PlainBody>
         </MissionCard>
       )}
 
       {!loading && viewState === 'upcoming' && (
         <UpcomingCard>
           <UpcomingDays>D-{daysUntilReveal}</UpcomingDays>
-          <UpcomingLabel>이달의 미션이 {daysUntilReveal}일 후 공개됩니다</UpcomingLabel>
+          <UpcomingLabel>
+            이달의 미션이 {daysUntilReveal}일 후 공개됩니다
+          </UpcomingLabel>
         </UpcomingCard>
       )}
 
@@ -323,7 +396,9 @@ const MissionPage = () => {
         <>
           <SectionLabel>이달의 미션</SectionLabel>
           <MissionCard>
-            {data!.config!.title && <CardTitle>{data!.config!.title}</CardTitle>}
+            {data!.config!.title && (
+              <CardTitle>{data!.config!.title}</CardTitle>
+            )}
             {renderBody(data!.config!.description)}
           </MissionCard>
 
@@ -333,7 +408,9 @@ const MissionPage = () => {
                 role={myRole}
                 onClick={() => setModalOpen(true)}
               >
-                {myRole === 'villain' ? '🎭 나의 히든 미션 보기' : '🤝 나의 히든 미션 보기'}
+                {myRole === 'villain'
+                  ? '🎭 나의 히든 미션 보기'
+                  : '🤝 나의 히든 미션 보기'}
               </HiddenMissionBtn>
               <HiddenMissionModal
                 isOpen={modalOpen}
@@ -346,7 +423,10 @@ const MissionPage = () => {
         </>
       )}
 
-      <SmallText top="middle" onClick={() => navigate('/menu', { replace: true })}>
+      <SmallText
+        top="middle"
+        onClick={() => navigate('/menu', { replace: true })}
+      >
         돌아가기
       </SmallText>
     </Layout>
