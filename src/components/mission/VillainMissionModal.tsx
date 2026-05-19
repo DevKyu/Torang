@@ -45,8 +45,8 @@ const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <RoleTag color={VILLAIN_COLOR}>또랑 빌런 미션</RoleTag>
-            <MissionTitle>{hidden.revealTitle || '또랑 빌런 미션 공개'}</MissionTitle>
+            <RoleTag color={VILLAIN_COLOR}>또랑 히든 미션</RoleTag>
+            <MissionTitle>{hidden.revealTitle || '이달의 빌런 미션 공개 🎭'}</MissionTitle>
             <Divider />
             <ContentArea color={VILLAIN_COLOR}>
               {hidden.description.includes('<')
