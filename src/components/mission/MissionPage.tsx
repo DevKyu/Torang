@@ -322,7 +322,7 @@ const MissionPage = () => {
 
         {data?.hidden?.villain && (
           <VoteResultBtn onClick={() => setVillainMissionOpen(true)}>
-            🎭 빌런 미션 보기
+            빌런 미션 보기
           </VoteResultBtn>
         )}
 
