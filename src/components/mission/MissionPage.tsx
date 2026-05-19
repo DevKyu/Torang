@@ -38,7 +38,6 @@ import {
   VoteResultBtn,
   VoteActionRow,
   VoterListBtn,
-  PinAmount,
   MyVoteResult,
   UpcomingCard,
   UpcomingDays,
@@ -339,7 +338,6 @@ const MissionPage = () => {
                   <ResultName style={{ fontSize: 15 }}>
                     {allNames[villainId] ?? villainId}
                   </ResultName>
-                  <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                 </ResultRevealCard>
               )}
 
@@ -350,19 +348,17 @@ const MissionPage = () => {
                     {allNames[villainId] ?? villainId} +{' '}
                     {allNames[helperId] ?? helperId}
                   </ResultName>
-                  <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                 </ResultRevealCard>
               )}
 
               {!result?.villainWon &&
                 result &&
                 (result.correctVoters?.length ?? 0) > 0 && (
-                  <ResultRevealCard role="reward" style={{ paddingBottom: 11 }}>
+                  <ResultRevealCard role="reward">
                     <ResultRole role="reward">정답 투표자</ResultRole>
                     <ResultName style={{ fontSize: 15 }}>
                       {(result.correctVoters ?? []).length}명
                     </ResultName>
-                    <PinAmount>+{data?.config?.rewardPin} PIN</PinAmount>
                     <VoterListBtn onClick={() => setVotersModalOpen(true)}>
                       명단 보기
                     </VoterListBtn>
@@ -382,7 +378,7 @@ const MissionPage = () => {
 
               {myVote && (
                 <MyVoteResult correct={myVoteCorrect}>
-                  내 투표: {allNames[myVote] ?? myVote} -{' '}
+                  내 투표 : {allNames[myVote] ?? myVote} -{' '}
                   {myVoteCorrect ? '맞혔어요 🎉' : '속았어요 😥'}
                 </MyVoteResult>
               )}
