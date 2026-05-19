@@ -176,6 +176,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     const s = get();
     s.likeUnsub?.();
     s.commentUnsub?.();
+    if (_navTimer) { clearTimeout(_navTimer); _navTimer = null; }
 
     set({
       open: false,

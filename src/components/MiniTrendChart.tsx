@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,7 +13,7 @@ type MiniTrendChartProps = {
   height?: number;
 };
 
-const DotLabel = ({ x, y, value }: any) =>
+const DotLabel = memo(({ x, y, value }: any) =>
   value == null ? null : (
     <text
       x={x}
@@ -24,14 +25,19 @@ const DotLabel = ({ x, y, value }: any) =>
     >
       {value}
     </text>
-  );
+  )
+);
+DotLabel.displayName = 'DotLabel';
 
 const MiniTrendChart = ({
   data,
   color = '#16a34a',
   height = 90,
 }: MiniTrendChartProps) => {
-  const chartData = data.map((v, i) => ({ idx: i, value: v }));
+  const chartData = useMemo(
+    () => data.map((v, i) => ({ idx: i, value: v })),
+    [data],
+  );
 
   return (
     <ResponsiveContainer width="100%" height={height}>
