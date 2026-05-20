@@ -46,7 +46,7 @@ const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props)
           >
             <Header>
               <Title>정답 투표자 명단</Title>
-              <Sub>총 {correctVoters.length}명 적중</Sub>
+              <Sub>총 {correctVoters.length}명</Sub>
             </Header>
             <Divider />
             <ScrollArea>

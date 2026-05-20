@@ -170,11 +170,11 @@ export async function revealMissionResult(
 
   const recipientDetails: Record<string, string> = {};
   if (!villainWon && correctVoters.length > 0) {
-    correctVoters.forEach((id) => { recipientDetails[id] = '빌런 적중 🎯'; });
+    correctVoters.forEach((id) => { recipientDetails[id] = '빌런 찾기 성공 🎯'; });
   }
   if (villainWon) {
-    recipientDetails[villainId] = '또랑 빌런 생존 🎭';
-    if (helperWon) recipientDetails[helperId] = '빌런 조력자 공동 수상 🎉';
+    recipientDetails[villainId] = '빌런 미션 성공 🎭';
+    if (helperWon) recipientDetails[helperId] = '조력자 미션 성공 🎉';
   }
 
   const recipients = Object.keys(recipientDetails);
