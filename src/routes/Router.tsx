@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Routes, Route } from 'react-router-dom';
 import Login from '../components/Login';
+import Menu from '../components/MainMenu';
 import ProtectedRoute from './ProtectedRoute';
 
-const Menu           = lazy(() => import('../components/MainMenu'));
 const Reward         = lazy(() => import('../components/Reward'));
 const Draw           = lazy(() => import('../components/Draw'));
 const MyInfo         = lazy(() => import('../components/MyInfo'));
@@ -19,7 +19,7 @@ const AdminActivityParticipants = lazy(() => import('../components/admin/AdminAc
 const AdminMission             = lazy(() => import('../components/admin/AdminMission'));
 
 const Router = () => (
-  <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f9f9f9' }} />}>
+  <Suspense fallback={null}>
     <Routes>
       <Route path="/" element={<Login />} />
 
