@@ -38,7 +38,6 @@ import {
   VoteResultBtn,
   VoteActionRow,
   VoterListBtn,
-  MyVoteResult,
   UpcomingCard,
   UpcomingDays,
   UpcomingLabel,
@@ -221,7 +220,6 @@ const MissionPage = () => {
   const votes = data?.votes ?? {};
   const villainId = data?.roles?.villain ?? '';
   const helperId = data?.roles?.helper ?? '';
-  const myVoteCorrect = myVote === villainId;
 
   const pageTitle = '활동 미션';
 
@@ -376,12 +374,6 @@ const MissionPage = () => {
                 )}
               </VoteActionRow>
 
-              {myVote && (
-                <MyVoteResult correct={myVoteCorrect}>
-                  내 투표 : {allNames[myVote] ?? myVote} -{' '}
-                  {myVoteCorrect ? '맞혔어요 🎉' : '속았어요 😥'}
-                </MyVoteResult>
-              )}
             </>
           )}
 
@@ -435,6 +427,7 @@ const MissionPage = () => {
           votes={votes}
           roles={data.roles}
           allNames={allNames}
+          myVote={myVote}
         />
       )}
       {viewState === 'revealed' &&

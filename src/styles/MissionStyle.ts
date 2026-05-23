@@ -321,14 +321,6 @@ export const VoteResultBtn = styled.button`
   }
 `;
 
-export const MyVoteResult = styled.div<{ correct: boolean }>`
-  text-align: center;
-  padding-top: 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${({ correct }) => (correct ? '#059669' : '#9ca3af')};
-`;
-
 export const MissionLoadingBox = styled.div`
   display: flex;
   justify-content: center;
