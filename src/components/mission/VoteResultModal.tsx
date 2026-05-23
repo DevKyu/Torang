@@ -16,6 +16,7 @@ import {
   BarWrap,
   Bar,
   Count,
+  MyVoteIndicator,
   Empty,
   CloseBtn,
 } from '../../styles/VoteResultModalStyle';
@@ -26,18 +27,26 @@ type Props = {
   votes: Record<string, string>;
   roles: MissionRoles;
   allNames: Record<string, string>;
+  myVote?: string;
 };
 
-const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames }: Props) => {
+const BAR_COLOR = {
+  villain: '#ef4444',
+  helper: '#3b82f6',
+  default: '#9ca3af',
+} as const;
+
+const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames, myVote }: Props) => {
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = 'unset'; };
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const voteCounts: Record<string, number> = {};
-  for (const target of Object.values(votes)) {
-    voteCounts[target] = (voteCounts[target] ?? 0) + 1;
-  }
+  const voteCounts = Object.values(votes).reduce<Record<string, number>>(
+    (acc, target) => ({ ...acc, [target]: (acc[target] ?? 0) + 1 }),
+    {},
+  );
 
   const totalVotes = Object.keys(votes).length;
   const sorted = Object.entries(voteCounts).sort(([, a], [, b]) => b - a);
@@ -71,29 +80,29 @@ const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames }: Props) => 
             <ScrollArea>
               {sorted.length === 0 ? (
                 <Empty>투표 기록이 없습니다.</Empty>
-              ) : sorted.map(([empId, count]) => {
-                const role = roleOf(empId);
-                return (
-                  <Row key={empId} role={role ?? undefined}>
-                    <Name role={role ?? undefined}>
-                      {allNames[empId] ?? empId}
-                      {role === 'villain' && <RoleTag color="#ef4444">빌런</RoleTag>}
-                      {role === 'helper' && <RoleTag color="#3b82f6">조력자</RoleTag>}
-                    </Name>
-                    <BarWrap>
-                      <Bar
-                        pct={Math.round((count / maxVotes) * 100)}
-                        color={
-                          role === 'villain' ? '#ef4444'
-                          : role === 'helper' ? '#3b82f6'
-                          : '#9ca3af'
-                        }
-                      />
-                    </BarWrap>
-                    <Count>{count}표</Count>
-                  </Row>
-                );
-              })}
+              ) : (
+                sorted.map(([empId, count]) => {
+                  const role = roleOf(empId);
+                  const barColor =
+                    role === 'villain' ? BAR_COLOR.villain
+                    : role === 'helper' ? BAR_COLOR.helper
+                    : BAR_COLOR.default;
+                  return (
+                    <Row key={empId} role={role ?? undefined}>
+                      <Name role={role ?? undefined}>
+                        {allNames[empId] ?? empId}
+                        {role === 'villain' && <RoleTag color="#ef4444">빌런</RoleTag>}
+                        {role === 'helper' && <RoleTag color="#3b82f6">조력자</RoleTag>}
+                      </Name>
+                      <BarWrap>
+                        <Bar pct={Math.round((count / maxVotes) * 100)} color={barColor} />
+                      </BarWrap>
+                      <Count>{count}표</Count>
+                      <MyVoteIndicator visible={empId === myVote}>✓</MyVoteIndicator>
+                    </Row>
+                  );
+                })
+              )}
             </ScrollArea>
             <Divider />
             <CloseBtn onClick={onClose}>닫기</CloseBtn>
