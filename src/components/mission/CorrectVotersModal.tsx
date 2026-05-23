@@ -23,8 +23,9 @@ type Props = {
 
 const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props) => {
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = 'unset'; };
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   return createPortal(

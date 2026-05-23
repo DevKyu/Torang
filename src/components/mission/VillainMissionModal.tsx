@@ -23,8 +23,9 @@ const VILLAIN_COLOR = '#ef4444';
 
 const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = 'unset'; };
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   return createPortal(

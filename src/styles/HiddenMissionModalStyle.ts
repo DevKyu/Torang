@@ -1,11 +1,17 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
+const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
 export const Backdrop = styled(motion.div)`
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 16000;
   background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -21,6 +27,8 @@ export const Card = styled(motion.div)<{ accent: string }>`
   overflow: hidden;
   border-top: 4px solid ${({ accent }) => accent};
   padding: 0 0 24px;
+  font-family: ${SYS_FONT};
+  -webkit-font-smoothing: antialiased;
 `;
 
 export const ProgressTrack = styled.div`
@@ -58,8 +66,7 @@ export const Divider = styled.hr`
 
 export const ContentArea = styled.div<{ color: string }>`
   margin: 0 24px 20px;
-  background: ${({ color }) =>
-    color === '#ef4444' ? '#fef2f2' : '#eff6ff'};
+  background: ${({ color }) => (color === '#ef4444' ? '#fef2f2' : '#eff6ff')};
   border-radius: 10px;
   padding: 14px 16px;
 `;
@@ -77,6 +84,10 @@ export const ConfirmBtn = styled.button<{ color: string }>`
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
   transition: filter 0.12s ease;
-  &:active { filter: brightness(0.88); }
+  &:active {
+    filter: brightness(0.88);
+  }
 `;

@@ -1,11 +1,17 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
+const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
 export const Backdrop = styled(motion.div)`
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 16000;
   background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -21,8 +27,11 @@ export const Card = styled(motion.div)`
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  max-height: 65vh;
   max-height: 65dvh;
   border-top: 4px solid #10b981;
+  font-family: ${SYS_FONT};
+  -webkit-font-smoothing: antialiased;
 `;
 
 export const Header = styled.div`
@@ -53,7 +62,10 @@ export const ScrollArea = styled.div`
   padding: 8px 20px;
   flex: 1;
   -webkit-overflow-scrolling: touch;
-  &::-webkit-scrollbar { display: none; }
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const Row = styled.div`
@@ -64,7 +76,9 @@ export const Row = styled.div`
   font-size: 14px;
   color: #111827;
   border-bottom: 1px solid #f9fafb;
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 export const Check = styled.span`
@@ -84,5 +98,9 @@ export const CloseBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
-  &:active { background: #dcfce7; }
+  -webkit-user-select: none;
+  user-select: none;
+  &:active {
+    background: #dcfce7;
+  }
 `;
