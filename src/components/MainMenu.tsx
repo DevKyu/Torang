@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, startTransition } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GiftIcon,
@@ -142,7 +142,9 @@ const MainMenu = () => {
 
     const path = PATH_MAP[id];
     if (!path) return;
-    navigate(path, { replace: true });
+    startTransition(() => {
+      navigate(path, { replace: true });
+    });
   };
 
   return (
