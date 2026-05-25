@@ -153,7 +153,8 @@ const MainMenu = () => {
             key={id}
             disabled={disabled}
             whileTap={disabled ? undefined : { scale: 0.98 }}
-            onClick={() => handleClick(id, disabled)}
+            onPointerUp={(e) => { if (e.isPrimary) handleClick(id, disabled); }}
+            onContextMenu={(e) => e.preventDefault()}
           >
             {!loading && badge && (
               <MenuBadge
