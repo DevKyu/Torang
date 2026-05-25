@@ -20,6 +20,9 @@ export const MotionMenuCard = styled(motion.button)<MenuCardProps>`
   font-weight: 500;
   text-align: center;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
   box-shadow: ${({ disabled }) =>
     disabled ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)'};
   transition:
