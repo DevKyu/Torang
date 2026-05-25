@@ -153,7 +153,7 @@ const MainMenu = () => {
             key={id}
             disabled={disabled}
             whileTap={disabled ? undefined : { scale: 0.98 }}
-            onTapStart={() => handleClick(id, disabled)}
+            onClick={() => handleClick(id, disabled)}
           >
             {!loading && badge && (
               <MenuBadge
