@@ -79,6 +79,12 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ role }) => (role === 'villain' ? '#fee2e2' : '#dbeafe')};
+      border-color: ${({ role }) => (role === 'villain' ? '#f87171' : '#60a5fa')};
+    }
+  }
   &:active {
     background: ${({ role }) => (role === 'villain' ? '#fee2e2' : '#dbeafe')};
     border-color: ${({ role }) => (role === 'villain' ? '#f87171' : '#60a5fa')};
@@ -250,15 +256,10 @@ export const ResultRevealCard = styled.div<{
 `;
 
 export const ResultRole = styled.div<{ role: 'villain' | 'helper' | 'reward' }>`
-  display: inline-block;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
-  padding: 2px 8px;
-  border-radius: 20px;
   margin-bottom: 5px;
-  background: ${({ role }) =>
-    role === 'villain' ? '#fef2f2' : role === 'helper' ? '#eff6ff' : '#f0fdf4'};
   color: ${({ role }) =>
     role === 'villain' ? '#dc2626' : role === 'helper' ? '#2563eb' : '#059669'};
 `;
@@ -275,23 +276,33 @@ export const ResultMeta = styled.div`
   color: #9ca3af;
 `;
 
-export const PinAmount = styled.div`
-  font-size: 13px;
-  font-weight: 600;
-  color: #059669;
-`;
-
 export const VoterListBtn = styled.button`
-  display: block;
-  margin: 3px auto 0;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  margin: 6px auto 0;
+  padding: 3px 12px;
+  border-radius: 20px;
+  border: 1px solid #6ee7b7;
+  background: #ecfdf5;
   color: #059669;
-  background: none;
-  border: none;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 4px 0;
   touch-action: manipulation;
-  text-decoration: underline;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #d1fae5;
+      border-color: #34d399;
+    }
+  }
+  &:active {
+    background: #a7f3d0;
+    border-color: #34d399;
+    transform: scale(0.97);
+  }
 `;
 
 export const VoteActionRow = styled.div`
