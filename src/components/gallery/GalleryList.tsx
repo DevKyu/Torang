@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Heart, MessageCircle } from 'lucide-react';
@@ -239,7 +240,9 @@ const GalleryList = ({
               exit={{ opacity: 0, y: -4 }}
             >
               {loading ? (
-                <EmptyBox>불러오는 중…</EmptyBox>
+                <EmptyBox>
+                  <ClipLoader size={24} color="#9ca3af" />
+                </EmptyBox>
               ) : sorted.length === 0 ? (
                 <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
               ) : (

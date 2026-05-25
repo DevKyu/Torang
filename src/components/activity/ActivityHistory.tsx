@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cubicBezier } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 import { MyInfoContainer, MyInfoBox } from '../../styles/myInfoStyle';
 import { Title as PageTitle } from '../../styles/commonStyle';
 import MonthNavigator from './MonthNavigator';
@@ -180,7 +181,9 @@ const ActivityHistory = () => {
             summaryLoading ||
             leagueLoading ||
             drawLoading ? (
-              <EmptyState variants={rowVariants}>불러오는 중...</EmptyState>
+              <EmptyState variants={rowVariants}>
+                <ClipLoader size={24} color="#9ca3af" />
+              </EmptyState>
             ) : filtered.length === 0 ? (
               <EmptyState variants={rowVariants}>
                 해당 월의 내역이 없습니다.
