@@ -32,9 +32,23 @@ const GlobalStyle = () => (
         font-family: inherit;
       }
 
+      input,
+      textarea,
+      select {
+        border: none;
+        background: none;
+        font-family: inherit;
+      }
+
       ul,
       ol {
         list-style: none;
+      }
+
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        pointer-events: none;
       }
 
       .gallery-swiper {

@@ -19,7 +19,7 @@ import {
 } from '../types/achievement';
 
 import { MyInfoContainer, MyInfoBox } from '../styles/myInfoStyle';
-import { SmallText } from '../styles/commonStyle';
+import { SmallText, Title } from '../styles/commonStyle';
 import {
   GridScrollContainer,
   GridContainer,
@@ -198,7 +198,7 @@ const Achievements = () => {
   return (
     <MyInfoContainer>
       <MyInfoBox variant="achievements">
-        <h2>내 업적</h2>
+        <Title size="small">내 업적</Title>
 
         <TabBar>
           {achievementGroups.map((g) => (

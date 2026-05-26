@@ -38,7 +38,7 @@ import {
   SkeletonScoreGrid,
   SkeletonScoreItem,
 } from '../styles/myInfoStyle';
-import { SmallText } from '../styles/commonStyle';
+import { SmallText, Title } from '../styles/commonStyle';
 import { ChevronRight } from 'lucide-react';
 import type {
   Month,
@@ -204,7 +204,7 @@ const MyInfo = () => {
   return (
     <MyInfoContainer>
       <MyInfoBox>
-        <h2>내 정보</h2>
+        <Title size="small">내 정보</Title>
 
         <InfoSection>
           <InfoRow>

@@ -26,7 +26,7 @@ export const ContentBox = styled.div<{
   text-align: center;
 `;
 
-export const Title = styled.h1<{ size?: 'small' | 'medium' }>`
+export const Title = styled.h1<{ size?: 'small' }>`
   font-size: ${({ size }) => (size === 'small' ? '22px' : '26px')};
   font-weight: bold;
   margin-bottom: 20px;

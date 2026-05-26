@@ -43,7 +43,7 @@ export const GalleryBox = styled(motion.div)`
 `;
 
 export const GalleryTitle = styled.h2`
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: ${colors.textMain};
   margin-bottom: 16px;
