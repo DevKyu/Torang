@@ -59,7 +59,6 @@ const PIN_KEYS = [
   'targetScore',
   'rivalMatch',
   'pinMatch',
-  'galleryUpload',
   'referral',
 ] as const;
 type PinKey = (typeof PIN_KEYS)[number];
@@ -69,7 +68,6 @@ const PIN_LABEL: Record<PinKey, string> = {
   targetScore: '🎯 목표 점수',
   rivalMatch: '🥊 라이벌 매치',
   pinMatch: '📌 핀 매치',
-  galleryUpload: '📸 갤러리 업로드',
   referral: '🤝 친구 추천',
 };
 
@@ -90,23 +88,30 @@ const DEFAULT_REWARD: RewardDraft = {
   targetScore: 0,
   rivalMatch: 0,
   pinMatch: 0,
-  galleryUpload: 0,
   referral: 0,
 };
 
-const GALLERY_REWARD_KEYS = ['likeCreator', 'commentCreator'] as const;
+const GALLERY_REWARD_KEYS = ['upload', 'likeCreator', 'commentCreator'] as const;
 type GalleryRewardKey = (typeof GALLERY_REWARD_KEYS)[number];
 
 const GALLERY_REWARD_LABEL: Record<GalleryRewardKey, string> = {
+  upload: '📸 업로드 보상',
   likeCreator: '❤️ 좋아요 인기 보상',
   commentCreator: '💬 댓글 인기 보상',
+};
+
+const GALLERY_REWARD_UNIT: Record<GalleryRewardKey, string> = {
+  upload: '장',
+  likeCreator: '개',
+  commentCreator: '개',
 };
 
 type GalleryRewardDraft = Record<GalleryRewardKey, { pin: number; threshold: number }>;
 
 const DEFAULT_GALLERY_REWARD_DRAFT: GalleryRewardDraft = {
-  likeCreator: { pin: 0, threshold: 0 },
-  commentCreator: { pin: 0, threshold: 0 },
+  upload: { pin: 0, threshold: 5 },
+  likeCreator: { pin: 0, threshold: 10 },
+  commentCreator: { pin: 0, threshold: 5 },
 };
 
 const RATE_OPTIONS = [0.5, 1, 1.5, 2];
@@ -158,17 +163,39 @@ export default function AdminEvent() {
   useEffect(() => {
     const cfg = galleryReward[selectedYm];
     setGalleryRewardDraft({
-      likeCreator: cfg?.likeCreator ?? { pin: 0, threshold: 0 },
-      commentCreator: cfg?.commentCreator ?? { pin: 0, threshold: 0 },
+      upload: cfg?.upload ?? DEFAULT_GALLERY_REWARD_DRAFT.upload,
+      likeCreator: cfg?.likeCreator ?? DEFAULT_GALLERY_REWARD_DRAFT.likeCreator,
+      commentCreator: cfg?.commentCreator ?? DEFAULT_GALLERY_REWARD_DRAFT.commentCreator,
     });
   }, [galleryReward, selectedYm]);
 
+  const visiblePinKeys = useMemo(
+    () =>
+      PIN_KEYS.filter((k) => {
+        if (k === 'rivalMatch') return matchTypeDraft === 'rival';
+        if (k === 'pinMatch') return matchTypeDraft === 'pin';
+        return true;
+      }),
+    [matchTypeDraft],
+  );
+
   const toggleAllRewards = useCallback(() => {
-    const allOff = PIN_KEYS.every((k) => (rewardDraft[k] ?? 0) === 0);
-    const next: RewardDraft = {};
-    PIN_KEYS.forEach((k) => (next[k] = allOff ? 0.5 : 0));
-    setRewardDraft(next);
-  }, [rewardDraft]);
+    const allOff =
+      visiblePinKeys.every((k) => (rewardDraft[k] ?? 0) === 0) &&
+      GALLERY_REWARD_KEYS.every((k) => galleryRewardDraft[k].pin === 0);
+
+    const nextPin: RewardDraft = {};
+    visiblePinKeys.forEach((k) => (nextPin[k] = allOff ? 0.5 : 0));
+    setRewardDraft((p) => ({ ...p, ...nextPin }));
+
+    setGalleryRewardDraft((p) => {
+      const next = { ...p };
+      GALLERY_REWARD_KEYS.forEach((k) => {
+        next[k] = { ...next[k], pin: allOff ? 0.5 : 0 };
+      });
+      return next;
+    });
+  }, [visiblePinKeys, rewardDraft, galleryRewardDraft]);
 
   const saveAll = useCallback(async () => {
     await Promise.all([
@@ -298,7 +325,8 @@ export default function AdminEvent() {
           </MonthSelect>
 
           <BulkRewardButton onClick={toggleAllRewards}>
-            {PIN_KEYS.every((k) => (rewardDraft[k] ?? 0) > 0)
+            {visiblePinKeys.every((k) => (rewardDraft[k] ?? 0) > 0) &&
+            GALLERY_REWARD_KEYS.every((k) => galleryRewardDraft[k].pin > 0)
               ? '전체 OFF'
               : '전체 0.5핀'}
           </BulkRewardButton>
@@ -343,7 +371,7 @@ export default function AdminEvent() {
         )}
 
         <RewardGrid>
-          {PIN_KEYS.map((k) => {
+          {visiblePinKeys.map((k) => {
             const rate = rewardDraft[k] ?? 0;
             const enabled = rate > 0;
 
@@ -384,7 +412,7 @@ export default function AdminEvent() {
       </Section>
 
       <Section>
-        <SectionTitle>📷 갤러리 인기 보상</SectionTitle>
+        <SectionTitle>📷 갤러리 보상 설정</SectionTitle>
 
         <RewardGrid>
           {GALLERY_REWARD_KEYS.map((key) => {
@@ -442,7 +470,7 @@ export default function AdminEvent() {
                       }))
                     }
                   />
-                  <span>개 이상</span>
+                  <span>{GALLERY_REWARD_UNIT[key]} 이상</span>
                 </ThresholdRow>
               </GalleryRewardCard>
             );

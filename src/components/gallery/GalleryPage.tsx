@@ -197,9 +197,7 @@ const GalleryPage = () => {
 
         if (!isAdmin) setUploadCount(nextCount);
 
-        if (uploadedNext >= GALLERY_POLICY.REWARD_THRESHOLD) {
-          rewardGalleryMaxUpload(ym).catch(console.error);
-        }
+        rewardGalleryMaxUpload(ym, uploadedNext).catch(console.error);
 
         setMode('list');
       } finally {

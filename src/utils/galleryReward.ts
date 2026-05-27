@@ -6,25 +6,21 @@ import {
 } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
-import { GALLERY_POLICY } from './galleryPolicy';
 import { showGalleryRewardToast, showGalleryPopularityRewardToast } from './toast';
 
-export const rewardGalleryMaxUpload = async (ym: string) => {
+export const rewardGalleryMaxUpload = async (ym: string, uploadedCount: number) => {
   const empId = getCurrentUserId();
   if (!empId) return null;
 
+  const { upload } = useEventStore.getState().getGalleryReward(ym);
+  const { pin, threshold } = upload;
+  if (!pin || threshold <= 0 || uploadedCount < threshold) return null;
+
   const rewardRef = ref(db, `users/${empId}/gallery/uploadReward/${ym}`);
   const snap = await get(rewardRef);
-
   if (snap.exists()) return null;
 
   const { getServerNow, getServerTimestamp } = useUiStore.getState();
-
-  const { getPinRewardRate } = useEventStore.getState();
-  const pin = getPinRewardRate('galleryUpload');
-
-  if (!pin || pin <= 0) return null;
-
   const rewardedAt = getServerTimestamp();
   const nowMs = getServerNow().getTime();
 
@@ -36,10 +32,9 @@ export const rewardGalleryMaxUpload = async (ym: string) => {
       rewardedAt,
       rewardedAtMs: nowMs,
     },
-
     [`users/${empId}/rewards/${ym}/gallery/${rewardedAt}`]: {
       type: 'gallery',
-      detail: `사진 ${GALLERY_POLICY.REWARD_THRESHOLD}장 이상 업로드`,
+      detail: `사진 ${threshold}장 이상 업로드`,
       direction: 'gain',
       pin,
       ym,

@@ -11,12 +11,12 @@ export type PinRewardConfig = {
   rivalMatch: number;
   pinMatch: number;
   achievement: number;
-  galleryUpload: number;
   referral: number;
 };
 
 export type GalleryRewardItem = { pin: number; threshold: number };
 export type GalleryRewardConfig = {
+  upload: GalleryRewardItem;
   likeCreator: GalleryRewardItem;
   commentCreator: GalleryRewardItem;
 };
@@ -42,13 +42,13 @@ const DEFAULT_REWARD: PinRewardConfig = {
   rivalMatch: 0,
   pinMatch: 0,
   achievement: 0,
-  galleryUpload: 0,
   referral: 0,
 };
 
 const DEFAULT_GALLERY_REWARD: GalleryRewardConfig = {
-  likeCreator: { pin: 0, threshold: 0 },
-  commentCreator: { pin: 0, threshold: 0 },
+  upload: { pin: 0, threshold: 5 },
+  likeCreator: { pin: 0, threshold: 10 },
+  commentCreator: { pin: 0, threshold: 5 },
 };
 
 type EventStore = {
