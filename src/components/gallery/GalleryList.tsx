@@ -338,7 +338,9 @@ const GalleryList = ({
             </motion.div>
           </AnimatePresence>
 
-          <AddButton onClick={onMoveUpload}>{month}월 사진 업로드</AddButton>
+          <AddButton disabled={loading} onClick={onMoveUpload}>
+            {month}월 사진 업로드
+          </AddButton>
           <SmallText top="middle" onClick={onCancel}>
             돌아가기
           </SmallText>

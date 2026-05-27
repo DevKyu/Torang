@@ -131,4 +131,10 @@ export const AddButton = styled.button`
   &:hover {
     background: ${colors.primaryHover};
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 `;
