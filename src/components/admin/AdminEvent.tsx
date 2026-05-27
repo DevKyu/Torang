@@ -20,6 +20,9 @@ import {
   RewardToggle,
   RewardTitle,
   RateGroup,
+  GalleryRewardCard,
+  ThresholdRow,
+  ThresholdInput,
   MenuCardGrid,
   MenuCard,
   MenuCardHeader,
@@ -91,6 +94,21 @@ const DEFAULT_REWARD: RewardDraft = {
   referral: 0,
 };
 
+const GALLERY_REWARD_KEYS = ['likeCreator', 'commentCreator'] as const;
+type GalleryRewardKey = (typeof GALLERY_REWARD_KEYS)[number];
+
+const GALLERY_REWARD_LABEL: Record<GalleryRewardKey, string> = {
+  likeCreator: '❤️ 좋아요 인기 보상',
+  commentCreator: '💬 댓글 인기 보상',
+};
+
+type GalleryRewardDraft = Record<GalleryRewardKey, { pin: number; threshold: number }>;
+
+const DEFAULT_GALLERY_REWARD_DRAFT: GalleryRewardDraft = {
+  likeCreator: { pin: 0, threshold: 0 },
+  commentCreator: { pin: 0, threshold: 0 },
+};
+
 const RATE_OPTIONS = [0.5, 1, 1.5, 2];
 
 const getYmList = (base: string, count = 4) => {
@@ -103,7 +121,7 @@ const getYmList = (base: string, count = 4) => {
 };
 
 export default function AdminEvent() {
-  const { menu, pinReward, matchType: storedMatchType, loadEventConfig } = useEventStore();
+  const { menu, pinReward, galleryReward, matchType: storedMatchType, loadEventConfig } = useEventStore();
   const ui = useUiStore();
   const navigate = useNavigate();
 
@@ -113,6 +131,7 @@ export default function AdminEvent() {
   const [selectedYm, setSelectedYm] = useState(currentYm);
   const [menuDraft, setMenuDraft] = useState<MenuDraft>({} as MenuDraft);
   const [rewardDraft, setRewardDraft] = useState<RewardDraft>(DEFAULT_REWARD);
+  const [galleryRewardDraft, setGalleryRewardDraft] = useState<GalleryRewardDraft>(DEFAULT_GALLERY_REWARD_DRAFT);
   const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
   const [distributing, setDistributing] = useState(false);
 
@@ -136,6 +155,14 @@ export default function AdminEvent() {
     setRewardDraft({ ...DEFAULT_REWARD, ...(pinReward[selectedYm] ?? {}) });
   }, [pinReward, selectedYm]);
 
+  useEffect(() => {
+    const cfg = galleryReward[selectedYm];
+    setGalleryRewardDraft({
+      likeCreator: cfg?.likeCreator ?? { pin: 0, threshold: 0 },
+      commentCreator: cfg?.commentCreator ?? { pin: 0, threshold: 0 },
+    });
+  }, [galleryReward, selectedYm]);
+
   const toggleAllRewards = useCallback(() => {
     const allOff = PIN_KEYS.every((k) => (rewardDraft[k] ?? 0) === 0);
     const next: RewardDraft = {};
@@ -147,11 +174,12 @@ export default function AdminEvent() {
     await Promise.all([
       set(ref(db, 'eventConfig/menu'), menuDraft),
       set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft),
+      set(ref(db, `eventConfig/galleryReward/${selectedYm}`), galleryRewardDraft),
       set(ref(db, 'eventConfig/matchType'), matchTypeDraft),
     ]);
     await loadEventConfig();
     alert('✅ 저장 완료');
-  }, [menuDraft, rewardDraft, matchTypeDraft, selectedYm, loadEventConfig]);
+  }, [menuDraft, rewardDraft, galleryRewardDraft, matchTypeDraft, selectedYm, loadEventConfig]);
 
   const handleDistribute = useCallback(async () => {
     const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
@@ -350,6 +378,73 @@ export default function AdminEvent() {
                   ))}
                 </RateGroup>
               </RewardCard>
+            );
+          })}
+        </RewardGrid>
+      </Section>
+
+      <Section>
+        <SectionTitle>📷 갤러리 인기 보상</SectionTitle>
+
+        <RewardGrid>
+          {GALLERY_REWARD_KEYS.map((key) => {
+            const item = galleryRewardDraft[key];
+            const enabled = item.pin > 0;
+
+            return (
+              <GalleryRewardCard key={key}>
+                <RewardTitle>{GALLERY_REWARD_LABEL[key]}</RewardTitle>
+
+                <RewardToggle>
+                  <input
+                    type="checkbox"
+                    checked={enabled}
+                    onChange={(e) =>
+                      setGalleryRewardDraft((p) => ({
+                        ...p,
+                        [key]: { ...p[key], pin: e.target.checked ? item.pin || 0.5 : 0 },
+                      }))
+                    }
+                  />
+                  {enabled ? 'ON' : 'OFF'}
+                </RewardToggle>
+
+                <RateGroup>
+                  {RATE_OPTIONS.map((v) => (
+                    <button
+                      key={v}
+                      className={item.pin === v ? 'active' : ''}
+                      disabled={!enabled}
+                      onClick={() =>
+                        setGalleryRewardDraft((p) => ({
+                          ...p,
+                          [key]: { ...p[key], pin: v },
+                        }))
+                      }
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </RateGroup>
+
+                <ThresholdRow>
+                  <span>임계치</span>
+                  <ThresholdInput
+                    type="number"
+                    min="1"
+                    value={item.threshold || ''}
+                    disabled={!enabled}
+                    placeholder="0"
+                    onChange={(e) =>
+                      setGalleryRewardDraft((p) => ({
+                        ...p,
+                        [key]: { ...p[key], threshold: Number(e.target.value) },
+                      }))
+                    }
+                  />
+                  <span>개 이상</span>
+                </ThresholdRow>
+              </GalleryRewardCard>
             );
           })}
         </RewardGrid>

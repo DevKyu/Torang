@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ref, get, update, onValue } from 'firebase/database';
 import { toast } from 'sonner';
@@ -23,9 +23,14 @@ import {
 import { useLoading } from '../../contexts/LoadingContext';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useUiStore } from '../../stores/useUiStore';
+import { useEventStore } from '../../stores/eventStore';
 import { getInitialGalleryYm } from '../../utils/gallery';
 import { applyGalleryBoost } from '../../utils/galleryBoost';
-import { rewardGalleryMaxUpload } from '../../utils/galleryReward';
+import {
+  rewardGalleryMaxUpload,
+  rewardGalleryLikeCreator,
+  rewardGalleryCommentCreator,
+} from '../../utils/galleryReward';
 import { GALLERY_POLICY } from '../../utils/galleryPolicy';
 
 export type GalleryItem = {
@@ -51,6 +56,9 @@ const GalleryPage = () => {
 
   const [empId, setEmpId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const eventLoaded = useEventStore((s) => s.loaded);
+  const rewardCheckedYm = useRef('');
 
   const serverYear = Number(formatServerDate('year'));
   const serverMonth = Number(formatServerDate('month'));
@@ -116,6 +124,19 @@ const GalleryPage = () => {
 
     return () => unsub();
   }, [empId, ym, fetchUploadCount]);
+
+  useEffect(() => {
+    if (!empId || !galleryList || !eventLoaded) return;
+    if (rewardCheckedYm.current === ym) return;
+    rewardCheckedYm.current = ym;
+
+    galleryList
+      .filter((img) => img.empId === empId)
+      .forEach((img) => {
+        rewardGalleryLikeCreator(ym, img.id, empId, Object.keys(img.likes ?? {})).catch(console.error);
+        rewardGalleryCommentCreator(ym, img.id, empId, img.comments ?? {}).catch(console.error);
+      });
+  }, [empId, ym, galleryList, eventLoaded]);
 
   const uploadPolicy = useMemo(() => {
     if (activityLoading) return { allowed: false, reason: 'loading' };

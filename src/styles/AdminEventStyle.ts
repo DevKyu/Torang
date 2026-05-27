@@ -249,3 +249,34 @@ export const MenuControlRow = styled.div`
   gap: 8px;
   font-size: 12px;
 `;
+
+export const GalleryRewardCard = styled(RewardCard)`
+  grid-template-areas:
+    'title toggle'
+    'rates rates'
+    'threshold threshold';
+`;
+
+export const ThresholdRow = styled.div`
+  grid-area: threshold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+`;
+
+export const ThresholdInput = styled.input`
+  width: 64px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 12px;
+  text-align: center;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+`;

@@ -15,6 +15,12 @@ export type PinRewardConfig = {
   referral: number;
 };
 
+export type GalleryRewardItem = { pin: number; threshold: number };
+export type GalleryRewardConfig = {
+  likeCreator: GalleryRewardItem;
+  commentCreator: GalleryRewardItem;
+};
+
 export type MenuBadgeType = 'new' | 'soon' | 'hot';
 
 export type MenuConfigItem = {
@@ -40,9 +46,15 @@ const DEFAULT_REWARD: PinRewardConfig = {
   referral: 0,
 };
 
+const DEFAULT_GALLERY_REWARD: GalleryRewardConfig = {
+  likeCreator: { pin: 0, threshold: 0 },
+  commentCreator: { pin: 0, threshold: 0 },
+};
+
 type EventStore = {
   menu: MenuConfig;
   pinReward: Record<string, PinRewardConfig>;
+  galleryReward: Record<string, GalleryRewardConfig>;
   matchType: MatchType;
   loaded: boolean;
 
@@ -54,11 +66,13 @@ type EventStore = {
   getThisMonthPinReward(): PinRewardConfig;
   getPinRewardRate(key: keyof PinRewardConfig): number;
   isPinRewardEnabled(key: keyof PinRewardConfig): boolean;
+  getGalleryReward(ym?: string): GalleryRewardConfig;
 };
 
 export const useEventStore = create<EventStore>((set, get) => ({
   menu: {},
   pinReward: {},
+  galleryReward: {},
   matchType: 'rival',
   loaded: false,
 
@@ -69,7 +83,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
       const rawReward = v.pinReward ?? {};
       const normalizedReward: Record<string, PinRewardConfig> = {};
-
       Object.entries(rawReward).forEach(([ym, cfg]) => {
         normalizedReward[String(ym)] = {
           ...DEFAULT_REWARD,
@@ -77,9 +90,19 @@ export const useEventStore = create<EventStore>((set, get) => ({
         };
       });
 
+      const rawGalleryReward = v.galleryReward ?? {};
+      const normalizedGalleryReward: Record<string, GalleryRewardConfig> = {};
+      Object.entries(rawGalleryReward).forEach(([ym, cfg]) => {
+        normalizedGalleryReward[String(ym)] = {
+          ...DEFAULT_GALLERY_REWARD,
+          ...(cfg as Partial<GalleryRewardConfig>),
+        };
+      });
+
       set({
         menu: v.menu ?? {},
         pinReward: normalizedReward,
+        galleryReward: normalizedGalleryReward,
         matchType: (v.matchType as MatchType) ?? 'rival',
         loaded: true,
       });
@@ -110,5 +133,11 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
   isPinRewardEnabled: (key) => {
     return get().getPinRewardRate(key) > 0;
+  },
+
+  getGalleryReward: (ym) => {
+    const ui = useUiStore.getState();
+    const key = ym ?? (ui.lastSync ? String(ui.formatServerDate('ym')) : '');
+    return { ...DEFAULT_GALLERY_REWARD, ...(get().galleryReward[key] ?? {}) };
   },
 }));

@@ -211,7 +211,42 @@ export const showGalleryRewardToast = (amount: number) => {
         style: {
           ...baseToast.style,
           backgroundColor: '#ecfdf5',
-          color: '#0369a1',
+          color: '#065f46',
+          fontWeight: 600,
+        },
+      },
+    );
+  }, 1500);
+};
+
+export const showGalleryPopularityRewardToast = (amount: number, type: 'like' | 'comment', threshold: number) => {
+  const title = type === 'like'
+    ? `❤️ 내 사진 좋아요 ${threshold}개 달성!`
+    : `💬 내 사진 댓글 ${threshold}개 달성!`;
+  toast(title, {
+    ...baseToast,
+    duration: 2000,
+    style: {
+      ...baseToast.style,
+      backgroundColor: '#fdf2f8',
+      color: '#9d174d',
+      fontWeight: 600,
+    },
+  });
+
+  setTimeout(() => {
+    toast(
+      <span>
+        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
+        획득!
+      </span>,
+      {
+        ...baseToast,
+        duration: 2000,
+        style: {
+          ...baseToast.style,
+          backgroundColor: '#ecfdf5',
+          color: '#065f46',
           fontWeight: 600,
         },
       },
