@@ -1,4 +1,4 @@
-import { ref, get, set, update, remove, onValue, off } from 'firebase/database';
+import { ref, get, set, update, remove, onValue, off, increment } from 'firebase/database';
 import { db, getCurrentUserId, getCachedUserName } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import { scheduleLikeUpdate } from './likeScheduler';
@@ -56,6 +56,8 @@ export const addGalleryComment = async (
     text: t,
     createdAt: now,
   });
+
+  await update(ref(db, `users/${empId}/gallery`), { commentedCount: increment(1) });
 
   return cid;
 };

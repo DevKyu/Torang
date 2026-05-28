@@ -135,6 +135,7 @@ export const findScoreStreakYm = (
     .sort((a, b) => a - b);
 
   let count = 0;
+  let prevYm: number | null = null;
 
   for (const ym of entries) {
     const y = String(Math.floor(ym / 100));
@@ -142,10 +143,24 @@ export const findScoreStreakYm = (
     const score = scores[y]?.[m];
 
     if ((score ?? 0) >= minScore) {
-      if (++count >= streak) return formatYm(Number(y), Number(m));
+      const consecutive =
+        prevYm !== null &&
+        (() => {
+          const py = Math.floor(prevYm / 100);
+          const pm = prevYm % 100;
+          const cy = Math.floor(ym / 100);
+          const cm = ym % 100;
+          return (
+            (pm === 12 && cy === py + 1 && cm === 1) ||
+            (pm !== 12 && cy === py && cm === pm + 1)
+          );
+        })();
+      count = consecutive ? count + 1 : 1;
+      if (count >= streak) return formatYm(Number(y), Number(m));
     } else {
       count = 0;
     }
+    prevYm = ym;
   }
 
   return null;
@@ -219,4 +234,25 @@ export const getActiveAchievementYm = (
   const today = useUiStore.getState().formatServerDate('ym');
   const target = getActiveYm(joinYm, months);
   return today >= target ? target : null;
+};
+
+export const findNthParticipationYm = (
+  scores: UserScores,
+  n: number,
+): string | null => {
+  const entries: number[] = [];
+  for (const y of Object.keys(scores)) {
+    const yearScores = scores[asYear(y)];
+    if (!yearScores) continue;
+    for (const m of Object.keys(yearScores)) {
+      const mKey = normalizeMonth(m);
+      if (mKey && typeof yearScores[mKey] === 'number') {
+        entries.push(Number(`${y}${String(mKey).padStart(2, '0')}`));
+      }
+    }
+  }
+  entries.sort((a, b) => a - b);
+  if (entries.length < n) return null;
+  const ym = entries[n - 1];
+  return formatYm(Math.floor(ym / 100), ym % 100);
 };

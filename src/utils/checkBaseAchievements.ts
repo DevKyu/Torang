@@ -1,6 +1,8 @@
 import {
   getAfterPartyParticipation,
   getCurrentUserId,
+  getUserGalleryUploadCount,
+  getUserGalleryCommentCount,
 } from '../services/firebase';
 import type { UserInfo, UserScores } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
@@ -13,6 +15,7 @@ import {
   findScoreStreakYm,
   findPersonalBestYm,
   findAfterPartyStreakYms,
+  findNthParticipationYm,
 } from '../utils/achievementHelpers';
 
 export const checkBaseAchievements = async (
@@ -28,6 +31,11 @@ export const checkBaseAchievements = async (
     results['participation_first'] = { achievedAt: firstYm };
   }
 
+  const count10Ym = !existing['participation_count_10']
+    ? findNthParticipationYm(scores, 10)
+    : null;
+  if (count10Ym) results['participation_count_10'] = { achievedAt: count10Ym };
+
   const streaks = findStreakYms(scores, [3, 6, 12, 24]);
   for (const [months, ym] of Object.entries(streaks)) {
     const key = `participation_streak_${months}`;
@@ -36,11 +44,15 @@ export const checkBaseAchievements = async (
     }
   }
 
-  const afterPartyMap = await getAfterPartyParticipation(empId);
-  const afterStreaks = findAfterPartyStreakYms(afterPartyMap, [3]);
+  const afterPartyMap = empId ? await getAfterPartyParticipation(empId) : {};
+  const afterStreaks = findAfterPartyStreakYms(afterPartyMap, [3, 6]);
   const after3m = afterStreaks[3];
   if (after3m && !existing['participation_afterparty_3']) {
     results['participation_afterparty_3'] = { achievedAt: after3m };
+  }
+  const after6m = afterStreaks[6];
+  if (after6m && !existing['participation_afterparty_6']) {
+    results['participation_afterparty_6'] = { achievedAt: after6m };
   }
 
   if (user.join) {
@@ -59,15 +71,21 @@ export const checkBaseAchievements = async (
     }
   }
 
-  if (
-    user.invitedCount &&
-    user.invitedCount >= 2 &&
-    !existing['active_invite_2']
-  ) {
+  if (user.invitedCount && user.invitedCount >= 2 && !existing['active_invite_2']) {
     results['active_invite_2'] = { achievedAt: todayYm() };
   }
 
-  const milestones = [100, 150, 180, 200];
+  if (empId && !existing['active_gallery_upload']) {
+    const uploadCount = await getUserGalleryUploadCount(empId);
+    if (uploadCount >= 10) results['active_gallery_upload'] = { achievedAt: todayYm() };
+  }
+
+  if (empId && !existing['active_gallery_comment']) {
+    const commentCount = await getUserGalleryCommentCount(empId);
+    if (commentCount >= 30) results['active_gallery_comment'] = { achievedAt: todayYm() };
+  }
+
+  const milestones = [100, 150, 180, 200, 220];
   const scoreResults = findScoreYms(scores, milestones);
   for (const ms of milestones) {
     const key = `score_${ms}`;
@@ -80,6 +98,11 @@ export const checkBaseAchievements = async (
   const consistentYm = findScoreStreakYm(scores, 150, 3);
   if (consistentYm && !existing['score_consistent_150']) {
     results['score_consistent_150'] = { achievedAt: consistentYm };
+  }
+
+  const consistent6Ym = findScoreStreakYm(scores, 150, 6);
+  if (consistent6Ym && !existing['score_consistent_150_6']) {
+    results['score_consistent_150_6'] = { achievedAt: consistent6Ym };
   }
 
   const bestYm = findPersonalBestYm(scores);

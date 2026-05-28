@@ -1,4 +1,4 @@
-import { getAllUserMatchResults, getCurrentUserId } from '../services/firebase';
+import { getAllUserMatchResults, getAllMissions, getCurrentUserId } from '../services/firebase';
 import type { AchievementResult } from '../types/achievement';
 import type { MatchType } from '../types/match';
 import { useUiStore } from '../stores/useUiStore';
@@ -73,8 +73,11 @@ export const checkMissionAchievements = async (
 
     if (pinMatches) {
       if (!pinFirst) pinFirst = ym;
-      const hasWin = Object.values(pinMatches).some((m) => m.result === 'win');
-      if (hasWin && !pinWin) pinWin = ym;
+      let monthHasWin = false;
+      for (const match of Object.values(pinMatches)) {
+        if (match.result === 'win') monthHasWin = true;
+      }
+      if (monthHasWin && !pinWin) pinWin = ym;
     }
   }
 
@@ -89,6 +92,23 @@ export const checkMissionAchievements = async (
   addIfNew('mission_pin_win1', pinWin);
   addIfNew('mission_rival_streak3', rivalStreak3);
   addIfNew('mission_rival_revenge', rivalRevenge);
+
+  if (!existing['mission_villain_success'] || !existing['mission_villain_found']) {
+    const allMissions = await getAllMissions();
+    for (const [ym, data] of Object.entries(allMissions)) {
+      const mission = data as any;
+      if (!existing['mission_villain_success'] && !results['mission_villain_success'] &&
+          mission?.result?.villainWon === true && mission?.roles?.villain === empId) {
+        results['mission_villain_success'] = { achievedAt: ym };
+      }
+      if (!existing['mission_villain_found'] && !results['mission_villain_found'] &&
+          mission?.result?.villainWon === false &&
+          mission?.roles?.villain &&
+          mission?.votes?.[empId] === mission.roles.villain) {
+        results['mission_villain_found'] = { achievedAt: ym };
+      }
+    }
+  }
 
   return results;
 };

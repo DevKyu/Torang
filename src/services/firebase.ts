@@ -580,3 +580,20 @@ export const getAfterPartyParticipation = async (
   return result;
 };
 
+export const getUserGalleryUploadCount = async (empId: string): Promise<number> => {
+  const snap = await get(ref(db, `users/${empId}/gallery/uploadedCount`));
+  if (!snap.exists()) return 0;
+  const data = snap.val() as Record<string, number>;
+  return Object.values(data).reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0);
+};
+
+export const getUserGalleryCommentCount = async (empId: string): Promise<number> => {
+  const snap = await get(ref(db, `users/${empId}/gallery/commentedCount`));
+  return snap.exists() ? (snap.val() as number) : 0;
+};
+
+export const getAllMissions = async (): Promise<Record<string, any>> => {
+  const snap = await get(ref(db, 'missions'));
+  return snap.exists() ? snap.val() : {};
+};
+
