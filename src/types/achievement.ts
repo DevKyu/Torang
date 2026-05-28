@@ -233,7 +233,7 @@ export const achievementGroups: AchievementGroup[] = [
       {
         id: 'score_consistent_150_6',
         category: 'score',
-        label: '꾸준왕',
+        label: '진정한 실력자',
         desc: '6개월간 150점 이상',
         icon: '🌳',
       },
