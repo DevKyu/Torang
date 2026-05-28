@@ -11,7 +11,6 @@ export type PinRewardConfig = {
   rivalMatch: number;
   pinMatch: number;
   achievement: number;
-  referral: number;
 };
 
 export type GalleryRewardItem = { pin: number; threshold: number };
@@ -42,7 +41,6 @@ const DEFAULT_REWARD: PinRewardConfig = {
   rivalMatch: 0,
   pinMatch: 0,
   achievement: 0,
-  referral: 0,
 };
 
 const DEFAULT_GALLERY_REWARD: GalleryRewardConfig = {
@@ -56,6 +54,7 @@ type EventStore = {
   pinReward: Record<string, PinRewardConfig>;
   galleryReward: Record<string, GalleryRewardConfig>;
   matchType: MatchType;
+  referralPin: number;
   loaded: boolean;
 
   loadEventConfig(): Promise<void>;
@@ -66,6 +65,7 @@ type EventStore = {
   getThisMonthPinReward(): PinRewardConfig;
   getPinRewardRate(key: keyof PinRewardConfig): number;
   isPinRewardEnabled(key: keyof PinRewardConfig): boolean;
+  getReferralPin(): number;
   getGalleryReward(ym?: string): GalleryRewardConfig;
 };
 
@@ -74,6 +74,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
   pinReward: {},
   galleryReward: {},
   matchType: 'rival',
+  referralPin: 0,
   loaded: false,
 
   loadEventConfig: async () => {
@@ -104,6 +105,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
         pinReward: normalizedReward,
         galleryReward: normalizedGalleryReward,
         matchType: (v.matchType as MatchType) ?? 'rival',
+        referralPin: typeof v.referralPin === 'number' ? v.referralPin : 0,
         loaded: true,
       });
     } catch {
@@ -134,6 +136,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
   isPinRewardEnabled: (key) => {
     return get().getPinRewardRate(key) > 0;
   },
+
+  getReferralPin: () => get().referralPin,
 
   getGalleryReward: (ym) => {
     const ui = useUiStore.getState();

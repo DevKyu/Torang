@@ -127,7 +127,7 @@ export const useActivityRewards = (ym: string) => {
       try {
         const [rewardsSnap, referrerSnap] = await Promise.all([
           get(ref(db, `users/${empId}/rewards/${ym}`)),
-          get(ref(db, `users/${empId}/referrer`)),
+          get(ref(db, `referrals/${empId}`)),
         ]);
         if (cancelled) return;
 

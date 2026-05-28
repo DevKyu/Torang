@@ -94,20 +94,18 @@ export const registerUid = async (empId: string, referrerName?: string) => {
   const uid = getCurrentUserOrThrow().uid;
   const join = getYearMonth();
 
-  const updates: Record<string, any> = { uid, join };
+  const userUpdates: Record<string, any> = { uid, join };
+  await update(ref(db, `users/${empId}`), userUpdates);
 
   if (referrerName && referrerName.trim()) {
     const refEmpId = await findEmpIdByName(referrerName.trim());
-
     if (refEmpId) {
-      updates.referrer = {
-        refEmpId: refEmpId,
+      await set(ref(db, `referrals/${empId}`), {
+        refEmpId,
         referrerName: referrerName.trim(),
-      };
+      });
     }
   }
-
-  await update(ref(db, `users/${empId}`), updates);
 };
 
 export const findEmpIdByName = async (name: string): Promise<string | null> => {
@@ -581,3 +579,4 @@ export const getAfterPartyParticipation = async (
   }
   return result;
 };
+

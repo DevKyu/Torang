@@ -59,7 +59,6 @@ const PIN_KEYS = [
   'targetScore',
   'rivalMatch',
   'pinMatch',
-  'referral',
 ] as const;
 type PinKey = (typeof PIN_KEYS)[number];
 
@@ -68,7 +67,6 @@ const PIN_LABEL: Record<PinKey, string> = {
   targetScore: '🎯 목표 점수',
   rivalMatch: '🥊 라이벌 매치',
   pinMatch: '📌 핀 매치',
-  referral: '🤝 친구 추천',
 };
 
 type MenuDraft = Record<
@@ -88,7 +86,6 @@ const DEFAULT_REWARD: RewardDraft = {
   targetScore: 0,
   rivalMatch: 0,
   pinMatch: 0,
-  referral: 0,
 };
 
 const GALLERY_REWARD_KEYS = ['upload', 'likeCreator', 'commentCreator'] as const;
@@ -126,7 +123,7 @@ const getYmList = (base: string, count = 4) => {
 };
 
 export default function AdminEvent() {
-  const { menu, pinReward, galleryReward, matchType: storedMatchType, loadEventConfig } = useEventStore();
+  const { menu, pinReward, galleryReward, matchType: storedMatchType, referralPin: storedReferralPin, loadEventConfig } = useEventStore();
   const ui = useUiStore();
   const navigate = useNavigate();
 
@@ -138,6 +135,7 @@ export default function AdminEvent() {
   const [rewardDraft, setRewardDraft] = useState<RewardDraft>(DEFAULT_REWARD);
   const [galleryRewardDraft, setGalleryRewardDraft] = useState<GalleryRewardDraft>(DEFAULT_GALLERY_REWARD_DRAFT);
   const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
+  const [referralPinDraft, setReferralPinDraft] = useState<number>(0);
   const [distributing, setDistributing] = useState(false);
 
   useEffect(() => {
@@ -147,6 +145,10 @@ export default function AdminEvent() {
   useEffect(() => {
     setMatchTypeDraft(storedMatchType);
   }, [storedMatchType]);
+
+  useEffect(() => {
+    setReferralPinDraft(storedReferralPin);
+  }, [storedReferralPin]);
 
   useEffect(() => {
     const next: MenuDraft = {} as MenuDraft;
@@ -203,10 +205,11 @@ export default function AdminEvent() {
       set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft),
       set(ref(db, `eventConfig/galleryReward/${selectedYm}`), galleryRewardDraft),
       set(ref(db, 'eventConfig/matchType'), matchTypeDraft),
+      set(ref(db, 'eventConfig/referralPin'), referralPinDraft),
     ]);
     await loadEventConfig();
     alert('✅ 저장 완료');
-  }, [menuDraft, rewardDraft, galleryRewardDraft, matchTypeDraft, selectedYm, loadEventConfig]);
+  }, [menuDraft, rewardDraft, galleryRewardDraft, matchTypeDraft, referralPinDraft, selectedYm, loadEventConfig]);
 
   const handleDistribute = useCallback(async () => {
     const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
@@ -476,6 +479,33 @@ export default function AdminEvent() {
             );
           })}
         </RewardGrid>
+      </Section>
+
+      <Section>
+        <SectionTitle>🤝 친구 추천 보상 설정</SectionTitle>
+        <RewardActionRow>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>추천인 보상 (고정 핀)</span>
+          <RateGroup>
+            {RATE_OPTIONS.map((v) => (
+              <button
+                key={v}
+                className={referralPinDraft === v ? 'active' : ''}
+                onClick={() => setReferralPinDraft(v)}
+              >
+                {v}
+              </button>
+            ))}
+            <button
+              className={referralPinDraft === 0 ? 'active' : ''}
+              onClick={() => setReferralPinDraft(0)}
+            >
+              OFF
+            </button>
+          </RateGroup>
+        </RewardActionRow>
+        <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '4px 0 0' }}>
+          월별 설정과 무관하게 적용되는 고정 보상입니다. 추천인·신규 가입자 양측에 동일하게 지급됩니다.
+        </p>
       </Section>
 
       <SaveButton onClick={saveAll}>💾 전체 저장</SaveButton>

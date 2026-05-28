@@ -38,6 +38,7 @@ type ApplyPinRewardPayload = {
   type: 'match' | 'referral';
   ym: string;
   detail?: string;
+  incrementInvitedCount?: boolean;
 };
 
 export const applyPinRewardServer = async (payload: ApplyPinRewardPayload) => {
@@ -213,11 +214,11 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
   const empId = getCurrentUserId();
   if (!empId) return false;
 
-  const pin = useEventStore.getState().getPinRewardRate('referral');
+  const pin = useEventStore.getState().getReferralPin();
   if (pin <= 0) return false;
 
-  const referrerRef = ref(db, `users/${empId}/referrer`);
-  const snap = await get(referrerRef);
+  const referralRef = ref(db, `referrals/${empId}`);
+  const snap = await get(referralRef);
   if (!snap.exists()) return false;
 
   const data = snap.val();
@@ -227,7 +228,7 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
   const rewardedAt = getServerTimestamp();
   const ym = formatServerDate('ym');
 
-  const tx = await runTransaction(referrerRef, (cur) => {
+  const tx = await runTransaction(referralRef, (cur) => {
     if (!cur || cur.rewarded) return cur;
     return { ...cur, rewarded: true, rewardedAt, pin };
   });
@@ -256,15 +257,25 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
       }),
     ]);
   } catch {
-    await runTransaction(referrerRef, (cur) => {
+    await runTransaction(referralRef, (cur) => {
       if (!cur) return cur;
       const reset = { ...cur };
       delete reset.rewarded;
       delete reset.rewardedAt;
+      delete reset.pin;
       return reset;
     });
     return false;
   }
+
+  // invitedCount 증가 — 보상 지급 후 별도 처리 (실패 시 마이그레이션으로 보정 가능)
+  applyPinRewardServer({
+    empId: data.refEmpId,
+    pin: 0,
+    type: 'referral',
+    ym,
+    incrementInvitedCount: true,
+  }).catch(() => {});
 
   setTimeout(() => showReferrerRewardToast(pin), 1500);
   return true;

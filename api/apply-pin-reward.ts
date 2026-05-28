@@ -22,29 +22,39 @@ if (!getApps().length) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { empId, pin, type, detail, ym } = req.body;
+  const { empId, pin, type, detail, ym, incrementInvitedCount } = req.body;
   if (!empId || typeof pin !== 'number' || !type || !ym) {
     return res.status(400).json({ error: 'invalid payload' });
   }
 
   try {
     const db = getDatabase();
-    const pinRef = db.ref(`users/${empId}/pin`);
+    const ops: Promise<unknown>[] = [];
 
-    await pinRef.transaction((cur) => Number(cur || 0) + pin);
+    if (pin !== 0) {
+      ops.push(db.ref(`users/${empId}/pin`).transaction((cur) => Number(cur || 0) + pin));
 
-    const readable = new Date().toISOString().replace(/\D/g, '').slice(0, 12);
+      const readable = new Date().toISOString().replace(/\D/g, '').slice(0, 12);
+      ops.push(
+        db.ref(`users/${empId}/rewards/${ym}/${type}/${readable}`).set({
+          type,
+          direction: pin > 0 ? 'gain' : 'loss',
+          pin,
+          ym,
+          detail: detail ?? '',
+          createdAt: readable,
+          createdAtMs: Date.now(),
+        }),
+      );
+    }
 
-    await db.ref(`users/${empId}/rewards/${ym}/${type}/${readable}`).set({
-      type,
-      direction: pin > 0 ? 'gain' : 'loss',
-      pin,
-      ym,
-      detail: detail ?? '',
-      createdAt: readable,
-      createdAtMs: Date.now(),
-    });
+    if (incrementInvitedCount) {
+      ops.push(
+        db.ref(`users/${empId}/invitedCount`).transaction((cur) => (cur || 0) + 1),
+      );
+    }
 
+    await Promise.all(ops);
     res.status(200).json({ success: true });
   } catch (e: any) {
     console.error('[APPLY PIN]', e);
