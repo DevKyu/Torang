@@ -1,6 +1,9 @@
 import { toast } from 'sonner';
 
-const rankingToast = {
+const formatPins = (value: number) =>
+  Number.isInteger(value) ? String(value) : value.toFixed(1);
+
+const base = {
   position: 'top-center' as const,
   duration: 2000,
   style: {
@@ -12,41 +15,39 @@ const rankingToast = {
   },
 };
 
+const colored = (bg: string, color: string) => ({
+  ...base,
+  style: { ...base.style, backgroundColor: bg, color, fontWeight: 600 },
+});
+
+const BLUE   = colored('#eff6ff', '#1e40af');
+const GREEN  = colored('#ecfdf5', '#065f46');
+const PINK   = colored('#fdf2f8', '#9d174d');
+const RED    = colored('#fef2f2', '#b91c1c');
+const ORANGE = colored('#fff7ed', '#9a3412');
+
+const showDelayedPinToast = (amount: number) => {
+  setTimeout(() => {
+    toast(
+      <span>
+        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개 획득!
+      </span>,
+      GREEN,
+    );
+  }, 1500);
+};
+
 export const showToast = (
   message: string,
   id?: string,
   type?: 'pick' | 'unpick',
 ) => {
   const icon = type === 'pick' ? '⚔️' : type === 'unpick' ? '❌' : '';
-
-  toast(`${icon ? icon + ' ' : ''}${message}`, {
-    id,
-    ...rankingToast,
-  });
+  toast(`${icon ? icon + ' ' : ''}${message}`, { id, ...base });
 };
 
-const baseToast = {
-  position: 'top-center' as const,
-  style: {
-    backgroundColor: '#f9fafb',
-    color: '#1f2937',
-    borderRadius: '12px',
-    padding: '10px 16px',
-    fontSize: '0.9rem',
-  },
-};
-
-export const showAchievemenToast = () => {
-  toast('🏆 새로운 업적 달성', {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#eff6ff',
-      color: '#1e40af',
-      fontWeight: 600,
-    },
-  });
+export const showAchievementToast = () => {
+  toast('🏆 새로운 업적 달성', BLUE);
 };
 
 export const showPinRewardToast = (amount: number) => {
@@ -54,47 +55,19 @@ export const showPinRewardToast = (amount: number) => {
     <span>
       🎳 또랑핀 <b style={{ fontWeight: 700 }}>{amount}</b>개 획득!
     </span>,
-    {
-      ...baseToast,
-      duration: 2000,
-      style: {
-        ...baseToast.style,
-        backgroundColor: '#ecfdf5',
-        color: '#065f46',
-      },
-    },
+    GREEN,
   );
 };
 
-const hiddenNamesBaseToast = {
-  position: 'top-center' as const,
-  style: {
-    backgroundColor: '#f9fafb',
-    color: '#1f2937',
-    borderRadius: '12px',
-    padding: '10px 16px',
-    fontSize: '0.9rem',
-  },
-};
 export const showHiddenNamesToast = (
   productName?: string,
   names?: string[],
 ) => {
   const safeNames = names ?? [];
-
   toast.dismiss();
 
   if (!safeNames.length) {
-    toast('🙅 추가 인원 없음', {
-      ...hiddenNamesBaseToast,
-      duration: 2000,
-      style: {
-        ...hiddenNamesBaseToast.style,
-        backgroundColor: '#fef2f2',
-        color: '#b91c1c',
-        fontWeight: 600,
-      },
-    });
+    toast('🙅 추가 인원 없음', RED);
     return;
   }
 
@@ -107,185 +80,41 @@ export const showHiddenNamesToast = (
         {safeNames.join(', ')}
       </span>
     </div>,
-    {
-      ...hiddenNamesBaseToast,
-      duration: 3000,
-      style: {
-        ...hiddenNamesBaseToast.style,
-        backgroundColor: '#fff7ed',
-        color: '#9a3412',
-      },
-    },
+    { ...ORANGE, duration: 3000 },
   );
 };
 
 type MatchType = 'rival' | 'pin';
 export const showMatchWithPinToast = (amount: number, type: MatchType) => {
-  const title =
-    type === 'rival' ? '🏆 라이벌 매치 승리!' : '🏆 핀 쟁탈전 승리!';
-
-  toast(title, {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#eff6ff',
-      color: '#1e40af',
-      fontWeight: 600,
-    },
-  });
-
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-          fontWeight: 600,
-        },
-      },
-    );
-  }, 1500);
+  const title = type === 'rival' ? '🏆 라이벌 매치 승리!' : '🏆 핀 쟁탈전 승리!';
+  toast(title, BLUE);
+  showDelayedPinToast(amount);
 };
 
 export const showTargetWithPinToast = (amount: number) => {
-  toast('🎯 목표 점수 달성!', {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#f0f9ff',
-      color: '#0369a1',
-      fontWeight: 600,
-    },
-  });
-
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-          fontWeight: 600,
-        },
-      },
-    );
-  }, 1500);
+  toast('🎯 목표 점수 달성!', BLUE);
+  showDelayedPinToast(amount);
 };
 
 export const showGalleryRewardToast = (amount: number) => {
-  toast('📸 사진 업로드 미션 성공!', {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#f0f9ff',
-      color: '#0369a1',
-      fontWeight: 600,
-    },
-  });
-
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-          fontWeight: 600,
-        },
-      },
-    );
-  }, 1500);
+  toast('📸 사진 업로드 미션 성공!', BLUE);
+  showDelayedPinToast(amount);
 };
 
-export const showGalleryPopularityRewardToast = (amount: number, type: 'like' | 'comment', threshold: number) => {
-  const title = type === 'like'
-    ? `❤️ 내 사진 좋아요 ${threshold}개 달성!`
-    : `💬 내 사진 댓글 ${threshold}개 달성!`;
-  toast(title, {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#fdf2f8',
-      color: '#9d174d',
-      fontWeight: 600,
-    },
-  });
-
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-          fontWeight: 600,
-        },
-      },
-    );
-  }, 1500);
+export const showGalleryPopularityRewardToast = (
+  amount: number,
+  type: 'like' | 'comment',
+  threshold: number,
+) => {
+  const title =
+    type === 'like'
+      ? `❤️ 내 사진 좋아요 ${threshold}개 달성!`
+      : `💬 내 사진 댓글 ${threshold}개 달성!`;
+  toast(title, PINK);
+  showDelayedPinToast(amount);
 };
 
 export const showReferrerRewardToast = (amount: number) => {
-  toast('🤝 친구 추천으로 가입했어요!', {
-    ...baseToast,
-    duration: 2000,
-    style: {
-      ...baseToast.style,
-      backgroundColor: '#f0f9ff',
-      color: '#0369a1',
-      fontWeight: 600,
-    },
-  });
-
-  setTimeout(() => {
-    toast(
-      <span>
-        🎳 또랑핀 <b style={{ fontWeight: 700 }}>{formatPins(amount)}</b>개
-        획득!
-      </span>,
-      {
-        ...baseToast,
-        duration: 2000,
-        style: {
-          ...baseToast.style,
-          backgroundColor: '#ecfdf5',
-          color: '#065f46',
-          fontWeight: 600,
-        },
-      },
-    );
-  }, 1500);
-};
-
-const formatPins = (value: number) => {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  toast('🤝 친구 추천으로 가입했어요!', BLUE);
+  showDelayedPinToast(amount);
 };

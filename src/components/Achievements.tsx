@@ -38,7 +38,7 @@ import { Check } from 'lucide-react';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
 import { grantAchievementPinReward } from '../utils/pin';
-import { showAchievemenToast } from '../utils/toast';
+import { showAchievementToast } from '../utils/toast';
 
 const toMonthLabel = (dateStr: string): string => {
   const digits = dateStr.replace(/\D/g, '');
@@ -105,7 +105,7 @@ const Achievements = () => {
             ticks: 200,
             colors: ['#22c55e', '#3b82f6', '#facc15'],
           });
-          showAchievemenToast();
+          showAchievementToast();
 
           if (isPinRewardEnabled('achievement') && empId) {
             const activityYm = activityYmd
