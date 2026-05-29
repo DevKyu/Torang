@@ -160,7 +160,7 @@ const MyInfo = () => {
         toast.success(`${key}월 목표 점수를 저장했어요.`);
       } catch {
         rollbackTarget(key);
-        toast.error(`${key}월 목표 점수 저장을 실패했어요.`);
+        toast.error(`${key}월 목표 점수 저장에 실패했어요.`);
       }
     },
     [year, rollbackTarget],

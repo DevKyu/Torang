@@ -192,7 +192,7 @@ const GalleryUpload = ({
   const submit = useCallback(async () => {
     if (disabled || uploading) return;
     if (!items.length) {
-      toast.error('업로드할 사진을 선택해주세요.');
+      toast.error('업로드할 사진을 선택해 주세요.');
       return;
     }
     setUploading(true);

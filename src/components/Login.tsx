@@ -205,7 +205,7 @@ const Login = () => {
     try {
       if (auth.currentUser && !auth.currentUser.isAnonymous) {
         await updatePassword(auth.currentUser, newPassword);
-        toast.success('비밀번호가 변경되었어요.');
+        toast.success('비밀번호가 변경됐어요.');
         await logOut();
         await loginUser(email, newPassword);
         navigate('/menu', { replace: true });
