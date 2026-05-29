@@ -333,6 +333,10 @@ const AdminUserManagement = () => {
           >
             🍻 뒤풀이 참여자 관리
           </AdminSubLink>
+
+          <AdminSubLink onClick={() => navigate('/admin/products')}>
+            📦 상품 관리
+          </AdminSubLink>
         </AdminSubLinkRow>
       </AdminLinkSection>
 

@@ -21,6 +21,7 @@ const AdminActivityParticipants = lazy(
   () => import('../components/admin/AdminActivityParticipants'),
 );
 const AdminMission = lazy(() => import('../components/admin/AdminMission'));
+const AdminProducts = lazy(() => import('../components/admin/AdminProducts'));
 
 const Router = () => (
   <Suspense fallback={null}>
@@ -49,6 +50,7 @@ const Router = () => (
           element={<AdminActivityParticipants mode="afterParty" />}
         />
         <Route path="/admin/mission" element={<AdminMission />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
