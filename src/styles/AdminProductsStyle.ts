@@ -27,6 +27,11 @@ export const YmSelect = styled.select`
     outline: none;
     border-color: #c7a27c;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 export const ColHeader = styled.div`
@@ -286,4 +291,56 @@ export const Divider = styled.hr`
   border: none;
   border-top: 1px solid #e5e7eb;
   margin: 24px 0;
+`;
+
+export const DrawActionRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+`;
+
+export const StatusBadge = styled.span<{ $ready: boolean }>`
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: ${({ $ready }) => ($ready ? '#d1fae5' : '#f3f4f6')};
+  color: ${({ $ready }) => ($ready ? '#059669' : '#6b7280')};
+  white-space: nowrap;
+`;
+
+export const ComputeButton = styled.button`
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  margin-bottom: 12px;
+
+  &:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: default;
+  }
+
+  &:not(:disabled) {
+    &:active {
+      transform: scale(0.985);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
 `;

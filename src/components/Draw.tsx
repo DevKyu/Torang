@@ -1,15 +1,16 @@
 import confetti from 'canvas-confetti';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { onValue, ref } from 'firebase/database';
+import { ClipLoader } from 'react-spinners';
 
 import {
   Container,
   ContentBox,
-  Title,
-  Button,
   SmallText,
 } from '../styles/commonStyle';
 import {
+  DrawTitle,
   DrawGridContainer,
   CardContainer,
   ScrollableCardGridWrapper,
@@ -17,54 +18,56 @@ import {
   CompletionMessage,
   FooterWrapper,
   HeaderWrapper,
+  DrawButton,
+  DrawLoadingBox,
+  PrepareSection,
+  PrepareIcon,
+  PrepareTitle,
+  PrepareDesc,
 } from '../styles/drawStyle';
 
 import {
+  db,
   getProductBundle,
   getCurrentUserId,
   preloadAllNames,
 } from '../services/firebase';
-import { useLoading } from '../contexts/LoadingContext';
 import { ProductCard } from './ProductCard';
-import { ensureBatchWinners } from '../utils/ensureBatchWinners';
-import { useUiStore } from '../stores/useUiStore';
+import { getQuarterEndYm } from '../utils/date';
+import type { ProductItem } from '../types/Product';
 
-type DrawState = 'waiting' | 'drawing' | 'done';
-
-type Product = {
-  name: string;
-  requiredPins: number;
-  index: number;
-  raffle?: string[];
-  winners?: string[];
+const orderProducts = (items: ProductItem[], drawOrder?: number[]): ProductItem[] => {
+  if (drawOrder?.length) {
+    const map = new Map(items.map((p) => [p.index, p]));
+    return drawOrder.map((idx) => map.get(idx)).filter(Boolean) as ProductItem[];
+  }
+  return [...items].sort((a, b) => b.requiredPins - a.requiredPins || a.index - b.index);
 };
 
-type SupplementMap = Record<number, string[]>;
+type DrawState = 'waiting' | 'drawing' | 'done';
+type SupplementMap = Record<string, string[]>;
 
 const Draw = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
   const [supplement, setSupplement] = useState<SupplementMap>({});
   const [flippedSet, setFlippedSet] = useState<Set<number>>(new Set());
   const [drawState, setDrawState] = useState<DrawState>('waiting');
   const [currentEmpId, setCurrentEmpId] = useState<string>('');
   const [isScrollable, setIsScrollable] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [winnersReady, setWinnersReady] = useState(false);
 
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const { showLoadingWithTimeout, hideLoading } = useLoading();
-  const { formatServerDate } = useUiStore();
   const navigate = useNavigate();
 
-  const ym = useMemo(() => formatServerDate('ym'), [formatServerDate]);
+  const ym = useMemo(() => getQuarterEndYm(), []);
 
   useEffect(() => {
     const el = scrollWrapperRef.current;
     if (!el) return;
 
-    const update = () => {
-      setIsScrollable(el.scrollHeight > el.clientHeight + 4);
-    };
-
+    const update = () => setIsScrollable(el.scrollHeight > el.clientHeight + 4);
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
@@ -72,37 +75,76 @@ const Draw = () => {
 
   useEffect(() => {
     const init = async () => {
-      showLoadingWithTimeout();
-
       try {
-        await ensureBatchWinners(ym, navigate);
+        const [userId, bundle] = await Promise.all([
+          getCurrentUserId(),
+          getProductBundle(ym),
+        ]);
 
-        const userId = await getCurrentUserId();
-        const bundle = await getProductBundle(ym);
-        if (!bundle) return;
+        if (!bundle.items.length) {
+          navigate('/menu', { replace: true });
+          return;
+        }
 
         await preloadAllNames();
-        setProducts(bundle.items);
+        setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
         setSupplement(bundle.meta?.supplement ?? {});
         setCurrentEmpId(userId ?? '');
+        setWinnersReady(bundle.meta?.winnersReady ?? false);
       } catch {
-        navigate('/', { replace: true });
+        navigate('/menu', { replace: true });
       } finally {
-        hideLoading();
+        setLoading(false);
       }
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ym]);
+
+  useEffect(() => {
+    if (loading || winnersReady) return;
+
+    const unsub = onValue(ref(db, `products/${ym}/meta/winnersReady`), async (snap) => {
+      if (snap.val() !== true) return;
+      try {
+        const bundle = await getProductBundle(ym);
+        setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
+        setSupplement(bundle.meta?.supplement ?? {});
+        setWinnersReady(true);
+      } catch {
+        // silent — 준비 화면 유지
+      }
+    });
+
+    return unsub;
+  }, [loading, winnersReady, ym]);
+
+  useEffect(() => {
+    if (products.length > 0 && flippedSet.size === products.length) {
+      setDrawState('done');
+    }
+  }, [flippedSet, products.length]);
+
+  const hasSelfWon = useMemo(
+    () =>
+      products.some((p) => {
+        const supIds = supplement[String(p.index)] ?? [];
+        return (p.winners ?? []).includes(currentEmpId) || supIds.includes(currentEmpId);
+      }),
+    [products, supplement, currentEmpId],
+  );
 
   const scrollToCard = (index: number) => {
     const el = cardRefs.current[index];
     const wrapper = scrollWrapperRef.current;
     if (!el || !wrapper) return;
 
-    const targetOffset = el.offsetTop + el.offsetHeight / 2;
-    const scrollPosition = targetOffset - wrapper.clientHeight / 2;
-    wrapper.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    const elRect = el.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const scrollTarget =
+      wrapper.scrollTop + (elRect.top - wrapperRect.top) + elRect.height / 2 - wrapper.clientHeight / 2;
+    wrapper.scrollTo({ top: scrollTarget, behavior: 'smooth' });
   };
 
   const fireConfettiAtCard = (index: number) => {
@@ -125,19 +167,18 @@ const Draw = () => {
     });
   };
 
-  const handleFlip = async (index: number) => {
+  const handleFlip = (index: number) => {
     if (flippedSet.has(index)) return;
 
     const product = products.find((p) => p.index === index);
     if (!product) return;
 
     const winnerIds = product.winners ?? [];
-    const supIds = supplement[product.index] ?? [];
+    const supIds = supplement[String(index)] ?? [];
 
     setFlippedSet((prev) => {
       const next = new Set(prev);
       next.add(index);
-      if (next.size === products.length) setDrawState('done');
       return next;
     });
 
@@ -154,17 +195,61 @@ const Draw = () => {
 
     const toReveal = products.filter((p) => !flippedSet.has(p.index));
     for (const p of toReveal) {
-      await handleFlip(p.index);
+      handleFlip(p.index);
       await new Promise((r) => setTimeout(r, 800));
     }
-
-    setDrawState('done');
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <ContentBox padding="draw">
+          <DrawTitle>상품 추첨</DrawTitle>
+          <DrawLoadingBox>
+            <ClipLoader size={24} color="#9ca3af" />
+          </DrawLoadingBox>
+          <SmallText
+            top="middle"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            onClick={() => navigate('/menu', { replace: true })}
+          >
+            돌아가기
+          </SmallText>
+        </ContentBox>
+      </Container>
+    );
+  }
+
+  if (!winnersReady) {
+    return (
+      <Container>
+        <ContentBox padding="draw">
+          <DrawTitle>상품 추첨</DrawTitle>
+          <PrepareSection>
+            <PrepareIcon>🎁</PrepareIcon>
+            <PrepareTitle>추첨 결과를 준비 중이에요</PrepareTitle>
+            <PrepareDesc>{'조금만 기다려주세요.\n결과가 곧 공개될 예정이에요 ✨'}</PrepareDesc>
+          </PrepareSection>
+          <SmallText
+            top="middle"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            onClick={() => navigate('/menu', { replace: true })}
+          >
+            돌아가기
+          </SmallText>
+        </ContentBox>
+      </Container>
+    );
+  }
 
   return (
     <Container>
       <ContentBox padding="draw">
-        <Title>상품 추첨</Title>
+        <DrawTitle>상품 추첨</DrawTitle>
 
         <HeaderWrapper>
           <StickyHeader
@@ -186,23 +271,18 @@ const Draw = () => {
             }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
           >
-            🎉 당첨을 축하드립니다!
+            {hasSelfWon ? '🎉 당첨을 축하드립니다!' : '아쉽지만 다음 기회에 🍀'}
           </CompletionMessage>
         </HeaderWrapper>
 
-        <ScrollableCardGridWrapper
-          ref={scrollWrapperRef}
-          scrollable={isScrollable}
-        >
+        <ScrollableCardGridWrapper ref={scrollWrapperRef} scrollable={isScrollable}>
           <DrawGridContainer>
             {products.map((product) => {
-              const supIds = supplement[product.index] ?? [];
+              const supIds = supplement[String(product.index)] ?? [];
               return (
                 <CardContainer
                   key={product.index}
-                  ref={(el) => {
-                    cardRefs.current[product.index] = el;
-                  }}
+                  ref={(el) => { cardRefs.current[product.index] = el; }}
                   onClick={() => {
                     if (drawState !== 'waiting') return;
                     handleFlip(product.index);
@@ -225,7 +305,7 @@ const Draw = () => {
         </ScrollableCardGridWrapper>
 
         <FooterWrapper>
-          <Button
+          <DrawButton
             onClick={handleSequentialReveal}
             disabled={drawState !== 'waiting'}
           >
@@ -234,12 +314,11 @@ const Draw = () => {
               : drawState === 'done'
                 ? '추첨 완료'
                 : '전체 결과 공개'}
-          </Button>
+          </DrawButton>
           <SmallText
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
+            transition={{ duration: 0.4 }}
             onClick={() => navigate('/menu', { replace: true })}
           >
             돌아가기

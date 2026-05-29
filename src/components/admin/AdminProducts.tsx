@@ -6,6 +6,7 @@ import AdminLayout from './AdminLayout';
 import { db, getCachedUserName, preloadAllNames } from '../../services/firebase';
 import { SmallText } from '../../styles/commonStyle';
 import { getQuarterEndYm } from '../../utils/date';
+import { computeAndSaveWinners } from '../../utils/computeAndSaveWinners';
 import type { ProductItem } from '../../types/Product';
 import {
   Section,
@@ -30,6 +31,9 @@ import {
   ResetButton,
   EmptyNote,
   Divider,
+  DrawActionRow,
+  StatusBadge,
+  ComputeButton,
 } from '../../styles/AdminProductsStyle';
 
 type DraftProduct = {
@@ -40,6 +44,12 @@ type DraftProduct = {
   imageUrl: string;
   raffle: string[];
   winners: string[];
+};
+
+type ProductMeta = {
+  winnersReady?: boolean;
+  status?: string;
+  generatedAt?: number;
 };
 
 const getQuarterOptions = (): string[] => {
@@ -56,8 +66,10 @@ const AdminProducts = () => {
   const ymOptions = useMemo(() => getQuarterOptions(), []);
   const [selectedYm, setSelectedYm] = useState(getQuarterEndYm());
   const [drafts, setDrafts] = useState<DraftProduct[]>([]);
+  const [meta, setMeta] = useState<ProductMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [computing, setComputing] = useState(false);
   const [namesLoaded, setNamesLoaded] = useState(false);
 
   const loadData = useCallback(async (ym: string) => {
@@ -66,15 +78,18 @@ const AdminProducts = () => {
       await preloadAllNames();
       setNamesLoaded(true);
 
-      const snap = await get(ref(db, `products/${ym}/items`));
+      const snap = await get(ref(db, `products/${ym}`));
       if (!snap.exists()) {
         setDrafts([]);
+        setMeta(null);
         return;
       }
 
-      const raw = snap.val() as ProductItem[] | Record<string, ProductItem>;
+      const data = snap.val();
+      const raw = data.items ?? {};
       const items: ProductItem[] = Array.isArray(raw) ? raw : Object.values(raw);
 
+      setMeta(data.meta ?? null);
       setDrafts(
         items.map((item) => ({
           name: item.name ?? '',
@@ -97,7 +112,11 @@ const AdminProducts = () => {
     loadData(selectedYm);
   }, [selectedYm, loadData]);
 
-  const updateDraft = (i: number, field: keyof Pick<DraftProduct, 'name' | 'requiredPins' | 'winnersCount' | 'description' | 'imageUrl'>, value: string | number) => {
+  const updateDraft = (
+    i: number,
+    field: keyof Pick<DraftProduct, 'name' | 'requiredPins' | 'winnersCount' | 'description' | 'imageUrl'>,
+    value: string | number,
+  ) => {
     setDrafts((prev) => {
       const next = [...prev];
       next[i] = { ...next[i], [field]: value };
@@ -134,13 +153,43 @@ const AdminProducts = () => {
         ...(d.winners.length > 0 ? { winners: d.winners } : {}),
       }));
 
-      await set(ref(db, `products/${selectedYm}/items`), items);
-      toast.success('저장됐어요.');
+      const batch: Record<string, any> = {
+        [`products/${selectedYm}/items`]: items,
+      };
+      if (meta?.winnersReady) {
+        batch[`products/${selectedYm}/meta`] = null;
+      }
+      await update(ref(db), batch);
+
+      if (meta?.winnersReady) {
+        toast.success('저장됐어요. 상품이 변경됐으니 당첨자를 재계산해 주세요.');
+      } else {
+        toast.success('저장됐어요.');
+      }
       await loadData(selectedYm);
     } catch {
       toast.error('저장에 실패했어요.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCompute = async () => {
+    if (computing) return;
+    if (
+      meta?.winnersReady &&
+      !confirm('이미 계산된 결과가 있어요. 재계산하면 당첨자가 변경될 수 있어요. 계속할까요?')
+    ) return;
+
+    setComputing(true);
+    try {
+      await computeAndSaveWinners(selectedYm);
+      toast.success('당첨자 계산이 완료됐어요.');
+      await loadData(selectedYm);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : '계산에 실패했어요.');
+    } finally {
+      setComputing(false);
     }
   };
 
@@ -168,9 +217,11 @@ const AdminProducts = () => {
   const ymLabel = (ym: string) =>
     `${ym.slice(0, 4)}년 ${Number(ym.slice(4))}월 (${Math.ceil(Number(ym.slice(4)) / 3)}분기)`;
 
+  const hasAnyRaffle = drafts.some((d) => d.raffle.length > 0);
+
   return (
     <AdminLayout title="📦 상품 관리">
-      <YmSelect value={selectedYm} onChange={(e) => setSelectedYm(e.target.value)}>
+      <YmSelect value={selectedYm} onChange={(e) => setSelectedYm(e.target.value)} disabled={computing}>
         {ymOptions.map((ym) => (
           <option key={ym} value={ym}>{ymLabel(ym)}</option>
         ))}
@@ -258,11 +309,24 @@ const AdminProducts = () => {
           <Divider />
 
           <Section>
-            <SectionTitle>추첨 결과</SectionTitle>
+            <DrawActionRow>
+              <SectionTitle style={{ marginBottom: 0 }}>추첨 결과</SectionTitle>
+              <StatusBadge $ready={!!meta?.winnersReady}>
+                {meta?.winnersReady ? '✅ 계산 완료' : '⏳ 미계산'}
+              </StatusBadge>
+            </DrawActionRow>
+
             {drafts.length === 0 ? (
               <EmptyNote>등록된 상품이 없어요.</EmptyNote>
             ) : (
               <>
+                <ComputeButton
+                  onClick={handleCompute}
+                  disabled={computing || !hasAnyRaffle}
+                >
+                  {computing ? '계산 중...' : meta?.winnersReady ? '재계산' : '당첨자 계산'}
+                </ComputeButton>
+
                 <RaffleGrid>
                   {drafts.map((d, i) => (
                     <RaffleCard key={i}>
@@ -280,6 +344,7 @@ const AdminProducts = () => {
                     </RaffleCard>
                   ))}
                 </RaffleGrid>
+
                 <div style={{ marginTop: 12 }}>
                   <ResetButton onClick={handleResetDraw}>추첨 초기화</ResetButton>
                 </div>
@@ -293,7 +358,6 @@ const AdminProducts = () => {
         top="middle"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.4 }}
         onClick={() => navigate('/admin', { replace: true })}
       >

@@ -32,6 +32,15 @@ const font = {
   lg: '15px',
 };
 
+export const DrawTitle = styled.h1`
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  margin: 0 0 12px;
+  letter-spacing: -0.2px;
+`;
+
 export const ScrollableCardGridWrapper = styled.div<{ scrollable: boolean }>`
   max-height: 52vh;
   overflow-y: auto;
@@ -66,6 +75,7 @@ export const DrawGridContainer = styled.div`
 
 export const CardContainer = styled.div`
   perspective: 1000px;
+  cursor: pointer;
 `;
 
 export const CardInner = styled(motion.div)`
@@ -75,7 +85,7 @@ export const CardInner = styled(motion.div)`
   transform-style: preserve-3d;
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 
   &:active {
     scale: 1 !important;
@@ -121,17 +131,18 @@ export const Name = styled.h4`
   font-weight: 600;
   margin: 0;
   text-align: center;
-  color: ${colors.text.primary};
+  color: #1f2937;
 `;
 
 export const HintText = styled(motion.span)`
   font-size: ${font.sm};
+  font-weight: 500;
   color: ${colors.text.hint};
 `;
 
 export const CardBadge = styled.span`
   font-size: ${font.sm};
-  font-weight: bold;
+  font-weight: 600;
   padding: 4px 10px;
   background-color: ${colors.badge.defaultBg};
   border-radius: 999px;
@@ -166,7 +177,8 @@ export const WinnerNameItem = styled(motion.span)<{
 `;
 
 export const SupporterCount = styled.p`
-  font-size: ${font.xs};
+  font-size: ${font.sm};
+  font-weight: 500;
   color: ${colors.text.count};
   margin: 0;
 `;
@@ -177,16 +189,6 @@ export const SupporterList = styled.div`
   gap: 4px;
 `;
 
-export const SupporterBadge = styled.span<{ isSelf?: boolean }>`
-  font-size: ${font.xs};
-  padding: 3px 6px;
-  border-radius: 10px;
-  background-color: ${({ isSelf }) =>
-    isSelf ? colors.badge.selfBg : colors.badge.defaultBg};
-  color: ${({ isSelf }) =>
-    isSelf ? colors.badge.selfText : colors.badge.defaultText};
-  font-weight: ${({ isSelf }) => (isSelf ? 'bold' : 'normal')};
-`;
 
 export const MoreText = styled.button`
   display: inline-flex;
@@ -232,9 +234,9 @@ export const StickyHeader = styled(motion.div)`
   justify-content: center;
   font-weight: 600;
   font-size: ${font.md};
-  color: #444;
+  color: #374151;
   background: #fff;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f3f4f6;
 `;
 
 export const CompletionMessage = styled(motion.div)`
@@ -245,7 +247,40 @@ export const CompletionMessage = styled(motion.div)`
   justify-content: center;
   font-size: ${font.lg};
   color: #16a34a;
-  font-weight: bold;
+  font-weight: 700;
+`;
+
+export const DrawButton = styled.button`
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s, transform 0.1s;
+
+  &:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: default;
+  }
+
+  &:not(:disabled) {
+    &:active {
+      transform: scale(0.985);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
 `;
 
 export const FooterWrapper = styled.div`
@@ -256,4 +291,41 @@ export const FooterWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+`;
+
+export const DrawLoadingBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 0;
+`;
+
+export const PrepareSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0 20px;
+  text-align: center;
+`;
+
+export const PrepareIcon = styled.div`
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 4px;
+`;
+
+export const PrepareTitle = styled.p`
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+`;
+
+export const PrepareDesc = styled.p`
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-line;
 `;

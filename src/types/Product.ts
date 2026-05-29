@@ -16,6 +16,6 @@ export type ProductBundle = {
     status?: string;
     drawOrder?: number[];
     generatedAt?: number;
-    supplement?: Record<number, string[]>;
+    supplement?: Record<string, string[]>;
   };
 };
