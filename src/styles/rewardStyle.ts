@@ -78,6 +78,7 @@ export const ItemLabel = styled.label<{
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 12px 14px;
   border: 1px solid
     ${({ selected }) => (selected ? colors.primary : colors.gray[200])};
@@ -107,6 +108,14 @@ export const ItemWrapper = styled.div`
   align-items: center;
   gap: 10px;
   flex: 1;
+  min-width: 0;
+`;
+
+export const NameGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 `;
 
 export const ItemInput = styled.input`
@@ -129,9 +138,39 @@ export const Badge = styled.span`
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
-  margin-left: auto;
-  text-align: center;
   white-space: nowrap;
+`;
+
+export const RatioBadge = styled.span`
+  font-size: 11px;
+  color: #6b7280;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 2px 7px;
+  white-space: nowrap;
+`;
+
+export const InfoButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  background: #fff;
+  color: #9ca3af;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  line-height: 1;
+
+  &:active {
+    background: #f3f4f6;
+  }
 `;
 
 export const HistoryList = styled.ul`

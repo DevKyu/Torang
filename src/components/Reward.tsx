@@ -21,6 +21,7 @@ import { Section, PinCount, PinNumber, UserName, SubmitButton } from '../styles/
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
+import { ProductDetailSheet } from './ProductDetailSheet';
 import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../utils/date';
 import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
 import type { AppliedProduct } from '../types/UserInfo';
@@ -29,6 +30,10 @@ type Product = {
   name: string;
   requiredPins: number;
   index: string;
+  description?: string;
+  imageUrl?: string;
+  raffleCount: number;
+  winnersCount: number;
 };
 
 const Reward = () => {
@@ -38,6 +43,7 @@ const Reward = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [appliedProducts, setAppliedProducts] = useState<Record<string, AppliedProduct>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
 
   const isCancellingRef = useRef(false);
 
@@ -71,6 +77,10 @@ const Reward = () => {
           name: item.name ?? '',
           requiredPins: item.requiredPins ?? 0,
           index: String(item.index ?? i),
+          description: item.description,
+          imageUrl: item.imageUrl,
+          raffleCount: Array.isArray(item.raffle) ? item.raffle.length : 0,
+          winnersCount: item.winnersCount ?? 1,
         }));
 
         if (prodList.length === 0) {
@@ -214,6 +224,7 @@ const Reward = () => {
                 product={product}
                 selected={selected}
                 toggleSelect={toggleSelect}
+                onInfo={setDetailProduct}
                 willExceed={willExceed}
                 disabled={isLocked}
               />
@@ -228,6 +239,12 @@ const Reward = () => {
       >
         신청하기
       </SubmitButton>
+
+      <ProductDetailSheet
+        open={detailProduct !== null}
+        product={detailProduct}
+        onClose={() => setDetailProduct(null)}
+      />
 
       <SmallText
         top="middle"
