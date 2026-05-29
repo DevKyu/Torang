@@ -11,6 +11,12 @@ export type UserTargets = {
   [year in Year]?: { [month in Month]?: number };
 };
 
+export type AppliedProduct = {
+  name: string;
+  requiredPins: number;
+  appliedAt: number;
+};
+
 export type UserInfo = {
   name: string;
   join: string;
@@ -18,6 +24,6 @@ export type UserInfo = {
   type: 'Member' | 'Associate';
   scores?: UserScores;
   targets?: UserTargets;
-  usedItems?: string[];
+  products?: Record<string, Record<string, AppliedProduct>>;
   invitedCount?: number;
 };

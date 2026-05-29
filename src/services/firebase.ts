@@ -19,7 +19,7 @@ import {
   remove,
 } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
-import type { Month, UserInfo, Year } from '../types/UserInfo';
+import type { Month, UserInfo, Year, AppliedProduct } from '../types/UserInfo';
 import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
@@ -120,15 +120,20 @@ export const findEmpIdByName = async (name: string): Promise<string | null> => {
   return entry ? entry[0] : null;
 };
 
-export const getUsedItems = async (): Promise<Set<string>> => {
+export const getAppliedProducts = async (ym: string): Promise<Record<string, AppliedProduct>> => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const snapshot = await get(ref(db, `users/${empId}/usedItems`));
-  return snapshot.exists() ? new Set(snapshot.val()) : new Set();
+  const snap = await get(ref(db, `users/${empId}/products/${ym}`));
+  return snap.exists() ? snap.val() : {};
 };
 
-export const saveUsedItems = async (items: Set<string>) => {
+export const applyProduct = async (ym: string, index: string, data: AppliedProduct): Promise<void> => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  await set(ref(db, `users/${empId}/usedItems`), [...items]);
+  await set(ref(db, `users/${empId}/products/${ym}/${index}`), data);
+};
+
+export const cancelAppliedProduct = async (ym: string, index: string): Promise<void> => {
+  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  await remove(ref(db, `users/${empId}/products/${ym}/${index}`));
 };
 
 export const addUser = async (empId: string, user: UserInfo) => {

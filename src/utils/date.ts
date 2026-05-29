@@ -11,9 +11,10 @@ export const getTodayYmd = (d = new Date()): number => {
 
 export const isBeforeOrOnActivityDate = (
   activityYmd?: string | number | null,
+  date?: Date,
 ): boolean => {
   if (!activityYmd) return false;
-  return getTodayYmd() <= Number(activityYmd);
+  return getTodayYmd(date) <= Number(activityYmd);
 };
 export const getYearMonth = (d = new Date()): YearMonth => {
   const y = d.getFullYear();
