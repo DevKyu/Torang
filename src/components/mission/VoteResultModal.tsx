@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { Check } from 'lucide-react';
 import type { MissionRoles } from '../../hooks/useMission';
 import {
   Backdrop,
@@ -36,11 +37,20 @@ const BAR_COLOR = {
   default: '#9ca3af',
 } as const;
 
-const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames, myVote }: Props) => {
+const VoteResultModal = ({
+  isOpen,
+  onClose,
+  votes,
+  roles,
+  allNames,
+  myVote,
+}: Props) => {
   useEffect(() => {
     if (!isOpen) return;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const voteCounts = Object.values(votes).reduce<Record<string, number>>(
@@ -53,7 +63,11 @@ const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames, myVote }: Pr
   const maxVotes = sorted[0]?.[1] ?? 1;
 
   const roleOf = (empId: string) =>
-    empId === roles.villain ? 'villain' : empId === roles.helper ? 'helper' : null;
+    empId === roles.villain
+      ? 'villain'
+      : empId === roles.helper
+        ? 'helper'
+        : null;
 
   return createPortal(
     <AnimatePresence>
@@ -84,21 +98,32 @@ const VoteResultModal = ({ isOpen, onClose, votes, roles, allNames, myVote }: Pr
                 sorted.map(([empId, count]) => {
                   const role = roleOf(empId);
                   const barColor =
-                    role === 'villain' ? BAR_COLOR.villain
-                    : role === 'helper' ? BAR_COLOR.helper
-                    : BAR_COLOR.default;
+                    role === 'villain'
+                      ? BAR_COLOR.villain
+                      : role === 'helper'
+                        ? BAR_COLOR.helper
+                        : BAR_COLOR.default;
                   return (
                     <Row key={empId} role={role ?? undefined}>
                       <Name role={role ?? undefined}>
                         {allNames[empId] ?? empId}
-                        {role === 'villain' && <RoleTag color="#ef4444">빌런</RoleTag>}
-                        {role === 'helper' && <RoleTag color="#3b82f6">조력자</RoleTag>}
+                        {role === 'villain' && (
+                          <RoleTag color="#ef4444">빌런</RoleTag>
+                        )}
+                        {role === 'helper' && (
+                          <RoleTag color="#3b82f6">조력자</RoleTag>
+                        )}
                       </Name>
                       <BarWrap>
-                        <Bar pct={Math.round((count / maxVotes) * 100)} color={barColor} />
+                        <Bar
+                          pct={Math.round((count / maxVotes) * 100)}
+                          color={barColor}
+                        />
                       </BarWrap>
                       <Count>{count}표</Count>
-                      <MyVoteIndicator visible={empId === myVote}>✓</MyVoteIndicator>
+                      <MyVoteIndicator visible={empId === myVote}>
+                        <Check size={16} color="#059669" strokeWidth={2.5} />
+                      </MyVoteIndicator>
                     </Row>
                   );
                 })

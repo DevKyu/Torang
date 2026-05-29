@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { Check as CheckIcon } from 'lucide-react';
 import {
   Backdrop,
   Card,
@@ -10,7 +11,7 @@ import {
   Divider,
   ScrollArea,
   Row,
-  Check,
+  CheckWrap,
   CloseBtn,
 } from '../../styles/CorrectVotersModalStyle';
 
@@ -54,7 +55,9 @@ const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props)
               {correctVoters.map((id) => (
                 <Row key={id}>
                   <span>{allNames[id] ?? id}</span>
-                  <Check>✓</Check>
+                  <CheckWrap>
+                    <CheckIcon size={16} color="#10b981" strokeWidth={2.5} />
+                  </CheckWrap>
                 </Row>
               ))}
             </ScrollArea>

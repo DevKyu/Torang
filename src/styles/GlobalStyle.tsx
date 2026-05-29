@@ -23,6 +23,7 @@ const GlobalStyle = () => (
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
       }
 
       button {
@@ -30,6 +31,12 @@ const GlobalStyle = () => (
         background: none;
         cursor: pointer;
         font-family: inherit;
+        outline: none;
+      }
+
+      button:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
       }
 
       input,

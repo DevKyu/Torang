@@ -69,7 +69,7 @@ export const ScrollArea = styled.div`
 
 export const Row = styled.div<{ role?: 'villain' | 'helper' }>`
   display: grid;
-  grid-template-columns: 80px 1fr 30px 14px;
+  grid-template-columns: minmax(0, 80px) 1fr auto 20px;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
@@ -106,10 +106,10 @@ export const MyVoteIndicator = styled.div<{ visible: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #059669;
+  width: 20px;
+  flex-shrink: 0;
   visibility: ${({ visible }) => (visible ? 'visible' : 'hidden')};
+
 `;
 
 export const BarWrap = styled.div`

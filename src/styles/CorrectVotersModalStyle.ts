@@ -81,10 +81,10 @@ export const Row = styled.div`
   }
 `;
 
-export const Check = styled.span`
-  color: #10b981;
-  font-weight: 700;
-  font-size: 15px;
+export const CheckWrap = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const CloseBtn = styled.button`
