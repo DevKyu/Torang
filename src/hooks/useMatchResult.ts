@@ -70,7 +70,7 @@ export const useMatchResult = ({
       }
 
       const year = activityYm.slice(0, 4) as Year;
-      const month = activityYm.slice(4, 6) as Month;
+      const month = String(Number(activityYm.slice(4, 6))) as Month;
       const choices = snap.val() as Record<string, { chosenAt: number }>;
       const opponentIds = Object.keys(choices);
 
