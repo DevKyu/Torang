@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Routes, Route } from 'react-router-dom';
 import Login from '../components/Login';
 import Menu from '../components/MainMenu';
@@ -10,11 +11,16 @@ import Achievements from '../components/Achievements';
 import GalleryPage from '../components/gallery/GalleryPage';
 import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
-import AdminUserManagement from '../components/admin/AdminUserManagement';
-import AdminEvent from '../components/admin/AdminEvent';
-import AdminLeague from '../components/admin/AdminLeague';
-import AdminActivityParticipants from '../components/admin/AdminActivityParticipants';
-import AdminMission from '../components/admin/AdminMission';
+
+const AdminUserManagement = lazy(
+  () => import('../components/admin/AdminUserManagement'),
+);
+const AdminEvent = lazy(() => import('../components/admin/AdminEvent'));
+const AdminLeague = lazy(() => import('../components/admin/AdminLeague'));
+const AdminActivityParticipants = lazy(
+  () => import('../components/admin/AdminActivityParticipants'),
+);
+const AdminMission = lazy(() => import('../components/admin/AdminMission'));
 
 const Router = () => (
   <Routes>
@@ -30,18 +36,21 @@ const Router = () => (
       <Route path="/gallery" element={<GalleryPage />} />
       <Route path="/history" element={<ActivityHistory />} />
       <Route path="/mission" element={<MissionPage />} />
-      <Route path="/admin" element={<AdminUserManagement />} />
-      <Route path="/admin/event" element={<AdminEvent />} />
-      <Route path="/admin/league" element={<AdminLeague />} />
-      <Route
-        path="/admin/activity-participants"
-        element={<AdminActivityParticipants />}
-      />
-      <Route
-        path="/admin/after-party-participants"
-        element={<AdminActivityParticipants mode="afterParty" />}
-      />
-      <Route path="/admin/mission" element={<AdminMission />} />
+
+      <Suspense fallback={null}>
+        <Route path="/admin" element={<AdminUserManagement />} />
+        <Route path="/admin/event" element={<AdminEvent />} />
+        <Route path="/admin/league" element={<AdminLeague />} />
+        <Route
+          path="/admin/activity-participants"
+          element={<AdminActivityParticipants />}
+        />
+        <Route
+          path="/admin/after-party-participants"
+          element={<AdminActivityParticipants mode="afterParty" />}
+        />
+        <Route path="/admin/mission" element={<AdminMission />} />
+      </Suspense>
     </Route>
 
     <Route path="*" element={<Navigate to="/" replace />} />
