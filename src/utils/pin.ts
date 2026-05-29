@@ -335,7 +335,6 @@ export const distributeMatchPins = async (
       const winnerId = result === 'win' ? idA : idB;
       const loserId = result === 'win' ? idB : idA;
       const loserCurrentPin = users[loserId]?.pin ?? 0;
-      const deductedPin = loserCurrentPin >= pinRate ? pinRate : 0;
 
       pinDeltas[winnerId] = (pinDeltas[winnerId] ?? 0) + pinRate;
       updates[`users/${winnerId}/rewards/${ym}/match/${loserId}`] = {
@@ -347,19 +346,6 @@ export const distributeMatchPins = async (
         pin: pinRate,
         ym,
         direction: 'gain',
-        createdAt,
-        createdAtMs: now,
-      };
-
-      updates[`users/${loserId}/rewards/${ym}/match/${winnerId}`] = {
-        type: 'match',
-        matchType: 'pin',
-        opponentId: winnerId,
-        opponentName: users[winnerId]?.name ?? winnerId,
-        result: 'lose',
-        pin: deductedPin,
-        ym,
-        direction: 'loss',
         createdAt,
         createdAtMs: now,
       };
