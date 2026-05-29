@@ -65,7 +65,6 @@ const toDateInput = (n: number) => {
   const y = Math.floor(n / 10000);
   const m = String(Math.floor((n % 10000) / 100)).padStart(2, '0');
   const d = String(n % 100).padStart(2, '0');
-
   return `${y}-${m}-${d}`;
 };
 
@@ -83,14 +82,28 @@ const rawToPlayerEntries = (raw?: Record<string, RawPlayer>): PlayerEntry[] =>
         }))
     : [];
 
+const toFirebasePlayers = (players: PlayerEntry[]) =>
+  Object.fromEntries(
+    players
+      .filter((p) => p.name.trim())
+      .map((p, idx) => [
+        p.empId === 'guest' ? `guest_${Date.now()}_${idx}` : p.empId.trim(),
+        {
+          name: p.name.trim(),
+          score1: Number(p.score1) || 0,
+          score2: Number(p.score2) || 0,
+          order: idx,
+        },
+      ]),
+  );
+
 const AdminLeague = () => {
   const navigate = useNavigate();
 
-  const currentYm = useMemo(() => {
+  const [currentYm] = useState(() => {
     const now = useUiStore.getState().getServerNow();
-
     return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
+  });
 
   const [ym, setYm] = useState(currentYm);
   const [groups, setGroups] = useState<Record<string, RawGroup>>({});
@@ -106,7 +119,6 @@ const AdminLeague = () => {
   const loadGroups = useCallback(async (ym: string) => {
     try {
       const snap = await get(ref(db, `team/${ym}`));
-
       setGroups(snap.exists() ? (snap.val() as Record<string, RawGroup>) : {});
     } catch {
       setGroups({});
@@ -122,17 +134,38 @@ const AdminLeague = () => {
     (async () => {
       try {
         const snap = await get(ref(db, 'names'));
-
-        if (snap.exists()) {
-          setAllNames(snap.val() as Record<string, string>);
-        }
+        if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
       } catch {}
     })();
   }, []);
 
+  useEffect(() => {
+    if (!editing) return;
+
+    const sum2 = (players: PlayerEntry[]) =>
+      players.reduce((acc, p) => acc + (Number(p.score2) || 0), 0);
+
+    const t1 = sum2(editing.team1);
+    const t2 = sum2(editing.team2);
+
+    if (t1 === 0 && t2 === 0) return;
+
+    const auto: 'team1' | 'team2' | 'draw' =
+      t1 > t2 ? 'team1' : t2 > t1 ? 'team2' : 'draw';
+
+    if (editing.winner !== auto) {
+      setEditing((prev) => (prev ? { ...prev, winner: auto } : prev));
+    }
+  }, [editing?.team1, editing?.team2]);
+
+  const closeEditing = () => {
+    setEditing(null);
+    setConfirmDelete(false);
+    setPlayerDropdowns({});
+  };
+
   const openEdit = (groupId: string) => {
     const g = groups[groupId];
-
     setEditing({
       groupId,
       date: g.date ? toDateInput(g.date) : '',
@@ -144,7 +177,6 @@ const AdminLeague = () => {
 
   const openNew = async () => {
     const existing = Object.keys(groups).sort();
-
     const nextId =
       existing.length === 0
         ? 'A'
@@ -154,12 +186,8 @@ const AdminLeague = () => {
     const month = String(Number(ym.slice(4)));
 
     let defaultDate = '';
-
     const snap = await get(ref(db, `activityDate/${year}/${month}`));
-
-    if (snap.exists()) {
-      defaultDate = toDateInput(snap.val() as number);
-    }
+    if (snap.exists()) defaultDate = toDateInput(snap.val() as number);
 
     setEditing({
       groupId: nextId,
@@ -171,15 +199,10 @@ const AdminLeague = () => {
   };
 
   const lookupByName = (teamKey: 'team1' | 'team2', idx: number) => {
-    if (!editing) {
-      return;
-    }
+    if (!editing) return;
 
     const query = editing[teamKey][idx].name.trim().toLowerCase();
-
-    if (!query) {
-      return;
-    }
+    if (!query) return;
 
     const matches = Object.entries(allNames).filter(([, n]) =>
       n.toLowerCase().includes(query),
@@ -187,53 +210,26 @@ const AdminLeague = () => {
 
     if (matches.length === 0) {
       setEditing((prev) => {
-        if (!prev) {
-          return prev;
-        }
-
+        if (!prev) return prev;
         const team = [...prev[teamKey]];
-
-        team[idx] = {
-          ...team[idx],
-          empId: 'guest',
-        };
-
-        return {
-          ...prev,
-          [teamKey]: team,
-        };
+        team[idx] = { ...team[idx], empId: 'guest' };
+        return { ...prev, [teamKey]: team };
       });
-
       toast('등록되지 않은 회원입니다. 비회원으로 저장됩니다.', {
         position: 'top-center',
         duration: 1800,
       });
-
       return;
     }
 
     if (matches.length === 1) {
       const [empId, name] = matches[0];
-
       setEditing((prev) => {
-        if (!prev) {
-          return prev;
-        }
-
+        if (!prev) return prev;
         const team = [...prev[teamKey]];
-
-        team[idx] = {
-          ...team[idx],
-          empId,
-          name,
-        };
-
-        return {
-          ...prev,
-          [teamKey]: team,
-        };
+        team[idx] = { ...team[idx], empId, name };
+        return { ...prev, [teamKey]: team };
       });
-
       return;
     }
 
@@ -250,29 +246,14 @@ const AdminLeague = () => {
     name: string,
   ) => {
     setEditing((prev) => {
-      if (!prev) {
-        return prev;
-      }
-
+      if (!prev) return prev;
       const team = [...prev[teamKey]];
-
-      team[idx] = {
-        ...team[idx],
-        empId,
-        name,
-      };
-
-      return {
-        ...prev,
-        [teamKey]: team,
-      };
+      team[idx] = { ...team[idx], empId, name };
+      return { ...prev, [teamKey]: team };
     });
-
     setPlayerDropdowns((prev) => {
       const next = { ...prev };
-
       delete next[`${teamKey}_${idx}`];
-
       return next;
     });
   };
@@ -284,40 +265,21 @@ const AdminLeague = () => {
     value: string,
   ) => {
     setEditing((prev) => {
-      if (!prev) {
-        return prev;
-      }
-
+      if (!prev) return prev;
       const team = [...prev[teamKey]];
-
-      team[idx] = {
-        ...team[idx],
-        [field]: value,
-      };
-
-      return {
-        ...prev,
-        [teamKey]: team,
-      };
+      team[idx] = { ...team[idx], [field]: value };
+      return { ...prev, [teamKey]: team };
     });
   };
 
   const addPlayer = (teamKey: 'team1' | 'team2') => {
     setEditing((prev) => {
-      if (!prev) {
-        return prev;
-      }
-
+      if (!prev) return prev;
       return {
         ...prev,
         [teamKey]: [
           ...prev[teamKey],
-          {
-            empId: '',
-            name: '',
-            score1: '',
-            score2: '',
-          },
+          { empId: '', name: '', score1: '', score2: '' },
         ],
       };
     });
@@ -325,43 +287,19 @@ const AdminLeague = () => {
 
   const removePlayer = (teamKey: 'team1' | 'team2', idx: number) => {
     setEditing((prev) => {
-      if (!prev) {
-        return prev;
-      }
-
+      if (!prev) return prev;
       const team = [...prev[teamKey]];
-
       team.splice(idx, 1);
-
-      return {
-        ...prev,
-        [teamKey]: team,
-      };
+      return { ...prev, [teamKey]: team };
     });
   };
 
   const handleSave = async () => {
-    if (!editing) {
-      return;
-    }
+    if (!editing) return;
 
     setSaving(true);
 
-    const toFirebasePlayers = (players: PlayerEntry[]) =>
-      Object.fromEntries(
-        players
-          .filter((p) => p.name.trim())
-          .map((p, idx) => [
-            p.empId === 'guest' ? `guest_${Date.now()}_${idx}` : p.empId.trim(),
-            {
-              name: p.name.trim(),
-              score1: Number(p.score1) || 0,
-              score2: Number(p.score2) || 0,
-              order: idx,
-            },
-          ]),
-      );
-
+    const { groupId } = editing;
     const data = {
       winner: editing.winner,
       date: editing.date ? fromDateInput(editing.date) : 0,
@@ -370,14 +308,10 @@ const AdminLeague = () => {
     };
 
     try {
-      await set(ref(db, `team/${ym}/${editing.groupId}`), data);
-
+      await set(ref(db, `team/${ym}/${groupId}`), data);
       await loadGroups(ym);
-
-      setEditing(null);
-      setConfirmDelete(false);
-
-      toast(`✅ ${editing.groupId}조 저장되었습니다.`, {
+      closeEditing();
+      toast(`✅ ${groupId}조 저장되었습니다.`, {
         position: 'top-center',
         duration: 2000,
         style: {
@@ -388,23 +322,22 @@ const AdminLeague = () => {
         },
       });
     } catch {
-      toast.error('저장 중 오류가 발생했습니다.', {
-        position: 'top-center',
-      });
+      toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!editing) {
-      return;
-    }
+    if (!editing) return;
+
+    const { groupId } = editing;
 
     try {
-      await remove(ref(db, `team/${ym}/${editing.groupId}`));
-
-      toast(`🗑️ ${editing.groupId}조 삭제되었습니다.`, {
+      await remove(ref(db, `team/${ym}/${groupId}`));
+      await loadGroups(ym);
+      closeEditing();
+      toast(`🗑️ ${groupId}조 삭제되었습니다.`, {
         position: 'top-center',
         duration: 2000,
         style: {
@@ -414,15 +347,8 @@ const AdminLeague = () => {
           fontSize: '0.875rem',
         },
       });
-
-      await loadGroups(ym);
-
-      setEditing(null);
-      setConfirmDelete(false);
     } catch {
-      toast.error('삭제 중 오류가 발생했습니다.', {
-        position: 'top-center',
-      });
+      toast.error('삭제 중 오류가 발생했습니다.', { position: 'top-center' });
     }
   };
 
@@ -431,7 +357,6 @@ const AdminLeague = () => {
 
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
-
     const allUpdates: Record<string, number> = {};
 
     Object.values(groups).forEach((group) => {
@@ -480,14 +405,12 @@ const AdminLeague = () => {
 
   const monthOptions = useMemo(() => {
     const options: string[] = [];
-
     const curY = Number(currentYm.slice(0, 4));
     const curM = Number(currentYm.slice(4));
 
     for (let y = 2025; y <= curY; y++) {
       const mStart = y === 2025 ? 7 : 1;
       const mEnd = y === curY ? curM : 12;
-
       for (let m = mStart; m <= mEnd; m++) {
         options.push(`${y}${String(m).padStart(2, '0')}`);
       }
@@ -496,10 +419,7 @@ const AdminLeague = () => {
     return options;
   }, [currentYm]);
 
-  const renderPlayers = (
-    teamKey: 'team1' | 'team2',
-    players: PlayerEntry[],
-  ) => (
+  const renderPlayers = (teamKey: 'team1' | 'team2', players: PlayerEntry[]) => (
     <>
       {players.map((p, idx) => (
         <div key={`${teamKey}_${idx}`}>
@@ -508,9 +428,7 @@ const AdminLeague = () => {
               <PlayerInput
                 placeholder="이름 검색"
                 value={p.name}
-                onChange={(e) =>
-                  updatePlayer(teamKey, idx, 'name', e.target.value)
-                }
+                onChange={(e) => updatePlayer(teamKey, idx, 'name', e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -519,10 +437,7 @@ const AdminLeague = () => {
                 }}
               />
 
-              <LookupBtn
-                type="button"
-                onClick={() => lookupByName(teamKey, idx)}
-              >
+              <LookupBtn type="button" onClick={() => lookupByName(teamKey, idx)}>
                 조회
               </LookupBtn>
             </PlayerRowMain>
@@ -540,24 +455,17 @@ const AdminLeague = () => {
                 type="number"
                 placeholder="1차"
                 value={p.score1}
-                onChange={(e) =>
-                  updatePlayer(teamKey, idx, 'score1', e.target.value)
-                }
+                onChange={(e) => updatePlayer(teamKey, idx, 'score1', e.target.value)}
               />
 
               <PlayerInput
                 type="number"
                 placeholder="2차"
                 value={p.score2}
-                onChange={(e) =>
-                  updatePlayer(teamKey, idx, 'score2', e.target.value)
-                }
+                onChange={(e) => updatePlayer(teamKey, idx, 'score2', e.target.value)}
               />
 
-              <RemoveBtn
-                type="button"
-                onClick={() => removePlayer(teamKey, idx)}
-              >
+              <RemoveBtn type="button" onClick={() => removePlayer(teamKey, idx)}>
                 ×
               </RemoveBtn>
             </PlayerRowSub>
@@ -649,36 +557,21 @@ const AdminLeague = () => {
             type="date"
             value={editing.date}
             onChange={(e) =>
-              setEditing(
-                (prev) =>
-                  prev && {
-                    ...prev,
-                    date: e.target.value,
-                  },
-              )
+              setEditing((prev) => prev && { ...prev, date: e.target.value })
             }
           />
 
           <TeamSection team="1">
             <TeamHeader team="1">1팀</TeamHeader>
-
             {renderPlayers('team1', editing.team1)}
           </TeamSection>
 
           <TeamSection team="2">
             <TeamHeader team="2">2팀</TeamHeader>
-
             {renderPlayers('team2', editing.team2)}
           </TeamSection>
 
-          <FieldLabel
-            style={{
-              marginTop: 16,
-              marginBottom: 8,
-            }}
-          >
-            결과
-          </FieldLabel>
+          <FieldLabel style={{ marginTop: 16, marginBottom: 8 }}>결과</FieldLabel>
 
           <WinnerRow>
             {(['team1', 'team2', 'draw'] as const).map((w) => (
@@ -686,13 +579,7 @@ const AdminLeague = () => {
                 key={w}
                 active={editing.winner === w}
                 onClick={() =>
-                  setEditing(
-                    (prev) =>
-                      prev && {
-                        ...prev,
-                        winner: w,
-                      },
-                  )
+                  setEditing((prev) => prev && { ...prev, winner: w })
                 }
               >
                 {w === 'team1' ? '1팀 승' : w === 'team2' ? '2팀 승' : '무승부'}
@@ -706,10 +593,7 @@ const AdminLeague = () => {
             </SaveBtn>
 
             {groups[editing.groupId] && !confirmDelete && (
-              <DeleteBtn
-                onClick={() => setConfirmDelete(true)}
-                disabled={saving}
-              >
+              <DeleteBtn onClick={() => setConfirmDelete(true)} disabled={saving}>
                 삭제
               </DeleteBtn>
             )}
@@ -720,21 +604,12 @@ const AdminLeague = () => {
                   정말 삭제
                 </DeleteBtn>
 
-                <CancelBtn onClick={() => setConfirmDelete(false)}>
-                  취소
-                </CancelBtn>
+                <CancelBtn onClick={() => setConfirmDelete(false)}>취소</CancelBtn>
               </>
             )}
 
             {!confirmDelete && (
-              <CancelBtn
-                onClick={() => {
-                  setEditing(null);
-                  setConfirmDelete(false);
-                }}
-              >
-                취소
-              </CancelBtn>
+              <CancelBtn onClick={closeEditing}>취소</CancelBtn>
             )}
           </SaveRow>
         </FormSection>
@@ -742,11 +617,7 @@ const AdminLeague = () => {
 
       <SmallText
         top="middle"
-        onClick={() =>
-          navigate('/admin', {
-            replace: true,
-          })
-        }
+        onClick={() => navigate('/admin', { replace: true })}
       >
         돌아가기
       </SmallText>
