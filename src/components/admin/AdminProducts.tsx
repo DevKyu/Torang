@@ -16,6 +16,8 @@ import {
   ProductTable,
   ProductRow,
   ProductInput,
+  DetailRow,
+  DescriptionInput,
   IconButton,
   AddButton,
   SaveButton,
@@ -34,6 +36,8 @@ type DraftProduct = {
   name: string;
   requiredPins: number;
   winnersCount: number;
+  description: string;
+  imageUrl: string;
   raffle: string[];
   winners: string[];
 };
@@ -76,6 +80,8 @@ const AdminProducts = () => {
           name: item.name ?? '',
           requiredPins: item.requiredPins ?? 0,
           winnersCount: item.winnersCount ?? 1,
+          description: item.description ?? '',
+          imageUrl: item.imageUrl ?? '',
           raffle: item.raffle ?? [],
           winners: item.winners ?? [],
         })),
@@ -91,7 +97,7 @@ const AdminProducts = () => {
     loadData(selectedYm);
   }, [selectedYm, loadData]);
 
-  const updateDraft = (i: number, field: keyof Pick<DraftProduct, 'name' | 'requiredPins' | 'winnersCount'>, value: string | number) => {
+  const updateDraft = (i: number, field: keyof Pick<DraftProduct, 'name' | 'requiredPins' | 'winnersCount' | 'description' | 'imageUrl'>, value: string | number) => {
     setDrafts((prev) => {
       const next = [...prev];
       next[i] = { ...next[i], [field]: value };
@@ -102,7 +108,7 @@ const AdminProducts = () => {
   const addProduct = () =>
     setDrafts((prev) => [
       ...prev,
-      { name: '', requiredPins: 0, winnersCount: 1, raffle: [], winners: [] },
+      { name: '', requiredPins: 0, winnersCount: 1, description: '', imageUrl: '', raffle: [], winners: [] },
     ]);
 
   const removeProduct = (i: number) =>
@@ -122,6 +128,8 @@ const AdminProducts = () => {
         name: d.name.trim(),
         requiredPins: Number(d.requiredPins),
         winnersCount: Number(d.winnersCount) || 1,
+        ...(d.description.trim() ? { description: d.description.trim() } : {}),
+        ...(d.imageUrl.trim() ? { imageUrl: d.imageUrl.trim() } : {}),
         ...(d.raffle.length > 0 ? { raffle: d.raffle } : {}),
         ...(d.winners.length > 0 ? { winners: d.winners } : {}),
       }));
@@ -182,26 +190,40 @@ const AdminProducts = () => {
             </ColHeader>
             <ProductTable>
               {drafts.map((d, i) => (
-                <ProductRow key={i}>
-                  <ProductInput
-                    value={d.name}
-                    placeholder="상품명"
-                    onChange={(e) => updateDraft(i, 'name', e.target.value)}
-                  />
-                  <ProductInput
-                    type="number"
-                    min={0}
-                    value={d.requiredPins}
-                    onChange={(e) => updateDraft(i, 'requiredPins', e.target.value)}
-                  />
-                  <ProductInput
-                    type="number"
-                    min={1}
-                    value={d.winnersCount}
-                    onChange={(e) => updateDraft(i, 'winnersCount', e.target.value)}
-                  />
-                  <IconButton onClick={() => removeProduct(i)} title="삭제">✕</IconButton>
-                </ProductRow>
+                <div key={i}>
+                  <ProductRow>
+                    <ProductInput
+                      value={d.name}
+                      placeholder="상품명"
+                      onChange={(e) => updateDraft(i, 'name', e.target.value)}
+                    />
+                    <ProductInput
+                      type="number"
+                      min={0}
+                      value={d.requiredPins}
+                      onChange={(e) => updateDraft(i, 'requiredPins', e.target.value)}
+                    />
+                    <ProductInput
+                      type="number"
+                      min={1}
+                      value={d.winnersCount}
+                      onChange={(e) => updateDraft(i, 'winnersCount', e.target.value)}
+                    />
+                    <IconButton onClick={() => removeProduct(i)} title="삭제">✕</IconButton>
+                  </ProductRow>
+                  <DetailRow>
+                    <DescriptionInput
+                      value={d.description}
+                      placeholder="상품 설명 (선택)"
+                      onChange={(e) => updateDraft(i, 'description', e.target.value)}
+                    />
+                    <ProductInput
+                      value={d.imageUrl}
+                      placeholder="이미지 URL (선택)"
+                      onChange={(e) => updateDraft(i, 'imageUrl', e.target.value)}
+                    />
+                  </DetailRow>
+                </div>
               ))}
             </ProductTable>
             <AddButton onClick={addProduct}>+ 상품 추가</AddButton>

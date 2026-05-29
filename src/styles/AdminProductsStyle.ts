@@ -239,6 +239,42 @@ export const ResetButton = styled.button`
   }
 `;
 
+export const DetailRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const DescriptionInput = styled.textarea`
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  height: 56px;
+  font-family: inherit;
+  line-height: 1.5;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #c7a27c;
+    box-shadow: 0 0 0 2px rgba(199, 162, 124, 0.12);
+  }
+`;
+
 export const EmptyNote = styled.p`
   font-size: 13px;
   color: #9ca3af;
