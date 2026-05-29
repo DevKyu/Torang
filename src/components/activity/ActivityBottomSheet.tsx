@@ -154,7 +154,7 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                   <Month>{formatMonth(item.date)}</Month>
                 )
               ) : 'delta' in item ? (
-                <Delta positive={item.delta > 0}>
+                <Delta positive={item.delta > 0} draw={item.delta === 0}>
                   {item.type === 'match'
                     ? `${item.delta > 0 ? '+' : ''}${Math.round(item.delta)} 점`
                     : `${item.delta > 0 ? '+' : ''}${item.delta.toFixed(1)} PIN`}
