@@ -83,7 +83,7 @@ const Reward = () => {
             raffleCount: Array.isArray(item.raffle) ? item.raffle.length : 0,
             winnersCount: item.winnersCount ?? 1,
           }))
-          .sort((a, b) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
+          .sort((a: Product, b: Product) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
 
         if (prodList.length === 0) {
           toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });

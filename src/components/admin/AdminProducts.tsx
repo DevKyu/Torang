@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ref, get, set, update } from 'firebase/database';
+import { ref, get, update } from 'firebase/database';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import { db, getCachedUserName, preloadAllNames } from '../../services/firebase';
