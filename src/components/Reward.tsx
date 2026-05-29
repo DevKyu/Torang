@@ -73,15 +73,17 @@ const Reward = () => {
           return;
         }
 
-        const prodList: Product[] = (prod ?? []).map((item: any, i: number) => ({
-          name: item.name ?? '',
-          requiredPins: item.requiredPins ?? 0,
-          index: String(item.index ?? i),
-          description: item.description,
-          imageUrl: item.imageUrl,
-          raffleCount: Array.isArray(item.raffle) ? item.raffle.length : 0,
-          winnersCount: item.winnersCount ?? 1,
-        }));
+        const prodList: Product[] = (prod ?? [])
+          .map((item: any, i: number) => ({
+            name: item.name ?? '',
+            requiredPins: item.requiredPins ?? 0,
+            index: String(item.index ?? i),
+            description: item.description,
+            imageUrl: item.imageUrl,
+            raffleCount: Array.isArray(item.raffle) ? item.raffle.length : 0,
+            winnersCount: item.winnersCount ?? 1,
+          }))
+          .sort((a, b) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
 
         if (prodList.length === 0) {
           toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });
@@ -134,22 +136,34 @@ const Reward = () => {
 
     isCancellingRef.current = true;
     showLoading();
+
+    const prevApplied = { ...appliedProducts };
+    const prevRaffleCount = products.find((p) => p.index === index)?.raffleCount ?? 0;
+
+    const next = { ...appliedProducts };
+    delete next[index];
+    setAppliedProducts(next);
+    setPinCount((prev) => prev + applied.requiredPins);
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.index === index ? { ...p, raffleCount: Math.max(0, p.raffleCount - 1) } : p,
+      ),
+    );
+
     try {
-      const next = { ...appliedProducts };
-      delete next[index];
-
-      setAppliedProducts(next);
-      setPinCount((prev) => prev + applied.requiredPins);
-
       await Promise.all([
         cancelAppliedProduct(quarterYm, index),
         setUserPinData(applied.requiredPins),
         removeProductData(quarterYm, new Set([index])),
       ]);
-
       toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {
-      toast.error('신청 취소에 실패했어요. 페이지를 새로고침해 주세요.');
+      setAppliedProducts(prevApplied);
+      setPinCount((prev) => prev - applied.requiredPins);
+      setProducts((prev) =>
+        prev.map((p) => (p.index === index ? { ...p, raffleCount: prevRaffleCount } : p)),
+      );
+      toast.error('신청 취소에 실패했어요.');
     } finally {
       isCancellingRef.current = false;
       hideLoading();
@@ -184,11 +198,16 @@ const Reward = () => {
 
       setPinCount((prev) => prev - totalRequired);
       setAppliedProducts((prev) => ({ ...prev, ...newEntries }));
+      setProducts((prev) =>
+        prev.map((p) =>
+          selected.has(p.index) ? { ...p, raffleCount: p.raffleCount + 1 } : p,
+        ),
+      );
       setSelected(new Set());
 
-      toast.success('신청이 완료되었어요.');
+      toast.success('신청이 완료됐어요.');
     } catch {
-      toast.error('신청에 실패했어요. 페이지를 새로고침해 주세요.');
+      toast.error('신청에 실패했어요.');
     } finally {
       setIsSubmitting(false);
       hideLoading();

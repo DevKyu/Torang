@@ -47,7 +47,7 @@ export const ProductCard = ({
   const raffleNames = useMemo(() => {
     if (raffleCount === 0) return [];
     return raffle.map(getCachedUserName);
-  }, [raffle, raffleCount]);
+  }, [raffle]);
 
   const handleShowHiddenNames = useCallback(() => {
     if (raffleNames.length === 0) return;
@@ -126,7 +126,7 @@ export const ProductCard = ({
             <MoreText
               role="button"
               tabIndex={0}
-              onClick={handleShowHiddenNames}
+              onClick={(e) => { e.stopPropagation(); handleShowHiddenNames(); }}
               onKeyDown={handleKeyDown}
             >
               신청자 보기
