@@ -16,7 +16,6 @@ type Product = {
 type ProductItemProps = {
   product: Product;
   selected: Set<string>;
-  usedItems: Set<string>;
   toggleSelect: (index: string) => void;
   willExceed: boolean;
   disabled?: boolean;
@@ -25,21 +24,20 @@ type ProductItemProps = {
 export const ProductItem = ({
   product,
   selected,
-  usedItems,
   toggleSelect,
   willExceed,
   disabled = false,
 }: ProductItemProps) => {
   const isSelected = selected.has(product.index);
-  const isDisabled = disabled || usedItems.has(product.index) || willExceed;
+  const isDisabled = disabled || willExceed;
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.2 }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.18 }}
     >
       <ItemLabel disabled={isDisabled} selected={isSelected}>
         <ItemWrapper>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -8,19 +8,22 @@ import {
   getProductData,
   setProductData,
   setUserPinData,
-  getUsedItems,
-  saveUsedItems,
+  getAppliedProducts,
+  applyProduct,
+  cancelAppliedProduct,
   removeProductData,
 } from '../services/firebase';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
-import { Button, SmallText } from '../styles/commonStyle';
-import { Section, PinCount, PinNumber, UserName } from '../styles/rewardStyle';
+import { useUiStore } from '../stores/useUiStore';
+import { SmallText } from '../styles/commonStyle';
+import { Section, PinCount, PinNumber, UserName, SubmitButton } from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
 import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../utils/date';
 import { CUR_YEAR, CUR_MONTHN } from '../constants/date';
+import type { AppliedProduct } from '../types/UserInfo';
 
 type Product = {
   name: string;
@@ -33,25 +36,30 @@ const Reward = () => {
   const [userName, setUserName] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [usedItems, setUsedItems] = useState<Set<string>>(new Set());
+  const [appliedProducts, setAppliedProducts] = useState<Record<string, AppliedProduct>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { showLoading, showLoadingWithTimeout, hideLoading } = useLoading();
+  const isCancellingRef = useRef(false);
+
+  const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps } = useActivityDates();
   const navigate = useNavigate();
   const quarterYm = useMemo(() => getQuarterEndYm(), []);
 
   const activityYmd = activityMaps[CUR_YEAR]?.[String(CUR_MONTHN)];
-  const isLocked = isBeforeOrOnActivityDate(activityYmd);
+  const isLocked = useMemo(
+    () => isBeforeOrOnActivityDate(activityYmd, useUiStore.getState().getServerNow()),
+    [activityYmd],
+  );
 
   useEffect(() => {
     const loadData = async () => {
-      showLoadingWithTimeout();
+      showLoading();
       try {
-        const [prod, user, savedUsedItems] = await Promise.all([
+        const [prod, user, applied] = await Promise.all([
           getProductData(quarterYm),
           getCurrentUserData(),
-          getUsedItems(),
+          getAppliedProducts(quarterYm),
         ]);
 
         if (!user) {
@@ -59,16 +67,26 @@ const Reward = () => {
           return;
         }
 
-        if ((user.pin ?? 0) < 1 && savedUsedItems.size === 0) {
-          toast.warning('선택할 수 있는 상품이 없어요.', { id: 'no-products' });
+        const prodList: Product[] = (prod ?? []).map((item: any, i: number) => ({
+          name: item.name ?? '',
+          requiredPins: item.requiredPins ?? 0,
+          index: String(item.index ?? i),
+        }));
+
+        if (prodList.length === 0) {
+          toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });
+        } else if ((user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
+          toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
         }
 
-        setProducts(prod ?? []);
+        setProducts(prodList);
         setUserName(user.name);
         setPinCount(user.pin ?? 0);
-        setUsedItems(savedUsedItems);
+        setAppliedProducts(applied);
       } catch {
         toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
+      } finally {
+        hideLoading();
       }
     };
 
@@ -87,8 +105,8 @@ const Reward = () => {
   const isValid = totalRequired <= pinCount;
 
   const availableProducts = useMemo(
-    () => products.filter((p) => !usedItems.has(p.index)),
-    [products, usedItems],
+    () => products.filter((p) => !(p.index in appliedProducts)),
+    [products, appliedProducts],
   );
 
   const toggleSelect = (index: string) => {
@@ -100,25 +118,30 @@ const Reward = () => {
   };
 
   const handleCancel = async (index: string) => {
-    const product = products.find((p) => p.index === index);
-    if (!product) return;
+    if (isCancellingRef.current) return;
+    const applied = appliedProducts[index];
+    if (!applied) return;
 
+    isCancellingRef.current = true;
     showLoading();
     try {
-      const updatedUsedItems = new Set(usedItems);
-      updatedUsedItems.delete(index);
+      const next = { ...appliedProducts };
+      delete next[index];
 
-      setUsedItems(updatedUsedItems);
-      setPinCount((prev) => prev + product.requiredPins);
+      setAppliedProducts(next);
+      setPinCount((prev) => prev + applied.requiredPins);
 
-      await saveUsedItems(updatedUsedItems);
-      await setUserPinData(product.requiredPins);
-      await removeProductData(quarterYm, new Set([index]));
+      await Promise.all([
+        cancelAppliedProduct(quarterYm, index),
+        setUserPinData(applied.requiredPins),
+        removeProductData(quarterYm, new Set([index])),
+      ]);
 
-      toast.info(`${product.name} 신청을 취소했어요.`);
+      toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {
-      toast.error('신청 취소에 실패했어요.');
+      toast.error('신청 취소에 실패했어요. 페이지를 새로고침해 주세요.');
     } finally {
+      isCancellingRef.current = false;
       hideLoading();
     }
   };
@@ -134,17 +157,28 @@ const Reward = () => {
     showLoading();
 
     try {
-      await setProductData(quarterYm, selected);
-      await setUserPinData(-totalRequired);
-      await saveUsedItems(new Set([...usedItems, ...selected]));
+      const now = useUiStore.getState().getServerNow().getTime();
+
+      const newEntries: Record<string, AppliedProduct> = {};
+      for (const index of selected) {
+        const product = products.find((p) => p.index === index);
+        if (!product) continue;
+        newEntries[index] = { name: product.name, requiredPins: product.requiredPins, appliedAt: now };
+      }
+
+      await Promise.all([
+        setProductData(quarterYm, selected),
+        setUserPinData(-totalRequired),
+        ...Object.entries(newEntries).map(([index, data]) => applyProduct(quarterYm, index, data)),
+      ]);
 
       setPinCount((prev) => prev - totalRequired);
-      setUsedItems((prev) => new Set([...prev, ...selected]));
+      setAppliedProducts((prev) => ({ ...prev, ...newEntries }));
       setSelected(new Set());
 
       toast.success('신청이 완료되었어요.');
     } catch {
-      toast.error('신청에 실패했어요.');
+      toast.error('신청에 실패했어요. 페이지를 새로고침해 주세요.');
     } finally {
       setIsSubmitting(false);
       hideLoading();
@@ -160,10 +194,9 @@ const Reward = () => {
         </PinCount>
       </Section>
 
-      {usedItems.size > 0 && (
+      {Object.keys(appliedProducts).length > 0 && (
         <RewardHistory
-          usedItems={usedItems}
-          products={products}
+          appliedProducts={appliedProducts}
           onCancel={handleCancel}
         />
       )}
@@ -180,7 +213,6 @@ const Reward = () => {
                 key={product.index}
                 product={product}
                 selected={selected}
-                usedItems={usedItems}
                 toggleSelect={toggleSelect}
                 willExceed={willExceed}
                 disabled={isLocked}
@@ -190,19 +222,18 @@ const Reward = () => {
         </AnimatePresence>
       </Section>
 
-      <Button
+      <SubmitButton
         onClick={handleSubmit}
         disabled={!selected.size || !isValid || isSubmitting || isLocked}
       >
         신청하기
-      </Button>
+      </SubmitButton>
 
       <SmallText
         top="middle"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 8 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         onClick={() => navigate('/menu', { replace: true })}
       >
         돌아가기
