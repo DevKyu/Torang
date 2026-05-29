@@ -2,6 +2,8 @@ export type ProductItem = {
   index: number;
   name: string;
   requiredPins: number;
+  description?: string;
+  imageUrl?: string;
   raffle?: string[];
   winners?: string[];
   winnersCount?: number;
