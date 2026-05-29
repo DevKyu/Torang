@@ -6,18 +6,51 @@ const colors = {
   accent: '#f97316',
   gray: {
     50: '#f9fafb',
-    100: '#f3f4f6',
     200: '#e5e7eb',
     300: '#d1d5db',
     500: '#6b7280',
     700: '#374151',
   },
-  success: '#22c55e',
   danger: '#ef4444',
 };
 
 export const Section = styled.div`
   margin-bottom: 20px;
+`;
+
+export const SubmitButton = styled.button`
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(135deg, ${colors.primary}, #2563eb);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s, transform 0.1s;
+
+  &:disabled {
+    background: ${colors.gray[200]};
+    color: ${colors.gray[500]};
+    cursor: default;
+  }
+
+  &:not(:disabled) {
+    &:active {
+      transform: scale(0.985);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
 `;
 
 export const PinCount = styled.div`
@@ -28,14 +61,13 @@ export const PinCount = styled.div`
 `;
 
 export const PinNumber = styled.span`
-  font-weight: bold;
+  font-weight: 700;
   color: ${colors.accent};
-  font-size: 16px;
   margin-left: 4px;
 `;
 
 export const UserName = styled.span`
-  font-weight: bold;
+  font-weight: 700;
   color: ${colors.primary};
 `;
 
@@ -55,13 +87,18 @@ export const ItemLabel = styled.label<{
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
   margin-bottom: 10px;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s, background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 
-  &:hover {
-    border-color: ${({ disabled }) =>
-      disabled ? colors.gray[200] : colors.primary};
-    background-color: ${({ disabled }) =>
-      disabled ? colors.gray[50] : '#f0f9ff'};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: ${({ disabled }) =>
+        disabled ? colors.gray[200] : colors.primary};
+      background-color: ${({ disabled }) =>
+        disabled ? colors.gray[50] : '#f0f9ff'};
+    }
   }
 `;
 
@@ -73,7 +110,11 @@ export const ItemWrapper = styled.div`
 `;
 
 export const ItemInput = styled.input`
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
   accent-color: ${colors.primary};
+  cursor: inherit;
 `;
 
 export const ItemName = styled.span`
@@ -90,6 +131,7 @@ export const Badge = styled.span`
   font-size: 12px;
   margin-left: auto;
   text-align: center;
+  white-space: nowrap;
 `;
 
 export const HistoryList = styled.ul`
@@ -98,6 +140,8 @@ export const HistoryList = styled.ul`
   padding: 0;
   max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: ${colors.gray[300]} transparent;
 
@@ -120,7 +164,7 @@ export const HistoryBox = styled.div`
 
 export const HistoryTitle = styled.h3`
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 700;
   margin-bottom: 12px;
   color: ${colors.gray[700]};
 `;
@@ -129,7 +173,7 @@ export const HistoryItem = styled(motion.li)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 0;
+  padding: 8px 0;
   font-size: 13px;
   border-bottom: 1px solid ${colors.gray[200]};
 
@@ -150,11 +194,21 @@ export const RemoveBadge = styled.button`
   border: none;
   border-radius: 999px;
   font-size: 12px;
-  padding: 2px 8px;
+  line-height: 1;
+  padding: 5px 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
 
-  &:hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: #fecaca;
+    }
+  }
+
+  &:active {
     background-color: #fecaca;
   }
 `;

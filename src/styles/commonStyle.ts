@@ -64,8 +64,11 @@ export const SmallText = styled(motion.p)<{
   text-align: center;
   text-decoration: underline;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover {
-    color: #333;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: #333;
+    }
   }
 `;
