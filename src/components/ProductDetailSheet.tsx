@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, animate, useMotionValue, useDragControls } from 'framer-motion';
+import { AnimatePresence, animate, useMotionValue, useDragControls } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 
 import {
