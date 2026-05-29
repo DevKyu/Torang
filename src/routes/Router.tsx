@@ -23,21 +23,20 @@ const AdminActivityParticipants = lazy(
 const AdminMission = lazy(() => import('../components/admin/AdminMission'));
 
 const Router = () => (
-  <Routes>
-    <Route path="/" element={<Login />} />
+  <Suspense fallback={null}>
+    <Routes>
+      <Route path="/" element={<Login />} />
 
-    <Route element={<ProtectedRoute />}>
-      <Route path="/menu" element={<Menu />} />
-      <Route path="/reward" element={<Reward />} />
-      <Route path="/draw" element={<Draw />} />
-      <Route path="/myinfo" element={<MyInfo />} />
-      <Route path="/ranking" element={<Ranking />} />
-      <Route path="/achievements" element={<Achievements />} />
-      <Route path="/gallery" element={<GalleryPage />} />
-      <Route path="/history" element={<ActivityHistory />} />
-      <Route path="/mission" element={<MissionPage />} />
-
-      <Suspense fallback={null}>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/reward" element={<Reward />} />
+        <Route path="/draw" element={<Draw />} />
+        <Route path="/myinfo" element={<MyInfo />} />
+        <Route path="/ranking" element={<Ranking />} />
+        <Route path="/achievements" element={<Achievements />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/history" element={<ActivityHistory />} />
+        <Route path="/mission" element={<MissionPage />} />
         <Route path="/admin" element={<AdminUserManagement />} />
         <Route path="/admin/event" element={<AdminEvent />} />
         <Route path="/admin/league" element={<AdminLeague />} />
@@ -50,11 +49,11 @@ const Router = () => (
           element={<AdminActivityParticipants mode="afterParty" />}
         />
         <Route path="/admin/mission" element={<AdminMission />} />
-      </Suspense>
-    </Route>
+      </Route>
 
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  </Suspense>
 );
 
 export default Router;
