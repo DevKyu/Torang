@@ -39,6 +39,7 @@ export const addGalleryComment = async (
   imageId: string,
   text: string,
   parentId: string | null = null,
+  skipCount = false,
 ): Promise<string | null> => {
   const empId = getCurrentUserId();
   const t = text.trim();
@@ -57,7 +58,9 @@ export const addGalleryComment = async (
     createdAt: now,
   });
 
-  await update(ref(db, `users/${empId}/gallery`), { commentedCount: increment(1) });
+  if (!skipCount) {
+    await update(ref(db, `users/${empId}/gallery`), { commentedCount: increment(1) });
+  }
 
   return cid;
 };
@@ -80,11 +83,13 @@ export const deleteGalleryComment = async (
     .map(([id]) => id);
 
   const updates: Record<string, any> = {
-    [`${base}/${cid}`]: { deleted: true, text: '' },
+    [`${base}/${cid}/deleted`]: true,
+    [`${base}/${cid}/text`]: '',
   };
 
   for (const childId of children) {
-    updates[`${base}/${childId}`] = { deleted: true, text: '' };
+    updates[`${base}/${childId}/deleted`] = true;
+    updates[`${base}/${childId}/text`] = '';
   }
 
   await update(ref(db), updates);

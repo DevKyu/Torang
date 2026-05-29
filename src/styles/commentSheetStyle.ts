@@ -244,13 +244,14 @@ export const ReplyNotice = styled.div`
   }
 `;
 
-export const InputBox = styled.div`
+export const InputBox = styled.div<{ $disabled?: boolean }>`
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #f2f2f4;
+  background: ${({ $disabled }) => ($disabled ? '#ebebeb' : '#f2f2f4')};
   border-radius: 14px;
   padding: 10px 14px;
+  transition: background 0.2s;
 
   input {
     flex: 1;
@@ -258,6 +259,12 @@ export const InputBox = styled.div`
     border: none;
     background: none;
     outline: none;
+
+    &:disabled {
+      color: #aaa;
+      -webkit-text-fill-color: #aaa;
+      cursor: default;
+    }
   }
 
   .send {

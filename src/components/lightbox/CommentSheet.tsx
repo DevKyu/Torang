@@ -41,6 +41,8 @@ import {
 } from '../../styles/commentSheetStyle';
 import { LikeSheet } from './LikeSheet';
 
+const MY_COMMENT_LIMIT = 5;
+
 const formatTimeAgo = (ts: number) => {
   const diff = Date.now() - ts;
   if (diff < 60000) return '방금 전';
@@ -144,6 +146,16 @@ export const CommentSheet = () => {
     Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
   const isScrollable = total > 3;
 
+  const myVisibleCount = useMemo(
+    () => list.filter((c) => !c.deleted && c.user === myName).length,
+    [list, myName],
+  );
+  const myTotalCount = useMemo(
+    () => list.filter((c) => c.user === myName).length,
+    [list, myName],
+  );
+  const isLimitReached = myVisibleCount >= MY_COMMENT_LIMIT;
+
   useEffect(() => {
     setReplyTo(null);
     setText('');
@@ -178,6 +190,7 @@ export const CommentSheet = () => {
 
   const handleSend = useCallback(async () => {
     if (sendingRef.current || !imageId || !ym) return;
+    if (isLimitReached) return;
     const t = text.trim();
     if (!t) return;
 
@@ -203,7 +216,8 @@ export const CommentSheet = () => {
     if (!parentId) scrollToBottom();
 
     try {
-      const realId = await addGalleryComment(ym, imageId, t, parentId);
+      const skipCount = myTotalCount >= MY_COMMENT_LIMIT;
+      const realId = await addGalleryComment(ym, imageId, t, parentId, skipCount);
       if (realId) updateComment(imageId, tempId, { id: realId });
     } finally {
       sendingRef.current = false;
@@ -214,6 +228,8 @@ export const CommentSheet = () => {
     imageId,
     ym,
     myName,
+    isLimitReached,
+    myTotalCount,
     addComment,
     updateComment,
     scrollToBottom,
@@ -435,11 +451,16 @@ export const CommentSheet = () => {
                 </ReplyNotice>
               )}
 
-              <InputBox>
+              <InputBox $disabled={isLimitReached}>
                 <input
                   ref={inputRef}
-                  value={text}
-                  placeholder="댓글 남기기"
+                  value={isLimitReached ? '' : text}
+                  placeholder={
+                    isLimitReached
+                      ? `사진당 ${MY_COMMENT_LIMIT}개까지 작성할 수 있어요`
+                      : '댓글 남기기'
+                  }
+                  disabled={isLimitReached}
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => {
                     if (
@@ -452,7 +473,11 @@ export const CommentSheet = () => {
                     }
                   }}
                 />
-                <Send className="send" onClick={handleSend} />
+                <Send
+                  className="send"
+                  onClick={handleSend}
+                  style={isLimitReached ? { opacity: 0.3, cursor: 'default' } : undefined}
+                />
               </InputBox>
 
               <SafeBottom />
