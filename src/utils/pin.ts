@@ -73,7 +73,6 @@ export const applyPinChangeBatch = async (
 
   const updates: Record<string, any> = {};
   let gainedPins = 0;
-  const opponentPinDeltas: Record<string, number> = {};
 
   for (const { opponentId, opponentName, result } of results) {
     const matchPath = `matchResults/${ym}/${type}/${myId}/${opponentId}`;
@@ -84,16 +83,6 @@ export const applyPinChangeBatch = async (
 
     if (result === 'win') {
       gainedPins += rate;
-
-      if (type !== 'rival') {
-        const oppPinSnap = await get(ref(db, `users/${opponentId}/pin`));
-        const oppPin = Number(oppPinSnap.val() ?? 0);
-        if (oppPin >= rate) {
-          opponentPinDeltas[opponentId] =
-            (opponentPinDeltas[opponentId] ?? 0) - rate;
-        }
-      }
-
       updates[rewardPath] = {
         type: 'match',
         matchType: type,
@@ -113,10 +102,6 @@ export const applyPinChangeBatch = async (
 
   if (gainedPins > 0) {
     updates[`users/${myId}/pin`] = increment(gainedPins);
-  }
-
-  for (const [oppId, delta] of Object.entries(opponentPinDeltas)) {
-    updates[`users/${oppId}/pin`] = increment(delta);
   }
 
   if (Object.keys(updates).length > 0) {
@@ -247,6 +232,7 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
         type: 'referral',
         ym,
         detail: `${myName}님 추천 가입`,
+        incrementInvitedCount: true,
       }),
       applyPinRewardServer({
         empId,
@@ -267,15 +253,6 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
     });
     return false;
   }
-
-  // invitedCount 증가 — 보상 지급 후 별도 처리 (실패 시 마이그레이션으로 보정 가능)
-  applyPinRewardServer({
-    empId: data.refEmpId,
-    pin: 0,
-    type: 'referral',
-    ym,
-    incrementInvitedCount: true,
-  }).catch(() => {});
 
   setTimeout(() => showReferrerRewardToast(pin), 1500);
   return true;
