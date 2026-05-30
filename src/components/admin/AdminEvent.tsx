@@ -39,6 +39,7 @@ const MENU_KEYS = [
   'history',
   'mission',
   'gallery',
+  'teams',
   'reward',
   'draw',
 ] as const;
@@ -50,6 +51,7 @@ const MENU_LABEL: Record<MenuKey, string> = {
   history: '활동 기록',
   mission: '활동 미션',
   gallery: '또랑 갤러리',
+  teams: '팀 편성',
   reward: '상품 신청',
   draw: '추첨 결과',
 };

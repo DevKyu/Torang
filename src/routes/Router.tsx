@@ -11,6 +11,7 @@ import Achievements from '../components/Achievements';
 import GalleryPage from '../components/gallery/GalleryPage';
 import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
+import TeamFormation from '../components/TeamFormation';
 
 const AdminUserManagement = lazy(
   () => import('../components/admin/AdminUserManagement'),
@@ -22,6 +23,9 @@ const AdminActivityParticipants = lazy(
 );
 const AdminMission = lazy(() => import('../components/admin/AdminMission'));
 const AdminProducts = lazy(() => import('../components/admin/AdminProducts'));
+const AdminTeamFormation = lazy(
+  () => import('../components/admin/AdminTeamFormation'),
+);
 
 const Router = () => (
   <Suspense fallback={null}>
@@ -38,6 +42,7 @@ const Router = () => (
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/history" element={<ActivityHistory />} />
         <Route path="/mission" element={<MissionPage />} />
+        <Route path="/teams" element={<TeamFormation />} />
         <Route path="/admin" element={<AdminUserManagement />} />
         <Route path="/admin/event" element={<AdminEvent />} />
         <Route path="/admin/league" element={<AdminLeague />} />
@@ -51,6 +56,10 @@ const Router = () => (
         />
         <Route path="/admin/mission" element={<AdminMission />} />
         <Route path="/admin/products" element={<AdminProducts />} />
+        <Route
+          path="/admin/team-formation"
+          element={<AdminTeamFormation />}
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
