@@ -174,20 +174,19 @@ const MainMenu = () => {
             onPointerUp={(e) => { if (e.isPrimary) handleClick(id, disabled); }}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {!loading && badge && (
-              <MenuBadge
-                variant={badge}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-              >
-                {badge.toUpperCase()}
-              </MenuBadge>
-            )}
-
             <IconWrapper style={{ opacity: loading ? 0.55 : 1 }}>
               {icon}
+              {!loading && badge && (
+                <MenuBadge
+                  variant={badge}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                >
+                  {badge.toUpperCase()}
+                </MenuBadge>
+              )}
             </IconWrapper>
             <MenuLabel style={{ opacity: loading ? 0.55 : 1 }}>
               {label}

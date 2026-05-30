@@ -38,8 +38,8 @@ const MENU_KEYS = [
   'rank',
   'history',
   'mission',
-  'gallery',
   'teams',
+  'gallery',
   'reward',
   'draw',
 ] as const;
@@ -50,8 +50,8 @@ const MENU_LABEL: Record<MenuKey, string> = {
   rank: '또랑 랭킹',
   history: '활동 기록',
   mission: '활동 미션',
-  gallery: '또랑 갤러리',
   teams: '팀 편성',
+  gallery: '또랑 갤러리',
   reward: '상품 신청',
   draw: '추첨 결과',
 };
@@ -90,7 +90,11 @@ const DEFAULT_REWARD: RewardDraft = {
   pinMatch: 0,
 };
 
-const GALLERY_REWARD_KEYS = ['upload', 'likeCreator', 'commentCreator'] as const;
+const GALLERY_REWARD_KEYS = [
+  'upload',
+  'likeCreator',
+  'commentCreator',
+] as const;
 type GalleryRewardKey = (typeof GALLERY_REWARD_KEYS)[number];
 
 const GALLERY_REWARD_LABEL: Record<GalleryRewardKey, string> = {
@@ -105,7 +109,10 @@ const GALLERY_REWARD_UNIT: Record<GalleryRewardKey, string> = {
   commentCreator: '개',
 };
 
-type GalleryRewardDraft = Record<GalleryRewardKey, { pin: number; threshold: number }>;
+type GalleryRewardDraft = Record<
+  GalleryRewardKey,
+  { pin: number; threshold: number }
+>;
 
 const DEFAULT_GALLERY_REWARD_DRAFT: GalleryRewardDraft = {
   upload: { pin: 0, threshold: 5 },
@@ -125,7 +132,14 @@ const getYmList = (base: string, count = 4) => {
 };
 
 export default function AdminEvent() {
-  const { menu, pinReward, galleryReward, matchType: storedMatchType, referralPin: storedReferralPin, loadEventConfig } = useEventStore();
+  const {
+    menu,
+    pinReward,
+    galleryReward,
+    matchType: storedMatchType,
+    referralPin: storedReferralPin,
+    loadEventConfig,
+  } = useEventStore();
   const ui = useUiStore();
   const navigate = useNavigate();
 
@@ -135,7 +149,8 @@ export default function AdminEvent() {
   const [selectedYm, setSelectedYm] = useState(currentYm);
   const [menuDraft, setMenuDraft] = useState<MenuDraft>({} as MenuDraft);
   const [rewardDraft, setRewardDraft] = useState<RewardDraft>(DEFAULT_REWARD);
-  const [galleryRewardDraft, setGalleryRewardDraft] = useState<GalleryRewardDraft>(DEFAULT_GALLERY_REWARD_DRAFT);
+  const [galleryRewardDraft, setGalleryRewardDraft] =
+    useState<GalleryRewardDraft>(DEFAULT_GALLERY_REWARD_DRAFT);
   const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
   const [referralPinDraft, setReferralPinDraft] = useState<number>(0);
   const [distributing, setDistributing] = useState(false);
@@ -169,7 +184,8 @@ export default function AdminEvent() {
     setGalleryRewardDraft({
       upload: cfg?.upload ?? DEFAULT_GALLERY_REWARD_DRAFT.upload,
       likeCreator: cfg?.likeCreator ?? DEFAULT_GALLERY_REWARD_DRAFT.likeCreator,
-      commentCreator: cfg?.commentCreator ?? DEFAULT_GALLERY_REWARD_DRAFT.commentCreator,
+      commentCreator:
+        cfg?.commentCreator ?? DEFAULT_GALLERY_REWARD_DRAFT.commentCreator,
     });
   }, [galleryReward, selectedYm]);
 
@@ -205,13 +221,24 @@ export default function AdminEvent() {
     await Promise.all([
       set(ref(db, 'eventConfig/menu'), menuDraft),
       set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft),
-      set(ref(db, `eventConfig/galleryReward/${selectedYm}`), galleryRewardDraft),
+      set(
+        ref(db, `eventConfig/galleryReward/${selectedYm}`),
+        galleryRewardDraft,
+      ),
       set(ref(db, 'eventConfig/matchType'), matchTypeDraft),
       set(ref(db, 'eventConfig/referralPin'), referralPinDraft),
     ]);
     await loadEventConfig();
     alert('✅ 저장 완료');
-  }, [menuDraft, rewardDraft, galleryRewardDraft, matchTypeDraft, referralPinDraft, selectedYm, loadEventConfig]);
+  }, [
+    menuDraft,
+    rewardDraft,
+    galleryRewardDraft,
+    matchTypeDraft,
+    referralPinDraft,
+    selectedYm,
+    loadEventConfig,
+  ]);
 
   const handleDistribute = useCallback(async () => {
     const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
@@ -219,7 +246,12 @@ export default function AdminEvent() {
       alert('핀 매치 지급 금액이 0입니다. 먼저 저장하세요.');
       return;
     }
-    if (!confirm(`${selectedYm} 핀 매치 보상을 지급하시겠습니까?\n(미처리 건만 계산·지급됩니다)`)) return;
+    if (
+      !confirm(
+        `${selectedYm} 핀 매치 보상을 지급하시겠습니까?\n(미처리 건만 계산·지급됩니다)`,
+      )
+    )
+      return;
     setDistributing(true);
     try {
       const users = await fetchAllUsers();
@@ -338,7 +370,9 @@ export default function AdminEvent() {
         </RewardActionRow>
 
         <RewardActionRow>
-          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>🥊 매치 방식</span>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            🥊 매치 방식
+          </span>
           <ToggleGroup>
             <ToggleLabel>
               <input
@@ -370,7 +404,9 @@ export default function AdminEvent() {
               disabled={distributing}
               style={{ width: '100%' }}
             >
-              {distributing ? '처리 중...' : `📌 ${selectedYm} 핀 매치 보상 지급`}
+              {distributing
+                ? '처리 중...'
+                : `📌 ${selectedYm} 핀 매치 보상 지급`}
             </BulkRewardButton>
           </RewardActionRow>
         )}
@@ -435,7 +471,10 @@ export default function AdminEvent() {
                     onChange={(e) =>
                       setGalleryRewardDraft((p) => ({
                         ...p,
-                        [key]: { ...p[key], pin: e.target.checked ? item.pin || 0.5 : 0 },
+                        [key]: {
+                          ...p[key],
+                          pin: e.target.checked ? item.pin || 0.5 : 0,
+                        },
                       }))
                     }
                   />
@@ -486,7 +525,9 @@ export default function AdminEvent() {
       <Section>
         <SectionTitle>🤝 친구 추천 보상 설정</SectionTitle>
         <RewardActionRow>
-          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>추천인 보상 (고정 핀)</span>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            추천인 보상 (고정 핀)
+          </span>
           <RateGroup>
             {RATE_OPTIONS.map((v) => (
               <button
@@ -506,7 +547,8 @@ export default function AdminEvent() {
           </RateGroup>
         </RewardActionRow>
         <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '4px 0 0' }}>
-          월별 설정과 무관하게 적용되는 고정 보상입니다. 추천인·신규 가입자 양측에 동일하게 지급됩니다.
+          월별 설정과 무관하게 적용되는 고정 보상입니다. 추천인·신규 가입자
+          양측에 동일하게 지급됩니다.
         </p>
       </Section>
 
