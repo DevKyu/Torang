@@ -39,6 +39,7 @@ import {
   InnerContent,
   NewUserForm,
   AdminLinkSection,
+  AdminLinkGroup,
   AdminMainLink,
   AdminSubLinkRow,
   AdminSubLink,
@@ -263,10 +264,10 @@ const AdminUserManagement = () => {
       } else {
         alert(`❌ 초기화에 실패했습니다.`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('비밀번호 초기화 오류:', err);
       alert(
-        `❌ 비밀번호 초기화 중 오류가 발생했습니다.\n\n${err.message ?? ''}`,
+        `❌ 비밀번호 초기화 중 오류가 발생했습니다.\n\n${err instanceof Error ? err.message : ''}`,
       );
     }
   };
@@ -313,31 +314,42 @@ const AdminUserManagement = () => {
           ⚙️ 이벤트 / 메뉴 운영 설정
         </AdminMainLink>
 
-        <AdminSubLinkRow>
-          <AdminSubLink onClick={() => navigate('/admin/league')}>
-            🏆 정기전 관리
-          </AdminSubLink>
+        <AdminLinkGroup>
+          <AdminSubLinkRow>
+            <AdminSubLink onClick={() => navigate('/admin/team-formation')}>
+              👥 팀 편성 관리
+            </AdminSubLink>
+            <AdminSubLink onClick={() => navigate('/admin/league')}>
+              🏆 정기전 관리
+            </AdminSubLink>
+          </AdminSubLinkRow>
+        </AdminLinkGroup>
 
-          <AdminSubLink
-            onClick={() => navigate('/admin/activity-participants')}
-          >
-            ✅ 활동 참여자 관리
-          </AdminSubLink>
+        <AdminLinkGroup>
+          <AdminSubLinkRow>
+            <AdminSubLink
+              onClick={() => navigate('/admin/activity-participants')}
+            >
+              ✅ 활동 참여자 관리
+            </AdminSubLink>
+            <AdminSubLink
+              onClick={() => navigate('/admin/after-party-participants')}
+            >
+              🍻 뒤풀이 참여자 관리
+            </AdminSubLink>
+          </AdminSubLinkRow>
+        </AdminLinkGroup>
 
-          <AdminSubLink onClick={() => navigate('/admin/mission')}>
-            🎭 활동 미션 관리
-          </AdminSubLink>
-
-          <AdminSubLink
-            onClick={() => navigate('/admin/after-party-participants')}
-          >
-            🍻 뒤풀이 참여자 관리
-          </AdminSubLink>
-
-          <AdminSubLink onClick={() => navigate('/admin/products')}>
-            📦 상품 관리
-          </AdminSubLink>
-        </AdminSubLinkRow>
+        <AdminLinkGroup>
+          <AdminSubLinkRow>
+            <AdminSubLink onClick={() => navigate('/admin/mission')}>
+              🎭 활동 미션 관리
+            </AdminSubLink>
+            <AdminSubLink onClick={() => navigate('/admin/products')}>
+              📦 분기 상품 관리
+            </AdminSubLink>
+          </AdminSubLinkRow>
+        </AdminLinkGroup>
       </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (

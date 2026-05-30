@@ -22,6 +22,7 @@ import {
   TeamSection,
   TeamHeader,
   PlayerInput,
+  ScoreInput,
   LookupBtn,
   AddPlayerBtn,
   RemoveBtn,
@@ -407,7 +408,6 @@ const AdminLeague = () => {
     const options: string[] = [];
     const curY = Number(currentYm.slice(0, 4));
     const curM = Number(currentYm.slice(4));
-
     for (let y = 2025; y <= curY; y++) {
       const mStart = y === 2025 ? 7 : 1;
       const mEnd = y === curY ? curM : 12;
@@ -416,7 +416,7 @@ const AdminLeague = () => {
       }
     }
 
-    return options;
+    return options.reverse();
   }, [currentYm]);
 
   const renderPlayers = (teamKey: 'team1' | 'team2', players: PlayerEntry[]) => (
@@ -451,18 +451,20 @@ const AdminLeague = () => {
                     : p.empId}
               </EmpIdBadge>
 
-              <PlayerInput
-                type="number"
+              <ScoreInput
+                type="text"
+                inputMode="numeric"
                 placeholder="1차"
                 value={p.score1}
-                onChange={(e) => updatePlayer(teamKey, idx, 'score1', e.target.value)}
+                onChange={(e) => updatePlayer(teamKey, idx, 'score1', e.target.value.replace(/[^\d]/g, ''))}
               />
 
-              <PlayerInput
-                type="number"
+              <ScoreInput
+                type="text"
+                inputMode="numeric"
                 placeholder="2차"
                 value={p.score2}
-                onChange={(e) => updatePlayer(teamKey, idx, 'score2', e.target.value)}
+                onChange={(e) => updatePlayer(teamKey, idx, 'score2', e.target.value.replace(/[^\d]/g, ''))}
               />
 
               <RemoveBtn type="button" onClick={() => removePlayer(teamKey, idx)}>
@@ -520,7 +522,9 @@ const AdminLeague = () => {
                         ? '1팀 승'
                         : g.winner === 'team2'
                           ? '2팀 승'
-                          : '무승부'}
+                          : g.winner === 'draw'
+                            ? '무승부'
+                            : '결과 없음'}
                     </span>
 
                     <GroupDate>

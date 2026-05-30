@@ -37,11 +37,14 @@ import {
   BottomSection,
   SaveButton,
   EmptyText,
+  ActivityDateRow,
+  ActivityDateLabel,
+  ActivityDateInput,
+  ActivityDateBtn,
 } from '../../styles/AdminActivityParticipantsStyle';
 
 const createMonthOptions = () => {
   const now = new Date();
-
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
@@ -70,6 +73,13 @@ const buildParticipantMap = (
   ) as Record<string, true>;
 
 type ParticipantMode = 'activity' | 'afterParty';
+
+const ymdToDateStr = (n: number): string => {
+  const s = String(n);
+  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+};
+
+const dateStrToYmd = (s: string): number => Number(s.replace(/-/g, ''));
 
 const MODE_CONFIG: Record<ParticipantMode, { path: string; title: string }> = {
   activity: { path: 'activityParticipants', title: '활동 참여자 관리' },
@@ -101,6 +111,9 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
   const [search, setSearch] = useState('');
 
   const [saving, setSaving] = useState(false);
+  const [activityDate, setActivityDate] = useState('');
+  const [savedActivityDate, setSavedActivityDate] = useState('');
+  const [savingDate, setSavingDate] = useState(false);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -138,6 +151,20 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
   useEffect(() => {
     loadParticipants(selectedYm);
   }, [selectedYm, loadParticipants]);
+
+  useEffect(() => {
+    if (mode !== 'activity') return;
+    const year = selectedYm.slice(0, 4);
+    const month = String(Number(selectedYm.slice(4)));
+    get(ref(db, `activityDate/${year}/${month}`)).then((snap) => {
+      const val = snap.exists() ? ymdToDateStr(snap.val() as number) : '';
+      setActivityDate(val);
+      setSavedActivityDate(val);
+    }).catch(() => {
+      setActivityDate('');
+      setSavedActivityDate('');
+    });
+  }, [selectedYm, mode]);
 
   const filteredUsers = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -202,6 +229,22 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
     );
   }, [filteredUsers]);
 
+  const handleSaveDate = async () => {
+    if (!activityDate) return;
+    const year = selectedYm.slice(0, 4);
+    const month = String(Number(selectedYm.slice(4)));
+    setSavingDate(true);
+    try {
+      await set(ref(db, `activityDate/${year}/${month}`), dateStrToYmd(activityDate));
+      setSavedActivityDate(activityDate);
+      toast.success('활동일이 저장되었습니다.', { position: 'top-center' });
+    } catch {
+      toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
+    } finally {
+      setSavingDate(false);
+    }
+  };
+
   const handleSave = async () => {
     const year = selectedYm.slice(0, 4);
     const month = String(Number(selectedYm.slice(4)));
@@ -250,6 +293,24 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </SearchRow>
+
+          {mode === 'activity' && (
+            <ActivityDateRow>
+              <ActivityDateLabel>활동일</ActivityDateLabel>
+              <ActivityDateInput
+                type="date"
+                value={activityDate}
+                onChange={(e) => setActivityDate(e.target.value)}
+              />
+              <ActivityDateBtn
+                saved={activityDate === savedActivityDate && !!savedActivityDate}
+                disabled={savingDate || !activityDate || activityDate === savedActivityDate}
+                onClick={handleSaveDate}
+              >
+                {savingDate ? '저장 중...' : activityDate === savedActivityDate && savedActivityDate ? '저장됨' : '저장'}
+              </ActivityDateBtn>
+            </ActivityDateRow>
+          )}
 
           <SummarySection>
             <SummaryCard>

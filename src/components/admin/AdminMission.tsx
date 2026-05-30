@@ -354,7 +354,7 @@ const AdminMission = () => {
         options.push(`${y}${String(m).padStart(2, '0')}`);
       }
     }
-    return options;
+    return options.reverse();
   }, [currentYm]);
 
   const status = data?.config?.status ?? 'draft';

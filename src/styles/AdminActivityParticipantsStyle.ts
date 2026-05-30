@@ -5,7 +5,7 @@ export const PageWrap = styled.div`
   display: flex;
   flex-direction: column;
 
-  gap: 14px;
+  gap: 10px;
 
   height: calc(100vh - 130px);
 
@@ -16,38 +16,35 @@ export const TopSection = styled.div`
   display: flex;
   flex-direction: column;
 
-  gap: 12px;
+  gap: 8px;
 
   flex-shrink: 0;
 `;
 
 export const SearchRow = styled.div`
   display: flex;
-
   gap: 10px;
 `;
 
 export const MonthSelect = styled.select`
   flex-shrink: 0;
 
-  width: 118px;
-  height: 46px;
+  width: 112px;
+  height: 38px;
 
-  padding: 0 12px;
+  padding: 0 10px;
 
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid #ece7df;
 
   background: rgba(255, 255, 255, 0.88);
 
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 600;
 
   color: #444;
 
   outline: none;
-
-  backdrop-filter: blur(10px);
 
   transition: 0.18s ease;
 
@@ -62,27 +59,24 @@ export const SearchInput = styled.input`
 
   min-width: 0;
 
-  height: 46px;
+  height: 38px;
 
-  padding: 0 15px;
+  padding: 0 12px;
 
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid #ece7df;
 
   background: rgba(255, 255, 255, 0.88);
 
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 
   color: #333;
 
   outline: none;
 
-  backdrop-filter: blur(10px);
-
   transition:
     border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+    background 0.18s ease;
 
   &::placeholder {
     color: #aaa;
@@ -90,10 +84,7 @@ export const SearchInput = styled.input`
 
   &:focus {
     border-color: #d6b089;
-
     background: white;
-
-    box-shadow: 0 0 0 4px rgba(214, 176, 137, 0.12);
   }
 `;
 
@@ -114,19 +105,13 @@ export const SummaryCard = styled.div<{
   align-items: center;
   justify-content: center;
 
-  height: 72px;
+  height: 52px;
 
-  border-radius: 18px;
+  border-radius: 12px;
 
   border: 1px solid #ece7df;
 
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(250, 248, 244, 0.96) 100%
-  );
-
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.92);
 
   transition: 0.18s ease;
 
@@ -134,22 +119,21 @@ export const SummaryCard = styled.div<{
     active &&
     css`
       border-color: #d6b089;
-
-      box-shadow: 0 8px 20px rgba(214, 176, 137, 0.14);
+      background: #fffaf4;
     `}
 `;
 
 export const SummaryValue = styled.div`
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 800;
 
   color: #2f2f2f;
 `;
 
 export const SummaryLabel = styled.div`
-  margin-top: 5px;
+  margin-top: 3px;
 
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
 
   color: #8d8d8d;
@@ -164,14 +148,14 @@ export const FilterSection = styled.div`
 `;
 
 export const FilterButton = styled.button`
-  height: 40px;
+  height: 32px;
 
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #ece7df;
 
   background: rgba(255, 255, 255, 0.92);
 
-  font-size: 0.79rem;
+  font-size: 0.76rem;
   font-weight: 700;
 
   color: #5c5c5c;
@@ -187,9 +171,11 @@ export const FilterButton = styled.button`
     transform: scale(0.98);
   }
 
-  &:hover {
-    border-color: #dcc0a1;
-    background: #fffaf4;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #dcc0a1;
+      background: #fffaf4;
+    }
   }
 `;
 
@@ -227,9 +213,9 @@ export const ListHeader = styled.div`
 
   gap: 12px;
 
-  min-height: 52px;
+  min-height: 40px;
 
-  padding: 0 16px;
+  padding: 0 14px;
 
   border-bottom: 1px solid rgba(236, 231, 223, 0.9);
 `;
@@ -271,9 +257,9 @@ export const UserRow = styled.button<{
 
   width: 100%;
 
-  min-height: 62px;
+  min-height: 52px;
 
-  padding: 12px 14px;
+  padding: 10px 14px;
 
   border: 1px solid
     ${({ checked }) => (checked ? '#d6b089' : 'rgba(235, 235, 235, 0.95)')};
@@ -294,7 +280,7 @@ export const UserRow = styled.button<{
     box-shadow 0.18s ease;
 
   &:not(:last-of-type) {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   &:active {
@@ -404,10 +390,10 @@ export const BottomSection = styled.div`
 export const SaveButton = styled.button`
   width: 100%;
 
-  height: 52px;
+  height: 44px;
 
   border: none;
-  border-radius: 18px;
+  border-radius: 12px;
 
   background: linear-gradient(135deg, #2f3645 0%, #1f2937 100%);
 
@@ -451,4 +437,66 @@ export const EmptyText = styled.div`
   font-weight: 600;
 
   color: #9d9d9d;
+`;
+
+export const ActivityDateRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+export const ActivityDateLabel = styled.span`
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5c5c5c;
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+
+export const ActivityDateInput = styled.input`
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #ece7df;
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 0.84rem;
+  color: #333;
+  outline: none;
+
+  &:focus {
+    border-color: #d6b089;
+    background: white;
+  }
+
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+  }
+`;
+
+export const ActivityDateBtn = styled.button<{ saved?: boolean }>`
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 10px;
+  border: 1px solid ${({ saved }) => (saved ? '#a7d7a0' : '#ece7df')};
+  background: ${({ saved }) => (saved ? '#f0fdf4' : '#fff')};
+  color: ${({ saved }) => (saved ? '#166534' : '#5c5c5c')};
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      background: ${({ saved }) => (saved ? '#dcfce7' : '#fffaf4')};
+      border-color: ${({ saved }) => (saved ? '#86efac' : '#dcc0a1')};
+    }
+  }
 `;

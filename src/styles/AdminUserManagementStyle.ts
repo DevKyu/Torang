@@ -83,10 +83,14 @@ export const SearchRow = styled.div`
 export const AdminLinkSection = styled.div`
   display: flex;
   flex-direction: column;
-
-  gap: 8px;
-
+  gap: 10px;
   margin: 0 0 16px;
+`;
+
+export const AdminLinkGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 `;
 
 export const AdminMainLink = styled.button`

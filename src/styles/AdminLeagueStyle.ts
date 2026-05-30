@@ -161,8 +161,17 @@ export const PlayerInput = styled.input`
   border: 1px solid #e5e7eb;
   border-radius: 5px;
   font-size: 13px;
-  &[type='number'] { width: 64px; flex: none; }
   &[type='date'] { flex: none; width: 160px; margin-bottom: 16px; }
+`;
+
+export const ScoreInput = styled.input`
+  width: 60px;
+  flex: none;
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  font-size: 13px;
+  text-align: center;
 `;
 
 export const LookupBtn = styled.button`
