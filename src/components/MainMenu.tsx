@@ -2,12 +2,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GiftIcon,
-  UsersIcon,
   UserIcon,
   ShieldIcon,
   ImagesIcon,
   History,
-  ClipboardListIcon,
+  Dices,
+  Trophy,
+  Swords,
+  PartyPopper,
 } from 'lucide-react';
 import { logOut, checkAdminId } from '../services/firebase';
 
@@ -40,7 +42,7 @@ type MenuItem = MenuItemBase & {
 
 const BASE_MENU_MAP: Record<string, MenuItemBase> = {
   user: { id: 'user', label: '내정보', icon: <UserIcon size={20} /> },
-  rank: { id: 'rank', label: '또랑 랭킹', icon: <UsersIcon size={20} /> },
+  rank: { id: 'rank', label: '또랑 랭킹', icon: <Trophy size={20} /> },
   history: {
     id: 'history',
     label: '활동 기록',
@@ -49,7 +51,7 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
   mission: {
     id: 'mission',
     label: '활동 미션',
-    icon: <ClipboardListIcon size={20} />,
+    icon: <Swords size={20} />,
   },
   reward: { id: 'reward', label: '상품 신청', icon: <GiftIcon size={20} /> },
 
@@ -58,7 +60,12 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
     label: '또랑 갤러리',
     icon: <ImagesIcon size={20} />,
   },
-  //draw: { id: 'draw', label: '추첨 결과', icon: <TargetIcon size={20} /> },
+  teams: {
+    id: 'teams',
+    label: '팀 편성',
+    icon: <Dices size={20} />,
+  },
+  draw: { id: 'draw', label: '추첨 결과', icon: <PartyPopper size={20} /> },
 };
 
 const ADMIN_MENU: MenuItemBase = {
@@ -67,9 +74,19 @@ const ADMIN_MENU: MenuItemBase = {
   icon: <ShieldIcon size={20} />,
 };
 
+const DEFAULT_ORDER: Record<string, number> = {
+  user: 1,
+  rank: 2,
+  history: 3,
+  mission: 4,
+  teams: 5,
+  gallery: 6,
+  reward: 7,
+  draw: 8,
+};
+
 const DEFAULT_DISABLED: Record<string, boolean> = {
   reward: true,
-  draw: true,
 };
 
 const PATH_MAP: Record<string, string> = {
@@ -81,6 +98,7 @@ const PATH_MAP: Record<string, string> = {
   gallery: '/gallery',
   history: '/history',
   mission: '/mission',
+  teams: '/teams',
 };
 
 const MainMenu = () => {
@@ -126,7 +144,7 @@ const MainMenu = () => {
 
         return {
           ...base[id],
-          order: cfg?.order ?? 999,
+          order: cfg?.order ?? DEFAULT_ORDER[id] ?? 999,
           badge: cfg?.badge as MenuBadgeType | undefined,
           disabled,
           hidden: cfg?.hidden ?? false,
