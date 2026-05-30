@@ -217,13 +217,13 @@ const MyInfo = () => {
             <Label>회원 구분</Label>
             {isReady ? <Badge>{typeLabel}</Badge> : <SkeletonBadge />}
           </InfoRow>
-          <InfoRow>
-            <LabelEmoji>📊</LabelEmoji>
-            <Label>평균 점수</Label>
-            {isReady
-              ? overallAvg !== null && <Badge>{overallAvg}점</Badge>
-              : <SkeletonBadge />}
-          </InfoRow>
+          {(!isReady || overallAvg !== null) && (
+            <InfoRow>
+              <LabelEmoji>📊</LabelEmoji>
+              <Label>평균 점수</Label>
+              {isReady ? <Badge>{overallAvg}점</Badge> : <SkeletonBadge />}
+            </InfoRow>
+          )}
           <InfoRow>
             <LabelEmoji>🎳</LabelEmoji>
             <Label>또랑핀</Label>
