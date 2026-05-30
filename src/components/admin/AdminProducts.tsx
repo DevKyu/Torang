@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ref, get, update } from 'firebase/database';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
-import { db, getCachedUserName, preloadAllNames } from '../../services/firebase';
+import {
+  db,
+  getCachedUserName,
+  preloadAllNames,
+} from '../../services/firebase';
 import { SmallText } from '../../styles/commonStyle';
 import { getQuarterEndYm } from '../../utils/date';
 import { computeAndSaveWinners } from '../../utils/computeAndSaveWinners';
@@ -56,7 +60,9 @@ const getQuarterOptions = (): string[] => {
   const now = new Date();
   const results = new Set<string>();
   for (let i = -2; i <= 2; i++) {
-    results.add(getQuarterEndYm(new Date(now.getFullYear(), now.getMonth() + i * 3, 1)));
+    results.add(
+      getQuarterEndYm(new Date(now.getFullYear(), now.getMonth() + i * 3, 1)),
+    );
   }
   return [...results].sort();
 };
@@ -87,7 +93,9 @@ const AdminProducts = () => {
 
       const data = snap.val();
       const raw = data.items ?? {};
-      const items: ProductItem[] = Array.isArray(raw) ? raw : Object.values(raw);
+      const items: ProductItem[] = Array.isArray(raw)
+        ? raw
+        : Object.values(raw);
 
       setMeta(data.meta ?? null);
       setDrafts(
@@ -114,7 +122,10 @@ const AdminProducts = () => {
 
   const updateDraft = (
     i: number,
-    field: keyof Pick<DraftProduct, 'name' | 'requiredPins' | 'winnersCount' | 'description' | 'imageUrl'>,
+    field: keyof Pick<
+      DraftProduct,
+      'name' | 'requiredPins' | 'winnersCount' | 'description' | 'imageUrl'
+    >,
     value: string | number,
   ) => {
     setDrafts((prev) => {
@@ -127,7 +138,15 @@ const AdminProducts = () => {
   const addProduct = () =>
     setDrafts((prev) => [
       ...prev,
-      { name: '', requiredPins: 0, winnersCount: 1, description: '', imageUrl: '', raffle: [], winners: [] },
+      {
+        name: '',
+        requiredPins: 0,
+        winnersCount: 1,
+        description: '',
+        imageUrl: '',
+        raffle: [],
+        winners: [],
+      },
     ]);
 
   const removeProduct = (i: number) =>
@@ -162,7 +181,9 @@ const AdminProducts = () => {
       await update(ref(db), batch);
 
       if (meta?.winnersReady) {
-        toast.success('저장됐어요. 상품이 변경됐으니 당첨자를 재계산해 주세요.');
+        toast.success(
+          '저장됐어요. 상품이 변경됐으니 당첨자를 재계산해 주세요.',
+        );
       } else {
         toast.success('저장됐어요.');
       }
@@ -178,8 +199,11 @@ const AdminProducts = () => {
     if (computing) return;
     if (
       meta?.winnersReady &&
-      !confirm('이미 계산된 결과가 있어요. 재계산하면 당첨자가 변경될 수 있어요. 계속할까요?')
-    ) return;
+      !confirm(
+        '이미 계산된 결과가 있어요. 재계산하면 당첨자가 변경될 수 있어요. 계속할까요?',
+      )
+    )
+      return;
 
     setComputing(true);
     try {
@@ -194,7 +218,12 @@ const AdminProducts = () => {
   };
 
   const handleResetDraw = async () => {
-    if (!confirm('추첨 결과를 초기화할까요?\n응모자(raffle)는 유지되고 당첨자(winners)와 meta만 삭제됩니다.')) return;
+    if (
+      !confirm(
+        '추첨 결과를 초기화할까요?\n응모자(raffle)는 유지되고 당첨자(winners)와 meta만 삭제됩니다.',
+      )
+    )
+      return;
 
     try {
       const updates: Record<string, null> = {
@@ -212,7 +241,9 @@ const AdminProducts = () => {
   };
 
   const formatNames = (ids: string[]) =>
-    ids.length === 0 ? '없음' : ids.map((id) => getCachedUserName(id)).join(', ');
+    ids.length === 0
+      ? '없음'
+      : ids.map((id) => getCachedUserName(id)).join(', ');
 
   const ymLabel = (ym: string) =>
     `${ym.slice(0, 4)}년 ${Number(ym.slice(4))}월 (${Math.ceil(Number(ym.slice(4)) / 3)}분기)`;
@@ -220,10 +251,16 @@ const AdminProducts = () => {
   const hasAnyRaffle = drafts.some((d) => d.raffle.length > 0);
 
   return (
-    <AdminLayout title="📦 상품 관리">
-      <YmSelect value={selectedYm} onChange={(e) => setSelectedYm(e.target.value)} disabled={computing}>
+    <AdminLayout title="📦 분기 상품 관리">
+      <YmSelect
+        value={selectedYm}
+        onChange={(e) => setSelectedYm(e.target.value)}
+        disabled={computing}
+      >
         {ymOptions.map((ym) => (
-          <option key={ym} value={ym}>{ymLabel(ym)}</option>
+          <option key={ym} value={ym}>
+            {ymLabel(ym)}
+          </option>
         ))}
       </YmSelect>
 
@@ -252,26 +289,36 @@ const AdminProducts = () => {
                       type="number"
                       min={0}
                       value={d.requiredPins}
-                      onChange={(e) => updateDraft(i, 'requiredPins', e.target.value)}
+                      onChange={(e) =>
+                        updateDraft(i, 'requiredPins', e.target.value)
+                      }
                     />
                     <ProductInput
                       type="number"
                       min={1}
                       value={d.winnersCount}
-                      onChange={(e) => updateDraft(i, 'winnersCount', e.target.value)}
+                      onChange={(e) =>
+                        updateDraft(i, 'winnersCount', e.target.value)
+                      }
                     />
-                    <IconButton onClick={() => removeProduct(i)} title="삭제">✕</IconButton>
+                    <IconButton onClick={() => removeProduct(i)} title="삭제">
+                      ✕
+                    </IconButton>
                   </ProductRow>
                   <DetailRow>
                     <DescriptionInput
                       value={d.description}
                       placeholder="상품 설명 (선택)"
-                      onChange={(e) => updateDraft(i, 'description', e.target.value)}
+                      onChange={(e) =>
+                        updateDraft(i, 'description', e.target.value)
+                      }
                     />
                     <ProductInput
                       value={d.imageUrl}
                       placeholder="이미지 URL (선택)"
-                      onChange={(e) => updateDraft(i, 'imageUrl', e.target.value)}
+                      onChange={(e) =>
+                        updateDraft(i, 'imageUrl', e.target.value)
+                      }
                     />
                   </DetailRow>
                 </div>
@@ -324,7 +371,11 @@ const AdminProducts = () => {
                   onClick={handleCompute}
                   disabled={computing || !hasAnyRaffle}
                 >
-                  {computing ? '계산 중...' : meta?.winnersReady ? '재계산' : '당첨자 계산'}
+                  {computing
+                    ? '계산 중...'
+                    : meta?.winnersReady
+                      ? '재계산'
+                      : '당첨자 계산'}
                 </ComputeButton>
 
                 <RaffleGrid>
@@ -346,7 +397,9 @@ const AdminProducts = () => {
                 </RaffleGrid>
 
                 <div style={{ marginTop: 12 }}>
-                  <ResetButton onClick={handleResetDraw}>추첨 초기화</ResetButton>
+                  <ResetButton onClick={handleResetDraw}>
+                    추첨 초기화
+                  </ResetButton>
                 </div>
               </>
             )}

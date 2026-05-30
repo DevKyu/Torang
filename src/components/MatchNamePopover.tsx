@@ -84,34 +84,13 @@ const MatchNamePopover = ({
       window.dispatchEvent(
         new CustomEvent('match-picked', { detail: { targetId, targetName } }),
       );
-    } catch (err: any) {
-      showToast(err.message || '도전장 전송에 실패했습니다.');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : '도전장 전송에 실패했습니다.');
     } finally {
       setBusy(false);
       setShowLetter(false);
     }
   };
-  /*
-  const pickAsync = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await select(targetId);
-      showToast(
-        type === 'pin' ? '핀 대결을 시작했어요!' : '라이벌 대결을 시작했어요!',
-        '',
-        'pick',
-      );
-      window.dispatchEvent(
-        new CustomEvent('match-picked', { detail: { targetId, targetName } }),
-      );
-    } catch (err: any) {
-      showToast(err.message || '대결에 실패했습니다.');
-    } finally {
-      setBusy(false);
-    }
-  };
-*/
   const clearAsync = async () => {
     if (busy) return;
     setBusy(true);
