@@ -4,7 +4,6 @@ import {
   getCachedUserName,
   getCurrentUserId,
   incrementPinsByEmpId,
-  preloadAllNames,
 } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
@@ -220,9 +219,12 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
 
   if (!tx.committed) return false;
 
-  await preloadAllNames();
-  const myName = getCachedUserName(empId);
-  const referrerName = getCachedUserName(data.refEmpId);
+  const myName = typeof data.name === 'string' && data.name
+    ? data.name
+    : getCachedUserName(empId);
+  const referrerName = typeof data.referrerName === 'string' && data.referrerName
+    ? data.referrerName
+    : getCachedUserName(data.refEmpId);
 
   try {
     await Promise.all([

@@ -98,9 +98,13 @@ export const registerUid = async (empId: string, referrerName?: string) => {
   await update(ref(db, `users/${empId}`), userUpdates);
 
   if (referrerName && referrerName.trim()) {
-    const refEmpId = await findEmpIdByName(referrerName.trim());
+    const [refEmpId, myNameSnap] = await Promise.all([
+      findEmpIdByName(referrerName.trim()),
+      get(ref(db, `names/${empId}`)),
+    ]);
     if (refEmpId) {
       await set(ref(db, `referrals/${empId}`), {
+        name: myNameSnap.exists() ? myNameSnap.val() : '',
         refEmpId,
         referrerName: referrerName.trim(),
       });
