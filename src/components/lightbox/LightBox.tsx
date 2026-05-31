@@ -75,6 +75,7 @@ export const LightBox = () => {
   const isInitial = useRef(true);
 
   const overlayOpacity = useMotionValue(1);
+  const lightboxClosingRef = useRef(false);
   const imageBoxRef = useRef<HTMLDivElement>(null);
 
   const [stageW, setStageW] = useState(0);
@@ -198,9 +199,10 @@ export const LightBox = () => {
   }, [current, isOpen, list]);
 
   const runClose = useCallback(async () => {
+    if (lightboxClosingRef.current) return;
+    lightboxClosingRef.current = true;
     await animate(overlayOpacity, 0, { duration: 0.22 });
     onClose();
-    requestAnimationFrame(() => overlayOpacity.set(1));
   }, [overlayOpacity, onClose]);
 
   useEffect(() => {
@@ -268,6 +270,11 @@ export const LightBox = () => {
             </TopCounter>
             <HeaderRight>
               <IconButton
+                onPointerDown={(e) => {
+                  if (e.pointerType !== 'touch') return;
+                  e.stopPropagation();
+                  runClose();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   runClose();
@@ -391,10 +398,7 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleLike();
-                  }}
+                  onTap={() => toggleLike()}
                 >
                   <IconButton>
                     <Heart
@@ -417,15 +421,7 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onPointerDown={(e) => {
-                    if (e.pointerType !== 'touch') return;
-                    e.stopPropagation();
-                    openComment(current);
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openComment(current);
-                  }}
+                  onTap={() => openComment(current)}
                 >
                   <IconButton>
                     <MessageCircle
