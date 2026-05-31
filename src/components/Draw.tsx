@@ -99,7 +99,6 @@ const Draw = () => {
     };
 
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ym]);
 
   useEffect(() => {
@@ -113,7 +112,6 @@ const Draw = () => {
         setSupplement(bundle.meta?.supplement ?? {});
         setWinnersReady(true);
       } catch {
-        // silent — 준비 화면 유지
       }
     });
 
