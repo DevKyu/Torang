@@ -77,7 +77,6 @@ export const CommentSheet = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const sendingRef = useRef(false);
 
@@ -175,7 +174,6 @@ export const CommentSheet = () => {
   const runClose = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
-    if (wrapperRef.current) wrapperRef.current.style.pointerEvents = 'none';
     animate(y, 440, {
       duration: 0.28,
       ease: [0.22, 1, 0.36, 1],
@@ -286,7 +284,6 @@ export const CommentSheet = () => {
     <AnimatePresence>
       {commentOpen && (
         <motion.div
-          ref={wrapperRef}
           key="comment-wrapper"
           style={{
             position: 'fixed',

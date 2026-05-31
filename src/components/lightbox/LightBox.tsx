@@ -417,6 +417,11 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
+                  onPointerDown={(e) => {
+                    if (e.pointerType !== 'touch') return;
+                    e.stopPropagation();
+                    openComment(current);
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     openComment(current);
@@ -424,8 +429,7 @@ export const LightBox = () => {
                 >
                   <IconButton>
                     <MessageCircle
-                      fill={commentOpen ? 'rgba(96,165,250,0.8)' : 'none'}
-                      color={commentOpen ? '#60a5fa' : '#eee'}
+                      color={commentOpen ? '#fff' : '#eee'}
                     />
                   </IconButton>
                   <CountBox>
