@@ -265,7 +265,6 @@ const AdminUserManagement = () => {
         alert(`❌ 초기화에 실패했습니다.`);
       }
     } catch (err: unknown) {
-      console.error('비밀번호 초기화 오류:', err);
       alert(
         `❌ 비밀번호 초기화 중 오류가 발생했습니다.\n\n${err instanceof Error ? err.message : ''}`,
       );

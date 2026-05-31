@@ -133,8 +133,8 @@ const GalleryPage = () => {
     galleryList
       .filter((img) => img.empId === empId)
       .forEach((img) => {
-        rewardGalleryLikeCreator(ym, img.id, empId, Object.keys(img.likes ?? {})).catch(console.error);
-        rewardGalleryCommentCreator(ym, img.id, empId, img.comments ?? {}).catch(console.error);
+        rewardGalleryLikeCreator(ym, img.id, empId, Object.keys(img.likes ?? {})).catch(() => {});
+        rewardGalleryCommentCreator(ym, img.id, empId, img.comments ?? {}).catch(() => {});
       });
   }, [empId, ym, galleryList, eventLoaded]);
 
@@ -197,7 +197,7 @@ const GalleryPage = () => {
 
         if (!isAdmin) setUploadCount(nextCount);
 
-        rewardGalleryMaxUpload(ym, uploadedNext).catch(console.error);
+        rewardGalleryMaxUpload(ym, uploadedNext).catch(() => {});
 
         setMode('list');
       } finally {
