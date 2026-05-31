@@ -171,18 +171,12 @@ export const CommentSheet = () => {
     animate(y, 0, { duration: 0.36, ease: [0.22, 1, 0.36, 1] });
   }, [commentOpen, y]);
 
-  useEffect(() => {
-    document.body.style.overflow = commentOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [commentOpen]);
 
   const runClose = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
     if (wrapperRef.current) wrapperRef.current.style.pointerEvents = 'none';
-    animate(y, window.innerHeight, {
+    animate(y, 440, {
       duration: 0.28,
       ease: [0.22, 1, 0.36, 1],
       onComplete: closeComment,

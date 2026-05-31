@@ -99,3 +99,15 @@ export const Name = styled.div`
   font-size: 14px;
   color: #333;
 `;
+
+export const CloseBtn = styled.button`
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  padding: 11px;
+  margin: -11px;
+  color: #333;
+`;

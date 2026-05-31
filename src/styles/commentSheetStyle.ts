@@ -73,6 +73,10 @@ export const SheetHeader = styled.div`
     height: 24px;
     color: #333;
     cursor: pointer;
+    touch-action: manipulation;
+    padding: 10px;
+    margin: -10px;
+    box-sizing: content-box;
   }
 `;
 

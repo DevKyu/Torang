@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Heart, X } from 'lucide-react';
 import {
   Avatar,
+  CloseBtn,
   Dim,
   Header,
   Item,
@@ -52,7 +53,7 @@ export const LikeSheet = ({ open, onClose, users, myId }: Props) => {
                 <Heart size={14} fill="#ff6b6b" stroke="#ff6b6b" />
                 <span>좋아요 {users.length}</span>
               </Title>
-              <X size={18} onClick={onClose} style={{ cursor: 'pointer' }} />
+              <CloseBtn onClick={onClose}><X size={18} /></CloseBtn>
             </Header>
             <List>
               {sortedUsers.length === 0 ? (
