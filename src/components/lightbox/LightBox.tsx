@@ -389,6 +389,8 @@ export const LightBox = () => {
             <Footer showIcon={showIcon} onClick={(e) => e.stopPropagation()}>
               <FooterIcons>
                 <IconRow
+                  whileTap={{ scale: 0.80 }}
+                  transition={{ duration: 0.1 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleLike();
@@ -413,13 +415,18 @@ export const LightBox = () => {
                 </IconRow>
 
                 <IconRow
+                  whileTap={{ scale: 0.80 }}
+                  transition={{ duration: 0.1 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     openComment(current);
                   }}
                 >
                   <IconButton>
-                    <MessageCircle />
+                    <MessageCircle
+                      fill={commentOpen ? 'rgba(96,165,250,0.8)' : 'none'}
+                      color={commentOpen ? '#60a5fa' : '#eee'}
+                    />
                   </IconButton>
                   <CountBox>
                     <Count

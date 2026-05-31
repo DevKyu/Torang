@@ -198,7 +198,7 @@ export const FooterIcons = styled.div`
   gap: 32px;
 `;
 
-export const IconRow = styled.div`
+export const IconRow = styled(motion.div)`
   width: 50px;
   display: flex;
   justify-content: center;
