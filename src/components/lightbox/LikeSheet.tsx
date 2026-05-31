@@ -34,14 +34,18 @@ export const LikeSheet = ({ open, onClose, users, myId }: Props) => {
   return (
     <AnimatePresence>
       {open && (
-        <Wrapper>
+        <Wrapper
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.22 } }}
+        >
           <Dim onClick={onClose} />
 
           <Sheet
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ duration: 0.22 }}
+            initial={{ y: 60 }}
+            animate={{ y: 0 }}
+            exit={{ y: 60 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
             <Header>
               <Title>

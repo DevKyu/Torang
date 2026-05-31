@@ -12,7 +12,7 @@ export const SheetWrapper = styled(motion.div)`
 export const Backdrop = styled.div`
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.48);
+  background: rgba(0, 0, 0, 0.45);
   touch-action: none;
 `;
 
@@ -98,6 +98,7 @@ export const TextRatioBadge = styled.span`
 export const SheetBody = styled.div`
   overflow-y: auto;
   touch-action: pan-y;
+  overscroll-behavior: contain;
 
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
   text-align: left;

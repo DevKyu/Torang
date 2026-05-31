@@ -77,6 +77,7 @@ export const CommentSheet = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const sendingRef = useRef(false);
 
@@ -98,11 +99,10 @@ export const CommentSheet = () => {
 
   const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<LightboxComment | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
+  const closingRef = useRef(false);
   const [likeOpen, setLikeOpen] = useState(false);
 
   const y = useMotionValue(0);
-  const sheetOpacity = useMotionValue(1);
   const dimOpacity = useTransform(y, [0, 180], [1, 0]);
 
   const scrollToBottom = useCallback(() => {
@@ -162,6 +162,10 @@ export const CommentSheet = () => {
   }, [commentIndex]);
 
   useEffect(() => {
+    if (commentOpen) closingRef.current = false;
+  }, [commentOpen]);
+
+  useEffect(() => {
     document.body.style.overflow = commentOpen ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
@@ -169,10 +173,15 @@ export const CommentSheet = () => {
   }, [commentOpen]);
 
   const runClose = useCallback(() => {
-    if (isClosing) return;
-    setIsClosing(true);
-    closeComment();
-  }, [isClosing, closeComment]);
+    if (closingRef.current) return;
+    closingRef.current = true;
+    if (wrapperRef.current) wrapperRef.current.style.pointerEvents = 'none';
+    animate(y, window.innerHeight, {
+      duration: 0.28,
+      ease: [0.22, 1, 0.36, 1],
+      onComplete: closeComment,
+    });
+  }, [closeComment, y]);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
@@ -270,12 +279,12 @@ export const CommentSheet = () => {
     <AnimatePresence>
       {commentOpen && (
         <motion.div
+          ref={wrapperRef}
           key="comment-wrapper"
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 20000,
-            pointerEvents: isClosing ? 'none' : 'auto',
           }}
         >
           <Dim
@@ -288,16 +297,15 @@ export const CommentSheet = () => {
 
           <Sheet
             key={imageId}
-            style={{ y, opacity: sheetOpacity }}
+            style={{ y }}
             drag="y"
-            dragElastic={0.12}
-            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.1}
+            dragConstraints={{ top: 0 }}
             dragMomentum={false}
             dragPropagation={false}
             onDragEnd={onDragEnd}
             initial={{ opacity: 0, y: 70 }}
             animate={{ opacity: 1, y: 0, transition: { duration: 0.32 } }}
-            exit={{ opacity: 0, y: 70, transition: { duration: 0.24 } }}
           >
             <DragZone>
               <HandleBar />

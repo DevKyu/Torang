@@ -30,7 +30,7 @@ export const Sheet = styled(motion.div)`
   min-height: 320px;
   max-height: 420px;
   background: #fff;
-  border-radius: 18px 18px 0 0;
+  border-radius: 20px 20px 0 0;
   z-index: 20001;
 
   display: flex;
@@ -93,7 +93,6 @@ export const SheetBody = styled.div`
   gap: 16px;
 
   overscroll-behavior: contain;
-
   touch-action: pan-y;
 
   &::-webkit-scrollbar {

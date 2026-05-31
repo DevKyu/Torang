@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const ITEM_HEIGHT = 60;
 const VISIBLE_COUNT = 5;
 
-export const Wrapper = styled.div`
+export const Wrapper = styled(motion.div)`
   position: fixed;
   inset: 0;
   z-index: 20001;
@@ -22,7 +22,7 @@ export const Sheet = styled(motion.div)`
   width: 100%;
   max-height: 70%;
   background: #fff;
-  border-radius: 16px 16px 0 0;
+  border-radius: 20px 20px 0 0;
   overflow: hidden;
 `;
 

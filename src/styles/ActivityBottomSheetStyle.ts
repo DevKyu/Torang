@@ -55,7 +55,7 @@ export const SheetWrapper = styled(motion.div)`
 export const Backdrop = styled(motion.div)`
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.38);
+  background: rgba(0, 0, 0, 0.45);
   ${gpu}
 `;
 
@@ -93,6 +93,7 @@ export const Handle = styled.div`
 export const Content = styled.div`
   overflow-y: auto;
   touch-action: pan-y;
+  overscroll-behavior: contain;
 
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
   &::-webkit-scrollbar {
@@ -107,6 +108,8 @@ export const Header = styled.div`
   padding-bottom: 14px;
   margin-bottom: 16px;
   border-bottom: 1px solid #f3f4f6;
+  touch-action: none;
+  cursor: grab;
 `;
 
 export const Title = styled.h3`
