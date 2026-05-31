@@ -26,6 +26,7 @@ export const CategoryBtn = styled.button<{ active: boolean }>`
   color: ${({ active }) => (active ? '#2563eb' : C.textSub)};
   font-weight: 600;
   cursor: pointer;
+  touch-action: manipulation;
   transition: box-shadow 0.15s ease;
   ${({ active }) => active && 'box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18);'}
 `;
@@ -60,6 +61,7 @@ export const Row = styled(motion.div)`
   padding: 7px 10px;
   border-radius: 8px;
   cursor: pointer;
+  touch-action: manipulation;
   transition: background 0.15s ease;
   @media (hover: hover) and (pointer: fine) {
     &:hover { background: ${C.hover}; }

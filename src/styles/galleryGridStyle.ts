@@ -26,6 +26,7 @@ export const GridItem = styled.div`
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  touch-action: manipulation;
   background: ${colors.bgSoft};
 `;
 

@@ -33,6 +33,7 @@ const GlobalStyle = () => (
         cursor: pointer;
         font-family: inherit;
         outline: none;
+        touch-action: manipulation;
       }
 
       button:focus-visible {

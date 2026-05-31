@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import {
   AnimatePresence,
   motion,
@@ -103,7 +103,7 @@ export const CommentSheet = () => {
   const [likeOpen, setLikeOpen] = useState(false);
 
   const y = useMotionValue(0);
-  const dimOpacity = useTransform(y, [0, 180], [1, 0]);
+  const dimOpacity = useTransform(y, [0, 440], [1, 0]);
 
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
@@ -161,9 +161,15 @@ export const CommentSheet = () => {
     setText('');
   }, [commentIndex]);
 
+  useLayoutEffect(() => {
+    if (commentOpen) y.set(440);
+  }, [commentOpen, y]);
+
   useEffect(() => {
-    if (commentOpen) closingRef.current = false;
-  }, [commentOpen]);
+    if (!commentOpen) return;
+    closingRef.current = false;
+    animate(y, 0, { duration: 0.36, ease: [0.22, 1, 0.36, 1] });
+  }, [commentOpen, y]);
 
   useEffect(() => {
     document.body.style.overflow = commentOpen ? 'hidden' : '';
@@ -185,16 +191,23 @@ export const CommentSheet = () => {
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
+      if (closingRef.current) {
+        animate(y, window.innerHeight, {
+          duration: 0.2,
+          ease: [0.22, 1, 0.36, 1],
+          onComplete: closeComment,
+        });
+        return;
+      }
       const el = bodyRef.current;
       if (el && el.scrollTop > 0) {
         animate(y, 0, { duration: 0.2 });
         return;
       }
-
       if (info.offset.y > 110) runClose();
       else animate(y, 0, { duration: 0.22 });
     },
-    [runClose, y],
+    [runClose, y, closeComment],
   );
 
   const handleSend = useCallback(async () => {
@@ -281,12 +294,6 @@ export const CommentSheet = () => {
         <motion.div
           ref={wrapperRef}
           key="comment-wrapper"
-          onClickCapture={(e) => {
-            if (closingRef.current) {
-              e.stopPropagation();
-              e.preventDefault();
-            }
-          }}
           style={{
             position: 'fixed',
             inset: 0,
@@ -296,9 +303,6 @@ export const CommentSheet = () => {
           <Dim
             style={{ opacity: dimOpacity }}
             onClick={runClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.2 } }}
           />
 
           <Sheet
@@ -310,8 +314,6 @@ export const CommentSheet = () => {
             dragMomentum={false}
             dragPropagation={false}
             onDragEnd={onDragEnd}
-            initial={{ opacity: 0, y: 70 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.32 } }}
           >
             <DragZone>
               <HandleBar />
@@ -322,7 +324,8 @@ export const CommentSheet = () => {
               {likedUsers.length > 0 && (
                 <MetaBar
                   onClick={() => {
-                    if (!likeOpen) setLikeOpen(true);
+                    if (closingRef.current || likeOpen) return;
+                    setLikeOpen(true);
                   }}
                 >
                   <Heart size={14} fill="#ff6b6b" stroke="#ff6b6b" />

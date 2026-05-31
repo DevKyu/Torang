@@ -69,6 +69,7 @@ export const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  touch-action: manipulation;
   color: #fff;
   opacity: 0.9;
   transition:
@@ -204,6 +205,7 @@ export const IconRow = styled.div`
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  touch-action: manipulation;
   padding: 6px 4px;
   border-radius: 8px;
 
