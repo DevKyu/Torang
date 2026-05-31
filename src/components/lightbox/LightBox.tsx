@@ -272,11 +272,6 @@ export const LightBox = () => {
             </TopCounter>
             <HeaderRight>
               <IconButton
-                onPointerDown={(e) => {
-                  if (e.pointerType !== 'touch') return;
-                  e.stopPropagation();
-                  runClose();
-                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   runClose();
@@ -400,7 +395,7 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onTap={() => toggleLike()}
+                  onClick={(e) => { e.stopPropagation(); toggleLike(); }}
                 >
                   <IconButton>
                     <Heart
@@ -423,12 +418,10 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onTap={() => openComment(current)}
+                  onClick={(e) => { e.stopPropagation(); openComment(current); }}
                 >
                   <IconButton>
-                    <MessageCircle
-                      color={commentOpen ? '#fff' : '#eee'}
-                    />
+                    <MessageCircle color="#eee" />
                   </IconButton>
                   <CountBox>
                     <Count

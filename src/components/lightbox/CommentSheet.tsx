@@ -312,11 +312,6 @@ export const CommentSheet = () => {
                 <Title>댓글 {total}</Title>
                 <X
                   className="close"
-                  onPointerDown={(e: React.PointerEvent) => {
-                    if (e.pointerType !== 'touch') return;
-                    e.stopPropagation();
-                    runClose();
-                  }}
                   onClick={runClose}
                 />
               </SheetHeader>
