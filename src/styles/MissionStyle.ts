@@ -139,6 +139,7 @@ export const VoteListArea = styled.div`
   gap: 6px;
   max-height: 40vh;
   overflow-y: auto;
+  touch-action: pan-y;
   padding-bottom: 8px;
   scrollbar-width: none;
   &::-webkit-scrollbar {

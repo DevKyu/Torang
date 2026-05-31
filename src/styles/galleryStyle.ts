@@ -97,6 +97,7 @@ export const ScrollableArea = styled.div`
   width: 100%;
   max-height: 400px;
   overflow-y: auto;
+  touch-action: pan-y;
   margin-top: 14px;
   padding-right: 4px;
 

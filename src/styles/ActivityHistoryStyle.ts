@@ -33,6 +33,7 @@ export const CategoryBtn = styled.button<{ active: boolean }>`
 export const ListFrame = styled(motion.div)`
   height: 300px;
   overflow-y: auto;
+  touch-action: pan-y;
   padding: 6px 0;
   border-top: 1px solid ${C.border};
   border-bottom: 1px solid ${C.border};

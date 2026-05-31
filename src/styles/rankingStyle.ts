@@ -53,6 +53,7 @@ export const StyledRankingTable = styled.table`
     display: block;
     max-height: 40vh;
     overflow-y: auto;
+  touch-action: pan-y;
     width: 100%;
 
 

@@ -160,6 +160,7 @@ const TextArea = styled.textarea`
   outline: none;
   line-height: 1.5;
   overflow-y: auto;
+  touch-action: pan-y;
   white-space: pre-wrap;
 
   &:focus {

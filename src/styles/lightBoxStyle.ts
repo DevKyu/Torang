@@ -154,6 +154,7 @@ export const Description = styled(motion.div)`
   max-width: 420px;
   max-height: 80px;
   overflow-y: auto;
+  touch-action: pan-y;
   padding: 10px 14px;
 
   border-radius: 12px;

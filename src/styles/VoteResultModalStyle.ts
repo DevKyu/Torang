@@ -58,6 +58,7 @@ export const Divider = styled.hr`
 
 export const ScrollArea = styled.div`
   overflow-y: auto;
+  touch-action: pan-y;
   padding: 8px 20px;
   flex: 1;
 

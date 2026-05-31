@@ -52,6 +52,7 @@ const strongGlow = keyframes`
 export const GridScrollContainer = styled.div`
   max-height: 350px;
   overflow-y: auto;
+  touch-action: pan-y;
   padding: 0 12px 4px;
 
 

@@ -97,6 +97,7 @@ export const TextRatioBadge = styled.span`
 
 export const SheetBody = styled.div`
   overflow-y: auto;
+  touch-action: pan-y;
 
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
   text-align: left;

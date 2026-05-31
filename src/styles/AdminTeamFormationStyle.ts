@@ -389,6 +389,7 @@ export const PickerList = styled.div`
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   overflow-y: auto;
+  touch-action: pan-y;
   max-height: 280px;
   background: #fff;
 `

@@ -179,6 +179,7 @@ export const HistoryList = styled.ul`
   padding: 0;
   max-height: 200px;
   overflow-y: auto;
+  touch-action: pan-y;
   overflow-x: hidden;
 
   scrollbar-width: thin;

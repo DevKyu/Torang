@@ -90,6 +90,7 @@ const Modal = styled(motion.div)`
     0 0 0 1px rgba(255, 255, 255, 0.4) inset;
   max-height: 70vh;
   overflow-y: auto;
+  touch-action: pan-y;
 `;
 
 const Title = styled.h3`

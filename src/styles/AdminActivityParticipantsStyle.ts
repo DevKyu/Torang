@@ -238,6 +238,7 @@ export const UserList = styled.div`
   flex: 1;
 
   overflow-y: auto;
+  touch-action: pan-y;
 
   padding: 10px;
 

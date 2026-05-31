@@ -44,6 +44,7 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
 const OuterWrapper = styled.div`
   min-height: 100vh;
   overflow-y: auto;
+  touch-action: pan-y;
 
 `;
 
