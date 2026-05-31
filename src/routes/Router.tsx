@@ -7,12 +7,12 @@ import Reward from '../components/Reward';
 import Draw from '../components/Draw';
 import MyInfo from '../components/MyInfo';
 import Achievements from '../components/Achievements';
-
-const Ranking = lazy(() => import('../components/Ranking'));
-const GalleryPage = lazy(() => import('../components/gallery/GalleryPage'));
 import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
 import TeamFormation from '../components/TeamFormation';
+
+const Ranking = lazy(() => import('../components/Ranking'));
+const GalleryPage = lazy(() => import('../components/gallery/GalleryPage'));
 
 const AdminUserManagement = lazy(
   () => import('../components/admin/AdminUserManagement'),

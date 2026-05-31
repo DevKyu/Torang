@@ -112,8 +112,8 @@ const MainMenu = () => {
   const loaded = useEventStore((s) => s.loaded);
 
   useEffect(() => {
-    import('../components/Ranking');
-    import('../components/gallery/GalleryPage');
+    import('../components/Ranking').catch(() => {});
+    import('../components/gallery/GalleryPage').catch(() => {});
 
     const run = async () => {
       await Promise.all([syncServerTime(), loadEventConfig()]);
