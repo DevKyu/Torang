@@ -281,6 +281,12 @@ export const CommentSheet = () => {
         <motion.div
           ref={wrapperRef}
           key="comment-wrapper"
+          onClickCapture={(e) => {
+            if (closingRef.current) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          }}
           style={{
             position: 'fixed',
             inset: 0,
