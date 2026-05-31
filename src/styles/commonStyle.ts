@@ -43,6 +43,7 @@ export const Button = styled.button`
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  touch-action: manipulation;
   transition: background 0.2s;
 
   &:hover {
@@ -64,6 +65,7 @@ export const SmallText = styled(motion.p)<{
   text-align: center;
   text-decoration: underline;
   cursor: pointer;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 
   @media (hover: hover) and (pointer: fine) {
