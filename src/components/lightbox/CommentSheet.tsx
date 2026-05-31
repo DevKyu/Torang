@@ -184,7 +184,7 @@ export const CommentSheet = () => {
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
       if (closingRef.current) {
-        animate(y, window.innerHeight, {
+        animate(y, 440, {
           duration: 0.2,
           ease: [0.22, 1, 0.36, 1],
           onComplete: closeComment,

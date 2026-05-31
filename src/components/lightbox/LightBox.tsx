@@ -74,7 +74,7 @@ export const LightBox = () => {
   const x = useMotionValue(0);
   const isInitial = useRef(true);
 
-  const overlayOpacity = useMotionValue(1);
+  const overlayOpacity = useMotionValue(0);
   const lightboxClosingRef = useRef(false);
   const imageBoxRef = useRef<HTMLDivElement>(null);
 
@@ -163,8 +163,13 @@ export const LightBox = () => {
   }, [current, stageW, isOpen, animateToIndex, x]);
 
   useEffect(() => {
-    if (!isOpen) isInitial.current = true;
-  }, [isOpen]);
+    if (!isOpen) {
+      isInitial.current = true;
+    } else {
+      lightboxClosingRef.current = false;
+      animate(overlayOpacity, 1, { duration: 0.22 });
+    }
+  }, [isOpen, overlayOpacity]);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
@@ -259,9 +264,6 @@ export const LightBox = () => {
         <Overlay
           key="overlay"
           style={{ opacity: overlayOpacity }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           onClick={overlayClick}
         >
           <Header>
