@@ -1,8 +1,9 @@
-import { memo, useState, useEffect, useMemo } from 'react';
+import { memo, useState, useEffect, useMemo, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 
 interface BowlingSplashProps {
   onComplete: () => void;
+  readyToComplete?: boolean;
 }
 
 const BALL_SIZE = 54;
@@ -86,9 +87,12 @@ const AIM_SPOTS = [-78, -52, -26, 0, 26, 52, 78];
 type Trajectory = 'left' | 'center' | 'right';
 type Phase = 'pins' | 'rolling' | 'impact' | 'gutter' | 'fadeout';
 
-const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
+const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProps) => {
   const [phase, setPhase] = useState<Phase>('pins');
+  const [animDone, setAnimDone] = useState(false);
   const rotateControls = useAnimation();
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const trajectory = useMemo<Trajectory>(() => {
     const r = Math.random();
@@ -119,12 +123,17 @@ const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
           setPhase(trajectory === 'center' ? 'impact' : 'gutter');
         });
       }, 1300),
-      setTimeout(() => setPhase('fadeout'), 2100),
-      setTimeout(onComplete, 3000),
+      setTimeout(() => setAnimDone(true), 2100),
     ];
-
     return () => timers.forEach(clearTimeout);
-  }, [onComplete, trajectory]);
+  }, [trajectory]);
+
+  useEffect(() => {
+    if (!animDone || !readyToComplete) return;
+    setPhase('fadeout');
+    const t = setTimeout(() => onCompleteRef.current(), 900);
+    return () => clearTimeout(t);
+  }, [animDone, readyToComplete]);
 
   useEffect(() => {
     if (phase === 'rolling') {
@@ -157,13 +166,13 @@ const BowlingSplash = ({ onComplete }: BowlingSplashProps) => {
         justifyContent: 'center',
         overflow: 'hidden',
         touchAction: 'none',
-        cursor: 'pointer',
+        cursor: readyToComplete ? 'pointer' : 'default',
         ...GPU,
         WebkitTransform: 'translate3d(0,0,0)',
       }}
       animate={{ opacity: phase === 'fadeout' ? 0 : 1 }}
       transition={{ duration: 0.9 }}
-      onClick={onComplete}
+      onClick={readyToComplete ? onComplete : undefined}
     >
       <div
         style={{
