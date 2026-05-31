@@ -61,7 +61,7 @@ export const ScrollArea = styled.div`
   overflow-y: auto;
   padding: 8px 20px;
   flex: 1;
-  -webkit-overflow-scrolling: touch;
+
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;

@@ -93,7 +93,7 @@ export const Handle = styled.div`
 export const Content = styled.div`
   overflow-y: auto;
   touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
+
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
   &::-webkit-scrollbar {
     display: none;

@@ -50,7 +50,7 @@ export const List = styled.div`
   margin: 0;
   padding: 0;
 
-  -webkit-overflow-scrolling: touch;
+
 
   scrollbar-width: none;
   -ms-overflow-style: none;

@@ -93,7 +93,7 @@ export const SheetBody = styled.div`
   gap: 16px;
 
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+
   touch-action: pan-y;
 
   &::-webkit-scrollbar {

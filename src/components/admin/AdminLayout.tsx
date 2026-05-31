@@ -44,7 +44,7 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
 const OuterWrapper = styled.div`
   min-height: 100vh;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+
 `;
 
 const AdminBox = styled(ContentBox)`

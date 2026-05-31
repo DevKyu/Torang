@@ -55,7 +55,7 @@ export const StyledRankingTable = styled.table`
     overflow-y: auto;
     width: 100%;
 
-    -webkit-overflow-scrolling: touch;
+
     overscroll-behavior: contain;
 
     scrollbar-width: none;

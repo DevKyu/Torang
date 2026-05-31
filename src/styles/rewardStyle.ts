@@ -180,7 +180,7 @@ export const HistoryList = styled.ul`
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+
   scrollbar-width: thin;
   scrollbar-color: ${colors.gray[300]} transparent;
 

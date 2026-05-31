@@ -53,7 +53,7 @@ export const GalleryTitle = styled.h2`
 export const ScrollableList = styled.div`
   flex: 1;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+
   will-change: scroll-position;
 `;
 
