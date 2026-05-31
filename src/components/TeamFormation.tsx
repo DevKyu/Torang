@@ -209,8 +209,21 @@ const TeamFormation = () => {
 
                   <TeamsGrid style={{ minHeight: GRID_MIN_HEIGHT }}>
                     {(['1', '2'] as const).map((teamNum) => {
-                      const players =
-                        teamNum === '1' ? activeGroup.team1 : activeGroup.team2;
+                      const teamKey = teamNum === '1' ? 'team1' : 'team2';
+                      const teamScores = scoreMap[activeGroupId]?.[teamKey];
+                      const players = [...activeGroup[teamKey]].sort((a, b) => {
+                        const sa = teamScores?.[a.empId];
+                        const sb = teamScores?.[b.empId];
+                        const va =
+                          sa && (sa[0] > 0 || sa[1] > 0)
+                            ? sa[1] || sa[0]
+                            : a.average;
+                        const vb =
+                          sb && (sb[0] > 0 || sb[1] > 0)
+                            ? sb[1] || sb[0]
+                            : b.average;
+                        return vb - va;
+                      });
                       const state = getTeamState(teamNum);
                       const isWinner = state === 'winner';
                       const isLoser = state === 'loser';
@@ -225,10 +238,7 @@ const TeamFormation = () => {
                               const isMe = p.empId === myEmpId;
                               const rowKey = `${activeGroupId}-${teamNum}-${p.empId}`;
                               const isOpen = openKey === rowKey;
-                              const scores =
-                                scoreMap[activeGroupId]?.[
-                                  teamNum === '1' ? 'team1' : 'team2'
-                                ]?.[p.empId];
+                              const scores = teamScores?.[p.empId];
                               const hasScores =
                                 scores && (scores[0] > 0 || scores[1] > 0);
 
@@ -262,8 +272,7 @@ const TeamFormation = () => {
                                         isMe={isMe}
                                         detail
                                       >
-                                        {scores[0] || '–'}&thinsp;/&thinsp;
-                                        {scores[1] || '–'}
+                                        {scores[0] || '–'}&thinsp;·&thinsp;{scores[1] || '–'}
                                       </PlayerAvg>
                                     </FadeSpan>
                                   ) : p.average > 0 ? (

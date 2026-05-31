@@ -13,7 +13,7 @@ export const LoadingBox = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 0;
+  min-height: 200px;
 `
 
 export const PendingBox = styled.div`
@@ -158,13 +158,17 @@ const STATE_ACCENT: Record<Exclude<TeamState,'pending'>, string> = { winner:'#10
 const STATE_LABEL:  Record<Exclude<TeamState,'pending'>, string> = { winner:'#059669', loser:'#9ca3af', draw:'#b45309' }
 
 export const TeamCard = styled.div<{ team: '1' | '2'; state: TeamState }>`
-  padding: 12px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   background: ${({ team, state }) => state === 'pending' ? PENDING_BG[team] : STATE_BG[state]};
   border-top: 3px solid ${({ team, state }) => state === 'pending' ? PENDING_ACCENT[team] : STATE_ACCENT[state]};
   border-left: ${({ team }) => team === '2' ? '1px solid #e5e7eb' : 'none'};
   transition: background 0.25s ease, border-top-color 0.25s ease;
+
+  @media (min-width: 444px) {
+    padding: 12px 16px;
+  }
 `
 
 export const PlayersWrapper = styled.div`
@@ -196,7 +200,7 @@ export const PlayerRow = styled.div<{ isMe?: boolean; clickable?: boolean }>`
   align-items: center;
   justify-content: space-between;
   min-height: 28px;
-  padding: 3px 5px;
+  padding: 3px 4px;
   border-radius: 6px;
   background: ${({ isMe }) => (isMe ? '#fef9c3' : 'transparent')};
   transition: background 0.15s;
@@ -222,6 +226,7 @@ export const PlayerName = styled.span<{ isMe?: boolean; loser?: boolean }>`
   font-weight: ${({ isMe }) => (isMe ? 700 : 400)};
   line-height: 1.4;
   color: ${({ isMe, loser }) => isMe ? '#92400e' : loser ? '#6b7280' : '#374151'};
+  white-space: nowrap;
 `
 
 export const NameGroup = styled.span`
@@ -256,6 +261,9 @@ const fadeIn = keyframes`
 
 export const FadeSpan = styled.span`
   animation: ${fadeIn} 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 `
 
 export const PlayerAvg = styled.span<{ loser?: boolean; isMe?: boolean; detail?: boolean }>`
