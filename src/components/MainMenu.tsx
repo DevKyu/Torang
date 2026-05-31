@@ -112,6 +112,9 @@ const MainMenu = () => {
   const loaded = useEventStore((s) => s.loaded);
 
   useEffect(() => {
+    import('../components/Ranking');
+    import('../components/gallery/GalleryPage');
+
     const run = async () => {
       await Promise.all([syncServerTime(), loadEventConfig()]);
       const [isAdminResult] = await Promise.all([
