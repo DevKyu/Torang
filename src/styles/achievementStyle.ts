@@ -84,10 +84,13 @@ export const Card = styled(motion.div)<{ achieved: boolean }>`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  will-change: transform, box-shadow;
+  will-change: transform;
   opacity: ${({ achieved }) => (achieved ? 0.9 : 0.5)};
   filter: ${({ achieved }) => (achieved ? 'none' : 'grayscale(70%)')};
-  transition: all 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    box-shadow 0.25s ease;
 
   ${({ achieved }) =>
     achieved &&
@@ -95,15 +98,17 @@ export const Card = styled(motion.div)<{ achieved: boolean }>`
       animation: ${subtleGlow} 3s ease-in-out infinite;
     `}
 
-  &:hover {
-    transform: scale(1.01);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.01);
 
-    ${({ achieved }) =>
-      achieved &&
-      css`
-        opacity: 1;
-        animation: ${strongGlow} 2s ease-in-out infinite;
-      `}
+      ${({ achieved }) =>
+        achieved &&
+        css`
+          opacity: 1;
+          animation: ${strongGlow} 2s ease-in-out infinite;
+        `}
+    }
   }
 `;
 
@@ -184,7 +189,12 @@ export const TabButton = styled.button<{ active?: boolean }>`
   border-radius: 10px;
   padding: 6px 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  touch-action: manipulation;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
 
   &:hover {
     background: ${({ active }) =>

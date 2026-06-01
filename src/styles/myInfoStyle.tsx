@@ -218,12 +218,18 @@ export const BadgeButton = styled(Badge)`
   gap: 4px;
   border: 1px solid #facc15;
   padding: 4px 10px;
-  transition: all 0.2s ease;
+  touch-action: manipulation;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
-  &:hover {
-    background: #ffefc1;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #ffefc1;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
   }
 `;
 
