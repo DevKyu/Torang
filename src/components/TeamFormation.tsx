@@ -40,6 +40,7 @@ import {
 
 const MIN_YM = '202507';
 const GRID_MIN_HEIGHT = 172;
+const PENDING_MIN_HEIGHT = 220;
 
 const TeamFormation = () => {
   const navigate = useNavigate();
@@ -88,10 +89,11 @@ const TeamFormation = () => {
   if (confirmedMinHeight !== undefined) {
     stableMinHeightRef.current = confirmedMinHeight;
   }
-  const contentMinHeight =
-    isConfirmed || loading
-      ? (confirmedMinHeight ?? stableMinHeightRef.current)
-      : undefined;
+  const contentMinHeight = isConfirmed
+    ? (confirmedMinHeight ?? stableMinHeightRef.current ?? PENDING_MIN_HEIGHT)
+    : loading
+      ? (stableMinHeightRef.current ?? PENDING_MIN_HEIGHT)
+      : PENDING_MIN_HEIGHT;
 
   const safeIdx = Math.min(activeIdx, Math.max(0, groups.length - 1));
   const activeGroup = groups[safeIdx];
@@ -123,9 +125,7 @@ const TeamFormation = () => {
         onChange={handleYmChange}
       />
 
-      <ContentArea
-        style={contentMinHeight ? { minHeight: contentMinHeight } : undefined}
-      >
+      <ContentArea style={{ minHeight: contentMinHeight }}>
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div

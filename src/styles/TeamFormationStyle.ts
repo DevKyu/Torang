@@ -6,6 +6,7 @@ export const ContentArea = styled.div`
   margin-top: 16px;
   display: flex;
   flex-direction: column;
+  transition: min-height 0.25s ease;
 `
 
 export const LoadingBox = styled.div`
@@ -13,7 +14,7 @@ export const LoadingBox = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 220px;
 `
 
 export const PendingBox = styled.div`
@@ -21,7 +22,7 @@ export const PendingBox = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 28px 0 32px;
+  min-height: 220px;
   gap: 6px;
   text-align: center;
 `
