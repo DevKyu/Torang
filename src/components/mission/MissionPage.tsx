@@ -385,7 +385,7 @@ const MissionPage = () => {
             <MissionEmptyBox>
               <MissionEmptyIcon>🤫</MissionEmptyIcon>
               <MissionEmptyTitle>활동 미션 준비중</MissionEmptyTitle>
-              <MissionEmptyDesc>공개되면 바로 확인할 수 있어요</MissionEmptyDesc>
+              <MissionEmptyDesc>완료되면 바로 공개될 예정이에요</MissionEmptyDesc>
             </MissionEmptyBox>
           )}
 
