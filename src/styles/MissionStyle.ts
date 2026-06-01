@@ -337,7 +337,7 @@ export const MissionLoadingBox = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 0;
+  min-height: 160px;
 `;
 
 export const MissionEmptyBox = styled.div`
@@ -345,7 +345,7 @@ export const MissionEmptyBox = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 28px 0 32px;
+  min-height: 160px;
   gap: 6px;
   text-align: center;
 `;

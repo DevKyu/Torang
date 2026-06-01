@@ -236,25 +236,22 @@ const MissionPage = () => {
           : 'voting'
       : viewState;
 
-  if (!isReady) {
-    return (
-      <Layout title="활동 미션" maxWidth="480px">
-        <MissionLoadingBox>
-          <ClipLoader size={24} color="#9ca3af" />
-        </MissionLoadingBox>
-        <SmallText
-          top="middle"
-          onClick={() => navigate('/menu', { replace: true })}
-        >
-          돌아가기
-        </SmallText>
-      </Layout>
-    );
-  }
-
   return (
     <Layout title={pageTitle} maxWidth="480px">
       <AnimatePresence mode="wait">
+        {!isReady ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <MissionLoadingBox>
+              <ClipLoader size={24} color="#9ca3af" />
+            </MissionLoadingBox>
+          </motion.div>
+        ) : (
         <motion.div
           key={contentKey}
           initial={{ opacity: 0 }}
@@ -421,6 +418,7 @@ const MissionPage = () => {
             </>
           )}
         </motion.div>
+        )}
       </AnimatePresence>
 
       {viewState === 'revealed' && data?.roles && (
