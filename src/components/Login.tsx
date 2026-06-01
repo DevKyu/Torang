@@ -314,32 +314,32 @@ const Login = () => {
   return (
     <>
       <Layout title="또랑 로그인🎳">
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.form
-          key={isPasswordChangeMode ? 'change' : 'login'}
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-        >
-          <div>
-            {isPasswordChangeMode
-              ? renderChangePasswordInputs()
-              : renderLoginInputs()}
-          </div>
-          {error && <ErrorText>{error}</ErrorText>}
-          <Button type="submit" disabled={isSubmitting}>
-            {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
-          </Button>
-          {isPasswordChangeMode && (
-            <SmallText top="narrow" onClick={handleCancelChange}>
-              돌아가기
-            </SmallText>
-          )}
-        </motion.form>
-      </AnimatePresence>
-    </Layout>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.form
+            key={isPasswordChangeMode ? 'change' : 'login'}
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div>
+              {isPasswordChangeMode
+                ? renderChangePasswordInputs()
+                : renderLoginInputs()}
+            </div>
+            {error && <ErrorText>{error}</ErrorText>}
+            <Button type="submit" disabled={isSubmitting}>
+              {isPasswordChangeMode ? '비밀번호 변경' : '로그인'}
+            </Button>
+            {isPasswordChangeMode && (
+              <SmallText top="narrow" onClick={handleCancelChange}>
+                돌아가기
+              </SmallText>
+            )}
+          </motion.form>
+        </AnimatePresence>
+      </Layout>
     </>
   );
 };
