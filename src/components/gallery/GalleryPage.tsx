@@ -234,7 +234,7 @@ const GalleryPage = () => {
           loading={galleryList === null}
           onMoveUpload={() => setMode('upload')}
           onCancel={() => navigate('/menu', { replace: true })}
-          onChangeMonth={setYm}
+          onChangeMonth={(newYm) => { setGalleryList(null); setYm(newYm); }}
         />
       )}
 

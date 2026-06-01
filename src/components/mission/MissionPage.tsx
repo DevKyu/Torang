@@ -42,6 +42,10 @@ import {
   UpcomingDays,
   UpcomingLabel,
   MissionLoadingBox,
+  MissionEmptyBox,
+  MissionEmptyIcon,
+  MissionEmptyTitle,
+  MissionEmptyDesc,
 } from '../../styles/MissionStyle';
 
 type VoterCardItemProps = {
@@ -378,12 +382,11 @@ const MissionPage = () => {
           )}
 
           {viewState === 'empty' && (
-            <MissionCard>
-              <CardTitle>이달의 미션</CardTitle>
-              <PlainBody style={{ color: '#9ca3af', textAlign: 'center' }}>
-                이달의 미션을 준비중입니다.
-              </PlainBody>
-            </MissionCard>
+            <MissionEmptyBox>
+              <MissionEmptyIcon>🤫</MissionEmptyIcon>
+              <MissionEmptyTitle>활동 미션 준비중</MissionEmptyTitle>
+              <MissionEmptyDesc>공개되면 바로 확인할 수 있어요</MissionEmptyDesc>
+            </MissionEmptyBox>
           )}
 
           {viewState === 'upcoming' && (

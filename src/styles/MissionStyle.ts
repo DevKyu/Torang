@@ -339,3 +339,34 @@ export const MissionLoadingBox = styled.div`
   align-items: center;
   padding: 60px 0;
 `;
+
+export const MissionEmptyBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 0 32px;
+  gap: 6px;
+  text-align: center;
+`;
+
+export const MissionEmptyIcon = styled.div`
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 6px;
+`;
+
+export const MissionEmptyTitle = styled.p`
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #374151;
+  margin: 0;
+`;
+
+export const MissionEmptyDesc = styled.p`
+  font-size: 13px;
+  line-height: 1.4;
+  color: #9ca3af;
+  margin: 0;
+`;

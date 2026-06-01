@@ -92,8 +92,10 @@ export const FilterButton = styled.button<{ active: boolean }>`
 
 export const EmptyBox = styled.div`
   width: 100%;
-  padding: 30px 0;
-  text-align: center;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: ${colors.textSub};
   font-size: 13px;
 `;

@@ -152,7 +152,7 @@ const TeamFormation = () => {
               <PendingBox>
                 <PendingIcon>{error ? '⚠️' : '🎳'}</PendingIcon>
                 <PendingTitle>
-                  {error ? '데이터를 불러오지 못했어요' : '팀 편성 준비 중이에요'}
+                  {error ? '데이터를 불러오지 못했어요' : '팀 편성 준비중'}
                 </PendingTitle>
                 <PendingDesc>
                   {error

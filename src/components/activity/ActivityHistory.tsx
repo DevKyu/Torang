@@ -136,6 +136,8 @@ const ActivityHistory = () => {
     });
   }, [monthly, category]);
 
+  const month = Number(ym.slice(4, 6));
+
   return (
     <>
       <MyInfoContainer>
@@ -186,7 +188,7 @@ const ActivityHistory = () => {
               </EmptyState>
             ) : filtered.length === 0 ? (
               <EmptyState variants={rowVariants}>
-                해당 월의 내역이 없습니다.
+                {month}월의 활동 기록이 없습니다.
               </EmptyState>
             ) : (
               filtered.map((item) => (
