@@ -81,10 +81,9 @@ const Achievements = () => {
         const activityYmd = activityMaps[curYear]?.[curMonth];
 
         const shouldRun =
-          Object.keys(existing).length === 0 ||
-          (activityYmd &&
-            !isBeforeCutoff(String(activityYmd), '18:30') &&
-            String(todayYmd) !== lastCheck);
+          activityYmd &&
+          !isBeforeCutoff(String(activityYmd), '18:30') &&
+          String(todayYmd) !== lastCheck;
 
         if (!shouldRun) {
           setAchievements(existing);
