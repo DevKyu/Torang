@@ -19,20 +19,14 @@ export const GalleryOuter = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px;
-  overflow: hidden;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
 `;
 
 export const GalleryBox = styled(motion.div)`
-  width: 100%;
-  max-width: 420px;
-  max-height: 660px;
+  width: 90%;
+  max-width: 400px;
   background: ${colors.bgCard};
   border-radius: 16px;
-  box-shadow: ${colors.shadow};
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 20px 18px 18px;
   display: flex;
   flex-direction: column;
