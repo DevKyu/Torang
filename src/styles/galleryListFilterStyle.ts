@@ -27,10 +27,14 @@ export const MonthNavButton = styled.button`
   border: 1px solid rgba(59, 130, 246, 0.15);
   color: ${colors.primary};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 
-  &:hover {
-    background: rgba(59, 130, 246, 0.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(59, 130, 246, 0.1);
+    }
   }
 
   &:active {
@@ -39,12 +43,6 @@ export const MonthNavButton = styled.button`
 
   &:focus {
     outline: none;
-  }
-
-  @media (hover: none) {
-    &:hover {
-      background: rgba(59, 130, 246, 0.06);
-    }
   }
 
   &:disabled {
@@ -79,10 +77,14 @@ export const FilterButton = styled.button<{ active: boolean }>`
   background: ${(p) => (p.active ? colors.primarySoft : '#fff')};
   color: ${(p) => (p.active ? colors.primary : colors.textSub)};
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 
-  &:hover {
-    background: ${(p) => (p.active ? colors.primarySoft : '#f3f4f6')};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${(p) => (p.active ? colors.primarySoft : '#f3f4f6')};
+    }
   }
 
   &:active {

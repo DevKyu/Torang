@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   HeaderRow,
@@ -63,8 +63,29 @@ const MonthNavigator = ({ ym, minYm, maxYm, onChange }: Props) => {
     [year, month, minYear, minMonth, maxYear, maxMonth, onChange],
   );
 
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (touchStartX.current === null) return;
+      const diff = e.changedTouches[0].clientX - touchStartX.current;
+      touchStartX.current = null;
+      if (Math.abs(diff) < 40) return;
+      moveMonth(diff < 0 ? 1 : -1);
+    },
+    [moveMonth],
+  );
+
   return (
-    <HeaderRow>
+    <HeaderRow
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => { touchStartX.current = null; }}
+    >
       <MonthNavButton disabled={isPrevDisabled} onClick={() => moveMonth(-1)}>
         <ChevronLeft size={15} />
       </MonthNavButton>

@@ -52,11 +52,11 @@ export const StyledRankingTable = styled.table`
   tbody {
     display: block;
     height: 40vh;
+    height: 40dvh;
     overflow-y: auto;
     touch-action: pan-y;
     width: 100%;
     overscroll-behavior: contain;
-
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -76,6 +76,11 @@ export const StyledRankingTable = styled.table`
     padding: 10px 6px;
     border-bottom: 1px solid ${colors.divider};
     white-space: nowrap;
+  }
+
+  th {
+    cursor: pointer;
+    touch-action: manipulation;
   }
 `;
 
