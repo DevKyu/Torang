@@ -278,6 +278,13 @@ const GalleryList = ({
                             return (
                               <GridItem
                                 key={img.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{
+                                  duration: 0.18,
+                                  delay: i * 0.04,
+                                  ease: 'easeOut',
+                                }}
                                 onClick={() => preloadOpenLightBox(storeIdx)}
                               >
                                 {!loading && <Skeleton hidden={allLoaded} />}

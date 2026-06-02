@@ -169,10 +169,13 @@ const MainMenu = () => {
   return (
     <Layout title="또랑 메뉴🎳" padding="compact">
       <MenuGrid>
-        {menuItems.map(({ id, label, icon, badge, disabled, loading }) => (
+        {menuItems.map(({ id, label, icon, badge, disabled, loading }, index) => (
           <MotionMenuCard
             key={id}
             disabled={disabled}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: index * 0.04, ease: 'easeOut' }}
             whileTap={disabled ? undefined : { scale: 0.98 }}
             onPointerUp={(e) => { if (e.isPrimary) handleClick(id, disabled); }}
             onContextMenu={(e) => e.preventDefault()}

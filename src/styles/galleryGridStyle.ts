@@ -19,7 +19,7 @@ export const GridWrapper = styled.div`
   gap: 8px;
 `;
 
-export const GridItem = styled.div`
+export const GridItem = styled(motion.div)`
   width: 100%;
   aspect-ratio: 1;
   border-radius: 10px;
