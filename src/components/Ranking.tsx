@@ -410,18 +410,29 @@ const Ranking = () => {
 
         <RankingBody>
           <FilterTabs>
-            {rankingReady && availableTabs.map((type, idx) => (
-              <MotionRankingTab
-                key={type}
-                active={rankingType === type}
-                onClick={() => setRankingType(type)}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.06 }}
-              >
-                {RANKING_TYPE_LABELS[type]}
-              </MotionRankingTab>
-            ))}
+            {rankingReady
+              ? availableTabs.map((type, idx) => (
+                  <MotionRankingTab
+                    key={type}
+                    active={rankingType === type}
+                    onClick={() => setRankingType(type)}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.06 }}
+                  >
+                    {RANKING_TYPE_LABELS[type]}
+                  </MotionRankingTab>
+                ))
+              : (['quarter', 'year', 'total'] as const).map((type) => (
+                  <MotionRankingTab
+                    key={`ph-${type}`}
+                    active={false}
+                    style={{ visibility: 'hidden' }}
+                  >
+                    {RANKING_TYPE_LABELS[type]}
+                  </MotionRankingTab>
+                ))
+            }
           </FilterTabs>
 
           <TableContainer>
