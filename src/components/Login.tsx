@@ -314,7 +314,6 @@ const Login = () => {
   return (
     <>
       <Layout title="또랑 로그인🎳">
-        <motion.div layout style={{ overflow: 'hidden' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.form
             key={isPasswordChangeMode ? 'change' : 'login'}
@@ -340,7 +339,6 @@ const Login = () => {
             )}
           </motion.form>
         </AnimatePresence>
-        </motion.div>
       </Layout>
     </>
   );
