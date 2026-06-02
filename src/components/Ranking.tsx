@@ -10,7 +10,6 @@ import {
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
 import { showToast } from '../utils/toast';
-import { useLoading } from '../contexts/LoadingContext';
 
 import RankingPopover from './RankingPopover';
 import MatchOverlay from './MatchOverlay';
@@ -28,10 +27,12 @@ import {
   TableContainer,
   StyledRankingTable,
   FilterTabs,
-  RankingTab,
   listVariants,
   itemVariants,
   MotionTableRow,
+  RankingBody,
+  MotionRankingTab,
+  SkeletonLine,
 } from '../styles/rankingStyle';
 import {
   RANKING_TYPE_LABELS,
@@ -50,10 +51,19 @@ import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
 import { applyPinChangeBatch } from '../utils/pin';
 
+const SKELETON_ROWS = [
+  ['40%', '72%', '55%', '50%', '44%'],
+  ['35%', '65%', '60%', '55%', '40%'],
+  ['44%', '78%', '52%', '48%', '50%'],
+  ['38%', '68%', '58%', '52%', '42%'],
+  ['42%', '74%', '54%', '56%', '46%'],
+  ['36%', '70%', '56%', '44%', '48%'],
+  ['40%', '66%', '62%', '50%', '44%'],
+  ['34%', '76%', '50%', '54%', '46%'],
+] as const;
+
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
-const TAB_PRIORITY: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
-const ANIM_DURATION = 0.3;
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
@@ -67,7 +77,6 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
 
 const Ranking = () => {
   const navigate = useNavigate();
-  const { showLoading, hideLoading } = useLoading();
   const MATCH_TYPE = useEventStore((s) => s.matchType);
   const { maps: activityAll } = useActivityDates();
 
@@ -87,11 +96,11 @@ const Ranking = () => {
   const [rankingType, setRankingType] = useState<RankingType>('quarter');
   const [rankingReady, setRankingReady] = useState(false);
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
+  const [usersLoaded, setUsersLoaded] = useState(false);
   const [myId, setMyId] = useState<string | null>(null);
   const [showLetters, setShowLetters] = useState(true);
   const myRowRef = useRef<HTMLTableRowElement>(null);
   const rankingInitRef = useRef(false);
-  const rankingReadyRef = useRef(false);
 
   const activityYmd = useMemo(() => {
     const current = activityAll[String(year)]?.[String(month)];
@@ -116,14 +125,8 @@ const Ranking = () => {
   }, [participantsAll, activityYmd, timeAllowed]);
 
   useEffect(() => {
-    showLoading();
-    return () => { if (!rankingReadyRef.current) hideLoading(); };
-  }, []);
-
-  useEffect(() => {
     let cancelled = false;
     (async () => {
-      showLoading();
       try {
         const [usersData, currentId] = await Promise.all([
           fetchAllUsers(),
@@ -132,16 +135,12 @@ const Ranking = () => {
         if (cancelled) return;
         setUsers(usersData);
         setMyId(currentId || null);
+        setUsersLoaded(true);
       } catch {
         if (!cancelled) navigate('/', { replace: true });
-      } finally {
-        if (!cancelled) hideLoading();
       }
     })();
-    return () => {
-      cancelled = true;
-      hideLoading();
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const hasQuarterData = useMemo(() => {
@@ -172,26 +171,24 @@ const Ranking = () => {
   }, [monthlyEnabled, hasQuarterData, hasYearData]);
 
   useEffect(() => {
-    if (!availableTabs.length || !Object.keys(users).length || rankingInitRef.current) return;
+    if (!availableTabs.length || !usersLoaded || rankingInitRef.current) return;
     rankingInitRef.current = true;
 
     if (availableTabs.includes('monthly')) {
       setRankingType('monthly');
     } else {
-      const first = TAB_PRIORITY.find((t) => availableTabs.includes(t));
+      const first = RANKING_TABS.find((t) => availableTabs.includes(t));
       if (first) setRankingType(first);
     }
-    rankingReadyRef.current = true;
     setRankingReady(true);
-    hideLoading();
-  }, [availableTabs, users]);
+  }, [availableTabs, usersLoaded]);
 
   const ranking: RankingEntry[] = useMemo(() => {
-    if (!Object.keys(users).length) return [];
+    if (!usersLoaded) return [];
     return mapUsersToRankingEntries(users, rankingType, participants).filter(
       (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
     );
-  }, [users, rankingType, participants]);
+  }, [usersLoaded, users, rankingType, participants]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -330,7 +327,7 @@ const Ranking = () => {
     );
   }, [handleHeaderClick, rankingType]);
 
-  const handleSendLetter = async (
+  const handleSendLetter = useCallback(async (
     targetId: string,
     message: string,
     anonymous: boolean,
@@ -341,7 +338,7 @@ const Ranking = () => {
       message,
       anonymous,
     });
-  };
+  }, [myId, ym, MATCH_TYPE]);
 
   const renderRow = useCallback(
     (user: RankingEntry, idx: number) => {
@@ -401,7 +398,7 @@ const Ranking = () => {
         </MotionTableRow>
       );
     },
-    [rankingType, ym, myId, timeAllowed, myLeague],
+    [rankingType, ym, myId, timeAllowed, myLeague, participants, handleSendLetter],
   );
 
   return (
@@ -409,42 +406,70 @@ const Ranking = () => {
       <RankingContentBox maxWidth="480px">
         <Title size="small">또랑 랭킹</Title>
 
-        <FilterTabs>
-          {availableTabs.map((type) => (
-            <RankingTab
-              key={type}
-              active={rankingType === type}
-              onClick={() => setRankingType(type)}
-            >
-              {RANKING_TYPE_LABELS[type]}
-            </RankingTab>
-          ))}
-        </FilterTabs>
+        <RankingBody>
+          <FilterTabs>
+            {rankingReady && availableTabs.map((type, idx) => (
+              <MotionRankingTab
+                key={type}
+                active={rankingType === type}
+                onClick={() => setRankingType(type)}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: idx * 0.06 }}
+              >
+                {RANKING_TYPE_LABELS[type]}
+              </MotionRankingTab>
+            ))}
+          </FilterTabs>
 
-        {ranking.length > 0 && rankingReady && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={rankingType}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: ANIM_DURATION }}
-            >
-              <TableContainer>
-                <StyledRankingTable>
-                  <thead>{headerRow}</thead>
+          <TableContainer>
+            <StyledRankingTable>
+              <thead>{headerRow}</thead>
+              <AnimatePresence mode="wait">
+                {!rankingReady ? (
                   <motion.tbody
+                    key="skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {SKELETON_ROWS.map((cols, i) => (
+                      <tr key={i}>
+                        {cols.map((w, j) => (
+                          <td key={j}><SkeletonLine width={w} /></td>
+                        ))}
+                      </tr>
+                    ))}
+                  </motion.tbody>
+                ) : ranking.length > 0 ? (
+                  <motion.tbody
+                    key={rankingType}
                     variants={listVariants}
                     initial="hidden"
                     animate="visible"
+                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
                   >
                     {ranking.map(renderRow)}
                   </motion.tbody>
-                </StyledRankingTable>
-              </TableContainer>
-            </motion.div>
-          </AnimatePresence>
-        )}
+                ) : (
+                  <motion.tbody
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <tr style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+                      <td style={{ border: 'none', color: '#bbb', fontSize: '13px' }}>
+                        등록된 데이터가 없어요
+                      </td>
+                    </tr>
+                  </motion.tbody>
+                )}
+              </AnimatePresence>
+            </StyledRankingTable>
+          </TableContainer>
+        </RankingBody>
 
         <SmallText
           top="middle"
