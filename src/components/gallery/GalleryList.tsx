@@ -234,7 +234,7 @@ const GalleryList = ({
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={`g-${ym}-${filter}`}
+              key={`g-${ym}-${filter}-${loading}`}
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
