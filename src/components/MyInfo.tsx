@@ -217,13 +217,22 @@ const MyInfo = () => {
             <Label>회원 구분</Label>
             {isReady ? <Badge>{typeLabel}</Badge> : <SkeletonBadge />}
           </InfoRow>
-          {(!isReady || overallAvg !== null) && (
-            <InfoRow>
-              <LabelEmoji>📊</LabelEmoji>
-              <Label>평균 점수</Label>
-              {isReady ? <Badge>{overallAvg}점</Badge> : <SkeletonBadge />}
-            </InfoRow>
-          )}
+          <AnimatePresence>
+            {(!isReady || overallAvg !== null) && (
+              <motion.div
+                key="avg-row"
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <InfoRow>
+                  <LabelEmoji>📊</LabelEmoji>
+                  <Label>평균 점수</Label>
+                  {isReady ? <Badge>{overallAvg}점</Badge> : <SkeletonBadge />}
+                </InfoRow>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <InfoRow>
             <LabelEmoji>🎳</LabelEmoji>
             <Label>또랑핀</Label>

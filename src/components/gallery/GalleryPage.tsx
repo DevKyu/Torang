@@ -59,6 +59,11 @@ const GalleryPage = () => {
 
   const eventLoaded = useEventStore((s) => s.loaded);
   const rewardCheckedYm = useRef('');
+  const initialLoadDone = useRef(false);
+
+  useEffect(() => {
+    if (galleryList !== null) initialLoadDone.current = true;
+  }, [galleryList]);
 
   const serverYear = Number(formatServerDate('year'));
   const serverMonth = Number(formatServerDate('month'));
@@ -231,7 +236,7 @@ const GalleryPage = () => {
         <GalleryListPage
           list={galleryList ?? []}
           ym={ym}
-          loading={galleryList === null}
+          loading={!initialLoadDone.current && galleryList === null}
           onMoveUpload={() => setMode('upload')}
           onCancel={() => navigate('/menu', { replace: true })}
           onChangeMonth={(newYm) => { setGalleryList(null); setYm(newYm); }}
