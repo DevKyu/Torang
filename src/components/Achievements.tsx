@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 import { useActivityDates } from '../hooks/useActivityDates';
-import { useLoading } from '../contexts/LoadingContext';
 import {
   getCurrentUserData,
   getCurrentUserId,
@@ -32,6 +31,7 @@ import {
   CategoryTitle,
   TabBar,
   TabButton,
+  SkeletonCard,
 } from '../styles/achievementStyle';
 import { containerVariants, cardVariants } from '../styles/achievementVariants';
 import { Check } from 'lucide-react';
@@ -51,7 +51,6 @@ const toMonthLabel = (dateStr: string): string => {
 
 const Achievements = () => {
   const navigate = useNavigate();
-  const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
 
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
@@ -59,6 +58,7 @@ const Achievements = () => {
   const [activeTab, setActiveTab] =
     useState<AchievementCategory>('participation');
   const [achievements, setAchievements] = useState<AchievementResult>({});
+  const [achievementsLoaded, setAchievementsLoaded] = useState(false);
   const refs = useRef(new Map<AchievementCategory, HTMLDivElement | null>());
 
   const { formatServerDate, isBeforeCutoff, getServerNow } = useUiStore();
@@ -67,7 +67,6 @@ const Achievements = () => {
     if (activityLoading) return;
 
     const init = async () => {
-      showLoading();
       try {
         const user = await getCurrentUserData();
         if (!user) return;
@@ -128,7 +127,7 @@ const Achievements = () => {
           setActiveTab(achievementGroups[0].category);
         }
       } finally {
-        hideLoading();
+        setAchievementsLoaded(true);
       }
     };
 
@@ -136,38 +135,39 @@ const Achievements = () => {
   }, [activityLoading, activityMaps, isPinRewardEnabled]);
 
   useEffect(() => {
-    let ticking = false;
+    if (!achievementsLoaded) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (ticking) return;
-        ticking = true;
+    let observer: IntersectionObserver | null = null;
 
-        requestAnimationFrame(() => {
+    const id = window.setTimeout(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
           const visible = entries.find((e) => e.isIntersecting);
           if (visible) {
-            const id = visible.target.getAttribute(
+            const cat = visible.target.getAttribute(
               'data-category',
             ) as AchievementCategory;
-            if (id) setActiveTab(id);
+            if (cat) setActiveTab(cat);
           }
-          ticking = false;
-        });
-      },
-      {
-        root: document.querySelector('[data-scroll-container]'),
-        rootMargin: '-10% 0px -40% 0px',
-        threshold: 0.2,
-      },
-    );
+        },
+        {
+          root: document.querySelector('[data-scroll-container]'),
+          rootMargin: '-10% 0px -40% 0px',
+          threshold: 0.2,
+        },
+      );
 
-    achievementGroups.forEach((g) => {
-      const el = refs.current.get(g.category);
-      if (el) observer.observe(el);
-    });
+      achievementGroups.forEach((g) => {
+        const el = refs.current.get(g.category);
+        if (el) observer!.observe(el);
+      });
+    }, 200);
 
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      window.clearTimeout(id);
+      observer?.disconnect();
+    };
+  }, [achievementsLoaded]);
 
   const setRef = useCallback(
     (key: AchievementCategory) => (el: HTMLDivElement | null) => {
@@ -204,65 +204,98 @@ const Achievements = () => {
             <TabButton
               key={g.category}
               active={activeTab === g.category}
-              onClick={() => scrollTo(g.category)}
+              onClick={achievementsLoaded ? () => scrollTo(g.category) : undefined}
+              style={achievementsLoaded ? undefined : { pointerEvents: 'none', opacity: 0.5 }}
             >
               {g.title}
             </TabButton>
           ))}
         </TabBar>
 
-        <GridScrollContainer data-scroll-container>
-          {achievementGroups.map((group) => {
-            const itemsWithStatus = group.items.map((a) => {
-              const record = achievements[a.id as AchievementId];
-              return { ...a, achieved: !!record, date: record?.achievedAt };
-            });
+        <AnimatePresence mode="wait">
+          {!achievementsLoaded ? (
+            <motion.div
+              key="skeleton"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <GridScrollContainer>
+                {achievementGroups.map((group) => (
+                  <CategoryBlock key={group.category}>
+                    <CategoryTitle style={{ color: '#d1d5db' }}>
+                      {group.title}
+                    </CategoryTitle>
+                    <GridContainer>
+                      {group.items.map((item) => (
+                        <SkeletonCard key={item.id} />
+                      ))}
+                    </GridContainer>
+                  </CategoryBlock>
+                ))}
+              </GridScrollContainer>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <GridScrollContainer data-scroll-container>
+                {achievementGroups.map((group) => {
+                  const itemsWithStatus = group.items.map((a) => {
+                    const record = achievements[a.id as AchievementId];
+                    return { ...a, achieved: !!record, date: record?.achievedAt };
+                  });
 
-            const done = itemsWithStatus.filter((a) => a.achieved).length;
+                  const done = itemsWithStatus.filter((a) => a.achieved).length;
 
-            return (
-              <CategoryBlock
-                key={group.category}
-                ref={setRef(group.category)}
-                data-category={group.category}
-              >
-                <CategoryTitle>
-                  {group.title} ({done}/{group.items.length})
-                </CategoryTitle>
+                  return (
+                    <CategoryBlock
+                      key={group.category}
+                      ref={setRef(group.category)}
+                      data-category={group.category}
+                    >
+                      <CategoryTitle>
+                        {group.title} ({done}/{group.items.length})
+                      </CategoryTitle>
 
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
-                >
-                  <GridContainer>
-                    {itemsWithStatus.map((a) => (
-                      <motion.div key={a.id} variants={cardVariants}>
-                        <Card achieved={a.achieved}>
-                          <CardIcon>{a.icon}</CardIcon>
-                          <CardTitle>{a.label}</CardTitle>
-                          <CardDesc>{a.desc}</CardDesc>
-                          {a.achieved && a.date && (
-                            <AchievedDate>
-                              {toMonthLabel(a.date)}
-                              <Check
-                                size={12}
-                                strokeWidth={3}
-                                color="#22c55e"
-                                className="check-icon"
-                              />
-                            </AchievedDate>
-                          )}
-                        </Card>
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                      >
+                        <GridContainer>
+                          {itemsWithStatus.map((a) => (
+                            <motion.div key={a.id} variants={cardVariants}>
+                              <Card achieved={a.achieved}>
+                                <CardIcon>{a.icon}</CardIcon>
+                                <CardTitle>{a.label}</CardTitle>
+                                <CardDesc>{a.desc}</CardDesc>
+                                {a.achieved && a.date && (
+                                  <AchievedDate>
+                                    {toMonthLabel(a.date)}
+                                    <Check
+                                      size={12}
+                                      strokeWidth={3}
+                                      color="#22c55e"
+                                      className="check-icon"
+                                    />
+                                  </AchievedDate>
+                                )}
+                              </Card>
+                            </motion.div>
+                          ))}
+                        </GridContainer>
                       </motion.div>
-                    ))}
-                  </GridContainer>
-                </motion.div>
-              </CategoryBlock>
-            );
-          })}
-        </GridScrollContainer>
+                    </CategoryBlock>
+                  );
+                })}
+              </GridScrollContainer>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <SmallText
           top="narrow"
