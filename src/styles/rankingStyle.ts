@@ -1,11 +1,11 @@
 import styled from '@emotion/styled';
+import { keyframes, css } from '@emotion/react';
 import { motion } from 'framer-motion';
 import { ContentBox } from './commonStyle';
 
 const colors = {
   highlight: '#fff8e1',
   highlightHover: '#ffefc1',
-  topRankHover: '#fef3c7',
   defaultHover: '#f5f7fa',
   activeBg: '#fef9c3',
   activeBorder: '#fde68a',
@@ -51,12 +51,10 @@ export const StyledRankingTable = styled.table`
 
   tbody {
     display: block;
-    max-height: 40vh;
+    height: 40vh;
     overflow-y: auto;
-  touch-action: pan-y;
+    touch-action: pan-y;
     width: 100%;
-
-
     overscroll-behavior: contain;
 
     scrollbar-width: none;
@@ -64,8 +62,6 @@ export const StyledRankingTable = styled.table`
   }
 
   tbody::-webkit-scrollbar {
-    width: 0;
-    height: 0;
     display: none;
   }
 
@@ -91,9 +87,11 @@ export const StyledTableRow = styled.tr<{
     highlight ? colors.highlight : 'transparent'};
   font-weight: ${({ highlight }) => (highlight ? '600' : 'normal')};
 
-  &:hover {
-    background-color: ${({ highlight }) =>
-      highlight ? colors.highlightHover : colors.defaultHover};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: ${({ highlight }) =>
+        highlight ? colors.highlightHover : colors.defaultHover};
+    }
   }
 `;
 
@@ -118,6 +116,7 @@ export const MotionTableRow = styled(motion.create(StyledTableRow))<{
 
 export const FilterTabs = styled.div`
   display: flex;
+  justify-content: center;
   gap: 12px;
   margin-bottom: 12px;
 `;
@@ -134,9 +133,11 @@ export const RankingTab = styled.button<{ active: boolean }>`
     active ? colors.activeBg : colors.inactiveBg};
   color: ${({ active }) => (active ? colors.activeText : colors.defaultText)};
 
-  &:hover {
-    background-color: ${({ active }) =>
-      active ? colors.activeHover : '#e2e8f0'};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: ${({ active }) =>
+        active ? colors.activeHover : '#e2e8f0'};
+    }
   }
 
   &:focus {
@@ -153,7 +154,6 @@ export const listVariants = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.3,
       staggerChildren: 0.1,
     },
   },
@@ -167,3 +167,28 @@ export const itemVariants = {
     transition: { duration: 0.25 },
   },
 };
+
+const shimmer = keyframes`
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+`;
+
+const skeletonBg = css`
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 300% 100%;
+  animation: ${shimmer} 1.8s linear infinite;
+`;
+
+export const RankingBody = styled.div`
+  width: 100%;
+`;
+
+export const MotionRankingTab = motion.create(RankingTab);
+
+export const SkeletonLine = styled.div<{ width?: string }>`
+  ${skeletonBg}
+  height: 16px;
+  width: ${({ width }) => width ?? '60%'};
+  border-radius: 6px;
+  margin: 0 auto;
+`;
