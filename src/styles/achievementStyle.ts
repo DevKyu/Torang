@@ -37,6 +37,17 @@ const font = {
   lg: '15px',
 };
 
+const shimmer = keyframes`
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+`;
+
+const skeletonBg = css`
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 300% 100%;
+  animation: ${shimmer} 1.8s linear infinite;
+`;
+
 const subtleGlow = keyframes`
   0%   { box-shadow: 0 0 3px rgba(147, 197, 253, 0.35); }
   50%  { box-shadow: 0 0 7px rgba(147, 197, 253, 0.5); }
@@ -54,8 +65,6 @@ export const GridScrollContainer = styled.div`
   overflow-y: auto;
   touch-action: pan-y;
   padding: 0 12px 4px;
-
-
   overscroll-behavior: contain;
 
   -ms-overflow-style: none;
@@ -146,9 +155,11 @@ export const AchievedDate = styled.div`
       transform 0.25s ease;
   }
 
-  &:hover .check-icon {
-    stroke: #10b981;
-    transform: scale(1.2);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover .check-icon {
+      stroke: #10b981;
+      transform: scale(1.2);
+    }
   }
 `;
 
@@ -196,9 +207,11 @@ export const TabButton = styled.button<{ active?: boolean }>`
     color 0.2s ease,
     transform 0.1s ease;
 
-  &:hover {
-    background: ${({ active }) =>
-      active ? colors.tab.hoverActiveBg : colors.tab.hoverBg};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ active }) =>
+        active ? colors.tab.hoverActiveBg : colors.tab.hoverBg};
+    }
   }
 
   &:active {
@@ -208,4 +221,10 @@ export const TabButton = styled.button<{ active?: boolean }>`
       active ? colors.tab.activeBorder : colors.border.default};
     transform: scale(0.96);
   }
+`;
+
+export const SkeletonCard = styled.div`
+  ${skeletonBg}
+  height: 150px;
+  border-radius: 10px;
 `;
