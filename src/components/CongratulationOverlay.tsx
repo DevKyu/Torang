@@ -124,13 +124,20 @@ const CongratulationOverlay = ({
   return (
     <AnimatePresence>
       {open && (
-        <Backdrop role="dialog" aria-modal="true">
+        <Backdrop
+          role="dialog"
+          aria-modal="true"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
           <Card
             result={safeResult}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1.05, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.45, type: 'spring' }}
+            transition={{ duration: 0.45, type: 'spring', delay: 0.1 }}
             whileHover={{ scale: 1.07 }}
           >
             <Emoji result={safeResult}>{EMOJI_MAP[safeResult]}</Emoji>
