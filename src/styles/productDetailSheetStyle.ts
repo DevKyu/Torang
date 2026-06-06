@@ -112,19 +112,22 @@ export const ImageWrap = styled.div`
   position: relative;
   width: calc(100% + 40px);
   margin-left: -20px;
-  height: 200px;
+  max-height: 320px;
   margin-bottom: 20px;
   flex-shrink: 0;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #fff;
   cursor: zoom-in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const ImageFg = styled.img<{ $loaded: boolean }>`
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
   display: block;
   opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
   transition: opacity 0.3s ease;
