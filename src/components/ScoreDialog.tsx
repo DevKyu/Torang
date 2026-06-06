@@ -75,8 +75,10 @@ const SaveBtn = styled.button`
   font: 600 15px/1 sans-serif;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover {
-    background: #2563eb;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #2563eb;
+    }
   }
 `;
 const CloseBtn = styled(Dialog.Close)`

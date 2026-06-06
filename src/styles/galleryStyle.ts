@@ -67,9 +67,11 @@ export const DropArea = styled.div<{ isActive: boolean; isDisabled: boolean }>`
   pointer-events: ${(p) => (p.isDisabled ? 'none' : 'auto')};
   transition: all 0.25s ease;
 
-  &:hover {
-    background: #f4f4f5;
-    color: ${colors.textMain};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #f4f4f5;
+      color: ${colors.textMain};
+    }
   }
 `;
 
@@ -86,8 +88,10 @@ export const BoostButton = styled.button`
   cursor: pointer;
   transition: background 0.25s ease;
 
-  &:hover {
-    background: ${colors.dangerHover};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${colors.dangerHover};
+    }
   }
 `;
 
@@ -142,8 +146,10 @@ export const ImageWrapper = styled.div`
     transition: transform 0.25s ease;
   }
 
-  &:hover img {
-    transform: scale(1.03);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover img {
+      transform: scale(1.03);
+    }
   }
 
   &:active img {
@@ -209,8 +215,10 @@ export const GalleryButton = styled.button`
   cursor: pointer;
   transition: background 0.25s ease;
 
-  &:hover {
-    background: ${colors.primaryHover};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${colors.primaryHover};
+    }
   }
 
   &:disabled {
@@ -226,7 +234,9 @@ export const ClearText = styled.span`
   text-decoration: underline;
   cursor: pointer;
 
-  &:hover {
-    color: ${colors.textMain};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: ${colors.textMain};
+    }
   }
 `;

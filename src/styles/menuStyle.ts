@@ -32,8 +32,10 @@ export const MotionMenuCard = styled(motion.button)<MenuCardProps>`
   align-items: center;
   min-height: 96px;
 
-  &:hover {
-    background-color: ${({ disabled }) => (disabled ? '#e2e6ea' : '#eef6ff')};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: ${({ disabled }) => (disabled ? '#e2e6ea' : '#eef6ff')};
+    }
   }
 `;
 

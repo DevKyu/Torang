@@ -32,8 +32,10 @@ export const NameTrigger = styled.button`
   color: #111827;
   max-width: 100%;
 
-  &:hover {
-    text-decoration: underline;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      text-decoration: underline;
+    }
   }
   &:disabled {
     cursor: not-allowed;
@@ -99,15 +101,19 @@ export const PrimaryButton = styled(BaseButton)`
   background: #fef9c3;
   border-color: #fde68a;
   color: #92400e;
-  &:hover {
-    background: #fef3c7;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #fef3c7;
+    }
   }
 `;
 
 export const SubtleButton = styled(BaseButton)`
   background: #f3f4f6;
   color: #111827;
-  &:hover {
-    background: #e5e7eb;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #e5e7eb;
+    }
   }
 `;

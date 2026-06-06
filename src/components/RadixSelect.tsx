@@ -32,8 +32,10 @@ const Trigger = styled(Select.Trigger, {
   ${({ $center }) => $center && 'justify-content:center;'}
   transition: background .15s, border-color .15s;
 
-  &:hover {
-    background: ${COLOR.hover};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${COLOR.hover};
+    }
   }
   &[data-state='open'] {
     background: ${COLOR.active};

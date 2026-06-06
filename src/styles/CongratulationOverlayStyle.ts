@@ -222,9 +222,11 @@ export const Badge = styled.span<{ result: Result }>`
     transform 0.2s,
     box-shadow 0.2s;
 
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
   }
 `;
 

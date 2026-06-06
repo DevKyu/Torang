@@ -123,8 +123,10 @@ export const AddButton = styled.button`
     transform: scale(0.96);
   }
 
-  &:hover {
-    background: ${colors.primaryHover};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${colors.primaryHover};
+    }
   }
 
   &:disabled {

@@ -33,8 +33,10 @@ export const ScoreRow = styled(motion.div)`
   border-radius: 10px;
   transition: background-color 0.2s ease;
 
-  &:hover {
-    background-color: #f1f5f9;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: #f1f5f9;
+    }
   }
 `;
 

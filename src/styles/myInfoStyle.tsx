@@ -83,9 +83,11 @@ export const ScoreItem = styled(MotionBtn)<{
     transform 0.15s,
     box-shadow 0.15s;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
   }
 
   ${({ $activityGlow, $locked }) =>
@@ -96,11 +98,13 @@ export const ScoreItem = styled(MotionBtn)<{
         0 0 0 2px rgba(245, 158, 11, 0.35),
         0 0 16px 0 rgba(245, 158, 11, 0.15);
 
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow:
-          0 0 0 2px rgba(245, 158, 11, 0.5),
-          0 0 20px 2px rgba(245, 158, 11, 0.25);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow:
+            0 0 0 2px rgba(245, 158, 11, 0.5),
+            0 0 20px 2px rgba(245, 158, 11, 0.25);
+        }
       }
     `}
 `;
@@ -138,8 +142,10 @@ export const TargetBadge = styled.span<{ locked?: boolean }>`
   cursor: ${({ locked }) => (locked ? 'default' : 'pointer')};
   opacity: ${({ locked }) => (locked ? 0.7 : 1)};
 
-  &:hover {
-    background: ${({ locked }) => (locked ? '#f3f4f6' : '#fef3c7')};
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ locked }) => (locked ? '#f3f4f6' : '#fef3c7')};
+    }
   }
 `;
 
@@ -180,8 +186,10 @@ export const LabelEmoji = styled.div`
   font-size: 14px;
   transition: transform 0.2s;
 
-  &:hover {
-    transform: scale(1.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 `;
 
@@ -202,8 +210,10 @@ export const Badge = styled.span`
   flex-shrink: 0;
   transition: background 0.2s;
 
-  &:hover {
-    background: #ffefc1;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #ffefc1;
+    }
   }
 `;
 
