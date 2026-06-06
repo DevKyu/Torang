@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { ref, get, update, remove } from 'firebase/database'
+import { ref, get, update, remove, push, set } from 'firebase/database'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import AdminLayout from './AdminLayout'
@@ -25,6 +25,12 @@ import {
   GenerateBtn,
   ShuffleBtn,
   ConfirmBtn,
+  SaveDraftBtn,
+  SnapshotList,
+  SnapshotItem,
+  SnapshotLabel,
+  SnapshotLoadBtn,
+  SnapshotDeleteBtn,
   ResetBtn,
   ClearBtn,
   ConfirmedBanner,
@@ -68,6 +74,22 @@ type SavedFormation = {
   isLegacy?: boolean
 }
 
+type Snapshot = {
+  id: string
+  label: string
+  savedAt: number
+  groups: FormationGroup[]
+}
+
+const formatSavedAt = (ts: number) => {
+  const d = new Date(ts)
+  const mo = d.getMonth() + 1
+  const da = d.getDate()
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${mo}/${da} ${hh}:${mm}`
+}
+
 const AdminTeamFormation = () => {
   const navigate = useNavigate()
 
@@ -86,9 +108,11 @@ const AdminTeamFormation = () => {
 
   const [saved, setSaved] = useState<SavedFormation | null>(null)
   const [draft, setDraft] = useState<FormationGroup[] | null>(null)
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([])
 
   const [generating, setGenerating] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
   const [resetting, setResetting] = useState(false)
 
   const [activeGroupIdx, setActiveGroupIdx] = useState<number | null>(null)
@@ -163,8 +187,29 @@ const AdminTeamFormation = () => {
     }
   }, [])
 
+  const loadSnapshots = useCallback(async (requestedYm: string) => {
+    try {
+      const snap = await get(ref(db, `teamFormation/${requestedYm}/snapshots`))
+      if (ymRef.current !== requestedYm) return
+      if (!snap.exists()) { setSnapshots([]); return }
+      const raw = snap.val() as Record<string, { label: string; savedAt: number; groups: RawFormationGroups }>
+      const list = Object.entries(raw)
+        .map(([id, s]) => ({
+          id,
+          label: s.label,
+          savedAt: s.savedAt,
+          groups: firebaseToFormationGroups(s.groups),
+        }))
+        .sort((a, b) => a.savedAt - b.savedAt)
+      setSnapshots(list)
+    } catch {
+      if (ymRef.current === requestedYm) setSnapshots([])
+    }
+  }, [])
+
   useEffect(() => {
     loadSaved(ym)
+    loadSnapshots(ym)
     setDraft(null)
     setActiveGroupIdx(null)
     setEditMode(false)
@@ -172,7 +217,8 @@ const AdminTeamFormation = () => {
     setGuestName('')
     setGuestScore('')
     setAllParticipants([])
-  }, [ym, loadSaved])
+    setSnapshots([])
+  }, [ym, loadSaved, loadSnapshots])
 
   const handleGenerate = () => {
     const requestedYm = ym
@@ -245,10 +291,7 @@ const AdminTeamFormation = () => {
   }
 
   const handleShuffle = () => {
-    if (!draft) {
-      handleGenerate()
-      return
-    }
+    if (!draft) return
     const requestedYm = ym
     const currentPlayers = draft.flatMap(g => [...g.team1, ...g.team2])
     setGenerating(true)
@@ -267,6 +310,43 @@ const AdminTeamFormation = () => {
       setDraft(picked)
       setGenerating(false)
     }, 20)
+  }
+
+  const handleSaveDraft = async () => {
+    if (!draft) return
+    setSavingDraft(true)
+    try {
+      const rawGroups = formationGroupsToFirebase(draft)
+      const maxNum = snapshots.reduce((m, s) => {
+        const n = parseInt(s.label.replace('편성안 ', ''))
+        return isNaN(n) ? m : Math.max(m, n)
+      }, 0)
+      const label = `편성안 ${maxNum + 1}`
+      const snapshotRef = push(ref(db, `teamFormation/${ym}/snapshots`))
+      await set(snapshotRef, { label, savedAt: Date.now(), groups: rawGroups })
+      await loadSnapshots(ym)
+      toast(`💾 ${label} 저장됨`, { position: 'top-center' })
+    } catch {
+      toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' })
+    } finally {
+      setSavingDraft(false)
+    }
+  }
+
+  const handleLoadSnapshot = (snapshot: Snapshot) => {
+    setDraft(snapshot.groups)
+    setEditMode(false)
+    setAddingTo(null)
+    toast(`📂 ${snapshot.label} 불러옴`, { position: 'top-center' })
+  }
+
+  const handleDeleteSnapshot = async (id: string) => {
+    try {
+      await remove(ref(db, `teamFormation/${ym}/snapshots/${id}`))
+      setSnapshots(prev => prev.filter(s => s.id !== id))
+    } catch {
+      toast.error('삭제 중 오류가 발생했습니다.', { position: 'top-center' })
+    }
   }
 
   const handleConfirm = async () => {
@@ -313,6 +393,7 @@ const AdminTeamFormation = () => {
 
       await loadSaved(ym)
       setDraft(null)
+      setSnapshots([])
       setEditMode(false)
       setAddingTo(null)
 
@@ -363,6 +444,7 @@ const AdminTeamFormation = () => {
       ])
       await loadSaved(ym)
       setDraft(null)
+      setSnapshots([])
       setEditMode(false)
       setAddingTo(null)
       toast('팀 편성이 초기화되었습니다.', { position: 'top-center' })
@@ -586,12 +668,27 @@ const AdminTeamFormation = () => {
               <EditToggleBtn active={editMode} onClick={handleEditToggle}>
                 {editMode ? '✓ 완료' : '✏️ 편집'}
               </EditToggleBtn>
-              <ConfirmBtn onClick={handleConfirm} disabled={confirming}>
+              <SaveDraftBtn onClick={handleSaveDraft} disabled={savingDraft || confirming}>
+                {savingDraft ? '저장 중...' : '💾 저장'}
+              </SaveDraftBtn>
+              <ConfirmBtn onClick={handleConfirm} disabled={confirming || savingDraft}>
                 {confirming ? '확정 중...' : '✅ 확정'}
               </ConfirmBtn>
             </>
           )}
         </ActionRow>
+      )}
+
+      {!isConfirmed && snapshots.length > 0 && (
+        <SnapshotList>
+          {snapshots.map(s => (
+            <SnapshotItem key={s.id}>
+              <SnapshotLabel>{s.label} · {formatSavedAt(s.savedAt)}</SnapshotLabel>
+              <SnapshotLoadBtn onClick={() => handleLoadSnapshot(s)}>불러오기</SnapshotLoadBtn>
+              <SnapshotDeleteBtn onClick={() => handleDeleteSnapshot(s.id)}>×</SnapshotDeleteBtn>
+            </SnapshotItem>
+          ))}
+        </SnapshotList>
       )}
 
       {displayGroups.length > 0 ? (

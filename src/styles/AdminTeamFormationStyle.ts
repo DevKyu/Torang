@@ -39,11 +39,8 @@ export const LabeledInput = styled.div`
 
 export const ActionRow = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  @media (max-width: 400px) {
-    flex-wrap: wrap;
-  }
+  gap: 6px;
+  margin-bottom: 16px;
 `
 
 export const GenerateBtn = styled.button`
@@ -68,7 +65,9 @@ export const GenerateBtn = styled.button`
 `
 
 export const ShuffleBtn = styled.button`
-  padding: 8px 14px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
   background: #fff;
   color: #374151;
   border: 1px solid #d1d5db;
@@ -77,6 +76,7 @@ export const ShuffleBtn = styled.button`
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -89,7 +89,9 @@ export const ShuffleBtn = styled.button`
 `
 
 export const ConfirmBtn = styled.button`
-  padding: 8px 14px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
   background: #10b981;
   color: #fff;
   border: none;
@@ -98,6 +100,7 @@ export const ConfirmBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -147,6 +150,112 @@ export const ClearBtn = styled.button`
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
       background: #b91c1c;
+    }
+  }
+`
+
+export const SaveDraftBtn = styled.button`
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  background: #fff;
+  color: #6366f1;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      background: #eef2ff;
+    }
+  }
+`
+
+export const SnapshotList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  max-height: 128px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+  }
+`
+
+export const SnapshotItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+`
+
+export const SnapshotLabel = styled.span`
+  flex: 1;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+export const SnapshotLoadBtn = styled.button`
+  padding: 3px 8px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #dbeafe;
+    }
+  }
+`
+
+export const SnapshotDeleteBtn = styled.button`
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: #dc2626;
+      background: #fef2f2;
     }
   }
 `
@@ -306,7 +415,9 @@ export const ParticipantCount = styled.div`
 `
 
 export const EditToggleBtn = styled.button<{ active?: boolean }>`
-  padding: 8px 14px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
   background: ${({ active }) => (active ? '#f0fdf4' : '#fff')};
   color: ${({ active }) => (active ? '#059669' : '#6b7280')};
   border: 1px solid ${({ active }) => (active ? '#6ee7b7' : '#e5e7eb')};
