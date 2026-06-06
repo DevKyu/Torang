@@ -151,11 +151,12 @@ export const RatioBadge = styled.span`
 `;
 
 export const InfoButton = styled.button`
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border: 1px solid #d1d5db;
   border-radius: 50%;
   background: #fff;
@@ -167,6 +168,15 @@ export const InfoButton = styled.button`
   -webkit-tap-highlight-color: transparent;
   -webkit-appearance: none;
   line-height: 1;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    bottom: -10px;
+    left: 0;
+  }
 
   &:active {
     background: #f3f4f6;
