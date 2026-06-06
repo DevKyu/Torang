@@ -211,6 +211,7 @@ const AdminTeamFormation = () => {
     loadSaved(ym)
     loadSnapshots(ym)
     setDraft(null)
+    setGenerating(false)
     setActiveGroupIdx(null)
     setEditMode(false)
     setAddingTo(null)
@@ -238,7 +239,6 @@ const AdminTeamFormation = () => {
 
         if (!participantSnap.exists()) {
           toast('이번 달 활동 참여자가 없습니다.', { position: 'top-center' })
-          setGenerating(false)
           return
         }
 
@@ -251,7 +251,6 @@ const AdminTeamFormation = () => {
             `참여자가 ${participantIds.length}명입니다. 최소 6명 이상 필요합니다.`,
             { position: 'top-center' },
           )
-          setGenerating(false)
           return
         }
 
@@ -271,7 +270,6 @@ const AdminTeamFormation = () => {
 
         if ('error' in result) {
           toast(result.error, { position: 'top-center' })
-          setGenerating(false)
           return
         }
 
@@ -323,7 +321,7 @@ const AdminTeamFormation = () => {
       }, 0)
       const label = `편성안 ${maxNum + 1}`
       const snapshotRef = push(ref(db, `teamFormation/${ym}/snapshots`))
-      await set(snapshotRef, { label, savedAt: Date.now(), groups: rawGroups })
+      await set(snapshotRef, { label, savedAt: useUiStore.getState().getServerNow().getTime(), groups: rawGroups })
       await loadSnapshots(ym)
       toast(`💾 ${label} 저장됨`, { position: 'top-center' })
     } catch {
@@ -351,6 +349,14 @@ const AdminTeamFormation = () => {
 
   const handleConfirm = async () => {
     if (!draft) return
+    if (draft.some(g => g.team1.length === 0 || g.team2.length === 0)) {
+      toast('빈 팀이 있습니다. 모든 팀에 선수를 배정해주세요.', { position: 'top-center' })
+      return
+    }
+    if (
+      saved?.groups && saved.groups.length > 0 &&
+      !window.confirm('팀 편성을 재확정하면 정기전 관리에서 입력된 점수가 초기화됩니다.\n계속하시겠습니까?')
+    ) return
     setConfirming(true)
 
     try {
@@ -361,9 +367,9 @@ const AdminTeamFormation = () => {
 
       const rawGroups = formationGroupsToFirebase(draft)
 
-      const teamUpdates: Record<string, unknown> = {}
+      const teamNode: Record<string, unknown> = {}
       Object.entries(rawGroups).forEach(([groupId, g]) => {
-        teamUpdates[`team/${ym}/${groupId}`] = {
+        teamNode[groupId] = {
           date: activityDate,
           team1: Object.fromEntries(
             Object.entries(g.team1).map(([empId, m]) => [
@@ -381,14 +387,12 @@ const AdminTeamFormation = () => {
       })
 
       await update(ref(db), {
-        ...teamUpdates,
-        [`teamFormation/${ym}`]: {
-          status: 'confirmed',
-          limitScore,
-          defaultAverage,
-          confirmedAt: useUiStore.getState().getServerNow().getTime(),
-          groups: rawGroups,
-        },
+        [`team/${ym}`]: teamNode,
+        [`teamFormation/${ym}/status`]: 'confirmed',
+        [`teamFormation/${ym}/limitScore`]: limitScore,
+        [`teamFormation/${ym}/defaultAverage`]: defaultAverage,
+        [`teamFormation/${ym}/confirmedAt`]: useUiStore.getState().getServerNow().getTime(),
+        [`teamFormation/${ym}/groups`]: rawGroups,
       })
 
       await loadSaved(ym)
@@ -421,7 +425,7 @@ const AdminTeamFormation = () => {
     try {
       const prevGroups = displayGroups.length > 0 ? [...displayGroups] : null
       await update(ref(db, `teamFormation/${ym}`), { status: 'draft' })
-      await loadSaved(ym)
+      await Promise.all([loadSaved(ym), loadSnapshots(ym)])
       setDraft(prevGroups)
       setEditMode(false)
       setAddingTo(null)
