@@ -1,5 +1,11 @@
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { motion } from 'framer-motion';
+
+const shimmer = keyframes`
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+`;
 
 export const SheetWrapper = styled(motion.div)`
   position: fixed;
@@ -29,16 +35,20 @@ export const Sheet = styled(motion.div)`
   overflow: hidden;
 `;
 
+export const DragZone = styled.div`
+  flex-shrink: 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+  &:active { cursor: grabbing; }
+`;
+
 export const DragHandle = styled.div`
   width: 100%;
   padding: 12px 0 4px;
   display: flex;
   justify-content: center;
-  flex-shrink: 0;
-  cursor: grab;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
 `;
 
 export const HandleBar = styled.div`
@@ -51,16 +61,20 @@ export const HandleBar = styled.div`
 
 export const SheetHeader = styled.div`
   padding: 4px 20px 14px;
-  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 `;
 
 export const SheetTitle = styled.div`
   font-size: 16px;
   font-weight: 700;
   color: #111827;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 export const SheetPinBadge = styled.span`
@@ -84,8 +98,8 @@ export const ImageRatioBadge = styled.span`
   background: rgba(0, 0, 0, 0.42);
   border-radius: 999px;
   padding: 3px 9px;
-  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 `;
 
 export const TextRatioBadge = styled.span`
@@ -96,13 +110,13 @@ export const TextRatioBadge = styled.span`
 `;
 
 export const SheetBody = styled.div`
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   touch-action: pan-y;
   overscroll-behavior: contain;
-
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
   text-align: left;
-
   &::-webkit-scrollbar {
     display: none;
   }
@@ -112,25 +126,32 @@ export const ImageWrap = styled.div`
   position: relative;
   width: calc(100% + 40px);
   margin-left: -20px;
+  aspect-ratio: 4 / 3;
   max-height: 320px;
   margin-bottom: 20px;
   flex-shrink: 0;
   overflow: hidden;
-  background: #fff;
   cursor: zoom-in;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #fff;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 `;
 
-export const ImageFg = styled.img<{ $loaded: boolean }>`
+export const ImageFg = styled.img`
   width: 100%;
-  height: auto;
-  max-height: 320px;
+  height: 100%;
   object-fit: contain;
   display: block;
-  opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
-  transition: opacity 0.3s ease;
+`;
+
+export const ShimmerOverlay = styled(motion.div)`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, #fff 25%, #f3f4f6 50%, #fff 75%);
+  background-size: 800px 100%;
+  animation: ${shimmer} 1.4s infinite linear;
+  pointer-events: none;
 `;
 
 export const Description = styled.p`
@@ -157,6 +178,7 @@ export const ImageViewer = styled(motion.div)`
   align-items: center;
   justify-content: center;
   cursor: zoom-out;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 `;
 
@@ -167,4 +189,5 @@ export const ImageViewerImg = styled.img`
   pointer-events: none;
   padding: 20px;
   box-sizing: border-box;
+  transition: opacity 0.2s ease-out;
 `;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, animate, useMotionValue, useDragControls } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 
@@ -6,6 +6,7 @@ import {
   SheetWrapper,
   Backdrop,
   Sheet,
+  DragZone,
   DragHandle,
   HandleBar,
   SheetHeader,
@@ -14,6 +15,7 @@ import {
   SheetBody,
   ImageWrap,
   ImageFg,
+  ShimmerOverlay,
   ImageRatioBadge,
   TextRatioBadge,
   Description,
@@ -40,7 +42,7 @@ type Props = {
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const getRatioLabel = (raffleCount: number, winnersCount: number): string | null => {
-  if (raffleCount === 0) return null;
+  if (!raffleCount || !winnersCount) return null;
   const ratio = Math.round(raffleCount / winnersCount);
   if (ratio <= 1) return '경쟁률 낮음';
   return `경쟁률 ${ratio}:1`;
@@ -52,8 +54,11 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
   const y = useMotionValue(0);
   const dragControls = useDragControls();
   const closingRef = useRef(false);
+  const decodeTokenRef = useRef(0);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerImgLoaded, setViewerImgLoaded] = useState(false);
 
   const runClose = useCallback(() => {
     if (closingRef.current) return;
@@ -67,7 +72,7 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
   }, [y]);
 
   const handleDragEnd = useCallback(
-    (_: any, info: PanInfo) => {
+    (_: unknown, info: PanInfo) => {
       const scrollTop = contentRef.current?.scrollTop ?? 0;
       if (scrollTop > 5) { resetPosition(); return; }
       if (info.offset.y > 100 || info.velocity.y > 500) runClose();
@@ -76,12 +81,19 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
     [resetPosition, runClose],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open || !product) return;
+    decodeTokenRef.current += 1;
     closingRef.current = false;
     setImgLoaded(false);
+    setImgError(false);
     setViewerOpen(false);
+    setViewerImgLoaded(false);
     y.set(window.innerHeight);
+  }, [open, product, y]);
+
+  useEffect(() => {
+    if (!open || !product) return;
     animate(y, 0, { duration: 0.32, ease: EASE_OUT });
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -114,29 +126,44 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
               dragMomentum={false}
               onDragEnd={handleDragEnd}
             >
-              <DragHandle onPointerDown={(e) => dragControls.start(e)}>
-                <HandleBar />
-              </DragHandle>
-
-              <SheetHeader onPointerDown={(e) => dragControls.start(e)}>
-                <SheetTitle>{product.name}</SheetTitle>
-                <SheetPinBadge>{product.requiredPins}핀</SheetPinBadge>
-              </SheetHeader>
+              <DragZone onPointerDown={(e) => dragControls.start(e)}>
+                <DragHandle>
+                  <HandleBar />
+                </DragHandle>
+                <SheetHeader>
+                  <SheetTitle>{product.name}</SheetTitle>
+                  <SheetPinBadge>{product.requiredPins}핀</SheetPinBadge>
+                </SheetHeader>
+              </DragZone>
 
               <SheetBody ref={contentRef}>
                 {product.imageUrl ? (
                   <ImageWrap onClick={() => imgLoaded && setViewerOpen(true)}>
+                    <AnimatePresence>
+                      {!imgLoaded && !imgError && (
+                        <ShimmerOverlay
+                          key="shimmer"
+                          exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
+                        />
+                      )}
+                    </AnimatePresence>
+
                     <ImageFg
                       src={product.imageUrl}
                       alt={product.name}
-                      $loaded={imgLoaded}
-                      onLoad={() => setImgLoaded(true)}
-                      onError={(e) => {
-                        const wrap = (e.target as HTMLImageElement).parentElement;
-                        if (wrap) wrap.style.display = 'none';
+                      draggable={false}
+                      style={{ opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.25s ease-out' }}
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        const token = decodeTokenRef.current;
+                        img.decode()
+                          .then(() => { if (decodeTokenRef.current === token) setImgLoaded(true); })
+                          .catch(() => { if (decodeTokenRef.current === token) setImgLoaded(true); });
                       }}
+                      onError={() => { setImgLoaded(true); setImgError(true); }}
                     />
-                    {ratioLabel && imgLoaded && (
+
+                    {ratioLabel && imgLoaded && !imgError && (
                       <ImageRatioBadge>{ratioLabel}</ImageRatioBadge>
                     )}
                   </ImageWrap>
@@ -155,15 +182,26 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {viewerOpen && (
+        {viewerOpen && product.imageUrl && (
           <ImageViewer
             key="image-viewer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.18 } }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
             onClick={() => setViewerOpen(false)}
           >
-            <ImageViewerImg src={product.imageUrl} alt={product.name} />
+            <ImageViewerImg
+              src={product.imageUrl}
+              alt={product.name}
+              style={{ opacity: viewerImgLoaded ? 1 : 0 }}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                img.decode()
+                  .then(() => setViewerImgLoaded(true))
+                  .catch(() => setViewerImgLoaded(true));
+              }}
+            />
           </ImageViewer>
         )}
       </AnimatePresence>
