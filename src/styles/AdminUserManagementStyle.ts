@@ -160,9 +160,11 @@ export const AdminSubLink = styled.button`
     background 0.16s ease,
     transform 0.12s ease;
 
-  &:hover {
-    border-color: #d6b38c;
-    background: #fffaf5;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #d6b38c;
+      background: #fffaf5;
+    }
   }
 
   &:active {
@@ -213,8 +215,10 @@ export const ResultItem = styled.li`
     background 0.16s ease,
     transform 0.1s ease;
 
-  &:hover {
-    background: #f8fafc;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #f8fafc;
+    }
   }
 
   &:active {
@@ -362,8 +366,10 @@ export const DeleteButton = styled.button`
     background 0.16s ease,
     transform 0.12s ease;
 
-  &:hover {
-    background: rgba(239, 68, 68, 0.18);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(239, 68, 68, 0.18);
+    }
   }
 
   &:active {
@@ -510,8 +516,10 @@ export const ScoreCell = styled.div`
     border-color 0.18s ease,
     transform 0.12s ease;
 
-  &:hover {
-    border-color: #d8c1a6;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #d8c1a6;
+    }
   }
 
   h5 {

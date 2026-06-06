@@ -240,15 +240,19 @@ const BaseButton = styled.button`
 const PrimaryButton = styled(BaseButton)`
   background: #d4b996;
   color: white;
-  &:hover {
-    background: #c9a77c;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #c9a77c;
+    }
   }
 `;
 
 const SubtleButton = styled(BaseButton)`
   background: #f3efe8;
   color: #4b3f35;
-  &:hover {
-    background: #ece5dc;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #ece5dc;
+    }
   }
 `;

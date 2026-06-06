@@ -124,8 +124,10 @@ export const BulkRewardButton = styled.button`
   color: #fff;
   cursor: pointer;
 
-  &:hover {
-    background: #374151;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #374151;
+    }
   }
 `;
 

@@ -46,8 +46,10 @@ export const Button = styled.button`
   touch-action: manipulation;
   transition: background 0.2s;
 
-  &:hover {
-    background-color: #005fcc;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: #005fcc;
+    }
   }
   &:disabled {
     background-color: #ccc;

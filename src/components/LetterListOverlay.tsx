@@ -139,7 +139,9 @@ const CloseButton = styled.button`
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s ease;
-  &:hover {
-    background: #c9a77c;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #c9a77c;
+    }
   }
 `;

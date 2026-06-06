@@ -104,10 +104,12 @@ const Draw = () => {
   useEffect(() => {
     if (loading || winnersReady) return;
 
+    let cancelled = false;
     const unsub = onValue(ref(db, `products/${ym}/meta/winnersReady`), async (snap) => {
       if (snap.val() !== true) return;
       try {
         const bundle = await getProductBundle(ym);
+        if (cancelled) return;
         setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
         setSupplement(bundle.meta?.supplement ?? {});
         setWinnersReady(true);
@@ -115,7 +117,7 @@ const Draw = () => {
       }
     });
 
-    return unsub;
+    return () => { cancelled = true; unsub(); };
   }, [loading, winnersReady, ym]);
 
   useEffect(() => {
