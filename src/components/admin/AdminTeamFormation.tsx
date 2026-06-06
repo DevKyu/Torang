@@ -171,6 +171,7 @@ const AdminTeamFormation = () => {
     setAddingTo(null)
     setGuestName('')
     setGuestScore('')
+    setAllParticipants([])
   }, [ym, loadSaved])
 
   const handleGenerate = () => {

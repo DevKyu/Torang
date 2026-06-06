@@ -115,7 +115,10 @@ function rawGroupsToFormationGroups(
 ): FormationGroup[] {
   const result: FormationGroup[] = []
   for (let i = 0; i < rawGroups.length; i += 2) {
-    result.push({ team1: rawGroups[i], team2: rawGroups[i + 1] })
+    result.push({
+      team1: [...rawGroups[i]].sort((a, b) => b.average - a.average),
+      team2: [...rawGroups[i + 1]].sort((a, b) => b.average - a.average),
+    })
   }
   return result
 }

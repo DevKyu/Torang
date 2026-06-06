@@ -145,21 +145,24 @@ const Ranking = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const hasQuarterData = useMemo(() => {
-    return (
+  const quarterEntries = useMemo(
+    () =>
       mapUsersToRankingEntries(users, 'quarter').filter(
         (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
-      ).length > 0
-    );
-  }, [users]);
+      ),
+    [users],
+  );
 
-  const hasYearData = useMemo(() => {
-    return (
+  const yearEntries = useMemo(
+    () =>
       mapUsersToRankingEntries(users, 'year').filter(
         (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
-      ).length > 0
-    );
-  }, [users]);
+      ),
+    [users],
+  );
+
+  const hasQuarterData = quarterEntries.length > 0;
+  const hasYearData = yearEntries.length > 0;
 
   const availableTabs = useMemo(() => {
     let base = monthlyEnabled
@@ -187,10 +190,12 @@ const Ranking = () => {
 
   const ranking: RankingEntry[] = useMemo(() => {
     if (!usersLoaded) return [];
+    if (rankingType === 'quarter') return quarterEntries;
+    if (rankingType === 'year') return yearEntries;
     return mapUsersToRankingEntries(users, rankingType, participants).filter(
       (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
     );
-  }, [usersLoaded, users, rankingType, participants]);
+  }, [usersLoaded, rankingType, participants, quarterEntries, yearEntries, users]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -319,13 +324,19 @@ const Ranking = () => {
         ? (['rank', 'name', 'avg', 'league', 'pin'] as const)
         : (['rank', 'name', 'avg', 'best', 'join'] as const);
     return (
-      <tr>
+      <motion.tr
+        key={rankingType === 'monthly' ? 'monthly' : 'other'}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.15 } }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
         {keys.map((key) => (
           <th key={key} onClick={() => handleHeaderClick(key)}>
             {HEADER_LABELS[key]}
           </th>
         ))}
-      </tr>
+      </motion.tr>
     );
   }, [handleHeaderClick, rankingType]);
 
@@ -400,7 +411,7 @@ const Ranking = () => {
         </MotionTableRow>
       );
     },
-    [rankingType, ym, myId, timeAllowed, myLeague, participants, handleSendLetter],
+    [rankingType, ym, myId, timeAllowed, myLeague, participants, handleSendLetter, ranking],
   );
 
   return (
@@ -437,7 +448,11 @@ const Ranking = () => {
 
           <TableContainer>
             <StyledRankingTable>
-              <thead>{headerRow}</thead>
+              <thead>
+                <AnimatePresence mode="wait" initial={false}>
+                  {headerRow}
+                </AnimatePresence>
+              </thead>
               <AnimatePresence mode="wait">
                 {!rankingReady ? (
                   <motion.tbody
