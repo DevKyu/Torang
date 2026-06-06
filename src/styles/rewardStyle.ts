@@ -130,6 +130,7 @@ export const ItemName = styled.span`
   font-size: 14px;
   color: ${colors.gray[700]};
   font-weight: 500;
+  white-space: nowrap;
 `;
 
 export const Badge = styled.span`

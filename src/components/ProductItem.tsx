@@ -30,7 +30,7 @@ type ProductItemProps = {
 };
 
 const getRatioLabel = (raffleCount: number, winnersCount: number): string | null => {
-  if (raffleCount === 0) return null;
+  if (!raffleCount || !winnersCount) return null;
   const ratio = Math.round(raffleCount / winnersCount);
   if (ratio <= 1) return '경쟁률 낮음';
   return `경쟁률 ${ratio}:1`;
