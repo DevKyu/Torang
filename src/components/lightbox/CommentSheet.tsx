@@ -293,7 +293,10 @@ export const CommentSheet = () => {
         >
           <Dim
             style={{ opacity: dimOpacity }}
-            onClick={runClose}
+            onPointerUp={(e) => {
+              if (!e.isPrimary) return;
+              runClose();
+            }}
           />
 
           <Sheet

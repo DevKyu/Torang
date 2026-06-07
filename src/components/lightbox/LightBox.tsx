@@ -469,19 +469,24 @@ export const LightBox = () => {
                     const targetUrl = img.preview;
                     setSharingId(targetId);
 
+                    const clearSpinner = () => {
+                      if (mountedRef.current) {
+                        setSharingId((cur) => (cur === targetId ? null : cur));
+                      }
+                    };
+
                     try {
                       await shareOrDownloadImage(
                         targetUrl,
                         `torang-gallery-${targetId}`,
+                        clearSpinner,
                       );
                     } catch {
                       if (mountedRef.current) {
                         toast.error('이미지를 공유하지 못했어요.');
                       }
                     } finally {
-                      if (mountedRef.current) {
-                        setSharingId((cur) => (cur === targetId ? null : cur));
-                      }
+                      clearSpinner();
                     }
                   }}
                 >

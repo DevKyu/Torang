@@ -68,7 +68,11 @@ const openInNewTab = (url: string) => {
   if (!win) throw new Error('image_open_failed');
 };
 
-export const shareOrDownloadImage = async (url: string, name: string) => {
+export const shareOrDownloadImage = async (
+  url: string,
+  name: string,
+  onPresented?: () => void,
+) => {
   let blob: Blob | null = null;
 
   try {
@@ -77,6 +81,7 @@ export const shareOrDownloadImage = async (url: string, name: string) => {
   } catch {}
 
   if (!blob) {
+    onPresented?.();
     openInNewTab(url);
     return;
   }
@@ -88,18 +93,22 @@ export const shareOrDownloadImage = async (url: string, name: string) => {
     if (navigator.canShare) {
       const file = new File([blob], filename, { type: mime });
       if (navigator.canShare({ files: [file] })) {
+        const sharePromise = navigator.share({ files: [file] });
+        onPresented?.();
         try {
-          await navigator.share({ files: [file] });
+          await sharePromise;
           return;
         } catch (err) {
           if ((err as Error)?.name === 'AbortError') return;
         }
       }
     }
+    onPresented?.();
     openInNewTab(url);
     return;
   }
 
+  onPresented?.();
   downloadBlob(blob, filename);
 };
 
