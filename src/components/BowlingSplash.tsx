@@ -364,14 +364,14 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
               letterSpacing: '0.06em',
               color: '#FFD264',
               textShadow:
-                '0 0 18px rgba(255,200,60,0.9), 0 0 36px rgba(255,170,0,0.45), 0 3px 0 rgba(0,0,0,0.45)',
+                '0 0 10px rgba(255,210,70,0.95), 0 0 22px rgba(255,175,20,0.55), 0 3px 0 rgba(0,0,0,0.45)',
               whiteSpace: 'nowrap',
               fontFamily: SYS_FONT,
               willChange: 'transform, opacity',
               ...GPU,
             }}
             initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: [0, 1, 1], scale: [0.3, 1.18, 1] }}
+            animate={{ opacity: [0, 1, 1], scale: [0.3, 1.12, 1] }}
             transition={{ duration: 0.5, times: [0, 0.35, 1], ease: 'easeOut' }}
           >
             STRIKE!
