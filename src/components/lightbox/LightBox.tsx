@@ -492,7 +492,13 @@ export const LightBox = () => {
                       );
                     } catch {
                       if (mountedRef.current) {
-                        toast.error('이미지를 공유하지 못했어요.');
+                        toast.error('이미지를 공유하지 못했어요.', {
+                          description: '문제가 계속되면 새로고침 후 다시 시도해주세요.',
+                          action: {
+                            label: '새로고침',
+                            onClick: () => window.location.reload(),
+                          },
+                        });
                       }
                     } finally {
                       clearTimeout(stuckTimer);
