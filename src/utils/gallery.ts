@@ -99,6 +99,8 @@ export const prefetchShareFile = (id: string, url: string) => {
 
 export const getShareFile = (id: string) => shareFileCache.get(id);
 
+let shareSessionBroken = false;
+
 export const shareOrDownloadImage = async (
   url: string,
   name: string,
@@ -106,6 +108,8 @@ export const shareOrDownloadImage = async (
   preparedFile?: Promise<File | null> | File | null,
 ) => {
   if (isTouchPrimaryDevice()) {
+    if (shareSessionBroken) throw new Error('share_unavailable');
+
     const file = (await preparedFile) ?? (await fetchAsFile(url, name));
 
     if (file && navigator.canShare?.({ files: [file] })) {
@@ -116,10 +120,12 @@ export const shareOrDownloadImage = async (
         return;
       } catch (err) {
         if ((err as Error)?.name === 'AbortError') return;
+        shareSessionBroken = true;
         throw err;
       }
     }
 
+    shareSessionBroken = true;
     throw new Error('share_unavailable');
   }
 
