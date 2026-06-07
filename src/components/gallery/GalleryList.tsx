@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -84,6 +84,7 @@ const GalleryList = ({
 
   const [sorted, setSorted] = useState<GalleryItem[]>([]);
   const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
+  const loadTokenRef = useRef(0);
 
   const minYear = 2025;
   const minMonth = 10;
@@ -172,6 +173,7 @@ const GalleryList = ({
   }, [sorted]);
 
   useEffect(() => {
+    loadTokenRef.current += 1;
     setPageLoadedCounts(new Array(pages.length).fill(0));
   }, [pages.length, filter]);
 
@@ -302,13 +304,22 @@ const GalleryList = ({
                                   src={img.url}
                                   visible={allLoaded}
                                   loading={pageIdx === 0 ? 'eager' : 'lazy'}
-                                  onLoad={() =>
-                                    setPageLoadedCounts((p) => {
-                                      const next = [...p];
-                                      next[pageIdx] += 1;
-                                      return next;
-                                    })
-                                  }
+                                  onLoad={(e) => {
+                                    const imgEl = e.currentTarget;
+                                    const token = loadTokenRef.current;
+
+                                    const commit = () => {
+                                      if (loadTokenRef.current !== token) return;
+                                      setPageLoadedCounts((p) => {
+                                        const next = [...p];
+                                        next[pageIdx] += 1;
+                                        return next;
+                                      });
+                                    };
+
+                                    if (imgEl.decode) imgEl.decode().then(commit).catch(commit);
+                                    else commit();
+                                  }}
                                   onError={() =>
                                     setPageLoadedCounts((p) => {
                                       const next = [...p];

@@ -11,20 +11,6 @@ export type GalleryImage = {
   ym: string;
 };
 
-export type LightBoxProps = {
-  open: boolean;
-  index: number;
-  images: GalleryImage[];
-
-  onClose: () => void;
-
-  showIcon?: boolean;
-  showCaption?: boolean;
-
-  onShare?: (img: GalleryImage) => void;
-  onComment?: (img: GalleryImage) => void;
-};
-
 export type LightboxComment = {
   id: string;
   parentId: string | null;

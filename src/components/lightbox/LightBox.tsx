@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
 import {
   AnimatePresence,
   motion,
@@ -14,8 +13,6 @@ import {
   ChevronRight,
   Heart,
   MessageCircle,
-  Share2,
-  LoaderCircle,
 } from 'lucide-react';
 
 import {
@@ -39,11 +36,6 @@ import {
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
-import {
-  shareOrDownloadImage,
-  prefetchShareFile,
-  getShareFile,
-} from '../../utils/gallery';
 import CommentSheet from '../lightbox/CommentSheet';
 
 export const LightBox = () => {
@@ -91,17 +83,10 @@ export const LightBox = () => {
 
   const loadedRef = useRef<Record<number, boolean>>({});
   const [, force] = useState({});
-  const [sharingId, setSharingId] = useState<string | null>(null);
-  const mountedRef = useRef(true);
+  const decodeTokenRef = useRef(0);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  const markLoaded = useCallback((i: number) => {
+  const markLoaded = useCallback((i: number, token: number) => {
+    if (decodeTokenRef.current !== token) return;
     if (!loadedRef.current[i]) {
       loadedRef.current[i] = true;
       force({});
@@ -142,6 +127,7 @@ export const LightBox = () => {
     if (!isOpen) return;
 
     loadedRef.current = {};
+    decodeTokenRef.current += 1;
 
     const raf1 = requestAnimationFrame(() => {
       const raf2 = requestAnimationFrame(measure);
@@ -213,14 +199,12 @@ export const LightBox = () => {
       if (!t) return;
       const img = new Image();
       img.src = t.preview;
-
-      if (!isUpload && t.id) prefetchShareFile(t.id, t.preview);
     };
 
     preload(current);
     preload(current - 1);
     preload(current + 1);
-  }, [current, isOpen, isUpload, list]);
+  }, [current, isOpen, list]);
 
   const runClose = useCallback(async () => {
     if (lightboxClosingRef.current) return;
@@ -345,7 +329,14 @@ export const LightBox = () => {
                       <ViewerImage
                         src={img.preview}
                         draggable={false}
-                        onLoad={() => markLoaded(i)}
+                        onLoad={(e) => {
+                          const imgEl = e.currentTarget;
+                          const token = decodeTokenRef.current;
+                          const commit = () => markLoaded(i, token);
+
+                          if (imgEl.decode) imgEl.decode().then(commit).catch(commit);
+                          else commit();
+                        }}
                         style={{
                           opacity: loadedRef.current[i] ? 1 : 0,
                           transition:
@@ -458,74 +449,6 @@ export const LightBox = () => {
                       {commentCount}
                     </Count>
                   </CountBox>
-                </IconRow>
-
-                <IconRow
-                  whileTap={{ scale: 0.80 }}
-                  transition={{ duration: 0.1 }}
-                  onPointerUp={async (e) => {
-                    if (!e.isPrimary) return;
-                    if (sharingId === img.id) return;
-                    if (sharingId) {
-                      toast.error('다른 사진을 공유 중이에요.');
-                      return;
-                    }
-
-                    const targetId = img.id;
-                    const targetUrl = img.preview;
-                    setSharingId(targetId);
-
-                    const clearSpinner = () => {
-                      if (mountedRef.current) {
-                        setSharingId((cur) => (cur === targetId ? null : cur));
-                      }
-                    };
-
-                    const stuckTimer = setTimeout(clearSpinner, 8000);
-
-                    try {
-                      await shareOrDownloadImage(
-                        targetUrl,
-                        `torang-gallery-${targetId}`,
-                        clearSpinner,
-                        getShareFile(targetId),
-                      );
-                    } catch {
-                      if (mountedRef.current) {
-                        toast.error('이미지를 공유하지 못했어요.', {
-                          description: '문제가 계속되면 새로고침 후 다시 시도해주세요.',
-                          action: {
-                            label: '새로고침',
-                            onClick: () => window.location.reload(),
-                          },
-                        });
-                      }
-                    } finally {
-                      clearTimeout(stuckTimer);
-                      clearSpinner();
-                    }
-                  }}
-                >
-                  <IconButton>
-                    {sharingId === img.id ? (
-                      <div style={{ display: 'flex', transform: 'translateX(1px)' }}>
-                        <motion.div
-                          style={{ display: 'flex' }}
-                          animate={{ rotate: [-54, 306] }}
-                          transition={{
-                            repeat: Infinity,
-                            ease: 'linear',
-                            duration: 0.8,
-                          }}
-                        >
-                          <LoaderCircle color="#eee" />
-                        </motion.div>
-                      </div>
-                    ) : (
-                      <Share2 color="#eee" />
-                    )}
-                  </IconButton>
-                  <CountBox />
                 </IconRow>
               </FooterIcons>
             </Footer>
