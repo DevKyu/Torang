@@ -82,7 +82,7 @@ const fetchAsFile = async (url: string, name: string): Promise<File | null> => {
   }
 };
 
-const SHARE_FILE_CACHE_LIMIT = 8;
+const SHARE_FILE_CACHE_LIMIT = 3;
 const shareFileCache = new Map<string, Promise<File | null>>();
 
 export const prefetchShareFile = (id: string, url: string) => {
