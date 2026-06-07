@@ -17,7 +17,7 @@ import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import { useUiStore } from '../stores/useUiStore';
 import { SmallText } from '../styles/commonStyle';
-import { Section, PinCount, PinNumber, UserName, SubmitButton } from '../styles/rewardStyle';
+import { Section, PinCount, PinNumber, UserName, SubmitButton, LockNotice } from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
@@ -57,6 +57,16 @@ const Reward = () => {
     () => isBeforeOrOnActivityDate(activityYmd, useUiStore.getState().getServerNow()),
     [activityYmd],
   );
+  const lockNoticeText = useMemo(() => {
+    const ymd = activityYmd ? String(activityYmd) : '';
+    if (ymd.length !== 8) return null;
+    const unlockDate = new Date(
+      Number(ymd.slice(0, 4)),
+      Number(ymd.slice(4, 6)) - 1,
+      Number(ymd.slice(6, 8)) + 1,
+    );
+    return `${unlockDate.getMonth() + 1}월 ${unlockDate.getDate()}일부터 신청할 수 있어요`;
+  }, [activityYmd]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -229,6 +239,8 @@ const Reward = () => {
           onCancel={handleCancel}
         />
       )}
+
+      {isLocked && lockNoticeText && <LockNotice>🔒 {lockNoticeText}</LockNotice>}
 
       <Section>
         <AnimatePresence mode="popLayout">

@@ -71,6 +71,22 @@ export const UserName = styled.span`
   color: ${colors.primary};
 `;
 
+export const LockNotice = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: fit-content;
+  margin: 0 auto 12px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: ${colors.primary};
+  background: #eff6ff;
+  border-radius: 20px;
+`;
+
 export const ItemLabel = styled.label<{
   disabled?: boolean;
   selected?: boolean;
