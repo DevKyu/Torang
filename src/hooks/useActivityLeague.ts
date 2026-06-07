@@ -37,10 +37,14 @@ export const useActivityLeague = (ym: string) => {
       }
 
       try {
-        const snap = await get(ref(db, `team/${ym}`));
+        const [statusSnap, snap] = await Promise.all([
+          get(ref(db, `teamFormation/${ym}/status`)),
+          get(ref(db, `team/${ym}`)),
+        ]);
         if (cancelled) return;
 
-        if (!snap.exists()) {
+        const isConfirmed = !statusSnap.exists() || statusSnap.val() === 'confirmed';
+        if (!isConfirmed || !snap.exists()) {
           setItems([]);
           setLoading(false);
           return;
