@@ -50,7 +50,8 @@ const resolveImageMime = (mime: string, url: string) => {
   return EXTENSION_MIMES[ext] ?? 'image/jpeg';
 };
 
-const isTouchPrimaryDevice = () => window.matchMedia('(pointer: coarse)').matches;
+export const isTouchPrimaryDevice = () =>
+  window.matchMedia('(pointer: coarse)').matches;
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const objectUrl = URL.createObjectURL(blob);
@@ -68,11 +69,46 @@ const openInNewTab = (url: string) => {
   if (!win) throw new Error('image_open_failed');
 };
 
+const fetchAsFile = async (url: string, name: string): Promise<File | null> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const blob = await res.blob();
+    const mime = resolveImageMime(blob.type, url);
+    return new File([blob], `${name}.${MIME_EXTENSIONS[mime] ?? 'jpg'}`, { type: mime });
+  } catch {
+    return null;
+  }
+};
+
+export const prepareShareFile = (url: string, name: string) => fetchAsFile(url, name);
+
 export const shareOrDownloadImage = async (
   url: string,
   name: string,
   onPresented?: () => void,
+  preparedFile?: File | null,
 ) => {
+  if (isTouchPrimaryDevice()) {
+    const file = preparedFile ?? (await fetchAsFile(url, name));
+
+    if (file && navigator.canShare?.({ files: [file] })) {
+      const sharePromise = navigator.share({ files: [file] });
+      onPresented?.();
+      try {
+        await sharePromise;
+        return;
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return;
+      }
+    }
+
+    onPresented?.();
+    openInNewTab(url);
+    return;
+  }
+
   let blob: Blob | null = null;
 
   try {
@@ -87,29 +123,8 @@ export const shareOrDownloadImage = async (
   }
 
   const mime = resolveImageMime(blob.type, url);
-  const filename = `${name}.${MIME_EXTENSIONS[mime] ?? 'jpg'}`;
-
-  if (isTouchPrimaryDevice()) {
-    if (navigator.canShare) {
-      const file = new File([blob], filename, { type: mime });
-      if (navigator.canShare({ files: [file] })) {
-        const sharePromise = navigator.share({ files: [file] });
-        onPresented?.();
-        try {
-          await sharePromise;
-          return;
-        } catch (err) {
-          if ((err as Error)?.name === 'AbortError') return;
-        }
-      }
-    }
-    onPresented?.();
-    openInNewTab(url);
-    return;
-  }
-
   onPresented?.();
-  downloadBlob(blob, filename);
+  downloadBlob(blob, `${name}.${MIME_EXTENSIONS[mime] ?? 'jpg'}`);
 };
 
 export const preloadOpenLightBox = (index: number) => {
