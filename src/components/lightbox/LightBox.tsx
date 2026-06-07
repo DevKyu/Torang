@@ -481,6 +481,8 @@ export const LightBox = () => {
                       }
                     };
 
+                    const stuckTimer = setTimeout(clearSpinner, 8000);
+
                     try {
                       await shareOrDownloadImage(
                         targetUrl,
@@ -493,6 +495,7 @@ export const LightBox = () => {
                         toast.error('이미지를 공유하지 못했어요.');
                       }
                     } finally {
+                      clearTimeout(stuckTimer);
                       clearSpinner();
                     }
                   }}

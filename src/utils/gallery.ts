@@ -116,12 +116,11 @@ export const shareOrDownloadImage = async (
         return;
       } catch (err) {
         if ((err as Error)?.name === 'AbortError') return;
+        throw err;
       }
     }
 
-    onPresented?.();
-    openInNewTab(url);
-    return;
+    throw new Error('share_unavailable');
   }
 
   let blob: Blob | null = null;
