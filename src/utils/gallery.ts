@@ -88,8 +88,12 @@ export const shareOrDownloadImage = async (url: string, name: string) => {
     if (navigator.canShare) {
       const file = new File([blob], filename, { type: mime });
       if (navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file] }).catch(() => {});
-        return;
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch (err) {
+          if ((err as Error)?.name === 'AbortError') return;
+        }
       }
     }
     openInNewTab(url);

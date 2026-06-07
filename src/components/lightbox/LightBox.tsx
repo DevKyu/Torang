@@ -408,7 +408,10 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onClick={() => toggleLike()}
+                  onPointerUp={(e) => {
+                    if (!e.isPrimary) return;
+                    toggleLike();
+                  }}
                 >
                   <IconButton>
                     <Heart
@@ -431,7 +434,10 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onClick={() => openComment(current)}
+                  onPointerUp={(e) => {
+                    if (!e.isPrimary) return;
+                    openComment(current);
+                  }}
                 >
                   <IconButton>
                     <MessageCircle color="#eee" />
@@ -451,7 +457,8 @@ export const LightBox = () => {
                 <IconRow
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
-                  onClick={async () => {
+                  onPointerUp={async (e) => {
+                    if (!e.isPrimary) return;
                     if (sharingId === img.id) return;
                     if (sharingId) {
                       toast.error('다른 사진을 공유 중이에요.');
