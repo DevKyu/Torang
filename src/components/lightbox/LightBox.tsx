@@ -41,8 +41,8 @@ import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
 import {
   shareOrDownloadImage,
-  prepareShareFile,
-  isTouchPrimaryDevice,
+  prefetchShareFile,
+  getShareFile,
 } from '../../utils/gallery';
 import CommentSheet from '../lightbox/CommentSheet';
 
@@ -93,7 +93,6 @@ export const LightBox = () => {
   const [, force] = useState({});
   const [sharingId, setSharingId] = useState<string | null>(null);
   const mountedRef = useRef(true);
-  const shareFileCacheRef = useRef<Record<string, File | null>>({});
 
   useEffect(() => {
     mountedRef.current = true;
@@ -209,35 +208,18 @@ export const LightBox = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const cache = shareFileCacheRef.current;
-    const canPrefetchShare = !isUpload && isTouchPrimaryDevice();
-
     const preload = (i: number) => {
       const t = list[i];
       if (!t) return;
       const img = new Image();
       img.src = t.preview;
 
-      if (canPrefetchShare && !(t.id in cache)) {
-        cache[t.id] = null;
-        prepareShareFile(t.preview, `torang-gallery-${t.id}`).then((file) => {
-          cache[t.id] = file;
-        });
-      }
+      if (!isUpload && t.id) prefetchShareFile(t.id, t.preview);
     };
 
     preload(current);
     preload(current - 1);
     preload(current + 1);
-
-    if (canPrefetchShare) {
-      const keep = new Set(
-        [current - 1, current, current + 1].map((i) => list[i]?.id).filter(Boolean),
-      );
-      Object.keys(cache).forEach((id) => {
-        if (!keep.has(id)) delete cache[id];
-      });
-    }
   }, [current, isOpen, isUpload, list]);
 
   const runClose = useCallback(async () => {
@@ -504,7 +486,7 @@ export const LightBox = () => {
                         targetUrl,
                         `torang-gallery-${targetId}`,
                         clearSpinner,
-                        shareFileCacheRef.current[targetId],
+                        getShareFile(targetId),
                       );
                     } catch {
                       if (mountedRef.current) {

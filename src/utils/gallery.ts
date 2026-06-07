@@ -82,21 +82,36 @@ const fetchAsFile = async (url: string, name: string): Promise<File | null> => {
   }
 };
 
-export const prepareShareFile = (url: string, name: string) => fetchAsFile(url, name);
+const SHARE_FILE_CACHE_LIMIT = 8;
+const shareFileCache = new Map<string, Promise<File | null>>();
+
+export const prefetchShareFile = (id: string, url: string) => {
+  if (!id || !isTouchPrimaryDevice() || shareFileCache.has(id)) return;
+
+  shareFileCache.set(id, fetchAsFile(url, `torang-gallery-${id}`));
+
+  while (shareFileCache.size > SHARE_FILE_CACHE_LIMIT) {
+    const oldest = shareFileCache.keys().next().value;
+    if (oldest === undefined) break;
+    shareFileCache.delete(oldest);
+  }
+};
+
+export const getShareFile = (id: string) => shareFileCache.get(id);
 
 export const shareOrDownloadImage = async (
   url: string,
   name: string,
   onPresented?: () => void,
-  preparedFile?: File | null,
+  preparedFile?: Promise<File | null> | File | null,
 ) => {
   if (isTouchPrimaryDevice()) {
-    const file = preparedFile ?? (await fetchAsFile(url, name));
+    const file = (await preparedFile) ?? (await fetchAsFile(url, name));
 
     if (file && navigator.canShare?.({ files: [file] })) {
-      const sharePromise = navigator.share({ files: [file] });
-      onPresented?.();
       try {
+        const sharePromise = navigator.share({ files: [file] });
+        onPresented?.();
         await sharePromise;
         return;
       } catch (err) {
@@ -135,6 +150,7 @@ export const preloadOpenLightBox = (index: number) => {
   requestAnimationFrame(() => openLightBox(index));
 
   preloadImage(target.preview);
+  if (target.id) prefetchShareFile(target.id, target.preview);
 };
 
 export const preloadOpenUploadLightBox = (index: number) => {

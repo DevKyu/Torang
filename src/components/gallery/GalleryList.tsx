@@ -67,6 +67,15 @@ const GalleryList = ({
 }: Props) => {
   const { images: storeImages, setImages, open } = useLightBoxStore();
 
+  useEffect(() => {
+    return () => {
+      const s = useLightBoxStore.getState();
+      if (s.commentOpen) s.closeComment();
+      if (s.open) s.closeLightBox();
+      if (s.uploadOpen) s.closeUploadLightBox();
+    };
+  }, []);
+
   const [year, setYear] = useState(Number(ym.slice(0, 4)));
   const [month, setMonth] = useState(Number(ym.slice(4, 6)));
   const [filter, setFilter] = useState<'latest' | 'likes' | 'comments'>(
