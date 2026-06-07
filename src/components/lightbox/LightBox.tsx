@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import {
   AnimatePresence,
   motion,
@@ -13,6 +14,8 @@ import {
   ChevronRight,
   Heart,
   MessageCircle,
+  Share2,
+  LoaderCircle,
 } from 'lucide-react';
 
 import {
@@ -36,6 +39,7 @@ import {
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
+import { shareOrDownloadImage } from '../../utils/gallery';
 import CommentSheet from '../lightbox/CommentSheet';
 
 export const LightBox = () => {
@@ -83,6 +87,15 @@ export const LightBox = () => {
 
   const loadedRef = useRef<Record<number, boolean>>({});
   const [, force] = useState({});
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const markLoaded = useCallback((i: number) => {
     if (!loadedRef.current[i]) {
@@ -433,6 +446,60 @@ export const LightBox = () => {
                       {commentCount}
                     </Count>
                   </CountBox>
+                </IconRow>
+
+                <IconRow
+                  whileTap={{ scale: 0.80 }}
+                  transition={{ duration: 0.1 }}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+
+                    if (sharingId === img.id) return;
+                    if (sharingId) {
+                      toast.error('다른 사진을 공유 중이에요.');
+                      return;
+                    }
+
+                    const targetId = img.id;
+                    const targetUrl = img.preview;
+                    setSharingId(targetId);
+
+                    try {
+                      await shareOrDownloadImage(
+                        targetUrl,
+                        `torang-gallery-${targetId}`,
+                      );
+                    } catch {
+                      if (mountedRef.current) {
+                        toast.error('이미지를 공유하지 못했어요.');
+                      }
+                    } finally {
+                      if (mountedRef.current) {
+                        setSharingId((cur) => (cur === targetId ? null : cur));
+                      }
+                    }
+                  }}
+                >
+                  <IconButton>
+                    {sharingId === img.id ? (
+                      <div style={{ display: 'flex', transform: 'translateX(1px)' }}>
+                        <motion.div
+                          style={{ display: 'flex' }}
+                          animate={{ rotate: [-54, 306] }}
+                          transition={{
+                            repeat: Infinity,
+                            ease: 'linear',
+                            duration: 0.8,
+                          }}
+                        >
+                          <LoaderCircle color="#eee" />
+                        </motion.div>
+                      </div>
+                    ) : (
+                      <Share2 color="#eee" />
+                    )}
+                  </IconButton>
+                  <CountBox />
                 </IconRow>
               </FooterIcons>
             </Footer>

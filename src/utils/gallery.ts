@@ -28,6 +28,53 @@ export const preloadImage = (src: string): Promise<void> => {
   });
 };
 
+const getExtensionFromMime = (mime: string) => {
+  if (mime.includes('png')) return 'png';
+  if (mime.includes('webp')) return 'webp';
+  if (mime.includes('gif')) return 'gif';
+  return 'jpg';
+};
+
+const isTouchPrimaryDevice = () => window.matchMedia('(pointer: coarse)').matches;
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objectUrl);
+};
+
+export const shareOrDownloadImage = async (url: string, name: string) => {
+  let blob: Blob | null = null;
+
+  try {
+    const res = await fetch(url);
+    if (res.ok) blob = await res.blob();
+  } catch {}
+
+  if (!blob) {
+    const win = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!win) throw new Error('image_open_failed');
+    return;
+  }
+
+  const filename = `${name}.${getExtensionFromMime(blob.type)}`;
+
+  if (isTouchPrimaryDevice() && navigator.canShare) {
+    const file = new File([blob], filename, { type: blob.type });
+    if (navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).catch(() => {});
+      return;
+    }
+  }
+
+  downloadBlob(blob, filename);
+};
+
 export const preloadOpenLightBox = (index: number) => {
   const { images, openLightBox } = useLightBoxStore.getState();
   const target = images[index];
