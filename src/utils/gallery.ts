@@ -28,11 +28,26 @@ export const preloadImage = (src: string): Promise<void> => {
   });
 };
 
-const getExtensionFromMime = (mime: string) => {
-  if (mime.includes('png')) return 'png';
-  if (mime.includes('webp')) return 'webp';
-  if (mime.includes('gif')) return 'gif';
-  return 'jpg';
+const MIME_EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/jpeg': 'jpg',
+};
+
+const EXTENSION_MIMES: Record<string, string> = {
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+};
+
+const resolveImageMime = (mime: string, url: string) => {
+  if (mime.startsWith('image/')) return mime;
+
+  const ext = url.split(/[?#]/)[0].split('.').pop()?.toLowerCase() ?? '';
+  return EXTENSION_MIMES[ext] ?? 'image/jpeg';
 };
 
 const isTouchPrimaryDevice = () => window.matchMedia('(pointer: coarse)').matches;
@@ -48,6 +63,11 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(objectUrl);
 };
 
+const openInNewTab = (url: string) => {
+  const win = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!win) throw new Error('image_open_failed');
+};
+
 export const shareOrDownloadImage = async (url: string, name: string) => {
   let blob: Blob | null = null;
 
@@ -57,19 +77,23 @@ export const shareOrDownloadImage = async (url: string, name: string) => {
   } catch {}
 
   if (!blob) {
-    const win = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!win) throw new Error('image_open_failed');
+    openInNewTab(url);
     return;
   }
 
-  const filename = `${name}.${getExtensionFromMime(blob.type)}`;
+  const mime = resolveImageMime(blob.type, url);
+  const filename = `${name}.${MIME_EXTENSIONS[mime] ?? 'jpg'}`;
 
-  if (isTouchPrimaryDevice() && navigator.canShare) {
-    const file = new File([blob], filename, { type: blob.type });
-    if (navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file] }).catch(() => {});
-      return;
+  if (isTouchPrimaryDevice()) {
+    if (navigator.canShare) {
+      const file = new File([blob], filename, { type: mime });
+      if (navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(() => {});
+        return;
+      }
     }
+    openInNewTab(url);
+    return;
   }
 
   downloadBlob(blob, filename);
