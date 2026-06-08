@@ -13,9 +13,12 @@ import {
   firebaseToFormationGroups,
   calcGroupDiff,
   diffLevelByLimit,
+  getPastYm,
+  buildTeammatePenalties,
   type FormationGroup,
   type FormationPlayer,
   type RawFormationGroups,
+  type TeamPairGroup,
 } from '../../utils/teamFormation'
 import {
   ControlRow,
@@ -119,6 +122,7 @@ const AdminTeamFormation = () => {
   const shuffleKeyRef = useRef(0)
   const ymRef = useRef(ym)
   ymRef.current = ym
+  const teammatePenaltiesRef = useRef<Map<string, number>>(new Map())
 
   const [editMode, setEditMode] = useState(false)
   const [allParticipants, setAllParticipants] = useState<FormationPlayer[]>([])
@@ -219,7 +223,29 @@ const AdminTeamFormation = () => {
     setGuestScore('')
     setAllParticipants([])
     setSnapshots([])
+    teammatePenaltiesRef.current = new Map()
   }, [ym, loadSaved, loadSnapshots])
+
+  const loadTeammatePenalties = useCallback(async (targetYm: string) => {
+    try {
+      const pastYms = [1, 2, 3].map((n) => getPastYm(targetYm, n))
+      const snaps = await Promise.all(pastYms.map((pastYm) => get(ref(db, `team/${pastYm}`))))
+      const monthlyTeams: TeamPairGroup[][] = snaps.map((snap) => {
+        if (!snap.exists()) return []
+        const raw = snap.val() as Record<string, {
+          team1?: Record<string, unknown>
+          team2?: Record<string, unknown>
+        }>
+        return Object.values(raw).map((g) => ({
+          team1: g.team1 ? Object.keys(g.team1) : [],
+          team2: g.team2 ? Object.keys(g.team2) : [],
+        }))
+      })
+      return buildTeammatePenalties(monthlyTeams)
+    } catch {
+      return new Map<string, number>()
+    }
+  }, [])
 
   const handleGenerate = () => {
     const requestedYm = ym
@@ -230,9 +256,10 @@ const AdminTeamFormation = () => {
 
     setTimeout(async () => {
       try {
-        const [participantSnap, allUsers] = await Promise.all([
+        const [participantSnap, allUsers, teammatePenalties] = await Promise.all([
           get(ref(db, `activityParticipants/${year}/${month}`)),
           fetchAllUsers(),
+          loadTeammatePenalties(ym),
         ])
 
         if (ymRef.current !== requestedYm) return
@@ -266,13 +293,14 @@ const AdminTeamFormation = () => {
           return { empId, name, average: avg }
         })
 
-        const result = generateTeams(players, limitScore, iterations)
+        const result = generateTeams(players, limitScore, iterations, teammatePenalties)
 
         if ('error' in result) {
           toast(result.error, { position: 'top-center' })
           return
         }
 
+        teammatePenaltiesRef.current = teammatePenalties
         setAllParticipants(players)
         const picked = result.candidates[Math.floor(Math.random() * result.candidates.length)]
         setDraft(picked)
@@ -297,7 +325,7 @@ const AdminTeamFormation = () => {
     setAddingTo(null)
     setTimeout(() => {
       if (ymRef.current !== requestedYm) return
-      const result = generateTeams(currentPlayers, limitScore, iterations)
+      const result = generateTeams(currentPlayers, limitScore, iterations, teammatePenaltiesRef.current)
       if ('error' in result) {
         toast(result.error, { position: 'top-center' })
         setGenerating(false)

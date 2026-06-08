@@ -83,7 +83,28 @@ function scoreTeam(team: FormationPlayer[]): { sum: number; avg: number } {
   return { sum, avg: sum / team.length }
 }
 
-function calcPairScore(t1: FormationPlayer[], t2: FormationPlayer[]): number {
+const TEAMMATE_PENALTY_WEIGHTS_BY_MONTHS_AGO = [8, 4, 2]
+
+function pairKey(a: string, b: string): string {
+  return a < b ? `${a}|${b}` : `${b}|${a}`
+}
+
+function teammatePenalty(team: FormationPlayer[], penalties: Map<string, number>): number {
+  if (penalties.size === 0) return 0
+  let total = 0
+  for (let i = 0; i < team.length; i++) {
+    for (let j = i + 1; j < team.length; j++) {
+      total += penalties.get(pairKey(team[i].empId, team[j].empId)) ?? 0
+    }
+  }
+  return total
+}
+
+function calcPairScore(
+  t1: FormationPlayer[],
+  t2: FormationPlayer[],
+  penalties: Map<string, number>,
+): number {
   const A = scoreTeam(t1)
   const B = scoreTeam(t2)
   const diff = Math.abs(A.sum - B.sum)
@@ -97,13 +118,14 @@ function calcPairScore(t1: FormationPlayer[], t2: FormationPlayer[]): number {
       t2.reduce((acc, p) => acc + Math.pow(p.average - B.avg, 2), 0) /
         t2.length,
     ) || 0
-  return diff + (varA + varB) * 0.05
+  const penalty = teammatePenalty(t1, penalties) + teammatePenalty(t2, penalties)
+  return diff + (varA + varB) * 0.05 + penalty
 }
 
-function totalPairScore(groups: FormationPlayer[][]): number {
+function totalPairScore(groups: FormationPlayer[][], penalties: Map<string, number>): number {
   const diffs: number[] = []
   for (let i = 0; i < groups.length; i += 2) {
-    diffs.push(calcPairScore(groups[i], groups[i + 1]))
+    diffs.push(calcPairScore(groups[i], groups[i + 1], penalties))
   }
   const sum = diffs.reduce((a, b) => a + b, 0)
   const maxDiff = Math.max(...diffs)
@@ -147,9 +169,9 @@ function buildBalancedSeed(
   return slots
 }
 
-function improveBySwap(groups: FormationPlayer[][]): FormationPlayer[][] {
+function improveBySwap(groups: FormationPlayer[][], penalties: Map<string, number>): FormationPlayer[][] {
   let current = groups.map((g) => [...g])
-  let currentScore = totalPairScore(current)
+  let currentScore = totalPairScore(current, penalties)
   let improved = true
   let guard = 100
 
@@ -166,7 +188,7 @@ function improveBySwap(groups: FormationPlayer[][]): FormationPlayer[][] {
           const candidate = current.map((g, idx) =>
             idx === gi ? nt1 : idx === gi + 1 ? nt2 : g,
           )
-          const candScore = totalPairScore(candidate)
+          const candScore = totalPairScore(candidate, penalties)
           if (candScore < currentScore - 0.01) {
             current = candidate
             currentScore = candScore
@@ -184,6 +206,7 @@ export function generateTeams(
   players: FormationPlayer[],
   limitScore: number,
   iterations = 20000,
+  teammatePenalties: Map<string, number> = new Map(),
 ): { candidates: FormationGroup[][] } | { error: string } {
   const pattern = autoPattern(players.length)
   if (!pattern) {
@@ -195,16 +218,16 @@ export function generateTeams(
   const sortedDesc = [...players].sort((a, b) => b.average - a.average)
   const seed = buildBalancedSeed(sortedDesc, pattern)
   if (seed) {
-    results.push({ groups: seed, score: totalPairScore(seed) })
-    const seedOpt = improveBySwap(seed)
-    results.push({ groups: seedOpt, score: totalPairScore(seedOpt) })
+    results.push({ groups: seed, score: totalPairScore(seed, teammatePenalties) })
+    const seedOpt = improveBySwap(seed, teammatePenalties)
+    results.push({ groups: seedOpt, score: totalPairScore(seedOpt, teammatePenalties) })
   }
 
   for (let i = 0; i < iterations; i++) {
     const shuffled = shuffleArray(players)
     const groups = buildGroups(shuffled, pattern)
     if (!groups) continue
-    results.push({ groups, score: totalPairScore(groups) })
+    results.push({ groups, score: totalPairScore(groups, teammatePenalties) })
   }
 
   if (!results.length) return { error: '팀 편성 조합 생성에 실패했습니다.' }
@@ -212,8 +235,8 @@ export function generateTeams(
   results.sort((a, b) => a.score - b.score)
 
   for (const r of results.slice(0, 50)) {
-    const optimized = improveBySwap(r.groups)
-    const newScore = totalPairScore(optimized)
+    const optimized = improveBySwap(r.groups, teammatePenalties)
+    const newScore = totalPairScore(optimized, teammatePenalties)
     if (newScore < r.score - 0.01) {
       results.push({ groups: optimized, score: newScore })
     }
@@ -297,6 +320,39 @@ export function firebaseToFormationGroups(
         team2: toSorted(g.team2 ?? {}),
       }
     })
+}
+
+export type TeamPairGroup = {
+  team1: string[]
+  team2: string[]
+}
+
+export function getPastYm(ym: string, monthsAgo: number): string {
+  const year = Number(ym.slice(0, 4))
+  const month = Number(ym.slice(4))
+  const total = year * 12 + (month - 1) - monthsAgo
+  const pastYear = Math.floor(total / 12)
+  const pastMonth = (total % 12) + 1
+  return `${pastYear}${String(pastMonth).padStart(2, '0')}`
+}
+
+export function buildTeammatePenalties(monthsAgoOrderedTeams: TeamPairGroup[][]): Map<string, number> {
+  const penalties = new Map<string, number>()
+  monthsAgoOrderedTeams.forEach((groups, monthsAgoIdx) => {
+    const weight = TEAMMATE_PENALTY_WEIGHTS_BY_MONTHS_AGO[monthsAgoIdx] ?? 0
+    if (weight <= 0) return
+    groups.forEach(({ team1, team2 }) => {
+      ;[team1, team2].forEach((team) => {
+        for (let i = 0; i < team.length; i++) {
+          for (let j = i + 1; j < team.length; j++) {
+            const key = pairKey(team[i], team[j])
+            penalties.set(key, (penalties.get(key) ?? 0) + weight)
+          }
+        }
+      })
+    })
+  })
+  return penalties
 }
 
 export function calcGroupDiff(group: FormationGroup): number {
