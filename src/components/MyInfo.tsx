@@ -225,7 +225,7 @@ const MyInfo = () => {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
                 style={{ overflow: 'hidden' }}
               >
-                <InfoRow>
+                <InfoRow style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <LabelEmoji>📊</LabelEmoji>
                   <Label>평균 점수</Label>
                   {isReady ? <Badge>{overallAvg}점</Badge> : <SkeletonBadge />}
