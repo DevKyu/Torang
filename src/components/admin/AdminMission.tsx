@@ -39,6 +39,13 @@ import {
   VoteHeaderRow,
   ResultArea,
   Divider,
+  SettingGroup,
+  SettingSection,
+  SettingSectionTitle,
+  SettingGrid,
+  SettingCell,
+  SettingCellLabel,
+  SettingDivider,
 } from '../../styles/AdminMissionStyle';
 import {
   useMission,
@@ -92,7 +99,9 @@ const AdminMission = () => {
     description: '',
     revealDays: 7,
     rewardPin: 1,
+    villainRewardPin: 1,
     helperVoteThreshold: 3,
+    villainCatchThreshold: 1,
   });
 
   const [hiddenDraft, setHiddenDraft] = useState<MissionHidden>({
@@ -133,7 +142,9 @@ const AdminMission = () => {
         description: data.config?.description ?? '',
         revealDays: data.config?.revealDays ?? 7,
         rewardPin: data.config?.rewardPin ?? 1,
+        villainRewardPin: data.config?.villainRewardPin ?? data.config?.rewardPin ?? 1,
         helperVoteThreshold: data.config?.helperVoteThreshold ?? 3,
+        villainCatchThreshold: data.config?.villainCatchThreshold ?? 1,
       });
       setHiddenDraft({
         villain: {
@@ -160,7 +171,9 @@ const AdminMission = () => {
         description: '',
         revealDays: 7,
         rewardPin: 1,
+        villainRewardPin: 1,
         helperVoteThreshold: 3,
+        villainCatchThreshold: 1,
       });
       setHiddenDraft({
         villain: { title: '또랑 빌런 미션', description: '' },
@@ -501,63 +514,113 @@ const AdminMission = () => {
         />
       </SectionBlock>
 
-      <SectionBlock>
-        <FieldLabel>공개 기준</FieldLabel>
-        <NumberRow>
-          활동일
-          <MissionInput
-            type="number"
-            min={1}
-            max={30}
-            value={configDraft.revealDays}
-            onChange={(e) =>
-              setConfigDraft((p) => ({
-                ...p,
-                revealDays: Number(e.target.value),
-              }))
-            }
-          />
-          일 전부터 공개
-        </NumberRow>
-      </SectionBlock>
+      <SettingGroup>
+        <SettingSection>
+          <SettingSectionTitle>공개 기준</SettingSectionTitle>
+          <NumberRow>
+            활동일
+            <MissionInput
+              type="number"
+              min={1}
+              max={30}
+              value={configDraft.revealDays}
+              onChange={(e) =>
+                setConfigDraft((p) => ({
+                  ...p,
+                  revealDays: Number(e.target.value),
+                }))
+              }
+            />
+            일 전부터 공개
+          </NumberRow>
+        </SettingSection>
 
-      <SectionBlock>
-        <FieldLabel>보상 핀</FieldLabel>
-        <NumberRow>
-          <MissionInput
-            type="number"
-            min={0}
-            step={0.1}
-            value={configDraft.rewardPin}
-            onChange={(e) =>
-              setConfigDraft((p) => ({
-                ...p,
-                rewardPin: Number(e.target.value),
-              }))
-            }
-          />
-          PIN (정답 투표자 또는 빌런 수령)
-        </NumberRow>
-      </SectionBlock>
+        <SettingDivider />
 
-      <SectionBlock>
-        <FieldLabel>조력자 공동 수상 조건</FieldLabel>
-        <NumberRow>
-          조력자 득표수
-          <MissionInput
-            type="number"
-            min={1}
-            value={configDraft.helperVoteThreshold}
-            onChange={(e) =>
-              setConfigDraft((p) => ({
-                ...p,
-                helperVoteThreshold: Number(e.target.value),
-              }))
-            }
-          />
-          표 이상
-        </NumberRow>
-      </SectionBlock>
+        <SettingSection>
+          <SettingSectionTitle>보상 핀</SettingSectionTitle>
+          <SettingGrid>
+            <SettingCell>
+              <SettingCellLabel>정답자</SettingCellLabel>
+              <NumberRow>
+                <MissionInput
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={configDraft.rewardPin}
+                  onChange={(e) =>
+                    setConfigDraft((p) => ({
+                      ...p,
+                      rewardPin: Number(e.target.value),
+                    }))
+                  }
+                />
+                PIN
+              </NumberRow>
+            </SettingCell>
+            <SettingCell>
+              <SettingCellLabel>빌런 성공</SettingCellLabel>
+              <NumberRow>
+                <MissionInput
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={configDraft.villainRewardPin}
+                  onChange={(e) =>
+                    setConfigDraft((p) => ({
+                      ...p,
+                      villainRewardPin: Number(e.target.value),
+                    }))
+                  }
+                />
+                PIN
+              </NumberRow>
+            </SettingCell>
+          </SettingGrid>
+        </SettingSection>
+
+        <SettingDivider />
+
+        <SettingSection>
+          <SettingSectionTitle>투표 조건</SettingSectionTitle>
+          <SettingGrid>
+            <SettingCell>
+              <SettingCellLabel>빌런 검거 기준</SettingCellLabel>
+              <NumberRow>
+                <MissionInput
+                  type="number"
+                  min={1}
+                  value={configDraft.villainCatchThreshold}
+                  onChange={(e) =>
+                    setConfigDraft((p) => ({
+                      ...p,
+                      villainCatchThreshold: Number(e.target.value),
+                    }))
+                  }
+                />
+                표 이상
+              </NumberRow>
+            </SettingCell>
+            <SettingCell>
+              <SettingCellLabel>조력자 공동 수상</SettingCellLabel>
+              <NumberRow>
+                <MissionInput
+                  type="number"
+                  min={1}
+                  value={configDraft.helperVoteThreshold}
+                  onChange={(e) =>
+                    setConfigDraft((p) => ({
+                      ...p,
+                      helperVoteThreshold: Number(e.target.value),
+                    }))
+                  }
+                />
+                표 이상
+              </NumberRow>
+            </SettingCell>
+          </SettingGrid>
+        </SettingSection>
+      </SettingGroup>
 
       <Divider />
 

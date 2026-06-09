@@ -11,7 +11,9 @@ export type MissionConfig = {
   description: string;
   revealDays: number;
   rewardPin: number;
+  villainRewardPin: number;
   helperVoteThreshold: number;
+  villainCatchThreshold: number;
   status: MissionStatus;
 };
 
@@ -149,7 +151,9 @@ export async function revealMissionResult(
   const villainId = roles.villain;
   const helperId = roles.helper;
   const rewardPin = config.rewardPin ?? 1;
+  const villainRewardPin = config.villainRewardPin ?? rewardPin;
   const helperThreshold = config.helperVoteThreshold ?? 3;
+  const villainCatchThreshold = config.villainCatchThreshold ?? 1;
 
   const voteMap: Record<string, number> = {};
   const correctVoters: string[] = [];
@@ -165,7 +169,7 @@ export async function revealMissionResult(
 
   const villainVotes = voteMap[villainId] ?? 0;
   const helperVotes = voteMap[helperId] ?? 0;
-  const villainWon = villainVotes === 0;
+  const villainWon = villainVotes < villainCatchThreshold;
   const helperWon = villainWon && helperVotes >= helperThreshold;
 
   const recipientDetails: Record<string, string> = {};
@@ -193,11 +197,13 @@ export async function revealMissionResult(
   };
 
   recipients.forEach((empId) => {
-    allWrites[`users/${empId}/pin`] = increment(rewardPin);
+    const isVillainSide = empId === villainId || empId === helperId;
+    const pinAmount = isVillainSide ? villainRewardPin : rewardPin;
+    allWrites[`users/${empId}/pin`] = increment(pinAmount);
     allWrites[`users/${empId}/rewards/${ym}/mission/${now}_${empId}`] = {
       type: 'mission',
       direction: 'gain',
-      pin: rewardPin,
+      pin: pinAmount,
       ym,
       createdAt,
       createdAtMs: now,

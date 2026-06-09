@@ -203,3 +203,51 @@ export const ResultArea = styled.div`
   color: #374151;
   line-height: 1.6;
 `;
+
+export const SettingGroup = styled.div`
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
+
+export const SettingSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const SettingSectionTitle = styled.div`
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.4px;
+`;
+
+export const SettingGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+`;
+
+export const SettingCell = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+export const SettingCellLabel = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+`;
+
+export const SettingDivider = styled.div`
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 -14px;
+`;
