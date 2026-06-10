@@ -932,7 +932,7 @@ const AdminTeamFormation = () => {
 
       <SmallText
         top="middle"
-        onTap={() => navigate('/admin', { replace: true })}
+        onClick={() => navigate('/admin', { replace: true })}
       >
         돌아가기
       </SmallText>

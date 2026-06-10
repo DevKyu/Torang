@@ -412,7 +412,7 @@ const AdminProducts = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        onTap={() => navigate('/admin', { replace: true })}
+        onClick={() => navigate('/admin', { replace: true })}
       >
         돌아가기
       </SmallText>

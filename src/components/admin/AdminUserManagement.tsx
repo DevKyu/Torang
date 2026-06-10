@@ -548,7 +548,12 @@ const AdminUserManagement = () => {
       )}
       <SmallText
         top="far"
-        onTap={() => {
+        style={{
+          position: 'relative',
+          zIndex: 20,
+          pointerEvents: 'auto',
+        }}
+        onClick={() => {
           navigate('/menu', { replace: true });
         }}
       >
