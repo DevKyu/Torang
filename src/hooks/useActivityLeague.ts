@@ -5,7 +5,7 @@ import { db, auth, empIdFromEmail } from '../services/firebase';
 import type { ActivityItem, LeaguePlayer } from '../types/activity';
 
 export type RawGroup = {
-  winner: 'team1' | 'team2' | 'draw';
+  winner?: 'team1' | 'team2' | 'draw';
   date: number;
   team1?: Record<string, { name: string; score1: number; score2: number }>;
   team2?: Record<string, { name: string; score1: number; score2: number }>;
@@ -54,6 +54,8 @@ export const useActivityLeague = (ym: string) => {
         const result: ActivityItem[] = [];
 
         for (const [groupId, group] of Object.entries(data)) {
+          if (group.winner !== 'team1' && group.winner !== 'team2' && group.winner !== 'draw') continue;
+
           const team1Players = toPlayers(group.team1);
           const team2Players = toPlayers(group.team2);
 
@@ -65,9 +67,8 @@ export const useActivityLeague = (ym: string) => {
           const myTeam = myTeamNum === 'team1' ? team1Players : team2Players;
           const opponentTeam = myTeamNum === 'team1' ? team2Players : team1Players;
 
-          let leagueResult: 'win' | 'lose' | 'draw';
-          if (group.winner === 'draw') leagueResult = 'draw';
-          else leagueResult = group.winner === myTeamNum ? 'win' : 'lose';
+          const leagueResult: 'win' | 'lose' | 'draw' =
+            group.winner === 'draw' ? 'draw' : group.winner === myTeamNum ? 'win' : 'lose';
 
           let date: number;
           if (group.date) {
