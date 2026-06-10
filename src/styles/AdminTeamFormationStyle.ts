@@ -260,6 +260,61 @@ export const SnapshotDeleteBtn = styled.button`
   }
 `
 
+export const SaveImageBtn = styled.button`
+  padding: 5px 12px;
+  background: #fff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      background: #eef2ff;
+    }
+  }
+`
+
+export const CaptureHost = styled.div`
+  height: 0;
+  overflow: hidden;
+`
+
+export const CaptureWrapper = styled.div`
+  width: 520px;
+  padding: 28px;
+  background: linear-gradient(180deg, #fafafa 0%, #f3f4f6 100%);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+`
+
+export const CaptureTitle = styled.div`
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 22px;
+`
+
+export const CaptureCard = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  & + & {
+    margin-top: 20px;
+  }
+`
+
 export const ConfirmedBanner = styled.div`
   display: flex;
   align-items: center;
@@ -322,12 +377,16 @@ export const GroupHeader = styled.div`
 `
 
 export const GroupBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   font-size: 13px;
   font-weight: 700;
-  background: #111827;
+  background: #1f2937;
   color: #fff;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 9px;
+  border-radius: 6px;
 `
 
 export const DiffChip = styled.span<{ level: 'low' | 'mid' | 'high' }>`
@@ -343,12 +402,12 @@ export const DiffChip = styled.span<{ level: 'low' | 'mid' | 'high' }>`
         : 'background: #fee2e2; color: #991b1b;'}
 `
 
-export const TeamsRow = styled.div`
+export const TeamsRow = styled.div<{ forceTwoCol?: boolean }>`
   display: grid;
   grid-template-columns: 1fr 1fr;
 
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: ${({ forceTwoCol }) => (forceTwoCol ? '1fr 1fr' : '1fr')};
   }
 `
 
@@ -396,7 +455,7 @@ export const PlayerRow = styled.div`
 
 export const PlayerAvg = styled.span`
   font-size: 12px;
-  color: #9ca3af;
+  color: #6b7280;
   font-variant-numeric: tabular-nums;
 `
 
@@ -558,6 +617,7 @@ export const PlayerNameCell = styled.span`
 `
 
 export const PlayerNameText = styled.span`
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

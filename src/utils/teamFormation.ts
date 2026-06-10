@@ -269,13 +269,6 @@ export function generateTeams(
   return { candidates }
 }
 
-export function diffLevelByLimit(diff: number, limit: number): 'low' | 'mid' | 'high' {
-  if (limit <= 0) return diffLevel(diff)
-  if (diff <= Math.round(limit * 0.5)) return 'low'
-  if (diff <= limit) return 'mid'
-  return 'high'
-}
-
 export function formationGroupsToFirebase(groups: FormationGroup[]): RawFormationGroups {
   const result: RawFormationGroups = {}
   groups.forEach((group, idx) => {
