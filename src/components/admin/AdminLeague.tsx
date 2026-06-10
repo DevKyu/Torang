@@ -621,7 +621,7 @@ const AdminLeague = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onTap={() => navigate('/admin', { replace: true })}
       >
         돌아가기
       </SmallText>

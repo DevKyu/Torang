@@ -391,7 +391,7 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
 
           <SmallText
             top="narrow"
-            onClick={() =>
+            onTap={() =>
               navigate('/admin', {
                 replace: true,
               })

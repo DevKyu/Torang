@@ -15,10 +15,12 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
   const [adminChecked, setAdminChecked] = useState(false);
 
   useEffect(() => {
-    checkAdminId().then((ok) => {
-      if (!ok) navigate('/menu', { replace: true });
-      else setAdminChecked(true);
-    });
+    checkAdminId()
+      .then((ok) => {
+        if (!ok) navigate('/menu', { replace: true });
+        else setAdminChecked(true);
+      })
+      .catch(() => navigate('/menu', { replace: true }));
   }, [navigate]);
 
   if (!adminChecked) return null;

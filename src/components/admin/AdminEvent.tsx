@@ -554,7 +554,7 @@ export default function AdminEvent() {
 
       <SaveButton onClick={saveAll}>💾 전체 저장</SaveButton>
 
-      <SmallText onClick={() => navigate('/admin', { replace: true })}>
+      <SmallText onTap={() => navigate('/admin', { replace: true })}>
         돌아가기
       </SmallText>
     </AdminLayout>

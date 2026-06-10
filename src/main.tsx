@@ -30,6 +30,7 @@ const Root = () => {
           readyToComplete={App !== null}
           onComplete={() => {
             sessionStorage.setItem(SPLASH_KEY, '1');
+            document.body.style.background = '#fff';
             setSplashDone(true);
           }}
         />
