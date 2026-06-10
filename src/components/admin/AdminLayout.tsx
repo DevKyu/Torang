@@ -58,7 +58,7 @@ const AdminBox = styled(ContentBox)`
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 20px 20px calc(20px + 64px + env(safe-area-inset-bottom, 0px));
   }
 `;
 
