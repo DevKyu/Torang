@@ -281,7 +281,7 @@ export default function AdminEvent() {
       return;
     setRollingBack(true);
     try {
-      const affected = await rollbackMatchPins(selectedYm, pinRate);
+      const affected = await rollbackMatchPins(selectedYm);
       alert(`✅ 롤백 완료 — ${affected}명 핀 조정`);
     } catch (e) {
       alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);

@@ -316,6 +316,20 @@ export const distributeMatchPins = async (
           createdAt,
           createdAtMs: now,
         };
+      } else if (result === 'lose') {
+        pinDeltas[chooserId] = (pinDeltas[chooserId] ?? 0) - pinRate;
+        updates[`users/${chooserId}/rewards/${ym}/match/${chosenId}`] = {
+          type: 'match',
+          matchType: 'pin',
+          opponentId: chosenId,
+          opponentName: users[chosenId]?.name ?? chosenId,
+          result: 'lose',
+          pin: pinRate,
+          ym,
+          direction: 'loss',
+          createdAt,
+          createdAtMs: now,
+        };
       }
 
       processedCount++;
@@ -338,54 +352,45 @@ export const distributeMatchPins = async (
   return processedCount;
 };
 
-export const rollbackMatchPins = async (
-  ym: string,
-  pinRate: number,
-): Promise<number> => {
+export const rollbackMatchPins = async (ym: string): Promise<number> => {
   const resultsSnap = await get(ref(db, `matchResults/${ym}/pin`));
   if (!resultsSnap.exists()) return 0;
 
   const allResults = resultsSnap.val() as Record<
     string,
-    Record<string, { pinUpdated?: boolean; finalizedAt?: number; result?: string }>
+    Record<string, { pinUpdated?: boolean; finalizedAt?: number }>
   >;
 
   const updates: Record<string, unknown> = {};
   const pinDeltas: Record<string, number> = {};
-  const winners = new Set<string>();
-  const losers = new Set<string>();
+  const affectedIds = new Set<string>();
 
   for (const [idA, opponents] of Object.entries(allResults)) {
     for (const [idB, data] of Object.entries(opponents)) {
       if (!data.pinUpdated || !data.finalizedAt) continue;
-      if (data.result === 'win') winners.add(idA);
-      if (data.result === 'lose') losers.add(idA);
+      affectedIds.add(idA);
       updates[`matchResults/${ym}/pin/${idA}/${idB}`] = null;
     }
   }
 
   await Promise.all(
-    [...winners].map(async (winnerId) => {
-      const rewardsSnap = await get(
-        ref(db, `users/${winnerId}/rewards/${ym}/match`),
-      );
+    [...affectedIds].map(async (empId) => {
+      const rewardsSnap = await get(ref(db, `users/${empId}/rewards/${ym}/match`));
       if (!rewardsSnap.exists()) return;
-
-      const matchRewards = rewardsSnap.val() as Record<string, any>;
+      const matchRewards = rewardsSnap.val() as Record<string, { matchType?: string; direction?: string; pin?: number }>;
       for (const [opponentId, reward] of Object.entries(matchRewards)) {
-        if (reward?.matchType !== 'pin' || reward?.direction !== 'gain') continue;
-        const pin = (reward?.pin as number) ?? 0;
-        if (pin > 0) {
-          pinDeltas[winnerId] = (pinDeltas[winnerId] ?? 0) - pin;
-          updates[`users/${winnerId}/rewards/${ym}/match/${opponentId}`] = null;
+        if (reward?.matchType !== 'pin') continue;
+        const pin = reward?.pin ?? 0;
+        if (pin <= 0) continue;
+        if (reward?.direction === 'gain') {
+          pinDeltas[empId] = (pinDeltas[empId] ?? 0) - pin;
+        } else if (reward?.direction === 'loss') {
+          pinDeltas[empId] = (pinDeltas[empId] ?? 0) + pin;
         }
+        updates[`users/${empId}/rewards/${ym}/match/${opponentId}`] = null;
       }
     }),
   );
-
-  for (const loserId of losers) {
-    pinDeltas[loserId] = (pinDeltas[loserId] ?? 0) + pinRate;
-  }
 
   await Promise.all(
     Object.entries(pinDeltas).map(async ([empId, delta]) => {
