@@ -257,7 +257,7 @@ export default function AdminEvent() {
     try {
       const users = await fetchAllUsers();
       const count = await distributeMatchPins(selectedYm, users, pinRate);
-      alert(`✅ ${count}건 처리 완료`);
+      alert(`✅ ${count}개 매치 처리 완료\n(참여자 수와 다를 수 있음 — 선택 쌍 기준)`);
     } catch (e) {
       alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
