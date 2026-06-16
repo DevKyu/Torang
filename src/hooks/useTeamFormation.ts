@@ -40,6 +40,13 @@ type RawTeamGroup = {
   team2?: Record<string, RawTeamPlayer>
 }
 
+const avgOf = (p: RawTeamPlayer) =>
+  p.score1 > 0 && p.score2 > 0
+    ? (p.score1 + p.score2) / 2
+    : p.score2 > 0
+      ? p.score2
+      : p.score1
+
 type UseTeamFormationResult = {
   status: TeamFormationStatus
   groups: FormationGroup[]
@@ -53,9 +60,6 @@ type UseTeamFormationResult = {
 function teamDataToFormationGroups(
   raw: Record<string, RawTeamGroup>,
 ): FormationGroup[] {
-  const avgOf = (p: RawTeamPlayer) =>
-    p.score2 > 0 ? p.score2 : p.score1 > 0 ? p.score1 : 0
-
   return Object.keys(raw)
     .sort()
     .map((groupId) => {

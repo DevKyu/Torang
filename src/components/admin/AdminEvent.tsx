@@ -7,7 +7,7 @@ import type { MatchType } from '../../types/match';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/commonStyle';
-import { distributeMatchPins } from '../../utils/pin';
+import { distributeMatchPins, rollbackMatchPins } from '../../utils/pin';
 import {
   Section,
   SectionTitle,
@@ -154,6 +154,7 @@ export default function AdminEvent() {
   const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
   const [referralPinDraft, setReferralPinDraft] = useState<number>(0);
   const [distributing, setDistributing] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
 
   useEffect(() => {
     loadEventConfig();
@@ -261,6 +262,31 @@ export default function AdminEvent() {
       alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setDistributing(false);
+    }
+  }, [selectedYm, pinReward]);
+
+  const handleRollback = useCallback(async () => {
+    const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
+    if (pinRate <= 0) {
+      alert('핀 매치 지급 금액이 0입니다. 저장된 설정을 확인하세요.');
+      return;
+    }
+    if (
+      !confirm(
+        `⚠️ ${selectedYm} 핀 매치 지급을 롤백하시겠습니까?\n` +
+          `승자 +핀 취소, 패자 -핀 복구, matchResults 초기화가 진행됩니다.\n` +
+          `이후 올바른 로직으로 재지급할 수 있습니다.`,
+      )
+    )
+      return;
+    setRollingBack(true);
+    try {
+      const affected = await rollbackMatchPins(selectedYm, pinRate);
+      alert(`✅ 롤백 완료 — ${affected}명 핀 조정`);
+    } catch (e) {
+      alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setRollingBack(false);
     }
   }, [selectedYm, pinReward]);
 
@@ -398,17 +424,28 @@ export default function AdminEvent() {
         </RewardActionRow>
 
         {matchTypeDraft === 'pin' && (
-          <RewardActionRow>
-            <BulkRewardButton
-              onClick={handleDistribute}
-              disabled={distributing}
-              style={{ width: '100%' }}
-            >
-              {distributing
-                ? '처리 중...'
-                : `📌 ${selectedYm} 핀 매치 보상 지급`}
-            </BulkRewardButton>
-          </RewardActionRow>
+          <>
+            <RewardActionRow>
+              <BulkRewardButton
+                onClick={handleDistribute}
+                disabled={distributing || rollingBack}
+                style={{ width: '100%' }}
+              >
+                {distributing
+                  ? '처리 중...'
+                  : `📌 ${selectedYm} 핀 매치 보상 지급`}
+              </BulkRewardButton>
+            </RewardActionRow>
+            <RewardActionRow>
+              <BulkRewardButton
+                onClick={handleRollback}
+                disabled={distributing || rollingBack}
+                style={{ width: '100%', opacity: 0.7 }}
+              >
+                {rollingBack ? '롤백 중...' : `↩️ ${selectedYm} 핀 매치 지급 롤백`}
+              </BulkRewardButton>
+            </RewardActionRow>
+          </>
         )}
 
         <RewardGrid>

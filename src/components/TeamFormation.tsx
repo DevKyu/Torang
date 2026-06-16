@@ -42,6 +42,9 @@ const MIN_YM = '202507';
 const GRID_MIN_HEIGHT = 172;
 const PENDING_MIN_HEIGHT = 220;
 
+const scoreAvg = (s: [number, number]) =>
+  s[0] > 0 && s[1] > 0 ? (s[0] + s[1]) / 2 : s[1] || s[0];
+
 const TeamFormation = () => {
   const navigate = useNavigate();
 
@@ -63,13 +66,10 @@ const TeamFormation = () => {
   const [activeIdx, setActiveIdx] = useState(0);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    setOpenKey(null);
-  }, [ym]);
-
   const handleYmChange = useCallback((next: string) => {
     setYm(next);
     setActiveIdx(0);
+    setOpenKey(null);
   }, []);
 
   const toggleScore = useCallback((key: string) => {
@@ -216,11 +216,11 @@ const TeamFormation = () => {
                         const sb = teamScores?.[b.empId];
                         const va =
                           sa && (sa[0] > 0 || sa[1] > 0)
-                            ? sa[1] || sa[0]
+                            ? scoreAvg(sa)
                             : a.average;
                         const vb =
                           sb && (sb[0] > 0 || sb[1] > 0)
-                            ? sb[1] || sb[0]
+                            ? scoreAvg(sb)
                             : b.average;
                         return vb - va;
                       });
@@ -265,8 +265,8 @@ const TeamFormation = () => {
                                     )}
                                   </NameGroup>
 
-                                  {isOpen && hasScores ? (
-                                    <FadeSpan key="detail">
+                                  {isOpen && scores && hasScores ? (
+                                    <FadeSpan>
                                       <PlayerAvg
                                         loser={isLoser}
                                         isMe={isMe}
@@ -275,8 +275,14 @@ const TeamFormation = () => {
                                         {scores[0] || '–'}&thinsp;·&thinsp;{scores[1] || '–'}
                                       </PlayerAvg>
                                     </FadeSpan>
+                                  ) : scores && hasScores ? (
+                                    <FadeSpan>
+                                      <PlayerAvg loser={isLoser} isMe={isMe}>
+                                        {Math.round(scoreAvg(scores))}점
+                                      </PlayerAvg>
+                                    </FadeSpan>
                                   ) : p.average > 0 ? (
-                                    <FadeSpan key="avg">
+                                    <FadeSpan>
                                       <PlayerAvg loser={isLoser} isMe={isMe}>
                                         {p.average}점
                                       </PlayerAvg>
