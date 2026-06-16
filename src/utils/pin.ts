@@ -363,32 +363,29 @@ export const rollbackMatchPins = async (ym: string): Promise<number> => {
 
   const updates: Record<string, unknown> = {};
   const pinDeltas: Record<string, number> = {};
-  const affectedIds = new Set<string>();
 
+  const pairs: [string, string][] = [];
   for (const [idA, opponents] of Object.entries(allResults)) {
     for (const [idB, data] of Object.entries(opponents)) {
-      if (!data.pinUpdated || !data.finalizedAt) continue;
-      affectedIds.add(idA);
+      if (!data.pinUpdated) continue;
+      pairs.push([idA, idB]);
       updates[`matchResults/${ym}/pin/${idA}/${idB}`] = null;
     }
   }
 
   await Promise.all(
-    [...affectedIds].map(async (empId) => {
-      const rewardsSnap = await get(ref(db, `users/${empId}/rewards/${ym}/match`));
-      if (!rewardsSnap.exists()) return;
-      const matchRewards = rewardsSnap.val() as Record<string, { matchType?: string; direction?: string; pin?: number }>;
-      for (const [opponentId, reward] of Object.entries(matchRewards)) {
-        if (reward?.matchType !== 'pin') continue;
-        const pin = reward?.pin ?? 0;
-        if (pin <= 0) continue;
-        if (reward?.direction === 'gain') {
-          pinDeltas[empId] = (pinDeltas[empId] ?? 0) - pin;
-        } else if (reward?.direction === 'loss') {
-          pinDeltas[empId] = (pinDeltas[empId] ?? 0) + pin;
-        }
-        updates[`users/${empId}/rewards/${ym}/match/${opponentId}`] = null;
+    pairs.map(async ([idA, idB]) => {
+      const rewardSnap = await get(ref(db, `users/${idA}/rewards/${ym}/match/${idB}`));
+      if (!rewardSnap.exists()) return;
+      const reward = rewardSnap.val() as { direction?: string; pin?: number };
+      const pin = reward?.pin ?? 0;
+      if (pin <= 0) return;
+      if (reward?.direction === 'gain') {
+        pinDeltas[idA] = (pinDeltas[idA] ?? 0) - pin;
+      } else if (reward?.direction === 'loss') {
+        pinDeltas[idA] = (pinDeltas[idA] ?? 0) + pin;
       }
+      updates[`users/${idA}/rewards/${ym}/match/${idB}`] = null;
     }),
   );
 
