@@ -6,6 +6,7 @@ import {
   NameGroup,
   ItemName,
   Badge,
+  BadgeGroup,
   RatioBadge,
   InfoButton,
 } from '../styles/rewardStyle';
@@ -29,11 +30,11 @@ type ProductItemProps = {
   disabled?: boolean;
 };
 
-const getRatioLabel = (raffleCount: number, winnersCount: number): string | null => {
+export const getRatioLabel = (raffleCount: number, winnersCount: number): string | null => {
   if (!raffleCount || !winnersCount) return null;
-  const ratio = Math.round(raffleCount / winnersCount);
-  if (ratio <= 1) return '경쟁률 낮음';
-  return `경쟁률 ${ratio}:1`;
+  const ratio = raffleCount / winnersCount;
+  if (ratio < 1) return '경쟁률 낮음';
+  return `경쟁률 ${Math.round(ratio)}:1`;
 };
 
 export const ProductItem = ({
@@ -81,8 +82,12 @@ export const ProductItem = ({
           </NameGroup>
         </ItemWrapper>
 
-        {ratioLabel && <RatioBadge>{ratioLabel}</RatioBadge>}
-        <Badge>{product.requiredPins}핀</Badge>
+        <BadgeGroup>
+          <RatioBadge style={{ visibility: ratioLabel ? 'visible' : 'hidden' }}>
+            {ratioLabel ?? ''}
+          </RatioBadge>
+          <Badge>{product.requiredPins}핀</Badge>
+        </BadgeGroup>
       </ItemLabel>
     </motion.div>
   );

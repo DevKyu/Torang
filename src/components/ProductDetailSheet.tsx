@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { getRatioLabel } from './ProductItem';
 import { AnimatePresence, animate, useMotionValue, useDragControls } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 
@@ -41,12 +42,6 @@ type Props = {
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-const getRatioLabel = (raffleCount: number, winnersCount: number): string | null => {
-  if (!raffleCount || !winnersCount) return null;
-  const ratio = Math.round(raffleCount / winnersCount);
-  if (ratio <= 1) return '경쟁률 낮음';
-  return `경쟁률 ${ratio}:1`;
-};
 
 export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
   const sheetRef = useRef<HTMLDivElement>(null);

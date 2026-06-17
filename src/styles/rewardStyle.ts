@@ -147,6 +147,8 @@ export const ItemName = styled.span`
   color: ${colors.gray[700]};
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const Badge = styled.span`
@@ -158,13 +160,23 @@ export const Badge = styled.span`
   white-space: nowrap;
 `;
 
+export const BadgeGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+`;
+
 export const RatioBadge = styled.span`
   font-size: 11px;
   color: #6b7280;
   background: #f3f4f6;
   border-radius: 999px;
-  padding: 2px 7px;
+  padding: 2px 0;
   white-space: nowrap;
+  width: 70px;
+  text-align: center;
+  flex-shrink: 0;
 `;
 
 export const InfoButton = styled.button`
