@@ -140,7 +140,7 @@ export const useActivityRewards = (ym: string) => {
             const cat = category as RewardCategory;
             if (!CATEGORY_TITLE[cat]) continue;
 
-            if (cat === 'target') {
+            if (cat === 'target' || cat === 'achievement') {
               const e = entries as Record<string, unknown>;
               const pin = typeof e.pin === 'number' ? e.pin : 0;
               if (pin > 0) result.push(toRewardItem(cat, ym, e));
