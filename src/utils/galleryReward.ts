@@ -96,9 +96,12 @@ export const rewardGalleryCommentCreator = async (
   const { pin, threshold } = cfg.commentCreator;
   if (!pin || threshold <= 0) return null;
 
-  const count = Object.values(rawComments).filter(
-    (c: any) => !c.deleted && c.empId !== creatorEmpId,
-  ).length;
+  const uniqueEmpIds = new Set(
+    Object.values(rawComments)
+      .filter((c: any) => !c.deleted && !c.parentId && c.empId !== creatorEmpId)
+      .map((c: any) => c.empId),
+  );
+  const count = uniqueEmpIds.size;
   if (count < threshold) return null;
 
   const checkPath = `users/${creatorEmpId}/gallery/commentCreatorReward/${ym}/${imageId}`;

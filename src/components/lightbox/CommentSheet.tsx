@@ -117,11 +117,13 @@ export const CommentSheet = () => {
   const grouped = useMemo(() => {
     const top: LightboxComment[] = [];
     const replyMap: Record<string, LightboxComment[]> = {};
+    const activeIds = new Set(list.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
 
     for (const c of list) {
       if (c.deleted) continue;
-      if (!c.parentId) top.push(c);
-      else {
+      if (!c.parentId) {
+        top.push(c);
+      } else if (activeIds.has(c.parentId)) {
         if (!replyMap[c.parentId]) replyMap[c.parentId] = [];
         replyMap[c.parentId].push(c);
       }

@@ -6,6 +6,11 @@ import {
   subscribeGalleryComments,
 } from '../utils/comments';
 
+const countVisibleComments = (list: LightboxComment[]) => {
+  const rootIds = new Set(list.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
+  return list.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
+};
+
 type LightBoxState = {
   images: GalleryImage[];
   open: boolean;
@@ -138,7 +143,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
         if (!t) return {};
         arr[idx] = {
           ...t,
-          commentCount: list.filter((c) => !c.deleted).length,
+          commentCount: countVisibleComments(list),
         };
         return { images: arr };
       });
@@ -153,7 +158,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       const arr = [...st.images];
       const t = arr[idx];
       if (!t) return {};
-      arr[idx] = { ...t, commentCount: list.filter((c) => !c.deleted).length };
+      arr[idx] = { ...t, commentCount: countVisibleComments(list) };
       return { images: arr };
     });
   },
@@ -256,7 +261,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       const t = arr[idx];
       arr[idx] = {
         ...t,
-        commentCount: list.filter((c) => !c.deleted).length,
+        commentCount: countVisibleComments(list),
       };
 
       return { comments: next, images: arr };
@@ -311,7 +316,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       comments: {
         ...s.comments,
         [imageId]: (s.comments[imageId] ?? []).map((c) =>
-          c.id === cid ? { ...c, deleted: true, text: '' } : c,
+          c.id === cid || c.parentId === cid ? { ...c, deleted: true, text: '' } : c,
         ),
       },
     })),

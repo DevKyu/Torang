@@ -155,9 +155,12 @@ const GalleryList = ({
         ym,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
-        commentCount: i.comments
-          ? Object.values(i.comments).filter((c: any) => !c.deleted).length
-          : 0,
+        commentCount: (() => {
+          if (!i.comments) return 0;
+          const all = Object.values(i.comments) as any[];
+          const rootIds = new Set(all.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
+          return all.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
+        })(),
       })),
     );
   }, [sorted, open, setImages, ym]);

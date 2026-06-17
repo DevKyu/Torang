@@ -254,7 +254,8 @@ export const LightBox = () => {
 
   const id = img.id;
   const comments = id ? (commentsState[id] ?? []) : [];
-  const commentCount = comments.filter((c) => !c.deleted).length;
+  const rootIds = new Set(comments.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
+  const commentCount = comments.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
   const likeCount = img.likes ?? 0;
 
   const overlayClick = () => {
