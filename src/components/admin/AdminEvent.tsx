@@ -266,11 +266,6 @@ export default function AdminEvent() {
   }, [selectedYm, pinReward]);
 
   const handleRollback = useCallback(async () => {
-    const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
-    if (pinRate <= 0) {
-      alert('핀 매치 지급 금액이 0입니다. 저장된 설정을 확인하세요.');
-      return;
-    }
     if (
       !confirm(
         `⚠️ ${selectedYm} 핀 매치 지급을 롤백하시겠습니까?\n` +
@@ -282,13 +277,17 @@ export default function AdminEvent() {
     setRollingBack(true);
     try {
       const affected = await rollbackMatchPins(selectedYm);
-      alert(`✅ 롤백 완료 — ${affected}명 핀 조정`);
+      alert(
+        affected > 0
+          ? `✅ 롤백 완료 — ${affected}명 핀 조정`
+          : '롤백할 지급 내역이 없습니다.',
+      );
     } catch (e) {
       alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setRollingBack(false);
     }
-  }, [selectedYm, pinReward]);
+  }, [selectedYm]);
 
   return (
     <AdminLayout title="이벤트 설정">
