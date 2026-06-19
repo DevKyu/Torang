@@ -36,9 +36,9 @@ export const useActivitySummary = (ym: string) => {
           return;
         }
 
-        const [gallerySnap, achievementsSnap, activityDateSnap] = await Promise.all([
+        const [gallerySnap, achievementRewardSnap, activityDateSnap] = await Promise.all([
           get(ref(db, `gallery/${ym}`)),
-          get(ref(db, `users/${empId}/achievements`)),
+          get(ref(db, `users/${empId}/rewards/${ym}/achievement`)),
           get(ref(db, `activityDate/${year}/${month}`)),
         ]);
         if (cancelled) return;
@@ -63,11 +63,12 @@ export const useActivitySummary = (ym: string) => {
         }
 
         let achievements = 0;
-        if (achievementsSnap.exists()) {
-          const data = achievementsSnap.val() as Record<string, { achievedAt: string }>;
-          for (const entry of Object.values(data)) {
-            if (entry.achievedAt === ym) achievements++;
-          }
+        if (achievementRewardSnap.exists()) {
+          const detail = (achievementRewardSnap.val()?.detail as string | undefined) ?? '';
+          achievements = detail
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean).length;
         }
 
         let activityDate: number;
