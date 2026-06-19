@@ -3,6 +3,11 @@ import type { UserInfo } from '../types/UserInfo';
 
 type LosersMap = Record<number, { ids: string[]; requiredPins: number }>;
 
+const MEMBER_WEIGHT = 8;
+const REPEAT_WINNER_PENALTY = 0.7;
+const MEMBER_REPEAT_PENALTY_VS_ASSOCIATE = 0.2;
+const MEMBER_REPEAT_PENALTY_SAME_TYPE = 0.6;
+
 function weightedPick(
   candidates: string[],
   userMap: Record<string, UserInfo>,
@@ -15,13 +20,21 @@ function weightedPick(
   const winners: string[] = [];
 
   for (let i = 0; i < count && candidates.length > 0; i++) {
+    const hasAssociate = candidates.some((cid) => userMap[cid]?.type === 'Associate');
+
     const weights = candidates.map((id) => {
       let weight = 1;
       const user = userMap[id];
       if (!user) return { id, weight: 0 };
 
-      if (user.type === 'Member') weight *= 1.5;
-      if (globalWinners.has(id)) weight *= 0.7;
+      const isMember = user.type === 'Member';
+      if (isMember) weight *= MEMBER_WEIGHT;
+      if (globalWinners.has(id)) weight *= REPEAT_WINNER_PENALTY;
+      if (isMember && globalWinners.has(id)) {
+        weight *= hasAssociate
+          ? MEMBER_REPEAT_PENALTY_VS_ASSOCIATE
+          : MEMBER_REPEAT_PENALTY_SAME_TYPE;
+      }
 
       if (isPostFill) {
         const highPinFails = Object.values(losersPerProduct)
