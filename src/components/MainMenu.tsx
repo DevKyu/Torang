@@ -5,7 +5,7 @@ import {
   UserIcon,
   ShieldIcon,
   ImagesIcon,
-  History,
+  NotebookPen,
   Dices,
   Trophy,
   Swords,
@@ -46,7 +46,7 @@ const BASE_MENU_MAP: Record<string, MenuItemBase> = {
   history: {
     id: 'history',
     label: '활동 기록',
-    icon: <History size={20} />,
+    icon: <NotebookPen size={20} />,
   },
   mission: {
     id: 'mission',
