@@ -76,7 +76,7 @@ export const ClosedSection = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 40px 0 24px;
+  padding: 24px 0 8px;
   text-align: center;
 `;
 
@@ -98,10 +98,11 @@ export const ClosedDesc = styled.p`
   color: ${colors.gray[500]};
   margin: 0;
   line-height: 1.6;
+  white-space: pre-line;
 `;
 
 export const ClosedButton = styled.button`
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 10px 20px;
   font-size: 13px;
   font-weight: 600;
