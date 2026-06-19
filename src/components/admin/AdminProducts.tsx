@@ -409,9 +409,6 @@ const AdminProducts = () => {
 
       <SmallText
         top="middle"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
         onClick={() => navigate('/admin', { replace: true })}
       >
         돌아가기

@@ -210,9 +210,6 @@ const Draw = () => {
           </DrawLoadingBox>
           <SmallText
             top="middle"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
             onClick={() => navigate('/menu', { replace: true })}
           >
             돌아가기
@@ -234,9 +231,6 @@ const Draw = () => {
           </PrepareSection>
           <SmallText
             top="middle"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
             onClick={() => navigate('/menu', { replace: true })}
           >
             돌아가기
@@ -315,12 +309,7 @@ const Draw = () => {
                 ? '추첨 완료'
                 : '전체 결과 공개'}
           </DrawButton>
-          <SmallText
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            onClick={() => navigate('/menu', { replace: true })}
-          >
+          <SmallText onClick={() => navigate('/menu', { replace: true })}>
             돌아가기
           </SmallText>
         </FooterWrapper>

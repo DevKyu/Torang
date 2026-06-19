@@ -256,9 +256,6 @@ const Reward = () => {
 
         <SmallText
           top="narrow"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
           onClick={() => navigate('/menu', { replace: true })}
         >
           돌아가기
@@ -322,9 +319,6 @@ const Reward = () => {
 
       <SmallText
         top="middle"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
         onClick={() => navigate('/menu', { replace: true })}
       >
         돌아가기
