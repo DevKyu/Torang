@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onValue, ref } from 'firebase/database';
 import { ClipLoader } from 'react-spinners';
+import { motion } from 'framer-motion';
 
 import {
   Container,
@@ -243,76 +244,85 @@ const Draw = () => {
   return (
     <Container>
       <ContentBox padding="draw">
-        <DrawTitle>상품 추첨</DrawTitle>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+        >
+          <DrawTitle>상품 추첨</DrawTitle>
 
-        <HeaderWrapper>
-          <StickyHeader
-            initial={false}
-            animate={{
-              opacity: drawState !== 'done' ? 1 : 0,
-              y: drawState !== 'done' ? 0 : -8,
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            💳 추첨 카드 ({flippedSet.size} / {products.length})
-          </StickyHeader>
+          <HeaderWrapper>
+            <StickyHeader
+              initial={false}
+              animate={{
+                opacity: drawState !== 'done' ? 1 : 0,
+                y: drawState !== 'done' ? 0 : -8,
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              💳 추첨 카드 ({flippedSet.size} / {products.length})
+            </StickyHeader>
 
-          <CompletionMessage
-            initial={false}
-            animate={{
-              opacity: drawState === 'done' ? 1 : 0,
-              scale: drawState === 'done' ? 1 : 0.8,
-            }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          >
-            {hasSelfWon ? '🎉 당첨을 축하드립니다!' : '아쉽지만 다음 기회에 🍀'}
-          </CompletionMessage>
-        </HeaderWrapper>
+            <CompletionMessage
+              initial={false}
+              animate={{
+                opacity: drawState === 'done' ? 1 : 0,
+                scale: drawState === 'done' ? 1 : 0.8,
+              }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            >
+              {hasSelfWon ? '🎉 당첨을 축하드립니다!' : '아쉽지만 다음 기회에 🍀'}
+            </CompletionMessage>
+          </HeaderWrapper>
 
-        <ScrollableCardGridWrapper ref={scrollWrapperRef} scrollable={isScrollable}>
-          <DrawGridContainer>
-            {products.map((product) => {
-              const supIds = supplement[String(product.index)] ?? [];
-              return (
-                <CardContainer
-                  key={product.index}
-                  ref={(el) => { cardRefs.current[product.index] = el; }}
-                  onClick={() => {
-                    if (drawState !== 'waiting') return;
-                    handleFlip(product.index);
-                  }}
-                >
-                  <ProductCard
-                    productName={product.name}
-                    winners={product.winners ?? []}
-                    supplement={supIds}
-                    flipped={flippedSet.has(product.index)}
-                    isWinner={product.winners?.includes(currentEmpId)}
-                    raffle={product.raffle}
-                    currentEmpId={currentEmpId}
-                    isBonus={product.requiredPins === 0}
-                  />
-                </CardContainer>
-              );
-            })}
-          </DrawGridContainer>
-        </ScrollableCardGridWrapper>
+          <ScrollableCardGridWrapper ref={scrollWrapperRef} scrollable={isScrollable}>
+            <DrawGridContainer>
+              {products.map((product, index) => {
+                const supIds = supplement[String(product.index)] ?? [];
+                return (
+                  <CardContainer
+                    key={product.index}
+                    ref={(el) => { cardRefs.current[product.index] = el; }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.05, ease: 'easeOut' }}
+                    onClick={() => {
+                      if (drawState !== 'waiting') return;
+                      handleFlip(product.index);
+                    }}
+                  >
+                    <ProductCard
+                      productName={product.name}
+                      winners={product.winners ?? []}
+                      supplement={supIds}
+                      flipped={flippedSet.has(product.index)}
+                      isWinner={product.winners?.includes(currentEmpId)}
+                      raffle={product.raffle}
+                      currentEmpId={currentEmpId}
+                      isBonus={product.requiredPins === 0}
+                    />
+                  </CardContainer>
+                );
+              })}
+            </DrawGridContainer>
+          </ScrollableCardGridWrapper>
 
-        <FooterWrapper>
-          <DrawButton
-            onClick={handleSequentialReveal}
-            disabled={drawState !== 'waiting'}
-          >
-            {drawState === 'drawing'
-              ? '결과 공개 중'
-              : drawState === 'done'
-                ? '추첨 완료'
-                : '전체 결과 공개'}
-          </DrawButton>
-          <SmallText onClick={() => navigate('/menu', { replace: true })}>
-            돌아가기
-          </SmallText>
-        </FooterWrapper>
+          <FooterWrapper>
+            <DrawButton
+              onClick={handleSequentialReveal}
+              disabled={drawState !== 'waiting'}
+            >
+              {drawState === 'drawing'
+                ? '결과 공개 중'
+                : drawState === 'done'
+                  ? '추첨 완료'
+                  : '전체 결과 공개'}
+            </DrawButton>
+            <SmallText onClick={() => navigate('/menu', { replace: true })}>
+              돌아가기
+            </SmallText>
+          </FooterWrapper>
+        </motion.div>
       </ContentBox>
     </Container>
   );

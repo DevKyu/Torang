@@ -73,7 +73,7 @@ export const DrawGridContainer = styled.div`
   gap: 12px;
 `;
 
-export const CardContainer = styled.div`
+export const CardContainer = styled(motion.div)`
   perspective: 1000px;
   cursor: pointer;
 `;
@@ -143,7 +143,7 @@ export const HintText = styled(motion.span)`
 export const CardBadge = styled.span`
   font-size: ${font.sm};
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 4px 6px;
   background-color: ${colors.badge.defaultBg};
   border-radius: 999px;
   color: ${colors.badge.defaultText};
