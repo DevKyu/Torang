@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 import {
   getCurrentUserData,
-  getProductData,
+  getProductBundle,
   setProductData,
   setUserPinData,
   getAppliedProducts,
@@ -17,7 +17,19 @@ import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
 import { useUiStore } from '../stores/useUiStore';
 import { SmallText } from '../styles/commonStyle';
-import { Section, PinCount, PinNumber, UserName, SubmitButton, LockNotice } from '../styles/rewardStyle';
+import {
+  Section,
+  PinCount,
+  PinNumber,
+  UserName,
+  SubmitButton,
+  LockNotice,
+  ClosedSection,
+  ClosedIcon,
+  ClosedTitle,
+  ClosedDesc,
+  ClosedButton,
+} from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
 import { RewardHistory } from './RewardHistory';
@@ -44,6 +56,7 @@ const Reward = () => {
   const [appliedProducts, setAppliedProducts] = useState<Record<string, AppliedProduct>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const [drawDone, setDrawDone] = useState(false);
 
   const isCancellingRef = useRef(false);
 
@@ -72,8 +85,8 @@ const Reward = () => {
     const loadData = async () => {
       showLoading();
       try {
-        const [prod, user, applied] = await Promise.all([
-          getProductData(quarterYm),
+        const [bundle, user, applied] = await Promise.all([
+          getProductBundle(quarterYm),
           getCurrentUserData(),
           getAppliedProducts(quarterYm),
         ]);
@@ -83,7 +96,9 @@ const Reward = () => {
           return;
         }
 
-        const prodList: Product[] = (prod ?? [])
+        const isDrawDone = bundle.meta?.winnersReady ?? false;
+
+        const prodList: Product[] = (bundle.items ?? [])
           .map((item: any, i: number) => ({
             name: item.name ?? '',
             requiredPins: item.requiredPins ?? 0,
@@ -95,12 +110,15 @@ const Reward = () => {
           }))
           .sort((a: Product, b: Product) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
 
-        if (prodList.length === 0) {
-          toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });
-        } else if ((user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
-          toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
+        if (!isDrawDone) {
+          if (prodList.length === 0) {
+            toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });
+          } else if ((user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
+            toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
+          }
         }
 
+        setDrawDone(isDrawDone);
         setProducts(prodList);
         setUserName(user.name);
         setPinCount(user.pin ?? 0);
@@ -223,6 +241,31 @@ const Reward = () => {
       hideLoading();
     }
   };
+
+  if (drawDone) {
+    return (
+      <Layout title="상품 신청" padding="compact">
+        <ClosedSection>
+          <ClosedIcon>🎁</ClosedIcon>
+          <ClosedTitle>이번 분기 신청이 마감됐어요</ClosedTitle>
+          <ClosedDesc>{'추첨이 모두 끝났어요.\n결과는 상품 추첨에서 확인해보세요'}</ClosedDesc>
+          <ClosedButton onClick={() => navigate('/draw')}>
+            추첨 결과 보러가기
+          </ClosedButton>
+        </ClosedSection>
+
+        <SmallText
+          top="middle"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          onClick={() => navigate('/menu', { replace: true })}
+        >
+          돌아가기
+        </SmallText>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="상품 신청" padding="compact">

@@ -71,6 +71,49 @@ export const UserName = styled.span`
   color: ${colors.primary};
 `;
 
+export const ClosedSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0 24px;
+  text-align: center;
+`;
+
+export const ClosedIcon = styled.div`
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 4px;
+`;
+
+export const ClosedTitle = styled.p`
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+`;
+
+export const ClosedDesc = styled.p`
+  font-size: 13px;
+  color: ${colors.gray[500]};
+  margin: 0;
+  line-height: 1.6;
+`;
+
+export const ClosedButton = styled.button`
+  margin-top: 12px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, ${colors.primary}, #2563eb);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+`;
+
 export const LockNotice = styled.div`
   display: flex;
   align-items: center;
