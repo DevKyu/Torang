@@ -101,8 +101,7 @@ export function batchComputeWinners(
 
   for (const product of products) {
     const index = Number(product.index);
-    const raffle = product.raffle ?? [];
-    if (raffle.length === 0 && product.requiredPins > 0) continue;
+    if (product.requiredPins > 0) continue;
 
     const winners = winnersPerProduct[index] ?? [];
     const requiredPins = product.requiredPins;
