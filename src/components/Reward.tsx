@@ -248,7 +248,7 @@ const Reward = () => {
         <ClosedSection>
           <ClosedIcon>🎁</ClosedIcon>
           <ClosedTitle>이번 분기 신청이 마감됐어요</ClosedTitle>
-          <ClosedDesc>결과는 상품 추첨에서 확인해보세요</ClosedDesc>
+          <ClosedDesc>결과를 확인해보세요</ClosedDesc>
           <ClosedButton onClick={() => navigate('/draw')}>
             추첨 결과 보러가기
           </ClosedButton>
