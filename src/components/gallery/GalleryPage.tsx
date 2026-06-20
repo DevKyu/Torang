@@ -79,10 +79,9 @@ const GalleryPage = () => {
     let cancelled = false;
     (async () => {
       try {
-        const user = await waitForAuthUser();
+        const [user] = await Promise.all([waitForAuthUser(), preloadAllNames()]);
         if (cancelled) return;
         setEmpId(empIdFromEmail(user?.email));
-        await preloadAllNames();
       } catch {
         if (!cancelled) navigate('/', { replace: true });
       }
