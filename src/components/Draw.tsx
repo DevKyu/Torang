@@ -25,7 +25,7 @@ import {
 
 import {
   db,
-  getProductBundle,
+  parseProductBundle,
   waitForAuthUser,
   empIdFromEmail,
   preloadAllNames,
@@ -73,49 +73,46 @@ const Draw = () => {
   }, [products]);
 
   useEffect(() => {
+    let cancelled = false;
+    let unsub: (() => void) | undefined;
+
     const init = async () => {
       try {
-        const user = await waitForAuthUser();
-        const bundle = await getProductBundle(ym);
-
-        if (!bundle.items.length) {
-          navigate('/menu', { replace: true });
-          return;
-        }
-
-        await preloadAllNames();
-        setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
-        setSupplement(bundle.meta?.supplement ?? {});
+        const [user] = await Promise.all([waitForAuthUser(), preloadAllNames()]);
+        if (cancelled) return;
         setCurrentEmpId(empIdFromEmail(user?.email));
-        setWinnersReady(bundle.meta?.winnersReady ?? false);
+
+        unsub = onValue(
+          ref(db, `products/${ym}`),
+          (snap) => {
+            if (cancelled) return;
+            const bundle = parseProductBundle(snap);
+            setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
+            setSupplement(bundle.meta?.supplement ?? {});
+            setWinnersReady(bundle.meta?.winnersReady ?? false);
+            setLoading(false);
+          },
+          () => {
+            if (cancelled) return;
+            toast.error('데이터를 불러오지 못했어요.', { id: 'draw-load-error' });
+            setLoading(false);
+          },
+        );
       } catch {
-        toast.error('데이터를 불러오지 못했어요.', { id: 'draw-load-error' });
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          toast.error('데이터를 불러오지 못했어요.', { id: 'draw-load-error' });
+          setLoading(false);
+        }
       }
     };
 
     init();
+
+    return () => {
+      cancelled = true;
+      unsub?.();
+    };
   }, [ym]);
-
-  useEffect(() => {
-    if (loading || winnersReady) return;
-
-    let cancelled = false;
-    const unsub = onValue(ref(db, `products/${ym}/meta/winnersReady`), async (snap) => {
-      if (snap.val() !== true) return;
-      try {
-        const bundle = await getProductBundle(ym);
-        if (cancelled) return;
-        setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
-        setSupplement(bundle.meta?.supplement ?? {});
-        setWinnersReady(true);
-      } catch {
-      }
-    });
-
-    return () => { cancelled = true; unsub(); };
-  }, [loading, winnersReady, ym]);
 
   useEffect(() => {
     if (products.length > 0 && flippedSet.size === products.length) {
@@ -197,7 +194,13 @@ const Draw = () => {
     }
   };
 
-  const screenKey = loading ? 'loading' : !winnersReady ? 'prepare' : 'ready';
+  const screenKey = loading
+    ? 'loading'
+    : products.length === 0
+      ? 'empty'
+      : !winnersReady
+        ? 'prepare'
+        : 'ready';
 
   return (
     <Layout title="상품 추첨" padding="draw">
@@ -214,6 +217,22 @@ const Draw = () => {
               <DrawLoadingBox>
                 <ClipLoader size={24} color="#9ca3af" />
               </DrawLoadingBox>
+            </motion.div>
+          )}
+
+          {screenKey === 'empty' && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PrepareSection>
+                <PrepareIcon>🎁</PrepareIcon>
+                <PrepareTitle>상품을 준비하고 있어요</PrepareTitle>
+                <PrepareDesc>추첨이 곧 시작될 예정이에요 ✨</PrepareDesc>
+              </PrepareSection>
             </motion.div>
           )}
 

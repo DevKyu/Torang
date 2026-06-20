@@ -18,6 +18,7 @@ import {
   update,
   serverTimestamp,
   remove,
+  type DataSnapshot,
 } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 import type { Month, UserInfo, Year, AppliedProduct } from '../types/UserInfo';
@@ -177,11 +178,7 @@ export const getProductDataWithRaffle = async (ym: string) => {
   return all?.filter((product: any) => product.raffle?.length > 0);
 };
 
-export const getProductBundle = async (
-  ym: string,
-): Promise<ProductBundle> => {
-  const snapshot = await get(ref(db, `products/${ym}`));
-
+export const parseProductBundle = (snapshot: DataSnapshot): ProductBundle => {
   if (!snapshot.exists()) {
     return { items: [], meta: {} };
   }

@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
+import { onValue, ref } from 'firebase/database';
 
 import {
+  db,
+  parseProductBundle,
   getCurrentUserData,
-  getProductBundle,
   setProductData,
   setUserPinData,
   getAppliedProducts,
@@ -64,6 +66,8 @@ const Reward = () => {
   const [isReady, setIsReady] = useState(false);
 
   const isCancellingRef = useRef(false);
+  const resolvedRef = useRef({ products: false, profile: false });
+  const noPinWarnedRef = useRef(false);
 
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps } = useActivityDates();
@@ -87,20 +91,21 @@ const Reward = () => {
   }, [activityYmd]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        await waitForAuthUser();
-        const [bundle, user, applied] = await Promise.all([
-          getProductBundle(quarterYm),
-          getCurrentUserData(),
-          getAppliedProducts(quarterYm),
-        ]);
+    let cancelled = false;
+    resolvedRef.current = { products: false, profile: false };
+    noPinWarnedRef.current = false;
 
-        if (!user) {
-          toast.error('회원 정보를 불러오지 못했어요.', { id: 'no-user' });
-          return;
-        }
+    const tryFinish = () => {
+      if (resolvedRef.current.products && resolvedRef.current.profile) {
+        setIsReady(true);
+      }
+    };
 
+    const unsubProducts = onValue(
+      ref(db, `products/${quarterYm}`),
+      (snap) => {
+        if (cancelled) return;
+        const bundle = parseProductBundle(snap);
         const isDrawDone = bundle.meta?.winnersReady ?? false;
 
         const prodList: Product[] = (bundle.items ?? [])
@@ -115,24 +120,62 @@ const Reward = () => {
           }))
           .sort((a: Product, b: Product) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
 
-        if (!isDrawDone && prodList.length > 0 && (user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
-          toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
-        }
-
         setDrawDone(isDrawDone);
         setProducts(prodList);
+        resolvedRef.current.products = true;
+        tryFinish();
+      },
+      () => {
+        if (cancelled) return;
+        toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
+        resolvedRef.current.products = true;
+        tryFinish();
+      },
+    );
+
+    const loadProfile = async () => {
+      try {
+        await waitForAuthUser();
+        const [user, applied] = await Promise.all([
+          getCurrentUserData(),
+          getAppliedProducts(quarterYm),
+        ]);
+        if (cancelled) return;
+
+        if (!user) {
+          toast.error('회원 정보를 불러오지 못했어요.', { id: 'no-user' });
+          return;
+        }
+
         setUserName(user.name);
         setPinCount(user.pin ?? 0);
         setAppliedProducts(applied);
       } catch {
-        toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
+        if (!cancelled) toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
       } finally {
-        setIsReady(true);
+        if (!cancelled) {
+          resolvedRef.current.profile = true;
+          tryFinish();
+        }
       }
     };
 
-    loadData();
-  }, []);
+    loadProfile();
+
+    return () => {
+      cancelled = true;
+      unsubProducts();
+    };
+  }, [quarterYm]);
+
+  useEffect(() => {
+    if (!isReady || noPinWarnedRef.current) return;
+    noPinWarnedRef.current = true;
+
+    if (!drawDone && products.length > 0 && pinCount < 1 && Object.keys(appliedProducts).length === 0) {
+      toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
+    }
+  }, [isReady, drawDone, products, pinCount, appliedProducts]);
 
   const totalRequired = useMemo(
     () =>
