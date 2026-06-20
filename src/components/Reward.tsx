@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
 
 import {
@@ -24,11 +25,13 @@ import {
   UserName,
   SubmitButton,
   LockNotice,
-  ClosedSection,
-  ClosedIcon,
-  ClosedTitle,
-  ClosedDesc,
-  ClosedButton,
+  GuideSection,
+  GuideIcon,
+  GuideTitle,
+  GuideDesc,
+  GuideButton,
+  LoadingBox,
+  ContentArea,
 } from '../styles/rewardStyle';
 import Layout from './layouts/Layout';
 import { ProductItem } from './ProductItem';
@@ -57,6 +60,7 @@ const Reward = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [drawDone, setDrawDone] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const isCancellingRef = useRef(false);
 
@@ -83,7 +87,6 @@ const Reward = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      showLoading();
       try {
         const [bundle, user, applied] = await Promise.all([
           getProductBundle(quarterYm),
@@ -110,12 +113,8 @@ const Reward = () => {
           }))
           .sort((a: Product, b: Product) => b.requiredPins - a.requiredPins || Number(a.index) - Number(b.index));
 
-        if (!isDrawDone) {
-          if (prodList.length === 0) {
-            toast.warning('이번 분기에 등록된 상품이 없어요.', { id: 'no-products' });
-          } else if ((user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
-            toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
-          }
+        if (!isDrawDone && prodList.length > 0 && (user.pin ?? 0) < 1 && Object.keys(applied).length === 0) {
+          toast.warning('핀이 부족해서 신청할 수 있는 상품이 없어요.', { id: 'no-pin' });
         }
 
         setDrawDone(isDrawDone);
@@ -126,7 +125,7 @@ const Reward = () => {
       } catch {
         toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
       } finally {
-        hideLoading();
+        setIsReady(true);
       }
     };
 
@@ -242,80 +241,129 @@ const Reward = () => {
     }
   };
 
-  if (drawDone) {
-    return (
-      <Layout title="상품 신청" padding="compact">
-        <ClosedSection>
-          <ClosedIcon>🎁</ClosedIcon>
-          <ClosedTitle>이번 분기 신청이 마감됐어요</ClosedTitle>
-          <ClosedDesc>결과를 확인해보세요</ClosedDesc>
-          <ClosedButton onClick={() => navigate('/draw')}>
-            추첨 결과 보러가기
-          </ClosedButton>
-        </ClosedSection>
-
-        <SmallText
-          top="narrow"
-          onClick={() => navigate('/menu', { replace: true })}
-        >
-          돌아가기
-        </SmallText>
-      </Layout>
-    );
-  }
+  const screenKey = !isReady
+    ? 'loading'
+    : drawDone
+      ? 'closed'
+      : products.length === 0
+        ? 'empty'
+        : 'list';
 
   return (
     <Layout title="상품 신청" padding="compact">
-      <Section>
-        <PinCount>
-          <UserName>{userName}</UserName>님 🎳 보유 또랑핀
-          <PinNumber>{pinCount}개</PinNumber>
-        </PinCount>
-      </Section>
+      <ContentArea>
+        <AnimatePresence mode="wait" initial={false}>
+          {screenKey === 'loading' && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <LoadingBox>
+                <ClipLoader size={24} color="#9ca3af" />
+              </LoadingBox>
+            </motion.div>
+          )}
 
-      {Object.keys(appliedProducts).length > 0 && (
-        <RewardHistory
-          appliedProducts={appliedProducts}
-          onCancel={handleCancel}
-        />
-      )}
+          {screenKey === 'closed' && (
+            <motion.div
+              key="closed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <GuideSection>
+                <GuideIcon>🎁</GuideIcon>
+                <GuideTitle>이번 분기 신청이 마감됐어요</GuideTitle>
+                <GuideDesc>결과를 확인해보세요</GuideDesc>
+                <GuideButton onClick={() => navigate('/draw')}>
+                  추첨 결과 보러가기
+                </GuideButton>
+              </GuideSection>
+            </motion.div>
+          )}
 
-      {isLocked && lockNoticeText && <LockNotice>🔒 {lockNoticeText}</LockNotice>}
+          {screenKey === 'empty' && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <GuideSection>
+                <GuideIcon>🎁</GuideIcon>
+                <GuideTitle>상품을 준비하고 있어요</GuideTitle>
+                <GuideDesc>신청 가능한 상품이 곧 등록될 예정이에요 ✨</GuideDesc>
+              </GuideSection>
+            </motion.div>
+          )}
 
-      <Section>
-        <AnimatePresence mode="popLayout">
-          {availableProducts.map((product) => {
-            const isSelected = selected.has(product.index);
-            const willExceed =
-              !isSelected && totalRequired + product.requiredPins > pinCount;
+          {screenKey === 'list' && (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              <Section>
+                <PinCount>
+                  <UserName>{userName}</UserName>님 🎳 보유 또랑핀
+                  <PinNumber>{pinCount}개</PinNumber>
+                </PinCount>
+              </Section>
 
-            return (
-              <ProductItem
-                key={product.index}
-                product={product}
-                selected={selected}
-                toggleSelect={toggleSelect}
-                onInfo={setDetailProduct}
-                willExceed={willExceed}
-                disabled={isLocked}
+              {Object.keys(appliedProducts).length > 0 && (
+                <RewardHistory
+                  appliedProducts={appliedProducts}
+                  onCancel={handleCancel}
+                />
+              )}
+
+              {isLocked && lockNoticeText && <LockNotice>🔒 {lockNoticeText}</LockNotice>}
+
+              <Section>
+                <AnimatePresence mode="popLayout">
+                  {availableProducts.map((product) => {
+                    const isSelected = selected.has(product.index);
+                    const willExceed =
+                      !isSelected && totalRequired + product.requiredPins > pinCount;
+
+                    return (
+                      <ProductItem
+                        key={product.index}
+                        product={product}
+                        selected={selected}
+                        toggleSelect={toggleSelect}
+                        onInfo={setDetailProduct}
+                        willExceed={willExceed}
+                        disabled={isLocked}
+                      />
+                    );
+                  })}
+                </AnimatePresence>
+              </Section>
+
+              <SubmitButton
+                onClick={handleSubmit}
+                disabled={!selected.size || !isValid || isSubmitting || isLocked}
+              >
+                신청하기
+              </SubmitButton>
+
+              <ProductDetailSheet
+                open={detailProduct !== null}
+                product={detailProduct}
+                onClose={() => setDetailProduct(null)}
               />
-            );
-          })}
+            </motion.div>
+          )}
         </AnimatePresence>
-      </Section>
-
-      <SubmitButton
-        onClick={handleSubmit}
-        disabled={!selected.size || !isValid || isSubmitting || isLocked}
-      >
-        신청하기
-      </SubmitButton>
-
-      <ProductDetailSheet
-        open={detailProduct !== null}
-        product={detailProduct}
-        onClose={() => setDetailProduct(null)}
-      />
+      </ContentArea>
 
       <SmallText
         top="middle"

@@ -32,15 +32,6 @@ const font = {
   lg: '15px',
 };
 
-export const DrawTitle = styled.h1`
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
-  text-align: center;
-  margin: 0 0 12px;
-  letter-spacing: -0.2px;
-`;
-
 export const ScrollableCardGridWrapper = styled.div<{ scrollable: boolean }>`
   max-height: 52vh;
   overflow-y: auto;
@@ -252,6 +243,7 @@ export const CompletionMessage = styled(motion.div)`
 
 export const DrawButton = styled.button`
   width: 100%;
+  margin-top: 16px;
   padding: 13px 16px;
   font-size: 14px;
   font-weight: 600;
@@ -283,36 +275,30 @@ export const DrawButton = styled.button`
   }
 `;
 
-export const FooterWrapper = styled.div`
-  margin-top: 16px;
-  position: sticky;
-  bottom: env(safe-area-inset-bottom, 0px);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
 export const DrawLoadingBox = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 48px 0;
 `;
 
 export const PrepareSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 0 20px;
+  gap: 6px;
   text-align: center;
 `;
 
 export const PrepareIcon = styled.div`
   font-size: 40px;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
+`;
+
+export const ContentArea = styled.div`
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 export const PrepareTitle = styled.p`

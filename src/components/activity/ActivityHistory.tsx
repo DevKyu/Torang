@@ -200,11 +200,7 @@ const ActivityHistory = () => {
                   {item.type === 'activity' ? (
                     <ActivitySummaryCell>
                       <Title>{item.title}</Title>
-                      <Desc>
-                        {item.stats
-                          ? `사진 ${item.stats.photos} · 좋아요 ${item.stats.likes} · 댓글 ${item.stats.comments} · 업적 ${item.stats.achievements}`
-                          : item.description}
-                      </Desc>
+                      <Desc>{item.description}</Desc>
                     </ActivitySummaryCell>
                   ) : (
                     <>

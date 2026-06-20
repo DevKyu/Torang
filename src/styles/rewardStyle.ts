@@ -71,29 +71,28 @@ export const UserName = styled.span`
   color: ${colors.primary};
 `;
 
-export const ClosedSection = styled.div`
+export const GuideSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 0 8px;
+  gap: 6px;
   text-align: center;
 `;
 
-export const ClosedIcon = styled.div`
+export const GuideIcon = styled.div`
   font-size: 40px;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 `;
 
-export const ClosedTitle = styled.p`
+export const GuideTitle = styled.p`
   font-size: 15px;
   font-weight: 700;
   color: #111827;
   margin: 0;
 `;
 
-export const ClosedDesc = styled.p`
+export const GuideDesc = styled.p`
   font-size: 13px;
   color: ${colors.gray[500]};
   margin: 0;
@@ -101,7 +100,7 @@ export const ClosedDesc = styled.p`
   white-space: pre-line;
 `;
 
-export const ClosedButton = styled.button`
+export const GuideButton = styled.button`
   margin-top: 10px;
   padding: 10px 20px;
   font-size: 13px;
@@ -113,6 +112,18 @@ export const ClosedButton = styled.button`
   cursor: pointer;
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
+`;
+
+export const LoadingBox = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+export const ContentArea = styled.div`
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 export const LockNotice = styled.div`
