@@ -11,7 +11,7 @@ import {
   Swords,
   PartyPopper,
 } from 'lucide-react';
-import { logOut, checkAdminId } from '../services/firebase';
+import { logOut, checkAdminId, waitForAuthUser } from '../services/firebase';
 
 import Layout from './layouts/Layout';
 import { SmallText } from '../styles/commonStyle';
@@ -117,9 +117,10 @@ const MainMenu = () => {
 
     const run = async () => {
       await Promise.all([syncServerTime(), loadEventConfig()]);
+      await waitForAuthUser();
       const [isAdminResult] = await Promise.all([
         checkAdminId().catch(() => false),
-        applyReferralRewardIfNeeded(),
+        applyReferralRewardIfNeeded().catch(() => false),
       ]);
       setIsAdmin(isAdminResult);
     };

@@ -14,10 +14,11 @@ import {
 
 import {
   db,
-  getCurrentUserId,
+  empIdFromEmail,
   checkAdminId,
   getUserPins,
   preloadAllNames,
+  waitForAuthUser,
 } from '../../services/firebase';
 
 import { useLoading } from '../../contexts/LoadingContext';
@@ -75,12 +76,18 @@ const GalleryPage = () => {
   }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {
-    try {
-      setEmpId(getCurrentUserId());
-      preloadAllNames();
-    } catch {
-      navigate('/', { replace: true });
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const user = await waitForAuthUser();
+        if (cancelled) return;
+        setEmpId(empIdFromEmail(user?.email));
+        await preloadAllNames();
+      } catch {
+        if (!cancelled) navigate('/', { replace: true });
+      }
+    })();
+    return () => { cancelled = true; };
   }, [navigate]);
 
   useEffect(() => {

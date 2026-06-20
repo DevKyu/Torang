@@ -2,12 +2,14 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { toast } from 'sonner';
 
 import { useActivityDates } from '../hooks/useActivityDates';
 import {
   getCurrentUserData,
   getCurrentUserId,
   saveAchievements,
+  waitForAuthUser,
 } from '../services/firebase';
 import { checkAllAchievements } from '../utils/checkAllAchievements';
 import {
@@ -68,6 +70,7 @@ const Achievements = () => {
 
     const init = async () => {
       try {
+        await waitForAuthUser();
         const user = await getCurrentUserData();
         if (!user) return;
 
@@ -126,6 +129,8 @@ const Achievements = () => {
         if (achievementGroups.length > 0) {
           setActiveTab(achievementGroups[0].category);
         }
+      } catch {
+        toast.error('데이터를 불러오지 못했어요.', { id: 'achievements-load-error' });
       } finally {
         setAchievementsLoaded(true);
       }

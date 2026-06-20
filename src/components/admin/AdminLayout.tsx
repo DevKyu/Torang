@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
-import { checkAdminId } from '../../services/firebase';
+import { checkAdminId, waitForAuthUser } from '../../services/firebase';
 import { Container, ContentBox, Title } from '../../styles/commonStyle';
 
 type AdminLayoutProps = {
@@ -15,7 +15,8 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
   const [adminChecked, setAdminChecked] = useState(false);
 
   useEffect(() => {
-    checkAdminId()
+    waitForAuthUser()
+      .then(() => checkAdminId())
       .then((ok) => {
         if (!ok) navigate('/menu', { replace: true });
         else setAdminChecked(true);

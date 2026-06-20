@@ -6,6 +6,7 @@ import {
   fetchAllUsers,
   db,
   saveMatchResult,
+  waitForAuthUser,
 } from '../services/firebase';
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../utils/ranking';
@@ -130,6 +131,7 @@ const Ranking = () => {
     let cancelled = false;
     (async () => {
       try {
+        await waitForAuthUser();
         const [usersData, currentId] = await Promise.all([
           fetchAllUsers(),
           getCurrentUserId(),
