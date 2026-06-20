@@ -81,10 +81,12 @@ const AdminProducts = () => {
   const loadData = useCallback(async (ym: string) => {
     setLoading(true);
     try {
-      await preloadAllNames();
+      const [, snap] = await Promise.all([
+        preloadAllNames(),
+        get(ref(db, `products/${ym}`)),
+      ]);
       setNamesLoaded(true);
 
-      const snap = await get(ref(db, `products/${ym}`));
       if (!snap.exists()) {
         setDrafts([]);
         setMeta(null);

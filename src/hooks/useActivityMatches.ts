@@ -80,9 +80,8 @@ export const useActivityMatches = (ym: string) => {
       }
 
       try {
-        await preloadAllNames();
-
-        const [rivalSnap, pinSnap] = await Promise.all([
+        const [, rivalSnap, pinSnap] = await Promise.all([
+          preloadAllNames(),
           get(ref(db, `matchResults/${ym}/rival/${myId}`)),
           get(ref(db, `matchResults/${ym}/pin/${myId}`)),
         ]);
