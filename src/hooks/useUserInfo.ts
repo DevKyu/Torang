@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ref, onValue } from 'firebase/database';
-import { db, getCurrentUserId, logOut } from '../services/firebase';
+import { db, waitForAuthUser, empIdFromEmail, logOut } from '../services/firebase';
 import type { UserInfo } from '../types/UserInfo';
 
 const useUserInfo = () => {
@@ -9,20 +9,31 @@ const useUserInfo = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const empId = getCurrentUserId();
-    if (!empId) {
-      logOut();
-      navigate('/', { replace: true });
-      return;
-    }
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
-    const userRef = ref(db, `users/${empId}`);
-    const unsubscribe = onValue(
-      userRef,
-      (snap) => setUserInfo(snap.exists() ? snap.val() : null),
-      () => { logOut(); navigate('/', { replace: true }); },
-    );
-    return () => unsubscribe();
+    waitForAuthUser().then((user) => {
+      if (cancelled) return;
+
+      const empId = empIdFromEmail(user?.email);
+      if (!empId) {
+        logOut();
+        navigate('/', { replace: true });
+        return;
+      }
+
+      const userRef = ref(db, `users/${empId}`);
+      unsubscribe = onValue(
+        userRef,
+        (snap) => setUserInfo(snap.exists() ? snap.val() : null),
+        () => { logOut(); navigate('/', { replace: true }); },
+      );
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, []);
 
   return userInfo;

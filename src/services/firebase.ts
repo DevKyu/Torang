@@ -7,6 +7,7 @@ import {
   EmailAuthProvider,
   linkWithCredential,
   signOut,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import {
   getDatabase,
@@ -52,6 +53,14 @@ export const getCurrentUserOrThrow = () => {
   if (!user) throw new Error('로그인이 필요합니다.');
   return user;
 };
+
+export const waitForAuthUser = () =>
+  new Promise<ReturnType<typeof getAuth>['currentUser']>((resolve) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      unsub();
+      resolve(user);
+    });
+  });
 
 // 4. 인증 관련
 export const anonLogin = async () => signInAnonymously(auth);

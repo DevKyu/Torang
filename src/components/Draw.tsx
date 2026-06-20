@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { onValue, ref } from 'firebase/database';
 import { ClipLoader } from 'react-spinners';
 import { AnimatePresence, motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 import { SmallText } from '../styles/commonStyle';
 import {
@@ -25,7 +26,8 @@ import {
 import {
   db,
   getProductBundle,
-  getCurrentUserId,
+  waitForAuthUser,
+  empIdFromEmail,
   preloadAllNames,
 } from '../services/firebase';
 import { ProductCard } from './ProductCard';
@@ -73,10 +75,8 @@ const Draw = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const [userId, bundle] = await Promise.all([
-          getCurrentUserId(),
-          getProductBundle(ym),
-        ]);
+        const user = await waitForAuthUser();
+        const bundle = await getProductBundle(ym);
 
         if (!bundle.items.length) {
           navigate('/menu', { replace: true });
@@ -86,10 +86,10 @@ const Draw = () => {
         await preloadAllNames();
         setProducts(orderProducts(bundle.items, bundle.meta?.drawOrder));
         setSupplement(bundle.meta?.supplement ?? {});
-        setCurrentEmpId(userId ?? '');
+        setCurrentEmpId(empIdFromEmail(user?.email));
         setWinnersReady(bundle.meta?.winnersReady ?? false);
       } catch {
-        navigate('/menu', { replace: true });
+        toast.error('데이터를 불러오지 못했어요.', { id: 'draw-load-error' });
       } finally {
         setLoading(false);
       }

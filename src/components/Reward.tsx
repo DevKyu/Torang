@@ -13,6 +13,7 @@ import {
   applyProduct,
   cancelAppliedProduct,
   removeProductData,
+  waitForAuthUser,
 } from '../services/firebase';
 import { useActivityDates } from '../hooks/useActivityDates';
 import { useLoading } from '../contexts/LoadingContext';
@@ -88,6 +89,7 @@ const Reward = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        await waitForAuthUser();
         const [bundle, user, applied] = await Promise.all([
           getProductBundle(quarterYm),
           getCurrentUserData(),
