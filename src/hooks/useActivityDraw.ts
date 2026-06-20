@@ -75,7 +75,7 @@ export const useActivityDraw = (ym: string) => {
               id: `draw_${ym}_${item.index}_lost`,
               type: 'draw',
               date,
-              title: '분기 상품 추첨',
+              title: '분기 추첨 결과',
               description: '미당첨',
               productName: name,
               won: false,

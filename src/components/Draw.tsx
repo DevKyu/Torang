@@ -203,7 +203,7 @@ const Draw = () => {
         : 'ready';
 
   return (
-    <Layout title="상품 추첨" padding="draw">
+    <Layout title="추첨 결과" padding="draw">
       <ContentArea>
         <AnimatePresence mode="wait" initial={false}>
           {screenKey === 'loading' && (

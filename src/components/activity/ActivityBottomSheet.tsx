@@ -133,7 +133,7 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
           </DragZone>
           <Content ref={contentRef}>
             <Header onPointerDown={(e) => dragControls.start(e)}>
-              <Title>{item.type === 'draw' ? '분기 상품 추첨' : item.title}</Title>
+              <Title>{item.title}</Title>
               {item.type === 'league' ? (
                 <Delta
                   draw={item.result === 'draw'}
