@@ -106,6 +106,13 @@ const ActivityHistory = () => {
   const { items: drawItems, loading: drawLoading } =
     useActivityDraw(ym);
 
+  const isLoading =
+    rewardLoading ||
+    matchLoading ||
+    summaryLoading ||
+    leagueLoading ||
+    drawLoading;
+
   const monthly = useMemo(() => {
     const base: ActivityItem[] = [
       ...rewardItems,
@@ -178,11 +185,7 @@ const ActivityHistory = () => {
             animate="visible"
             key={`${ym}-${category}`}
           >
-            {rewardLoading ||
-            matchLoading ||
-            summaryLoading ||
-            leagueLoading ||
-            drawLoading ? (
+            {isLoading ? (
               <EmptyState variants={rowVariants}>
                 <ClipLoader size={24} color="#9ca3af" />
               </EmptyState>
@@ -304,7 +307,10 @@ const ActivityHistory = () => {
 
           <SmallText
             top="middle"
-            onClick={() => navigate('/menu', { replace: true })}
+            onClick={() => {
+              if (isLoading) return;
+              navigate('/menu', { replace: true });
+            }}
           >
             돌아가기
           </SmallText>

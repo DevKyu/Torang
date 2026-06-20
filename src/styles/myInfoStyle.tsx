@@ -25,7 +25,7 @@ export const MyInfoBox = styled.div<{ variant?: 'info' | 'achievements' }>`
   width: 90%;
   max-width: 400px;
   padding: ${({ variant }) =>
-    variant === 'achievements' ? '20px 12px 16px' : '20px 24px 16px'};
+    variant === 'achievements' ? '20px 12px 20px' : '20px 24px 20px'};
   border-radius: 16px;
   background: #fff;
   box-shadow: ${glass()};

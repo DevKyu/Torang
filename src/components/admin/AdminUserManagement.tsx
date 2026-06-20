@@ -309,16 +309,24 @@ const AdminUserManagement = () => {
       </SearchRow>
 
       <AdminLinkSection>
-        <AdminMainLink onClick={() => navigate('/admin/event')}>
+        <AdminMainLink
+          onClick={() => navigate('/admin/event', { replace: true })}
+        >
           ⚙️ 이벤트 / 메뉴 운영 설정
         </AdminMainLink>
 
         <AdminLinkGroup>
           <AdminSubLinkRow>
-            <AdminSubLink onClick={() => navigate('/admin/team-formation')}>
+            <AdminSubLink
+              onClick={() =>
+                navigate('/admin/team-formation', { replace: true })
+              }
+            >
               👥 팀 편성 관리
             </AdminSubLink>
-            <AdminSubLink onClick={() => navigate('/admin/league')}>
+            <AdminSubLink
+              onClick={() => navigate('/admin/league', { replace: true })}
+            >
               🏆 정기전 관리
             </AdminSubLink>
           </AdminSubLinkRow>
@@ -327,12 +335,18 @@ const AdminUserManagement = () => {
         <AdminLinkGroup>
           <AdminSubLinkRow>
             <AdminSubLink
-              onClick={() => navigate('/admin/activity-participants')}
+              onClick={() =>
+                navigate('/admin/activity-participants', { replace: true })
+              }
             >
               ✅ 활동 참여자 관리
             </AdminSubLink>
             <AdminSubLink
-              onClick={() => navigate('/admin/after-party-participants')}
+              onClick={() =>
+                navigate('/admin/after-party-participants', {
+                  replace: true,
+                })
+              }
             >
               🍻 뒤풀이 참여자 관리
             </AdminSubLink>
@@ -341,10 +355,14 @@ const AdminUserManagement = () => {
 
         <AdminLinkGroup>
           <AdminSubLinkRow>
-            <AdminSubLink onClick={() => navigate('/admin/mission')}>
+            <AdminSubLink
+              onClick={() => navigate('/admin/mission', { replace: true })}
+            >
               🎭 활동 미션 관리
             </AdminSubLink>
-            <AdminSubLink onClick={() => navigate('/admin/products')}>
+            <AdminSubLink
+              onClick={() => navigate('/admin/products', { replace: true })}
+            >
               📦 분기 상품 관리
             </AdminSubLink>
           </AdminSubLinkRow>

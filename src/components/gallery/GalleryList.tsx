@@ -371,7 +371,13 @@ const GalleryList = ({
           <AddButton disabled={loading} onClick={onMoveUpload}>
             {month}월 사진 업로드
           </AddButton>
-          <SmallText top="middle" onClick={onCancel}>
+          <SmallText
+            top="middle"
+            onClick={() => {
+              if (loading) return;
+              onCancel();
+            }}
+          >
             돌아가기
           </SmallText>
         </GalleryBox>

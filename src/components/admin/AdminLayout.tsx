@@ -56,7 +56,7 @@ const OuterWrapper = styled.div`
 
 const AdminBox = styled(ContentBox)`
   max-width: 720px;
-  padding: 28px 32px;
+  padding: 28px 32px 20px;
   text-align: left;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

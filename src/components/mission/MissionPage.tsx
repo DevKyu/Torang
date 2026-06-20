@@ -459,7 +459,10 @@ const MissionPage = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/menu', { replace: true })}
+        onClick={() => {
+          if (!isReady) return;
+          navigate('/menu', { replace: true });
+        }}
       >
         돌아가기
       </SmallText>

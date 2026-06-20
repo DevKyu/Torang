@@ -304,7 +304,10 @@ const Achievements = () => {
 
         <SmallText
           top="narrow"
-          onClick={() => navigate('/myinfo', { replace: true })}
+          onClick={() => {
+            if (!achievementsLoaded) return;
+            navigate('/myinfo', { replace: true });
+          }}
         >
           돌아가기
         </SmallText>

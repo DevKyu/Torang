@@ -313,7 +313,7 @@ const Login = () => {
 
   return (
     <>
-      <Layout title="또랑 로그인🎳">
+      <Layout title="또랑 로그인🎳" padding="login">
         <AnimatePresence mode="wait" initial={false}>
           <motion.form
             key={isPasswordChangeMode ? 'change' : 'login'}

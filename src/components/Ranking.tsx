@@ -503,7 +503,10 @@ const Ranking = () => {
 
         <SmallText
           top="middle"
-          onClick={() => navigate('/menu', { replace: true })}
+          onClick={() => {
+            if (!rankingReady) return;
+            navigate('/menu', { replace: true });
+          }}
         >
           돌아가기
         </SmallText>

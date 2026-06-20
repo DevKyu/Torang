@@ -22,7 +22,9 @@ export const ContentBox = styled.div<{
       ? '20px 32px'
       : padding === 'draw'
         ? '20px 24px'
-        : '32px'};
+        : padding === 'login'
+          ? '32px'
+          : '32px 32px 20px'};
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 20px
@@ -65,7 +67,8 @@ export const SmallText = styled(motion.p)<{
   top?: 'far' | 'middle' | 'narrow';
 }>`
   margin-top: ${({ top }) =>
-    top === 'far' ? '20px' : top === 'middle' ? '15px' : '10px'};
+    top === 'far' ? '10px' : top === 'middle' ? '8px' : '4px'};
+  padding: 10px 16px;
   font-size: 12px;
   color: #666;
   text-align: center;
@@ -73,6 +76,14 @@ export const SmallText = styled(motion.p)<{
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+
+  &:active {
+    opacity: 0.5;
+    transform: scale(0.96);
+  }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {

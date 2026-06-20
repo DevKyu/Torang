@@ -27,7 +27,7 @@ export const GalleryBox = styled(motion.div)`
   background: ${colors.bgCard};
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 20px 18px 18px;
+  padding: 20px 18px 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
