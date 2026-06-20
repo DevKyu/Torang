@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
 import { checkAdminId, waitForAuthUser } from '../../services/firebase';
 import { Container, ContentBox, Title } from '../../styles/commonStyle';
+import { useRouteLoading } from '../../routes/RouteSpinner';
 
 type AdminLayoutProps = {
   title?: string;
@@ -23,6 +24,8 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
       })
       .catch(() => navigate('/menu', { replace: true }));
   }, [navigate]);
+
+  useRouteLoading(!adminChecked);
 
   if (!adminChecked) return null;
 

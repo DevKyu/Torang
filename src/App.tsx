@@ -3,6 +3,8 @@ import { Toaster } from 'sonner';
 import GlobalStyle from './styles/GlobalStyle';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { LoadingOverlay } from './components/LoadingOverlay';
+import ErrorBoundary from './components/ErrorBoundary';
+import RouteSpinner from './routes/RouteSpinner';
 import Router from './routes/Router';
 
 function App() {
@@ -13,9 +15,12 @@ function App() {
     <>
       <GlobalStyle />
       <LoadingProvider>
-        <BrowserRouter>
-          <Router />
-        </BrowserRouter>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <Router />
+          </BrowserRouter>
+        </ErrorBoundary>
+        <RouteSpinner />
         <LoadingOverlay />
         <Toaster position="top-center" richColors />
       </LoadingProvider>

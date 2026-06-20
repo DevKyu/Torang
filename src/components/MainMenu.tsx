@@ -22,7 +22,11 @@ import {
   IconWrapper,
   MenuBadge,
 } from '../styles/menuStyle';
-import { useEventStore, type MenuBadgeType } from '../stores/eventStore';
+import {
+  useEventStore,
+  DEFAULT_MENU_DISABLED,
+  type MenuBadgeType,
+} from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { applyReferralRewardIfNeeded } from '../utils/pin';
 
@@ -85,10 +89,6 @@ const DEFAULT_ORDER: Record<string, number> = {
   draw: 8,
 };
 
-const DEFAULT_DISABLED: Record<string, boolean> = {
-  reward: true,
-};
-
 const PATH_MAP: Record<string, string> = {
   user: '/myinfo',
   draw: '/draw',
@@ -144,7 +144,7 @@ const MainMenu = () => {
           ? true
           : cfg?.disabled !== undefined
             ? cfg.disabled
-            : (DEFAULT_DISABLED[id] ?? false);
+            : (DEFAULT_MENU_DISABLED[id] ?? false);
 
         return {
           ...base[id],

@@ -3,6 +3,8 @@ import { Navigate, Routes, Route } from 'react-router-dom';
 import Login from '../components/Login';
 import Menu from '../components/MainMenu';
 import ProtectedRoute from './ProtectedRoute';
+import MenuGuard from './MenuGuard';
+import { useRouteLoading } from './RouteSpinner';
 import Reward from '../components/Reward';
 import Draw from '../components/Draw';
 import MyInfo from '../components/MyInfo';
@@ -11,8 +13,11 @@ import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
 import TeamFormation from '../components/TeamFormation';
 
-const Ranking = lazy(() => import('../components/Ranking'));
-const GalleryPage = lazy(() => import('../components/gallery/GalleryPage'));
+const preloadRanking = () => import('../components/Ranking');
+const preloadGalleryPage = () => import('../components/gallery/GalleryPage');
+
+const Ranking = lazy(preloadRanking);
+const GalleryPage = lazy(preloadGalleryPage);
 
 const AdminUserManagement = lazy(
   () => import('../components/admin/AdminUserManagement'),
@@ -28,22 +33,46 @@ const AdminTeamFormation = lazy(
   () => import('../components/admin/AdminTeamFormation'),
 );
 
+const SuspenseFallback = () => {
+  useRouteLoading(true);
+  return null;
+};
+
 const Router = () => (
-  <Suspense fallback={null}>
+  <Suspense fallback={<SuspenseFallback />}>
     <Routes>
       <Route path="/" element={<Login />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/menu" element={<Menu />} />
-        <Route path="/reward" element={<Reward />} />
-        <Route path="/draw" element={<Draw />} />
-        <Route path="/myinfo" element={<MyInfo />} />
-        <Route path="/ranking" element={<Ranking />} />
+
+        <Route element={<MenuGuard menuKey="reward" />}>
+          <Route path="/reward" element={<Reward />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="draw" />}>
+          <Route path="/draw" element={<Draw />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="user" />}>
+          <Route path="/myinfo" element={<MyInfo />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="rank" preload={preloadRanking} />}>
+          <Route path="/ranking" element={<Ranking />} />
+        </Route>
         <Route path="/achievements" element={<Achievements />} />
-        <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/history" element={<ActivityHistory />} />
-        <Route path="/mission" element={<MissionPage />} />
-        <Route path="/teams" element={<TeamFormation />} />
+        <Route
+          element={<MenuGuard menuKey="gallery" preload={preloadGalleryPage} />}
+        >
+          <Route path="/gallery" element={<GalleryPage />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="history" />}>
+          <Route path="/history" element={<ActivityHistory />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="mission" />}>
+          <Route path="/mission" element={<MissionPage />} />
+        </Route>
+        <Route element={<MenuGuard menuKey="teams" />}>
+          <Route path="/teams" element={<TeamFormation />} />
+        </Route>
         <Route path="/admin" element={<AdminUserManagement />} />
         <Route path="/admin/event" element={<AdminEvent />} />
         <Route path="/admin/league" element={<AdminLeague />} />

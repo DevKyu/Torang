@@ -36,6 +36,10 @@ const DEFAULT_MENU: MenuConfigItem = {
   disabled: false,
 };
 
+export const DEFAULT_MENU_DISABLED: Record<string, boolean> = {
+  reward: true,
+};
+
 const DEFAULT_REWARD: PinRewardConfig = {
   targetScore: 0,
   rivalMatch: 0,
@@ -60,7 +64,7 @@ type EventStore = {
   loadEventConfig(): Promise<void>;
 
   getMenuItem(id: string): MenuConfigItem;
-  isMenuDisabled(id: string): boolean;
+  isMenuBlocked(id: string): boolean;
 
   getThisMonthPinReward(): PinRewardConfig;
   getPinRewardRate(key: keyof PinRewardConfig): number;
@@ -114,11 +118,17 @@ export const useEventStore = create<EventStore>((set, get) => ({
   },
 
   getMenuItem: (id) => {
-    return { ...DEFAULT_MENU, ...(get().menu[id] ?? {}) };
+    const cfg = get().menu[id] ?? {};
+    const disabled =
+      cfg.disabled !== undefined
+        ? cfg.disabled
+        : (DEFAULT_MENU_DISABLED[id] ?? DEFAULT_MENU.disabled);
+    return { ...DEFAULT_MENU, ...cfg, disabled };
   },
 
-  isMenuDisabled: (id) => {
-    return get().getMenuItem(id).disabled ?? false;
+  isMenuBlocked: (id) => {
+    const item = get().getMenuItem(id);
+    return !!(item.hidden || item.disabled);
   },
 
   getThisMonthPinReward: () => {
