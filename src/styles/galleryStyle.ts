@@ -189,7 +189,7 @@ export const CaptionBox = styled.textarea`
   border: 1px solid ${colors.border};
   border-radius: 6px;
   padding: 5px 6px;
-  font-size: 16px;
+  font-size: 13px;
   resize: none;
   min-height: 32px;
   color: ${colors.textMain};
