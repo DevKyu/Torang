@@ -40,7 +40,6 @@ export const ScrollableCardGridWrapper = styled.div<{ scrollable: boolean }>`
 
   overscroll-behavior: contain;
   touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
 
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -69,7 +68,6 @@ export const CardContainer = styled(motion.div)`
   -webkit-perspective: 1000px;
   perspective: 1000px;
   cursor: pointer;
-  isolation: isolate;
 `;
 
 export const CardInner = styled(motion.div)`
@@ -84,10 +82,6 @@ export const CardInner = styled(motion.div)`
 
   &:active {
     scale: 1 !important;
-  }
-
-  body.ios & {
-    will-change: transform;
   }
 `;
 

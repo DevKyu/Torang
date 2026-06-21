@@ -97,7 +97,7 @@ export const ProductCard = ({
               count={0}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.4, delay: flipped ? 0.16 : 0 }}
             >
               없음
             </WinnerNameItem>
@@ -113,7 +113,11 @@ export const ProductCard = ({
                     ? { opacity: 1, scale: [0.9, 1.2, 1] }
                     : { opacity: 0, scale: 0.9 }
                 }
-                transition={{ duration: 0.6, ease: 'easeOut' }}
+                transition={{
+                  duration: 0.6,
+                  ease: 'easeOut',
+                  delay: flipped ? 0.16 : 0,
+                }}
               >
                 {getCachedUserName(id)}
               </WinnerNameItem>
