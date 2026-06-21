@@ -149,13 +149,13 @@ const Title = styled.h3`
 
 const TextArea = styled.textarea`
   width: 100%;
-  height: 90px;
+  height: 96px;
   border: 1px solid #e2d9cd;
   border-radius: 10px;
   padding: 10px;
   background: #fffdf8;
   resize: none;
-  font-size: 0.9rem;
+  font-size: 16px;
   color: #3a2d22;
   outline: none;
   line-height: 1.5;

@@ -258,7 +258,7 @@ export const InputBox = styled.div<{ $disabled?: boolean }>`
 
   input {
     flex: 1;
-    font-size: 14px;
+    font-size: 16px;
     border: none;
     background: none;
     outline: none;

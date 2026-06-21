@@ -65,6 +65,7 @@ export const DrawGridContainer = styled.div`
 `;
 
 export const CardContainer = styled(motion.div)`
+  -webkit-perspective: 1000px;
   perspective: 1000px;
   cursor: pointer;
 `;
@@ -73,6 +74,7 @@ export const CardInner = styled(motion.div)`
   position: relative;
   width: 100%;
   height: 160px;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   border-radius: 12px;
   background: #fff;
@@ -81,11 +83,16 @@ export const CardInner = styled(motion.div)`
   &:active {
     scale: 1 !important;
   }
+
+  body.ios & {
+    will-change: transform;
+  }
 `;
 
 export const CardFace = styled.div`
   position: absolute;
   inset: 0;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   border-radius: 12px;
   display: flex;
