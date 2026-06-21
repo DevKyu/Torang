@@ -83,7 +83,6 @@ const GalleryList = ({
     'latest',
   );
 
-  const [sorted, setSorted] = useState<GalleryItem[]>([]);
   const [pageLoadedCounts, setPageLoadedCounts] = useState<number[]>([]);
   const loadTokenRef = useRef(0);
 
@@ -103,11 +102,10 @@ const GalleryList = ({
   useEffect(() => {
     setYear(Number(ym.slice(0, 4)));
     setMonth(Number(ym.slice(4, 6)));
-    setSorted([]);
     setPageLoadedCounts([]);
   }, [ym]);
 
-  useEffect(() => {
+  const sorted = useMemo(() => {
     const clean = list.filter(
       (i) => i.url && i.empId && i.uploadedAt !== undefined,
     );
@@ -120,7 +118,7 @@ const GalleryList = ({
         : 0,
     }));
 
-    const ordered = [...base].sort((a, b) => {
+    return [...base].sort((a, b) => {
       if (filter === 'likes') {
         return (
           b.likesCount - a.likesCount ||
@@ -139,8 +137,6 @@ const GalleryList = ({
 
       return b.uploadedAt - a.uploadedAt || (a.order ?? 0) - (b.order ?? 0);
     });
-
-    setSorted(ordered);
   }, [filter, list]);
 
   useEffect(() => {
@@ -253,6 +249,7 @@ const GalleryList = ({
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
             >
               {loading ? (
                 <EmptyBox>
