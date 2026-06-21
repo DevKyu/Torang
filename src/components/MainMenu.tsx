@@ -112,6 +112,7 @@ const MainMenu = () => {
   const loaded = useEventStore((s) => s.loaded);
 
   useEffect(() => {
+    import('../components/MyInfo').catch(() => {});
     import('../components/Ranking').catch(() => {});
     import('../components/gallery/GalleryPage').catch(() => {});
 

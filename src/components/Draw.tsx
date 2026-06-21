@@ -138,7 +138,8 @@ const Draw = () => {
     const wrapperRect = wrapper.getBoundingClientRect();
     const scrollTarget =
       wrapper.scrollTop + (elRect.top - wrapperRect.top) + elRect.height / 2 - wrapper.clientHeight / 2;
-    wrapper.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    const isIOS = document.body.classList.contains('ios');
+    wrapper.scrollTo({ top: scrollTarget, behavior: isIOS ? 'auto' : 'smooth' });
   };
 
   const fireConfettiAtCard = (index: number) => {
@@ -179,7 +180,7 @@ const Draw = () => {
     scrollToCard(index);
 
     if (winnerIds.includes(currentEmpId) || supIds.includes(currentEmpId)) {
-      fireConfettiAtCard(index);
+      setTimeout(() => fireConfettiAtCard(index), 550);
     }
   };
 

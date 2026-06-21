@@ -7,15 +7,16 @@ import MenuGuard from './MenuGuard';
 import { useRouteLoading } from './RouteSpinner';
 import Reward from '../components/Reward';
 import Draw from '../components/Draw';
-import MyInfo from '../components/MyInfo';
 import Achievements from '../components/Achievements';
 import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
 import TeamFormation from '../components/TeamFormation';
 
+const preloadMyInfo = () => import('../components/MyInfo');
 const preloadRanking = () => import('../components/Ranking');
 const preloadGalleryPage = () => import('../components/gallery/GalleryPage');
 
+const MyInfo = lazy(preloadMyInfo);
 const Ranking = lazy(preloadRanking);
 const GalleryPage = lazy(preloadGalleryPage);
 
@@ -52,7 +53,7 @@ const Router = () => (
         <Route element={<MenuGuard menuKey="draw" />}>
           <Route path="/draw" element={<Draw />} />
         </Route>
-        <Route element={<MenuGuard menuKey="user" />}>
+        <Route element={<MenuGuard menuKey="user" preload={preloadMyInfo} />}>
           <Route path="/myinfo" element={<MyInfo />} />
         </Route>
         <Route element={<MenuGuard menuKey="rank" preload={preloadRanking} />}>

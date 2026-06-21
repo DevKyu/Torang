@@ -74,8 +74,8 @@ export const ProductCard = ({
 
         <HintText
           initial={{ opacity: 0.5 }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 2 }}
+          animate={{ opacity: flipped ? 0.5 : [0.5, 1, 0.5] }}
+          transition={{ repeat: flipped ? 0 : Infinity, duration: 2 }}
         >
           클릭하여 결과 보기
         </HintText>
