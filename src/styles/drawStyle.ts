@@ -118,6 +118,11 @@ export const Back = styled(CardFace)<{
 
   ${({ isWinner }) =>
     isWinner && `box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);`}
+
+  body.ios & {
+    transform: none;
+    transition: opacity 0.4s ease;
+  }
 `;
 
 export const Name = styled.h4`

@@ -40,6 +40,13 @@ export const ProductCard = ({
 }: Props) => {
   const raffleCount = raffle.length;
 
+  const isIOS = useMemo(
+    () =>
+      typeof document !== 'undefined' &&
+      document.body.classList.contains('ios'),
+    [],
+  );
+
   const isSelfWinner = Boolean(
     flipped && (isWinner || supplement.includes(currentEmpId)),
   );
@@ -65,7 +72,7 @@ export const ProductCard = ({
 
   return (
     <CardInner
-      animate={{ rotateY: flipped ? 180 : 0 }}
+      animate={{ rotateY: isIOS ? 0 : flipped ? 180 : 0 }}
       initial={{ rotateY: 0 }}
       transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
     >
@@ -87,7 +94,11 @@ export const ProductCard = ({
         )}
       </Front>
 
-      <Back isWinner={isSelfWinner} winnerCount={winners.length}>
+      <Back
+        isWinner={isSelfWinner}
+        winnerCount={winners.length}
+        style={isIOS ? { opacity: flipped ? 1 : 0 } : undefined}
+      >
         <CardBadge>🎉 {productName}</CardBadge>
 
         <WinnerNames count={winners.length}>
