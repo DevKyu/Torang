@@ -33,6 +33,7 @@ const AdminProducts = lazy(() => import('../components/admin/AdminProducts'));
 const AdminTeamFormation = lazy(
   () => import('../components/admin/AdminTeamFormation'),
 );
+const AdminMessages = lazy(() => import('../components/admin/AdminMessages'));
 
 const SuspenseFallback = () => {
   useRouteLoading(true);
@@ -91,6 +92,7 @@ const Router = () => (
           path="/admin/team-formation"
           element={<AdminTeamFormation />}
         />
+        <Route path="/admin/messages" element={<AdminMessages />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

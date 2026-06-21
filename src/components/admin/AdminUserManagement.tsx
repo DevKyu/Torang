@@ -367,6 +367,17 @@ const AdminUserManagement = () => {
             </AdminSubLink>
           </AdminSubLinkRow>
         </AdminLinkGroup>
+
+        <AdminLinkGroup>
+          <AdminSubLinkRow>
+            <AdminSubLink
+              style={{ gridColumn: '1 / -1' }}
+              onClick={() => navigate('/admin/messages', { replace: true })}
+            >
+              📬 공지사항 관리
+            </AdminSubLink>
+          </AdminSubLinkRow>
+        </AdminLinkGroup>
       </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (

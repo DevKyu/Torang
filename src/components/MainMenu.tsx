@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   GiftIcon,
@@ -10,10 +10,18 @@ import {
   Trophy,
   Swords,
   PartyPopper,
+  Bell,
 } from 'lucide-react';
-import { logOut, checkAdminId, waitForAuthUser } from '../services/firebase';
+import {
+  logOut,
+  checkAdminId,
+  waitForAuthUser,
+  empIdFromEmail,
+} from '../services/firebase';
 
 import Layout from './layouts/Layout';
+import MessageModal from './MessageModal';
+import NotificationHistorySheet from './NotificationHistorySheet';
 import { SmallText } from '../styles/commonStyle';
 import {
   MenuGrid,
@@ -21,6 +29,11 @@ import {
   MenuLabel,
   IconWrapper,
   MenuBadge,
+  MenuHeaderRow,
+  MenuTitleText,
+  BellSpacer,
+  BellBtn,
+  BellCountBadge,
 } from '../styles/menuStyle';
 import {
   useEventStore,
@@ -29,6 +42,13 @@ import {
 } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { applyReferralRewardIfNeeded } from '../utils/pin';
+import {
+  useUnreadMessageQueue,
+  useMessageHistory,
+  markMessageSeen,
+  type AdminMessage,
+  type MessageHistoryItem,
+} from '../hooks/useMessages';
 
 type MenuItemBase = {
   id: string;
@@ -105,11 +125,23 @@ const MainMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [myEmpId, setMyEmpId] = useState('');
+  const [messagesReady, setMessagesReady] = useState(false);
+  const [autoShowQueue, setAutoShowQueue] = useState<AdminMessage[]>([]);
+  const [historySheetOpen, setHistorySheetOpen] = useState(false);
+  const [historyDetail, setHistoryDetail] = useState<MessageHistoryItem | null>(
+    null,
+  );
+  const queueTotalRef = useRef(0);
 
   const syncServerTime = useUiStore((s) => s.syncServerTime);
+  const hasShownMessagesPopup = useUiStore((s) => s.hasShownMessagesPopup);
+  const setShownMessagesPopup = useUiStore((s) => s.setShownMessagesPopup);
   const loadEventConfig = useEventStore((s) => s.loadEventConfig);
   const menuConfig = useEventStore((s) => s.menu);
   const loaded = useEventStore((s) => s.loaded);
+  const { queue, loading: queueLoading } = useUnreadMessageQueue(myEmpId);
+  const { history, unreadCount } = useMessageHistory(myEmpId);
 
   useEffect(() => {
     import('../components/MyInfo').catch(() => {});
@@ -118,7 +150,8 @@ const MainMenu = () => {
 
     const run = async () => {
       await Promise.all([syncServerTime(), loadEventConfig()]);
-      await waitForAuthUser();
+      const user = await waitForAuthUser();
+      setMyEmpId(empIdFromEmail(user?.email));
       const [isAdminResult] = await Promise.all([
         checkAdminId().catch(() => false),
         applyReferralRewardIfNeeded().catch(() => false),
@@ -132,6 +165,56 @@ const MainMenu = () => {
   useEffect(() => {
     loadEventConfig();
   }, [location.pathname, loadEventConfig]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMessagesReady(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!messagesReady || hasShownMessagesPopup || !myEmpId || queueLoading) {
+      return;
+    }
+    setAutoShowQueue(queue);
+    setShownMessagesPopup();
+  }, [
+    messagesReady,
+    hasShownMessagesPopup,
+    myEmpId,
+    queue,
+    queueLoading,
+    setShownMessagesPopup,
+  ]);
+
+  useEffect(() => {
+    if (autoShowQueue.length === 0) {
+      queueTotalRef.current = 0;
+    } else if (autoShowQueue.length > queueTotalRef.current) {
+      queueTotalRef.current = autoShowQueue.length;
+    }
+  }, [autoShowQueue.length]);
+
+  const handleMessageConfirm = () => {
+    const current = autoShowQueue[0];
+    if (!current) return;
+    markMessageSeen(myEmpId, current.id).catch(() => {});
+    setAutoShowQueue((prev) => prev.slice(1));
+  };
+
+  const handleMessageDismiss = () => {
+    setAutoShowQueue((prev) => prev.slice(1));
+  };
+
+  const handleHistoryDetailConfirm = () => {
+    if (historyDetail) {
+      markMessageSeen(myEmpId, historyDetail.id).catch(() => {});
+    }
+    setHistoryDetail(null);
+  };
+
+  const handleHistoryDetailDismiss = () => {
+    setHistoryDetail(null);
+  };
 
   const menuItems = useMemo<MenuItem[]>(() => {
     const base = isAdmin
@@ -169,7 +252,18 @@ const MainMenu = () => {
   };
 
   return (
-    <Layout title="또랑 메뉴🎳" padding="compact">
+    <Layout padding="compact">
+      <MenuHeaderRow>
+        <BellSpacer />
+        <MenuTitleText>또랑 메뉴🎳</MenuTitleText>
+        <BellBtn onClick={() => setHistorySheetOpen(true)} aria-label="알림함">
+          <Bell size={16} />
+          {unreadCount > 0 && (
+            <BellCountBadge>{unreadCount > 99 ? '99' : unreadCount}</BellCountBadge>
+          )}
+        </BellBtn>
+      </MenuHeaderRow>
+
       <MenuGrid>
         {menuItems.map(({ id, label, icon, badge, disabled, loading }, index) => (
           <MotionMenuCard
@@ -212,6 +306,31 @@ const MainMenu = () => {
       >
         나가기
       </SmallText>
+
+      <MessageModal
+        isOpen={autoShowQueue.length > 0}
+        message={autoShowQueue[0] ?? null}
+        queuePosition={queueTotalRef.current - autoShowQueue.length + 1}
+        queueLength={queueTotalRef.current}
+        onClose={handleMessageConfirm}
+        onDismiss={handleMessageDismiss}
+      />
+
+      <NotificationHistorySheet
+        open={historySheetOpen}
+        history={history}
+        onClose={() => setHistorySheetOpen(false)}
+        onSelectMessage={setHistoryDetail}
+      />
+
+      <MessageModal
+        isOpen={!!historyDetail}
+        message={historyDetail}
+        queuePosition={1}
+        queueLength={1}
+        onClose={handleHistoryDetailConfirm}
+        onDismiss={handleHistoryDetailDismiss}
+      />
     </Layout>
   );
 };

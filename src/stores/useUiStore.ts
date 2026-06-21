@@ -7,6 +7,7 @@ type UiState = {
     myInfo: boolean;
     ranking: boolean;
   };
+  hasShownMessagesPopup: boolean;
   serverOffset: number;
   serverDate: Date;
   lastSync: number | null;
@@ -19,6 +20,7 @@ type UiState = {
   getServerTimestamp: () => string;
   setShownCongrats: (menu: 'myInfo' | 'ranking') => void;
   resetShownCongrats: (menu: 'myInfo' | 'ranking') => void;
+  setShownMessagesPopup: () => void;
 };
 
 const getServerTimeOffset = async (): Promise<number> => {
@@ -35,6 +37,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     myInfo: false,
     ranking: false,
   },
+  hasShownMessagesPopup: false,
   serverOffset: 0,
   serverDate: new Date(),
   lastSync: null,
@@ -113,4 +116,6 @@ export const useUiStore = create<UiState>((set, get) => ({
     set((state) => ({
       hasShownCongrats: { ...state.hasShownCongrats, [menu]: false },
     })),
+
+  setShownMessagesPopup: () => set({ hasShownMessagesPopup: true }),
 }));
