@@ -36,6 +36,7 @@ import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
 import { getCurrentUserId } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
+import type { LightboxComment } from '../../types/lightbox';
 
 type GalleryItem = {
   id: string;
@@ -45,7 +46,7 @@ type GalleryItem = {
   order?: number;
   empId: string;
   likes?: Record<string, any>;
-  comments?: Record<string, any>;
+  comments?: Record<string, LightboxComment>;
 };
 
 type Props = {
@@ -115,7 +116,7 @@ const GalleryList = ({
       ...i,
       likesCount: i.likes ? Object.keys(i.likes).length : 0,
       commentsCount: i.comments
-        ? Object.values(i.comments).filter((c: any) => !c?.deleted).length
+        ? Object.values(i.comments).filter((c) => !c?.deleted).length
         : 0,
     }));
 
@@ -157,7 +158,7 @@ const GalleryList = ({
         liked: Boolean(i.likes?.[getCurrentUserId()]),
         commentCount: (() => {
           if (!i.comments) return 0;
-          const all = Object.values(i.comments) as any[];
+          const all = Object.values(i.comments);
           const rootIds = new Set(all.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
           return all.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
         })(),

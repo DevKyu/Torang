@@ -26,6 +26,7 @@ import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
+import type { MissionData } from '../hooks/useMission';
 import { getYearMonth } from '../utils/date';
 import { useUiStore } from '../stores/useUiStore';
 
@@ -607,7 +608,7 @@ export const getUserGalleryCommentCount = async (empId: string): Promise<number>
   return snap.exists() ? (snap.val() as number) : 0;
 };
 
-export const getAllMissions = async (): Promise<Record<string, any>> => {
+export const getAllMissions = async (): Promise<Record<string, MissionData>> => {
   const snap = await get(ref(db, 'missions'));
   return snap.exists() ? snap.val() : {};
 };

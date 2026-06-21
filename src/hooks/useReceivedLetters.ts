@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import type { YearMonth, MatchType } from '../types/match';
 
@@ -54,7 +54,7 @@ export const useReceivedLetters = (
       setLetters(results);
     });
 
-    return () => off(rootRef, 'value', unsubscribe);
+    return () => unsubscribe();
   }, [ym, myId, type, activityYmd]);
 
   return letters;

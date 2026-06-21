@@ -95,8 +95,7 @@ export const checkMissionAchievements = async (
 
   if (!existing['mission_villain_success'] || !existing['mission_villain_found']) {
     const allMissions = await getAllMissions();
-    for (const [ym, data] of Object.entries(allMissions)) {
-      const mission = data as any;
+    for (const [ym, mission] of Object.entries(allMissions)) {
       if (!existing['mission_villain_success'] && !results['mission_villain_success'] &&
           mission?.result?.villainWon === true && mission?.roles?.villain === empId) {
         results['mission_villain_success'] = { achievedAt: ym };

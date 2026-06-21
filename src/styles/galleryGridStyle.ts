@@ -84,6 +84,7 @@ export const InfoItem = styled(motion.div)`
   font-weight: 500;
 
   background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   color: #fff;
 

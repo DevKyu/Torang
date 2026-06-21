@@ -8,6 +8,7 @@ const Overlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
   background: rgba(0 0 0 / 0.5);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   animation: fadeIn 0.18s ease-out forwards;
   @keyframes fadeIn {

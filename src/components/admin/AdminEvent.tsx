@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ref, set } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore, type MenuBadgeType } from '../../stores/eventStore';
 import type { MatchType } from '../../types/match';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
@@ -354,7 +354,7 @@ export default function AdminEvent() {
                       setMenuDraft((p) => {
                         const next = { ...cfg };
                         if (!e.target.value) delete next.badge;
-                        else next.badge = e.target.value as any;
+                        else next.badge = e.target.value as MenuBadgeType;
                         return { ...p, [id]: next };
                       })
                     }

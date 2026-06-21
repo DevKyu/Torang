@@ -8,6 +8,7 @@ export const PageWrap = styled.div`
   gap: 10px;
 
   height: calc(100vh - 130px);
+  height: calc(100dvh - 130px);
 
   min-height: 0;
 `;
@@ -199,6 +200,7 @@ export const ListSection = styled.div`
     rgba(248, 245, 241, 0.97) 100%
   );
 
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);

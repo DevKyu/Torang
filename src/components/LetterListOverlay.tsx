@@ -75,6 +75,7 @@ const Overlay = styled(motion.div)`
   align-items: center;
   justify-content: center;
   z-index: 2000;
+  -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
 `;
 

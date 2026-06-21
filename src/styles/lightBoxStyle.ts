@@ -27,6 +27,7 @@ export const Overlay = styled(motion.div)`
   inset: 0;
   z-index: 9999;
   background: rgba(0, 0, 0, 0.78);
+  -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   display: flex;
   flex-direction: column;
@@ -160,6 +161,7 @@ export const Description = styled(motion.div)`
 
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.58);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 
   color: #fff;

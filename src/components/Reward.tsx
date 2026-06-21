@@ -324,7 +324,7 @@ const Reward = () => {
                 <GuideIcon>🎁</GuideIcon>
                 <GuideTitle>이번 분기 신청이 마감됐어요</GuideTitle>
                 <GuideDesc>결과를 확인해보세요</GuideDesc>
-                <GuideButton onClick={() => navigate('/draw')}>
+                <GuideButton onClick={() => navigate('/draw', { replace: true })}>
                   추첨 결과 보러가기
                 </GuideButton>
               </GuideSection>
