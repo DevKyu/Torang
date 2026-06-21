@@ -68,6 +68,14 @@ export const CardContainer = styled(motion.div)`
   -webkit-perspective: 1000px;
   perspective: 1000px;
   cursor: pointer;
+
+  body.ios & {
+    transition: scale 0.1s ease;
+
+    &:active {
+      scale: 0.97;
+    }
+  }
 `;
 
 export const CardInner = styled(motion.div)`
@@ -97,6 +105,12 @@ export const CardFace = styled.div`
   align-items: center;
   gap: 6px;
   padding: 10px;
+
+  body.ios & {
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease-out;
+  }
 `;
 
 export const Front = styled(CardFace)`
@@ -118,11 +132,6 @@ export const Back = styled(CardFace)<{
 
   ${({ isWinner }) =>
     isWinner && `box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);`}
-
-  body.ios & {
-    transform: none;
-    transition: opacity 0.4s ease;
-  }
 `;
 
 export const Name = styled.h4`

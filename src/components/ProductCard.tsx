@@ -76,7 +76,7 @@ export const ProductCard = ({
       initial={{ rotateY: 0 }}
       transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <Front>
+      <Front style={isIOS ? { opacity: flipped ? 0 : 1 } : undefined}>
         <Name>{productName}</Name>
 
         <HintText
@@ -97,7 +97,14 @@ export const ProductCard = ({
       <Back
         isWinner={isSelfWinner}
         winnerCount={winners.length}
-        style={isIOS ? { opacity: flipped ? 1 : 0 } : undefined}
+        style={
+          isIOS
+            ? {
+                opacity: flipped ? 1 : 0,
+                transform: flipped ? 'scale(1)' : 'scale(0.95)',
+              }
+            : undefined
+        }
       >
         <CardBadge>🎉 {productName}</CardBadge>
 
