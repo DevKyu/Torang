@@ -259,7 +259,14 @@ const MainMenu = () => {
         <BellBtn onClick={() => setHistorySheetOpen(true)} aria-label="알림함">
           <Bell size={16} />
           {unreadCount > 0 && (
-            <BellCountBadge>{unreadCount > 99 ? '99' : unreadCount}</BellCountBadge>
+            <BellCountBadge
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              {unreadCount > 99 ? '99' : unreadCount}
+            </BellCountBadge>
           )}
         </BellBtn>
       </MenuHeaderRow>

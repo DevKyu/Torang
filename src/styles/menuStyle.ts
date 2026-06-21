@@ -53,7 +53,7 @@ export const BellBtn = styled.button`
   }
 `;
 
-export const BellCountBadge = styled.span`
+export const BellCountBadge = styled(motion.span)`
   position: absolute;
   top: -6px;
   right: -8px;
