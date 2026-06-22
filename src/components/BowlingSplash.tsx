@@ -116,17 +116,23 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   const ballInitX = -BALL_SIZE / 2 + ballStartOffsetX;
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase('rolling'), 400),
-      setTimeout(() => {
+    if (phase === 'pins') {
+      const t = setTimeout(() => setPhase('rolling'), 400);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'rolling') {
+      const t = setTimeout(() => {
         requestAnimationFrame(() => {
           setPhase(trajectory === 'center' ? 'impact' : 'gutter');
         });
-      }, 1300),
-      setTimeout(() => setAnimDone(true), 2100),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, [trajectory]);
+      }, 900);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'impact' || phase === 'gutter') {
+      const t = setTimeout(() => setAnimDone(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, [phase, trajectory]);
 
   useEffect(() => {
     if (!animDone || !readyToComplete) return;

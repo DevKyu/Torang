@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import {
   GiftIcon,
   UserIcon,
@@ -123,7 +124,6 @@ const PATH_MAP: Record<string, string> = {
 
 const MainMenu = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [myEmpId, setMyEmpId] = useState('');
   const [messagesReady, setMessagesReady] = useState(false);
@@ -161,10 +161,6 @@ const MainMenu = () => {
 
     run();
   }, [syncServerTime, loadEventConfig]);
-
-  useEffect(() => {
-    loadEventConfig();
-  }, [location.pathname, loadEventConfig]);
 
   useEffect(() => {
     const t = setTimeout(() => setMessagesReady(true), 600);
@@ -258,16 +254,19 @@ const MainMenu = () => {
         <MenuTitleText>또랑 메뉴🎳</MenuTitleText>
         <BellBtn onClick={() => setHistorySheetOpen(true)} aria-label="알림함">
           <Bell size={16} />
-          {unreadCount > 0 && (
-            <BellCountBadge
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-            >
-              {unreadCount > 99 ? '99' : unreadCount}
-            </BellCountBadge>
-          )}
+          <AnimatePresence>
+            {unreadCount > 0 && (
+              <BellCountBadge
+                key="bell-badge"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                {unreadCount > 99 ? '99' : unreadCount}
+              </BellCountBadge>
+            )}
+          </AnimatePresence>
         </BellBtn>
       </MenuHeaderRow>
 
@@ -285,17 +284,20 @@ const MainMenu = () => {
           >
             <IconWrapper style={{ opacity: loading ? 0.55 : 1 }}>
               {icon}
-              {!loading && badge && (
-                <MenuBadge
-                  variant={badge}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
-                >
-                  {badge.toUpperCase()}
-                </MenuBadge>
-              )}
+              <AnimatePresence>
+                {!loading && badge && (
+                  <MenuBadge
+                    key="menu-badge"
+                    variant={badge}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                  >
+                    {badge.toUpperCase()}
+                  </MenuBadge>
+                )}
+              </AnimatePresence>
             </IconWrapper>
             <MenuLabel style={{ opacity: loading ? 0.55 : 1 }}>
               {label}

@@ -167,6 +167,7 @@ const Login = () => {
             await safeLogout();
           } else if (!userData) {
             toast.info('등록되지 않은 계정이에요.');
+            await safeLogout();
           } else {
             setIsPasswordChangeMode(true);
           }
