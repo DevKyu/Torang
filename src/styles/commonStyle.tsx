@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import type { CSSProperties, ReactNode } from 'react';
 
 export const Container = styled.div<{ backgroundColor?: string }>`
   min-height: 100vh;
@@ -63,7 +64,7 @@ export const Button = styled.button`
   }
 `;
 
-export const SmallText = styled(motion.p)<{
+const StyledSmallText = styled(motion.p)<{
   top?: 'far' | 'middle' | 'narrow';
 }>`
   margin-top: ${({ top }) =>
@@ -91,3 +92,27 @@ export const SmallText = styled(motion.p)<{
     }
   }
 `;
+
+export const SmallText = ({
+  top,
+  style,
+  onClick,
+  children,
+}: {
+  top?: 'far' | 'middle' | 'narrow';
+  style?: CSSProperties;
+  onClick?: () => void;
+  children: ReactNode;
+}) => (
+  <StyledSmallText
+    top={top}
+    style={style}
+    onPointerUp={(e) => {
+      e.preventDefault();
+      if (e.isPrimary) onClick?.();
+    }}
+    onContextMenu={(e) => e.preventDefault()}
+  >
+    {children}
+  </StyledSmallText>
+);

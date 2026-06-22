@@ -280,7 +280,7 @@ const MainMenu = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: index * 0.04, ease: 'easeOut' }}
             whileTap={disabled ? undefined : { scale: 0.98 }}
-            onPointerUp={(e) => { if (e.isPrimary) handleClick(id, disabled); }}
+            onPointerUp={(e) => { e.preventDefault(); if (e.isPrimary) handleClick(id, disabled); }}
             onContextMenu={(e) => e.preventDefault()}
           >
             <IconWrapper style={{ opacity: loading ? 0.55 : 1 }}>
