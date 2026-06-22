@@ -151,14 +151,51 @@ export const TypeBadge = styled.span<{ color: string }>`
   color: ${({ color }) => color};
 `;
 
-export const StatusTag = styled.span<{ status: 'active' | 'cancelled' }>`
+type DisplayStatus = 'scheduled' | 'active' | 'popupEnded' | 'cancelled';
+
+const STATUS_TAG_BG: Record<DisplayStatus, string> = {
+  scheduled: '#f59e0b',
+  active: '#10b981',
+  popupEnded: '#93c5fd',
+  cancelled: '#e5e7eb',
+};
+
+export const StatusTag = styled.span<{ displayStatus: DisplayStatus }>`
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
-  background: ${({ status }) => (status === 'active' ? '#10b981' : '#e5e7eb')};
-  color: ${({ status }) => (status === 'active' ? '#fff' : '#6b7280')};
+  background: ${({ displayStatus }) => STATUS_TAG_BG[displayStatus]};
+  color: ${({ displayStatus }) =>
+    displayStatus === 'cancelled' ? '#6b7280' : '#fff'};
+`;
+
+export const DisplayTimeRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+`;
+
+export const DisplayTimeField = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+export const DisplayTimeCaption = styled.div`
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+`;
+
+export const DisplayTimeInput = styled.input`
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+  color: #111827;
 `;
 
 export const HistoryTitle = styled.span<{ cancelled?: boolean }>`

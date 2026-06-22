@@ -6,6 +6,7 @@ import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import MessageReadStatusModal from './MessageReadStatusModal';
 import { db, getCurrentUserOrThrow, empIdFromEmail } from '../../services/firebase';
+import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/commonStyle';
 import {
   FormTitle,
@@ -37,17 +38,29 @@ import {
   DangerRow,
   CancelLink,
   DeleteForeverLink,
+  DisplayTimeRow,
+  DisplayTimeField,
+  DisplayTimeCaption,
+  DisplayTimeInput,
 } from '../../styles/AdminMessagesStyle';
 import {
   useAdminMessages,
   sendMessage,
   cancelMessage,
   deleteMessageForever,
+  getMessageDisplayStatus,
   MESSAGE_TYPE_COLOR,
   MESSAGE_TYPE_LABEL,
   type AdminMessage,
   type MessageType,
 } from '../../hooks/useMessages';
+
+const STATUS_LABEL = {
+  scheduled: '예약중',
+  active: '발송됨',
+  popupEnded: '팝업종료',
+  cancelled: '취소됨',
+} as const;
 
 const toSuccessStyle = {
   backgroundColor: '#f0fdf4',
@@ -68,6 +81,12 @@ const formatDate = (createdAt: string) => {
   return `${createdAt.slice(0, 4)}-${createdAt.slice(4, 6)}-${createdAt.slice(6, 8)} ${createdAt.slice(8, 10)}:${createdAt.slice(10, 12)}`;
 };
 
+const formatDateFromMs = (ms: number) => {
+  const d = new Date(ms);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const AdminMessages = () => {
   const navigate = useNavigate();
   const { messages } = useAdminMessages();
@@ -80,6 +99,8 @@ const AdminMessages = () => {
   const [targetSearch, setTargetSearch] = useState('');
   const [targetDropdown, setTargetDropdown] = useState<[string, string][]>([]);
   const [selectedTargets, setSelectedTargets] = useState<TargetUser[]>([]);
+  const [displayStart, setDisplayStart] = useState('');
+  const [displayEnd, setDisplayEnd] = useState('');
   const [sending, setSending] = useState(false);
   const [readStatusMessage, setReadStatusMessage] =
     useState<AdminMessage | null>(null);
@@ -99,6 +120,7 @@ const AdminMessages = () => {
   const lookupTarget = () => {
     const query = targetSearch.trim().toLowerCase();
     if (!query) return;
+    setTargetDropdown([]);
     const matches = Object.entries(allNames).filter(
       ([empId, n]) =>
         n.toLowerCase().includes(query) &&
@@ -150,6 +172,19 @@ const AdminMessages = () => {
       return;
     }
 
+    const startMs = displayStart ? new Date(displayStart).getTime() : undefined;
+    const endMs = displayEnd ? new Date(displayEnd).getTime() : undefined;
+    if (startMs && endMs && endMs <= startMs) {
+      toast('팝업 종료 시간은 시작 시간보다 늦어야 합니다.', {
+        position: 'top-center',
+      });
+      return;
+    }
+    if (endMs && endMs <= useUiStore.getState().getServerNow().getTime()) {
+      toast('팝업 종료 시간이 이미 지났습니다.', { position: 'top-center' });
+      return;
+    }
+
     const confirmMsg =
       targetMode === 'all'
         ? '⚠️ 전체 회원에게 발송됩니다. 계속하시겠습니까?'
@@ -169,6 +204,8 @@ const AdminMessages = () => {
             : undefined,
         createdBy: myEmpId,
         createdByName: allNames[myEmpId] ?? myEmpId,
+        displayStartAt: startMs,
+        displayEndAt: endMs,
       });
       toast('✅ 메시지가 발송되었습니다.', {
         position: 'top-center',
@@ -181,6 +218,8 @@ const AdminMessages = () => {
       setTargetMode('all');
       setTargetSearch('');
       setTargetDropdown([]);
+      setDisplayStart('');
+      setDisplayEnd('');
     } catch {
       toast.error('발송 중 오류가 발생했습니다.', { position: 'top-center' });
     } finally {
@@ -230,6 +269,8 @@ const AdminMessages = () => {
     if (names.length <= 3) return `${names.length}명 (${names.join(', ')})`;
     return `${names.length}명 (${names.slice(0, 3).join(', ')} +${names.length - 3}명)`;
   };
+
+  const messagesNow = useUiStore.getState().getServerNow().getTime();
 
   return (
     <AdminLayout title="공지사항 관리">
@@ -284,8 +325,10 @@ const AdminMessages = () => {
                 value={targetSearch}
                 onChange={(e) => setTargetSearch(e.target.value)}
                 placeholder="이름 검색"
+                autoComplete="off"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
                     e.preventDefault();
                     lookupTarget();
                   }
@@ -324,6 +367,32 @@ const AdminMessages = () => {
         )}
       </SectionBlock>
 
+      <SectionBlock>
+        <FieldLabel>노출 시간 (선택)</FieldLabel>
+        <DisplayTimeRow>
+          <DisplayTimeField>
+            <DisplayTimeCaption>시작</DisplayTimeCaption>
+            <DisplayTimeInput
+              type="datetime-local"
+              value={displayStart}
+              onChange={(e) => setDisplayStart(e.target.value)}
+            />
+          </DisplayTimeField>
+          <DisplayTimeField>
+            <DisplayTimeCaption>팝업 종료</DisplayTimeCaption>
+            <DisplayTimeInput
+              type="datetime-local"
+              value={displayEnd}
+              onChange={(e) => setDisplayEnd(e.target.value)}
+            />
+          </DisplayTimeField>
+        </DisplayTimeRow>
+        <CharCount>
+          시작을 비우면 즉시 노출, 종료를 비우면 팝업이 계속 노출됩니다. 종료
+          이후에도 알림함에는 계속 남습니다.
+        </CharCount>
+      </SectionBlock>
+
       <SaveRow>
         <SaveBtn onClick={handleSend} disabled={sending}>
           {sending ? '발송 중...' : '발송'}
@@ -337,34 +406,41 @@ const AdminMessages = () => {
         <EmptyMsg>아직 발송한 메시지가 없습니다.</EmptyMsg>
       ) : (
         <HistoryList>
-          {messages.map((m) => (
-            <HistoryRow key={m.id} onClick={() => setReadStatusMessage(m)}>
-              <HistoryRowTop>
-                <TypeBadge color={MESSAGE_TYPE_COLOR[m.type]}>
-                  {MESSAGE_TYPE_LABEL[m.type]}
-                </TypeBadge>
-                <StatusTag status={m.status}>
-                  {m.status === 'active' ? '발송됨' : '취소됨'}
-                </StatusTag>
-                <HistoryTitle cancelled={m.status === 'cancelled'}>
-                  {m.title}
-                </HistoryTitle>
-              </HistoryRowTop>
-              <HistoryMeta>
-                {formatTarget(m)} · {formatDate(m.createdAt)}
-              </HistoryMeta>
-              <DangerRow onClick={(e) => e.stopPropagation()}>
-                {m.status === 'active' && (
-                  <CancelLink onClick={() => handleCancel(m.id)}>
-                    취소
-                  </CancelLink>
-                )}
-                <DeleteForeverLink onClick={() => handleDeleteForever(m)}>
-                  영구삭제
-                </DeleteForeverLink>
-              </DangerRow>
-            </HistoryRow>
-          ))}
+          {messages.map((m) => {
+            const displayStatus = getMessageDisplayStatus(m, messagesNow);
+            return (
+              <HistoryRow key={m.id} onClick={() => setReadStatusMessage(m)}>
+                <HistoryRowTop>
+                  <TypeBadge color={MESSAGE_TYPE_COLOR[m.type]}>
+                    {MESSAGE_TYPE_LABEL[m.type]}
+                  </TypeBadge>
+                  <StatusTag displayStatus={displayStatus}>
+                    {STATUS_LABEL[displayStatus]}
+                  </StatusTag>
+                  <HistoryTitle cancelled={m.status === 'cancelled'}>
+                    {m.title}
+                  </HistoryTitle>
+                </HistoryRowTop>
+                <HistoryMeta>
+                  {formatTarget(m)} · {formatDate(m.createdAt)}
+                  {m.displayStartAt &&
+                    ` · 시작 ${formatDateFromMs(m.displayStartAt)}`}
+                  {m.displayEndAt &&
+                    ` · 팝업종료 ${formatDateFromMs(m.displayEndAt)}`}
+                </HistoryMeta>
+                <DangerRow onClick={(e) => e.stopPropagation()}>
+                  {m.status === 'active' && (
+                    <CancelLink onClick={() => handleCancel(m.id)}>
+                      취소
+                    </CancelLink>
+                  )}
+                  <DeleteForeverLink onClick={() => handleDeleteForever(m)}>
+                    영구삭제
+                  </DeleteForeverLink>
+                </DangerRow>
+              </HistoryRow>
+            );
+          })}
         </HistoryList>
       )}
 

@@ -28,6 +28,31 @@ export type AdminMessage = {
   createdAtMs: number;
   status: MessageStatus;
   cancelledAt?: number;
+  displayStartAt?: number;
+  displayEndAt?: number;
+};
+
+const isWithinPopupWindow = (m: AdminMessage, now: number) =>
+  now >= (m.displayStartAt ?? m.createdAtMs) &&
+  now < (m.displayEndAt ?? Infinity);
+
+const isWithinHistoryWindow = (m: AdminMessage, now: number) =>
+  now >= (m.displayStartAt ?? m.createdAtMs);
+
+export type MessageDisplayStatus =
+  | 'scheduled'
+  | 'active'
+  | 'popupEnded'
+  | 'cancelled';
+
+export const getMessageDisplayStatus = (
+  m: AdminMessage,
+  now: number,
+): MessageDisplayStatus => {
+  if (m.status === 'cancelled') return 'cancelled';
+  if (m.displayStartAt && now < m.displayStartAt) return 'scheduled';
+  if (m.displayEndAt && now >= m.displayEndAt) return 'popupEnded';
+  return 'active';
 };
 
 export const useAdminMessages = () => {
@@ -88,12 +113,14 @@ export const useUnreadMessageQueue = (myEmpId: string) => {
 
   const queue = useMemo(() => {
     if (loading || readIds === null) return [];
+    const now = useUiStore.getState().getServerNow().getTime();
     return allMessages
       .filter((m) => m.status === 'active')
       .filter(
         (m) => m.type === 'all' || (m.targetEmpIds ?? []).includes(myEmpId),
       )
       .filter((m) => !readIds[m.id])
+      .filter((m) => isWithinPopupWindow(m, now))
       .sort((a, b) => (a.createdAtMs ?? 0) - (b.createdAtMs ?? 0));
   }, [allMessages, readIds, myEmpId, loading]);
 
@@ -107,11 +134,13 @@ export const useMessageHistory = (myEmpId: string) => {
 
   const history = useMemo<MessageHistoryItem[]>(() => {
     if (loading || readIds === null) return [];
+    const now = useUiStore.getState().getServerNow().getTime();
     return allMessages
       .filter(
         (m) => m.type === 'all' || (m.targetEmpIds ?? []).includes(myEmpId),
       )
       .filter((m) => m.status === 'active' || readIds[m.id])
+      .filter((m) => isWithinHistoryWindow(m, now))
       .map((m) => ({ ...m, read: !!readIds[m.id] }))
       .sort((a, b) => (b.createdAtMs ?? 0) - (a.createdAtMs ?? 0));
   }, [allMessages, readIds, myEmpId, loading]);
@@ -131,6 +160,8 @@ export async function sendMessage(params: {
   targetEmpIds?: string[];
   createdBy: string;
   createdByName?: string;
+  displayStartAt?: number;
+  displayEndAt?: number;
 }): Promise<void> {
   const { getServerNow, getServerTimestamp } = useUiStore.getState();
   const newRef = push(ref(db, 'messages'));
@@ -146,6 +177,8 @@ export async function sendMessage(params: {
     createdAt: getServerTimestamp(),
     createdAtMs: getServerNow().getTime(),
     status: 'active' as MessageStatus,
+    ...(params.displayStartAt ? { displayStartAt: params.displayStartAt } : {}),
+    ...(params.displayEndAt ? { displayEndAt: params.displayEndAt } : {}),
   });
 }
 
