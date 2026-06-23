@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ref, push, set, update, remove, onValue, get } from 'firebase/database';
+import { ref, push, set, update, remove, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 
 export type MessageType = 'all' | 'specific';
 export type MessageStatus = 'active' | 'cancelled';
+
+export const MESSAGE_REACTION_EMOJIS = [
+  { key: 'thumbsup', emoji: '👍', label: '좋아요' },
+  { key: 'heart', emoji: '❤️', label: '하트' },
+  { key: 'celebrate', emoji: '🎉', label: '축하' },
+  { key: 'laugh', emoji: '😆', label: '웃음' },
+  { key: 'sad', emoji: '😢', label: '슬픔' },
+] as const;
+
+export type MessageReactionKey = (typeof MESSAGE_REACTION_EMOJIS)[number]['key'];
+
+export const MESSAGE_REACTION_EMOJI_MAP = Object.fromEntries(
+  MESSAGE_REACTION_EMOJIS.map((r) => [r.key, r.emoji]),
+) as Record<MessageReactionKey, string>;
 
 export const MESSAGE_TYPE_COLOR: Record<MessageType, string> = {
   all: '#3b82f6',
@@ -197,34 +211,164 @@ export async function markMessageSeen(
   await set(ref(db, `messageReads/${empId}/${messageId}`), true);
 }
 
+export const useMyMessageReaction = (
+  messageId: string | undefined,
+  empId: string,
+) => {
+  const [reaction, setReaction] = useState<MessageReactionKey | null>(null);
+
+  useEffect(() => {
+    setReaction(null);
+    if (!messageId || !empId) return;
+    const r = ref(db, `messageReactions/${messageId}/${empId}`);
+    const unsub = onValue(r, (snap) => {
+      setReaction(snap.exists() ? (snap.val() as MessageReactionKey) : null);
+    });
+    return unsub;
+  }, [messageId, empId]);
+
+  return reaction;
+};
+
+export async function setMessageReaction(
+  messageId: string,
+  empId: string,
+  reaction: MessageReactionKey | null,
+): Promise<void> {
+  if (!messageId || !empId) return;
+  const r = ref(db, `messageReactions/${messageId}/${empId}`);
+  if (reaction === null) {
+    await remove(r);
+  } else {
+    await set(r, reaction);
+  }
+}
+
+export type MessageReactionCount = {
+  key: MessageReactionKey;
+  emoji: string;
+  count: number;
+};
+
+export function tallyReactionCounts(
+  reactions: Record<string, MessageReactionKey> | null,
+): MessageReactionCount[] {
+  if (!reactions) return [];
+  const counts = new Map<MessageReactionKey, number>();
+  Object.values(reactions).forEach((key) => {
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  });
+  return MESSAGE_REACTION_EMOJIS.filter(
+    ({ key }) => (counts.get(key) ?? 0) > 0,
+  ).map(({ key, emoji }) => ({ key, emoji, count: counts.get(key) ?? 0 }));
+}
+
+export const useMessageReactionCounts = (
+  isOpen: boolean,
+  messageId: string | undefined,
+): MessageReactionCount[] => {
+  const [reactions, setReactions] = useState<Record<
+    string,
+    MessageReactionKey
+  > | null>(null);
+
+  useEffect(() => {
+    setReactions(null);
+    if (!isOpen || !messageId) return;
+    const r = ref(db, `messageReactions/${messageId}`);
+    const unsub = onValue(r, (snap) => {
+      setReactions(
+        snap.exists() ? (snap.val() as Record<string, MessageReactionKey>) : {},
+      );
+    });
+    return unsub;
+  }, [isOpen, messageId]);
+
+  return useMemo(() => tallyReactionCounts(reactions), [reactions]);
+};
+
 export async function deleteMessageForever(messageId: string): Promise<void> {
   await remove(ref(db, `messages/${messageId}`));
 }
 
-export type ReadStatusEntry = { empId: string; name: string; read: boolean };
+export type ReadStatusEntry = {
+  empId: string;
+  name: string;
+  read: boolean;
+  reaction: MessageReactionKey | null;
+};
 
-export async function fetchMessageReadStatus(
-  message: AdminMessage,
+export const useMessageReadStatus = (
+  isOpen: boolean,
+  message: AdminMessage | null,
   allNames: Record<string, string>,
-): Promise<ReadStatusEntry[]> {
-  const targetEmpIds =
-    message.type === 'all'
-      ? Object.keys(allNames)
-      : (message.targetEmpIds ?? []);
+  namesLoaded: boolean,
+) => {
+  const [allReads, setAllReads] = useState<Record<
+    string,
+    Record<string, true>
+  > | null>(null);
+  const [reactions, setReactions] = useState<Record<
+    string,
+    MessageReactionKey
+  > | null>(null);
 
-  const snap = await get(ref(db, 'messageReads'));
-  const allReads = snap.exists()
-    ? (snap.val() as Record<string, Record<string, true>>)
-    : {};
-
-  return targetEmpIds
-    .map((empId) => ({
-      empId,
-      name: allNames[empId] ?? empId,
-      read: !!allReads[empId]?.[message.id],
-    }))
-    .sort((a, b) => {
-      if (a.read !== b.read) return a.read ? 1 : -1;
-      return a.name.localeCompare(b.name, 'ko');
+  useEffect(() => {
+    if (!isOpen || !message) {
+      setAllReads(null);
+      setReactions(null);
+      return;
+    }
+    const readsUnsub = onValue(ref(db, 'messageReads'), (snap) => {
+      setAllReads(
+        snap.exists()
+          ? (snap.val() as Record<string, Record<string, true>>)
+          : {},
+      );
     });
-}
+    const reactionsUnsub = onValue(
+      ref(db, `messageReactions/${message.id}`),
+      (snap) => {
+        setReactions(
+          snap.exists()
+            ? (snap.val() as Record<string, MessageReactionKey>)
+            : {},
+        );
+      },
+    );
+    return () => {
+      readsUnsub();
+      reactionsUnsub();
+    };
+  }, [isOpen, message?.id]);
+
+  const loading =
+    !isOpen || !message || !namesLoaded || allReads === null || reactions === null;
+
+  const entries = useMemo<ReadStatusEntry[]>(() => {
+    if (loading || !message) return [];
+    const targetEmpIds =
+      message.type === 'all'
+        ? Object.keys(allNames)
+        : (message.targetEmpIds ?? []);
+
+    return targetEmpIds
+      .map((empId) => ({
+        empId,
+        name: allNames[empId] ?? empId,
+        read: !!allReads?.[empId]?.[message.id],
+        reaction: reactions?.[empId] ?? null,
+      }))
+      .sort((a, b) => {
+        if (a.read !== b.read) return a.read ? 1 : -1;
+        return a.name.localeCompare(b.name, 'ko');
+      });
+  }, [loading, message, allNames, allReads, reactions]);
+
+  const reactionCounts = useMemo(
+    () => tallyReactionCounts(reactions),
+    [reactions],
+  );
+
+  return { entries, reactionCounts, loading };
+};

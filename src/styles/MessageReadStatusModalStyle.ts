@@ -3,6 +3,24 @@ import { motion } from 'framer-motion';
 
 const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
+const EMOJI_FONT =
+  '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif';
+
+const THIN_SCROLLBAR = `
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+`;
+
 export const Backdrop = styled(motion.div)`
   position: fixed;
   top: 0;
@@ -53,6 +71,17 @@ export const Summary = styled.div`
   color: #6b7280;
 `;
 
+export const ReactionSummary = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: ${EMOJI_FONT};
+  font-size: 12px;
+  line-height: 1;
+  color: #6b7280;
+`;
+
 export const Divider = styled.hr`
   border: none;
   border-top: 1px solid #f3f4f6;
@@ -65,6 +94,7 @@ export const List = styled.div`
   overflow-y: auto;
   touch-action: pan-y;
   padding: 4px 20px;
+  ${THIN_SCROLLBAR}
 `;
 
 export const ListContent = styled(motion.div)`
@@ -89,6 +119,17 @@ export const Name = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+`;
+
+export const ReactionEmoji = styled.span`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  font-family: ${EMOJI_FONT};
+  font-size: 14px;
+  line-height: 1;
 `;
 
 export const ReadTag = styled.span<{ read: boolean }>`

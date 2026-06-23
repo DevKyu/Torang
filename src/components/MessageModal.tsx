@@ -1,7 +1,15 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { MESSAGE_TYPE_COLOR, type AdminMessage } from '../hooks/useMessages';
+import {
+  MESSAGE_REACTION_EMOJIS,
+  MESSAGE_TYPE_COLOR,
+  setMessageReaction,
+  useMessageReactionCounts,
+  useMyMessageReaction,
+  type AdminMessage,
+  type MessageReactionKey,
+} from '../hooks/useMessages';
 import { lockBodyScroll, unlockBodyScroll } from '../utils/bodyScrollLock';
 import { HtmlBody, PlainBody } from '../styles/MissionStyle';
 import {
@@ -11,6 +19,9 @@ import {
   MessageTitle,
   Divider,
   ContentArea,
+  ReactionRow,
+  ReactionPill,
+  ReactionPillCount,
   QueueIndicator,
   ConfirmBtn,
 } from '../styles/MessageModalStyle';
@@ -18,6 +29,7 @@ import {
 type Props = {
   isOpen: boolean;
   message: AdminMessage | null;
+  empId: string;
   queuePosition: number;
   queueLength: number;
   onClose: () => void;
@@ -27,6 +39,7 @@ type Props = {
 const MessageModal = ({
   isOpen,
   message,
+  empId,
   queuePosition,
   queueLength,
   onClose,
@@ -43,7 +56,34 @@ const MessageModal = ({
     setDisplayMessage(message);
   }
 
+  const remoteReaction = useMyMessageReaction(displayMessage?.id, empId);
+  const reactionCounts = useMessageReactionCounts(isOpen, displayMessage?.id);
+  const [pendingReaction, setPendingReaction] = useState<
+    MessageReactionKey | null | undefined
+  >(undefined);
+
+  useEffect(() => {
+    setPendingReaction(undefined);
+  }, [isOpen, displayMessage?.id]);
+
+  useEffect(() => {
+    if (pendingReaction !== undefined && remoteReaction === pendingReaction) {
+      setPendingReaction(undefined);
+    }
+  }, [remoteReaction, pendingReaction]);
+
   if (!displayMessage) return null;
+
+  const myReaction =
+    pendingReaction !== undefined ? pendingReaction : remoteReaction;
+
+  const handlePickReaction = (key: MessageReactionKey) => {
+    const next = myReaction === key ? null : key;
+    setPendingReaction(next);
+    setMessageReaction(displayMessage.id, empId, next).catch(() => {
+      setPendingReaction(undefined);
+    });
+  };
 
   const isAll = displayMessage.type === 'all';
   const accent = MESSAGE_TYPE_COLOR[displayMessage.type];
@@ -90,6 +130,40 @@ const MessageModal = ({
                 </ContentArea>
               </motion.div>
             </AnimatePresence>
+
+            <ReactionRow>
+              {MESSAGE_REACTION_EMOJIS.map(({ key, emoji, label }) => {
+                const selected = myReaction === key;
+                const count =
+                  reactionCounts.find((r) => r.key === key)?.count ?? 0;
+                return (
+                  <ReactionPill
+                    key={key}
+                    type="button"
+                    selected={selected}
+                    color={accent}
+                    aria-label={label}
+                    aria-pressed={selected}
+                    onClick={() => handlePickReaction(key)}
+                  >
+                    {emoji}
+                    <AnimatePresence>
+                      {count > 0 && (
+                        <ReactionPillCount
+                          key="count"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          {count > 99 ? '99+' : count}
+                        </ReactionPillCount>
+                      )}
+                    </AnimatePresence>
+                  </ReactionPill>
+                );
+              })}
+            </ReactionRow>
 
             {queueLength > 1 && (
               <QueueIndicator>

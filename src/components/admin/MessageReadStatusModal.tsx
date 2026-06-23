@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom';
-import { AnimatePresence } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import {
-  fetchMessageReadStatus,
+  MESSAGE_REACTION_EMOJI_MAP,
+  useMessageReadStatus,
   type AdminMessage,
-  type ReadStatusEntry,
 } from '../../hooks/useMessages';
 import {
   Backdrop,
@@ -13,11 +13,13 @@ import {
   Header,
   ModalTitle,
   Summary,
+  ReactionSummary,
   Divider,
   List,
   ListContent,
   Row,
   Name,
+  ReactionEmoji,
   ReadTag,
   EmptyMsg,
   LoadingRow,
@@ -41,27 +43,17 @@ const MessageReadStatusModal = ({
   onClose,
 }: Props) => {
   const [displayMessage, setDisplayMessage] = useState(message);
-  const [entries, setEntries] = useState<ReadStatusEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-
   if (message && message !== displayMessage) {
     setDisplayMessage(message);
-    setEntries([]);
-    setLoading(true);
   }
 
-  useEffect(() => {
-    if (!isOpen || !displayMessage || !namesLoaded) return;
-    setLoading(true);
-    fetchMessageReadStatus(displayMessage, allNames)
-      .then(setEntries)
-      .catch(() => setEntries([]))
-      .finally(() => setLoading(false));
-  }, [isOpen, displayMessage, namesLoaded, allNames]);
+  const {
+    entries,
+    reactionCounts,
+    loading: isLoading,
+  } = useMessageReadStatus(isOpen, displayMessage, allNames, namesLoaded);
 
   if (!displayMessage) return null;
-
-  const isLoading = loading || !namesLoaded;
   const readCount = entries.filter((e) => e.read).length;
 
   return createPortal(
@@ -75,6 +67,7 @@ const MessageReadStatusModal = ({
           onClick={onClose}
         >
           <Card
+            layout
             initial={{ opacity: 0, scale: 0.9, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92 }}
@@ -88,6 +81,26 @@ const MessageReadStatusModal = ({
                   ? '확인 중...'
                   : `${readCount} / ${entries.length}명 읽음`}
               </Summary>
+              <AnimatePresence initial={false}>
+                {!isLoading && reactionCounts.length > 0 && (
+                  <motion.div
+                    key="reaction-summary"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <ReactionSummary>
+                      {reactionCounts.map(({ key, emoji, count }) => (
+                        <span key={key}>
+                          {emoji} {count}
+                        </span>
+                      ))}
+                    </ReactionSummary>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Header>
             <Divider />
             <List>
@@ -125,6 +138,11 @@ const MessageReadStatusModal = ({
                     {entries.map((e) => (
                       <Row key={e.empId}>
                         <Name>{e.name}</Name>
+                        {e.reaction && MESSAGE_REACTION_EMOJI_MAP[e.reaction] && (
+                          <ReactionEmoji>
+                            {MESSAGE_REACTION_EMOJI_MAP[e.reaction]}
+                          </ReactionEmoji>
+                        )}
                         <ReadTag read={e.read}>
                           {e.read ? '읽음' : '안읽음'}
                         </ReadTag>

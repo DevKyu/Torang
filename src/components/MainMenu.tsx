@@ -319,6 +319,7 @@ const MainMenu = () => {
       <MessageModal
         isOpen={autoShowQueue.length > 0}
         message={autoShowQueue[0] ?? null}
+        empId={myEmpId}
         queuePosition={queueTotalRef.current - autoShowQueue.length + 1}
         queueLength={queueTotalRef.current}
         onClose={handleMessageConfirm}
@@ -335,6 +336,7 @@ const MainMenu = () => {
       <MessageModal
         isOpen={!!historyDetail}
         message={historyDetail}
+        empId={myEmpId}
         queuePosition={1}
         queueLength={1}
         onClose={handleHistoryDetailConfirm}
