@@ -101,10 +101,22 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     return 'right';
   }, []);
 
-  const screenH = useMemo(
+  const [screenH, setScreenH] = useState(
     () => document.documentElement.clientHeight || window.innerHeight,
-    [],
   );
+
+  useEffect(() => {
+    const measure = () => {
+      const h = document.documentElement.clientHeight || window.innerHeight;
+      setScreenH((prev) => (prev !== h ? h : prev));
+    };
+    document.addEventListener('visibilitychange', measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      document.removeEventListener('visibilitychange', measure);
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
 
   const pinFrontRy = -(screenH * 0.29);
   const pinYOffset = pinFrontRy - 30;
