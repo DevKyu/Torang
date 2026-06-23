@@ -1,12 +1,12 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   MESSAGE_REACTION_EMOJIS,
   MESSAGE_TYPE_COLOR,
+  markMessageSeen,
   setMessageReaction,
-  useMessageReactionCounts,
-  useMyMessageReaction,
+  useMessageReactions,
   type AdminMessage,
   type MessageReactionKey,
 } from '../hooks/useMessages';
@@ -32,6 +32,7 @@ type Props = {
   empId: string;
   queuePosition: number;
   queueLength: number;
+  alreadyRead?: boolean;
   onClose: () => void;
   onDismiss?: () => void;
 };
@@ -42,6 +43,7 @@ const MessageModal = ({
   empId,
   queuePosition,
   queueLength,
+  alreadyRead,
   onClose,
   onDismiss,
 }: Props) => {
@@ -56,15 +58,18 @@ const MessageModal = ({
     setDisplayMessage(message);
   }
 
-  const remoteReaction = useMyMessageReaction(displayMessage?.id, empId);
-  const reactionCounts = useMessageReactionCounts(isOpen, displayMessage?.id);
+  const { myReaction: remoteReaction, counts: reactionCounts } =
+    useMessageReactions(isOpen, displayMessage?.id, empId);
   const [pendingReaction, setPendingReaction] = useState<
     MessageReactionKey | null | undefined
   >(undefined);
 
+  const seenMarkedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     setPendingReaction(undefined);
-  }, [isOpen, displayMessage?.id]);
+    seenMarkedIdRef.current = alreadyRead ? (displayMessage?.id ?? null) : null;
+  }, [isOpen, displayMessage?.id, alreadyRead]);
 
   useEffect(() => {
     if (pendingReaction !== undefined && remoteReaction === pendingReaction) {
@@ -77,12 +82,29 @@ const MessageModal = ({
   const myReaction =
     pendingReaction !== undefined ? pendingReaction : remoteReaction;
 
+  const markSeenOnce = () => {
+    const id = displayMessage.id;
+    if (seenMarkedIdRef.current === id) return;
+    seenMarkedIdRef.current = id;
+    markMessageSeen(empId, id).catch(() => {
+      if (seenMarkedIdRef.current === id) {
+        seenMarkedIdRef.current = null;
+      }
+    });
+  };
+
   const handlePickReaction = (key: MessageReactionKey) => {
     const next = myReaction === key ? null : key;
     setPendingReaction(next);
     setMessageReaction(displayMessage.id, empId, next).catch(() => {
       setPendingReaction(undefined);
     });
+    markSeenOnce();
+  };
+
+  const handleConfirm = () => {
+    markSeenOnce();
+    onClose();
   };
 
   const isAll = displayMessage.type === 'all';
@@ -170,7 +192,7 @@ const MessageModal = ({
                 {queuePosition} / {queueLength}
               </QueueIndicator>
             )}
-            <ConfirmBtn color={accent} onClick={onClose}>
+            <ConfirmBtn color={accent} onClick={handleConfirm}>
               확인
             </ConfirmBtn>
           </Card>

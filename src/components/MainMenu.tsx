@@ -44,9 +44,7 @@ import {
 import { useUiStore } from '../stores/useUiStore';
 import { applyReferralRewardIfNeeded } from '../utils/pin';
 import {
-  useUnreadMessageQueue,
-  useMessageHistory,
-  markMessageSeen,
+  useMessageInbox,
   type AdminMessage,
   type MessageHistoryItem,
 } from '../hooks/useMessages';
@@ -140,8 +138,12 @@ const MainMenu = () => {
   const loadEventConfig = useEventStore((s) => s.loadEventConfig);
   const menuConfig = useEventStore((s) => s.menu);
   const loaded = useEventStore((s) => s.loaded);
-  const { queue, loading: queueLoading } = useUnreadMessageQueue(myEmpId);
-  const { history, unreadCount } = useMessageHistory(myEmpId);
+  const {
+    queue,
+    history,
+    unreadCount,
+    loading: queueLoading,
+  } = useMessageInbox(myEmpId);
 
   useEffect(() => {
     import('../components/MyInfo').catch(() => {});
@@ -190,25 +192,11 @@ const MainMenu = () => {
     }
   }, [autoShowQueue.length]);
 
-  const handleMessageConfirm = () => {
-    const current = autoShowQueue[0];
-    if (!current) return;
-    markMessageSeen(myEmpId, current.id).catch(() => {});
+  const handleMessagePopupClose = () => {
     setAutoShowQueue((prev) => prev.slice(1));
   };
 
-  const handleMessageDismiss = () => {
-    setAutoShowQueue((prev) => prev.slice(1));
-  };
-
-  const handleHistoryDetailConfirm = () => {
-    if (historyDetail) {
-      markMessageSeen(myEmpId, historyDetail.id).catch(() => {});
-    }
-    setHistoryDetail(null);
-  };
-
-  const handleHistoryDetailDismiss = () => {
+  const handleHistoryDetailClose = () => {
     setHistoryDetail(null);
   };
 
@@ -322,8 +310,8 @@ const MainMenu = () => {
         empId={myEmpId}
         queuePosition={queueTotalRef.current - autoShowQueue.length + 1}
         queueLength={queueTotalRef.current}
-        onClose={handleMessageConfirm}
-        onDismiss={handleMessageDismiss}
+        onClose={handleMessagePopupClose}
+        onDismiss={handleMessagePopupClose}
       />
 
       <NotificationHistorySheet
@@ -337,10 +325,11 @@ const MainMenu = () => {
         isOpen={!!historyDetail}
         message={historyDetail}
         empId={myEmpId}
+        alreadyRead={historyDetail?.read}
         queuePosition={1}
         queueLength={1}
-        onClose={handleHistoryDetailConfirm}
-        onDismiss={handleHistoryDetailDismiss}
+        onClose={handleHistoryDetailClose}
+        onDismiss={handleHistoryDetailClose}
       />
     </Layout>
   );

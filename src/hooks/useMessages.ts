@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ref, push, set, update, remove, onValue } from 'firebase/database';
+import { ref, push, set, update, remove, onValue, get } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 
@@ -122,7 +122,9 @@ const useMessagesData = (myEmpId: string) => {
   return { allMessages, readIds, loading };
 };
 
-export const useUnreadMessageQueue = (myEmpId: string) => {
+export type MessageHistoryItem = AdminMessage & { read: boolean };
+
+export const useMessageInbox = (myEmpId: string) => {
   const { allMessages, readIds, loading } = useMessagesData(myEmpId);
 
   const queue = useMemo(() => {
@@ -137,14 +139,6 @@ export const useUnreadMessageQueue = (myEmpId: string) => {
       .filter((m) => isWithinPopupWindow(m, now))
       .sort((a, b) => (a.createdAtMs ?? 0) - (b.createdAtMs ?? 0));
   }, [allMessages, readIds, myEmpId, loading]);
-
-  return { queue, loading };
-};
-
-export type MessageHistoryItem = AdminMessage & { read: boolean };
-
-export const useMessageHistory = (myEmpId: string) => {
-  const { allMessages, readIds, loading } = useMessagesData(myEmpId);
 
   const history = useMemo<MessageHistoryItem[]>(() => {
     if (loading || readIds === null) return [];
@@ -164,7 +158,7 @@ export const useMessageHistory = (myEmpId: string) => {
     [history],
   );
 
-  return { history, unreadCount };
+  return { queue, history, unreadCount, loading };
 };
 
 export async function sendMessage(params: {
@@ -211,25 +205,6 @@ export async function markMessageSeen(
   await set(ref(db, `messageReads/${empId}/${messageId}`), true);
 }
 
-export const useMyMessageReaction = (
-  messageId: string | undefined,
-  empId: string,
-) => {
-  const [reaction, setReaction] = useState<MessageReactionKey | null>(null);
-
-  useEffect(() => {
-    setReaction(null);
-    if (!messageId || !empId) return;
-    const r = ref(db, `messageReactions/${messageId}/${empId}`);
-    const unsub = onValue(r, (snap) => {
-      setReaction(snap.exists() ? (snap.val() as MessageReactionKey) : null);
-    });
-    return unsub;
-  }, [messageId, empId]);
-
-  return reaction;
-};
-
 export async function setMessageReaction(
   messageId: string,
   empId: string,
@@ -263,10 +238,11 @@ export function tallyReactionCounts(
   ).map(({ key, emoji }) => ({ key, emoji, count: counts.get(key) ?? 0 }));
 }
 
-export const useMessageReactionCounts = (
+export const useMessageReactions = (
   isOpen: boolean,
   messageId: string | undefined,
-): MessageReactionCount[] => {
+  empId: string,
+) => {
   const [reactions, setReactions] = useState<Record<
     string,
     MessageReactionKey
@@ -284,11 +260,24 @@ export const useMessageReactionCounts = (
     return unsub;
   }, [isOpen, messageId]);
 
-  return useMemo(() => tallyReactionCounts(reactions), [reactions]);
+  const myReaction = reactions?.[empId] ?? null;
+  const counts = useMemo(() => tallyReactionCounts(reactions), [reactions]);
+
+  return { myReaction, counts };
 };
 
 export async function deleteMessageForever(messageId: string): Promise<void> {
-  await remove(ref(db, `messages/${messageId}`));
+  const readsSnap = await get(ref(db, 'messageReads'));
+  const updates: Record<string, null> = {
+    [`messages/${messageId}`]: null,
+    [`messageReactions/${messageId}`]: null,
+  };
+  if (readsSnap.exists()) {
+    Object.keys(readsSnap.val() as Record<string, unknown>).forEach((empId) => {
+      updates[`messageReads/${empId}/${messageId}`] = null;
+    });
+  }
+  await update(ref(db), updates);
 }
 
 export type ReadStatusEntry = {
