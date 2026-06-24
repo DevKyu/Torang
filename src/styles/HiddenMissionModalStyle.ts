@@ -1,7 +1,6 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
-
-const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+import { SYS_FONT } from './commonStyle';
 
 export const Backdrop = styled(motion.div)`
   position: fixed;
@@ -81,7 +80,7 @@ export const ConfirmBtn = styled.button<{ color: string }>`
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-user-select: none;

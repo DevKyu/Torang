@@ -78,7 +78,7 @@ export const DropArea = styled.div<{ isActive: boolean; isDisabled: boolean }>`
 export const BoostButton = styled.button`
   width: 100%;
   padding: 12px 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   background: ${colors.danger};
   color: #fff;
@@ -206,7 +206,7 @@ export const GalleryButton = styled.button`
   width: 100%;
   margin-top: 18px;
   padding: 12px 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   background: ${colors.primary};

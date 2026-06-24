@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-export { MonthSelect, EmptyMsg, FormSection, FormTitle, FieldLabel, SaveRow, SaveBtn, CancelBtn, EmpIdBadge, NameDropdown, NameDropdownItem } from './AdminLeagueStyle';
+export { MonthSelect, EmptyMsg, FormSection, FormTitle, FieldLabel, SaveRow, SaveBtn, CancelBtn, EmpIdBadge, NameDropdown, NameDropdownItem, LookupBtn } from './AdminLeagueStyle';
 
 export const SectionBlock = styled.div`
   margin-bottom: 20px;
@@ -69,19 +69,6 @@ export const RoleNameInput = styled.input`
   font-size: 13px;
   min-width: 0;
   max-width: 200px;
-`;
-
-export const LookupBtn = styled.button`
-  flex-shrink: 0;
-  padding: 6px 10px;
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  touch-action: manipulation;
 `;
 
 export const RandomBtn = styled.button`

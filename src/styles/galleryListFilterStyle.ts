@@ -1,5 +1,7 @@
 import styled from '@emotion/styled';
 
+export { MonthNavButton } from './MonthNavigatorStyle';
+
 const colors = {
   textMain: '#2d3748',
   textSub: '#6b7280',
@@ -14,42 +16,6 @@ export const HeaderRow = styled.div`
   align-items: center;
   margin-bottom: 10px;
   gap: 8px;
-`;
-
-export const MonthNavButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 26px;
-  border-radius: 8px;
-  background: rgba(59, 130, 246, 0.06);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  color: ${colors.primary};
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      background: rgba(59, 130, 246, 0.1);
-    }
-  }
-
-  &:active {
-    transform: scale(0.92);
-  }
-
-  &:focus {
-    outline: none;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: default;
-    transform: none;
-  }
 `;
 
 export const MonthText = styled.div`

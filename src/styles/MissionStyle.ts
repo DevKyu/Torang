@@ -182,7 +182,7 @@ export const SubmitBtn = styled.button`
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
   transition: background 0.15s ease;

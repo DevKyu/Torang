@@ -11,7 +11,11 @@ const PIN_W = 20;
 const PIN_H = 55;
 const AIM_W = 7;
 const AIM_H = 10;
-const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+// Local copy (not imported from commonStyle.tsx) — this component is in the eager
+// initial-chunk path (main.tsx static import), and importing commonStyle.tsx pulls
+// its 5 styled-components + dependency graph into that chunk (~24KB raw).
+const SYS_FONT =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
 const LANE_LINES = ['calc(50% - 100px)', 'calc(50% + 100px)'];
 
 const GPU: React.CSSProperties = {

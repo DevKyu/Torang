@@ -73,7 +73,7 @@ export const ShuffleBtn = styled.button`
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   touch-action: manipulation;
@@ -501,9 +501,9 @@ export const PlayerEditActions = styled.div`
 
 export const MoveBtn = styled.button`
   padding: 2px 7px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   border: 1px solid #c7d2fe;
   background: #eef2ff;

@@ -2,6 +2,8 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import type { CSSProperties, ReactNode } from 'react';
 
+export const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
 export const Container = styled.div<{ backgroundColor?: string }>`
   min-height: 100vh;
   min-height: 100dvh;
@@ -43,12 +45,12 @@ export const Title = styled.h1<{ size?: 'small' }>`
 export const Button = styled.button`
   width: 100%;
   padding: 12px 16px;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
   color: #fff;
   background-color: #0070f3;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   touch-action: manipulation;
   transition: background 0.2s;

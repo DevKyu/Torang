@@ -1,7 +1,9 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { SYS_FONT } from './commonStyle';
+import { Backdrop } from './HiddenMissionModalStyle';
 
-const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+export { Backdrop };
 
 const EMOJI_FONT =
   '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif';
@@ -19,22 +21,6 @@ const THIN_SCROLLBAR = `
     background: #d1d5db;
     border-radius: 4px;
   }
-`;
-
-export const Backdrop = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 16000;
-  background: rgba(0, 0, 0, 0.55);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
 `;
 
 export const Card = styled(motion.div)`

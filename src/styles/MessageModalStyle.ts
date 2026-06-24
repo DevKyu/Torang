@@ -1,7 +1,13 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { SYS_FONT } from './commonStyle';
+import {
+  Backdrop,
+  RoleTag as TypeTag,
+  ConfirmBtn,
+} from './HiddenMissionModalStyle';
 
-const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+export { Backdrop, TypeTag, ConfirmBtn };
 
 const EMOJI_FONT =
   '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif';
@@ -30,22 +36,6 @@ const THIN_SCROLLBAR = `
   }
 `;
 
-export const Backdrop = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 16000;
-  background: rgba(0, 0, 0, 0.55);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-`;
-
 export const Card = styled(motion.div)<{ accent: string }>`
   background: #fff;
   border-radius: 20px;
@@ -61,14 +51,6 @@ export const Card = styled(motion.div)<{ accent: string }>`
   font-family: ${SYS_FONT};
   -webkit-font-smoothing: antialiased;
   ${THIN_SCROLLBAR}
-`;
-
-export const TypeTag = styled.div<{ color: string }>`
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: ${({ color }) => color};
-  margin: 20px 24px 6px;
 `;
 
 export const MessageTitle = styled.div`
@@ -170,23 +152,3 @@ export const QueueIndicator = styled.div`
   margin: 0 24px 8px;
 `;
 
-export const ConfirmBtn = styled.button<{ color: string }>`
-  display: block;
-  width: calc(100% - 48px);
-  margin: 0 24px;
-  padding: 12px;
-  background: ${({ color }) => color};
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
-  transition: filter 0.12s ease;
-  &:active {
-    filter: brightness(0.88);
-  }
-`;

@@ -110,11 +110,12 @@ export const FooterRow = styled.div`
 export const AddButton = styled.button`
   width: 100%;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: ${colors.primary};
   color: white;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   will-change: background-color, transform;
   backface-visibility: hidden;

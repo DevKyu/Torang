@@ -10,6 +10,7 @@ export {
   NameDropdownItem,
   WinnerRow,
   WinnerBtn,
+  LookupBtn,
 } from './AdminLeagueStyle';
 
 export const Divider = styled.hr`
@@ -52,19 +53,6 @@ export const TargetSearchInput = styled.input`
   border-radius: 5px;
   font-size: 13px;
   min-width: 0;
-`;
-
-export const LookupBtn = styled.button`
-  flex-shrink: 0;
-  padding: 6px 10px;
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  touch-action: manipulation;
 `;
 
 export const ChipRow = styled.div`

@@ -24,7 +24,7 @@ export const SubmitButton = styled.button`
   margin-top: 8px;
   padding: 11px 16px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, ${colors.primary}, #2563eb);
   border: none;

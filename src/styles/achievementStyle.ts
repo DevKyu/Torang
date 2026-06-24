@@ -189,7 +189,7 @@ export const TabBar = styled.div`
 
 export const TabButton = styled.button<{ active?: boolean }>`
   font-size: 13px;
-  font-weight: ${({ active }) => (active ? 700 : 500)};
+  font-weight: ${({ active }) => (active ? 600 : 500)};
   color: ${({ active }) =>
     active ? colors.tab.activeText : colors.tab.inactiveText};
   background: ${({ active }) =>

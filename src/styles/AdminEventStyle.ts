@@ -203,12 +203,12 @@ export const RateGroup = styled.div`
 export const SaveButton = styled.button`
   width: 100%;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: none;
   background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
 
   &:active {
     transform: scale(0.98);

@@ -76,7 +76,7 @@ export const ApplyScoreBtn = styled.button`
   margin-top: 4px;
   background: #fff;
   border: 1px dashed #6366f1;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   color: #6366f1;
   font-weight: 600;
@@ -180,7 +180,7 @@ export const LookupBtn = styled.button`
   background: #3b82f6;
   color: #fff;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
@@ -191,7 +191,7 @@ export const AddPlayerBtn = styled.button`
   padding: 6px;
   background: none;
   border: 1px dashed #d1d5db;
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 12px;
   color: #9ca3af;
   cursor: pointer;
@@ -263,6 +263,7 @@ export const DeleteBtn = styled.button<{ confirm?: boolean }>`
   border: ${({ confirm }) => (confirm ? 'none' : '1px solid #fca5a5')};
   border-radius: 6px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
@@ -273,6 +274,7 @@ export const CancelBtn = styled.button`
   border-radius: 6px;
   padding: 9px 14px;
   font-size: 13px;
+  font-weight: 600;
   color: #6b7280;
   cursor: pointer;
   @media (hover: hover) and (pointer: fine) {

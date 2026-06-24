@@ -396,14 +396,14 @@ export const SaveButton = styled.button`
   height: 44px;
 
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
 
   background: linear-gradient(135deg, #2f3645 0%, #1f2937 100%);
 
   color: white;
 
-  font-size: 0.93rem;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 
   letter-spacing: -0.01em;
 
