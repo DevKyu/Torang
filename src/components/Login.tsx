@@ -217,7 +217,7 @@ const Login = () => {
       await registerUid(employeeId, referrerName);
       if (user) {
         useUiStore.getState().resetSessionUiState();
-        toast.success('비밀번호를 설정했어요.');
+        toast.success('가입이 완료됐어요.');
         navigate('/menu', { replace: true });
       }
     } catch {

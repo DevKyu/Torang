@@ -164,7 +164,11 @@ export const addUser = async (empId: string, user: UserInfo) => {
 };
 
 export const deleteUser = async (empId: string) => {
-  await remove(ref(db, `users/${empId}`));
+  await update(ref(db), {
+    [`users/${empId}`]: null,
+    [`names/${empId}`]: null,
+    [`referrals/${empId}`]: null,
+  });
 };
 
 // 6. 상품 관련
