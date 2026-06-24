@@ -111,6 +111,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   useEffect(() => {
     const measure = () => {
       const inFlight =
+        phaseRef.current === 'pins' ||
         phaseRef.current === 'rolling' ||
         ((phaseRef.current === 'impact' || phaseRef.current === 'gutter') &&
           !animDoneRef.current);
@@ -119,10 +120,8 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
       setScreenH((prev) => (prev !== h ? h : prev));
     };
     document.addEventListener('visibilitychange', measure);
-    window.addEventListener('resize', measure);
     return () => {
       document.removeEventListener('visibilitychange', measure);
-      window.removeEventListener('resize', measure);
     };
   }, []);
 
@@ -142,10 +141,10 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     }
     if (phase === 'rolling') {
       const t = setTimeout(() => {
-        requestAnimationFrame(() => {
+        if (phaseRef.current === 'rolling') {
           setPhase(trajectory === 'center' ? 'impact' : 'gutter');
-        });
-      }, 900);
+        }
+      }, 1100);
       return () => clearTimeout(t);
     }
     if (phase === 'impact' || phase === 'gutter') {
@@ -336,6 +335,11 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
                   }
               : { duration: 0.3 }
           }
+          onAnimationComplete={() => {
+            if (phaseRef.current === 'rolling') {
+              setPhase(trajectory === 'center' ? 'impact' : 'gutter');
+            }
+          }}
         >
           <motion.div
             style={{
