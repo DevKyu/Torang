@@ -64,7 +64,6 @@ export const ReactionSummary = styled.div`
   margin-top: 4px;
   font-family: ${EMOJI_FONT};
   font-size: 12px;
-  line-height: 1;
   color: #6b7280;
 `;
 
@@ -115,7 +114,6 @@ export const ReactionEmoji = styled.span`
   align-items: center;
   font-family: ${EMOJI_FONT};
   font-size: 14px;
-  line-height: 1;
 `;
 
 export const ReadTag = styled.span<{ read: boolean }>`

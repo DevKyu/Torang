@@ -5,7 +5,6 @@ import { asMonth } from '../utils/score';
 import type { Year, UserScores } from '../types/UserInfo';
 
 type TrendBlockProps = {
-  show: boolean;
   avgCur: number;
   avgPrev: number | null;
   diff: number;
@@ -16,7 +15,6 @@ type TrendBlockProps = {
 };
 
 const TrendBlock = ({
-  show,
   avgCur,
   avgPrev,
   diff,
@@ -25,14 +23,13 @@ const TrendBlock = ({
   year,
   scores,
 }: TrendBlockProps) => {
-  if (!show) return null;
-
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
-      style={{ overflow: 'hidden', marginTop: 15 }}
+      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+      animate={{ opacity: 1, height: 'auto', marginTop: 15 }}
+      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+      style={{ overflow: 'hidden' }}
     >
       <div
         style={{

@@ -468,6 +468,13 @@ const AdminMission = () => {
             >
               미션공개로
             </StatusBtn>
+            <StatusBtn
+              color="#9ca3af"
+              disabled={saving}
+              onClick={() => handleStatusChange('draft')}
+            >
+              준비중으로
+            </StatusBtn>
           </>
         )}
         {status === 'revealed' && (
@@ -485,6 +492,13 @@ const AdminMission = () => {
               onClick={() => handleStatusChange('active')}
             >
               미션공개로
+            </StatusBtn>
+            <StatusBtn
+              color="#9ca3af"
+              disabled={saving}
+              onClick={() => handleStatusChange('draft')}
+            >
+              준비중으로
             </StatusBtn>
           </>
         )}

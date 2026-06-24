@@ -10,7 +10,7 @@ import {
   MissionTitle,
   Divider,
   ContentArea,
-  ConfirmBtn,
+  CloseBtn,
 } from '../../styles/HiddenMissionModalStyle';
 
 type Props = {
@@ -55,9 +55,9 @@ const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
                 : <PlainBody>{hidden.description}</PlainBody>
               }
             </ContentArea>
-            <ConfirmBtn color="#9ca3af" onClick={onClose}>
+            <CloseBtn onClick={onClose}>
               닫기
-            </ConfirmBtn>
+            </CloseBtn>
           </Card>
         </Backdrop>
       )}

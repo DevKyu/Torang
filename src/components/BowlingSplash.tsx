@@ -1,5 +1,6 @@
-import { memo, useState, useEffect, useMemo, useRef } from 'react';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
+import { useLatestRef } from '../hooks/useLatestRef';
 
 interface BowlingSplashProps {
   onComplete: () => void;
@@ -11,9 +12,6 @@ const PIN_W = 20;
 const PIN_H = 55;
 const AIM_W = 7;
 const AIM_H = 10;
-// Local copy (not imported from commonStyle.tsx) — this component is in the eager
-// initial-chunk path (main.tsx static import), and importing commonStyle.tsx pulls
-// its 5 styled-components + dependency graph into that chunk (~24KB raw).
 const SYS_FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
 const LANE_LINES = ['calc(50% - 100px)', 'calc(50% + 100px)'];
@@ -95,8 +93,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   const [phase, setPhase] = useState<Phase>('pins');
   const [animDone, setAnimDone] = useState(false);
   const rotateControls = useAnimation();
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  const onCompleteRef = useLatestRef(onComplete);
 
   const trajectory = useMemo<Trajectory>(() => {
     const r = Math.random();
@@ -108,9 +105,16 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   const [screenH, setScreenH] = useState(
     () => document.documentElement.clientHeight || window.innerHeight,
   );
+  const phaseRef = useLatestRef(phase);
+  const animDoneRef = useLatestRef(animDone);
 
   useEffect(() => {
     const measure = () => {
+      const inFlight =
+        phaseRef.current === 'rolling' ||
+        ((phaseRef.current === 'impact' || phaseRef.current === 'gutter') &&
+          !animDoneRef.current);
+      if (inFlight) return;
       const h = document.documentElement.clientHeight || window.innerHeight;
       setScreenH((prev) => (prev !== h ? h : prev));
     };

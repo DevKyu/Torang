@@ -14,6 +14,8 @@ const GlobalStyle = () => (
         background: #fff;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
         overflow-x: hidden;
         overscroll-behavior: none;
       }

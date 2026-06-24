@@ -90,3 +90,23 @@ export const ConfirmBtn = styled.button<{ color: string }>`
     filter: brightness(0.88);
   }
 `;
+
+export const CloseBtn = styled.button`
+  display: block;
+  width: calc(100% - 48px);
+  margin: 0 24px;
+  padding: 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  &:active {
+    background: #e5e7eb;
+  }
+`;

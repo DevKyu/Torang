@@ -66,13 +66,13 @@ export const SectionLabel = styled.div`
 export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   width: 100%;
   padding: 13px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1.5px solid
     ${({ role }) => (role === 'villain' ? '#fca5a5' : '#93c5fd')};
   background: ${({ role }) => (role === 'villain' ? '#fef2f2' : '#eff6ff')};
   color: ${({ role }) => (role === 'villain' ? '#dc2626' : '#2563eb')};
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   margin-bottom: 4px;
   touch-action: manipulation;
@@ -251,7 +251,7 @@ export const ResultRevealCard = styled.div<{
           ? '#c6d8f5'
           : '#c6ecd8'};
   border-radius: 12px;
-  padding: 13px 12px;
+  padding: 13px 8px;
   margin-bottom: 10px;
   text-align: center;
 `;

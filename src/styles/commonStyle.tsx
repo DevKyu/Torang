@@ -45,7 +45,7 @@ export const Title = styled.h1<{ size?: 'small' }>`
 export const Button = styled.button`
   width: 100%;
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   background-color: #0070f3;
