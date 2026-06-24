@@ -8,6 +8,7 @@ type UiState = {
     ranking: boolean;
   };
   hasShownMessagesPopup: boolean;
+  isMessagePopupActive: boolean;
   serverOffset: number;
   serverDate: Date;
   lastSync: number | null;
@@ -19,9 +20,13 @@ type UiState = {
   isBeforeCutoff: (activityYmd?: string, cutoffTime?: string) => boolean;
   getServerTimestamp: () => string;
   setShownCongrats: (menu: 'myInfo' | 'ranking') => void;
-  resetShownCongrats: (menu: 'myInfo' | 'ranking') => void;
   setShownMessagesPopup: () => void;
+  setMessagePopupActive: (active: boolean) => void;
+  onMessagePopupCleared: (cb: () => void) => void;
+  resetSessionUiState: () => void;
 };
+
+let pendingMessagePopupCallbacks: Array<() => void> = [];
 
 const getServerTimeOffset = async (): Promise<number> => {
   try {
@@ -38,6 +43,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     ranking: false,
   },
   hasShownMessagesPopup: false,
+  isMessagePopupActive: true,
   serverOffset: 0,
   serverDate: new Date(),
   lastSync: null,
@@ -112,10 +118,32 @@ export const useUiStore = create<UiState>((set, get) => ({
       hasShownCongrats: { ...state.hasShownCongrats, [menu]: true },
     })),
 
-  resetShownCongrats: (menu) =>
-    set((state) => ({
-      hasShownCongrats: { ...state.hasShownCongrats, [menu]: false },
-    })),
-
   setShownMessagesPopup: () => set({ hasShownMessagesPopup: true }),
+
+  setMessagePopupActive: (active) => {
+    set({ isMessagePopupActive: active });
+
+    if (!active && pendingMessagePopupCallbacks.length > 0) {
+      const callbacks = pendingMessagePopupCallbacks;
+      pendingMessagePopupCallbacks = [];
+      setTimeout(() => callbacks.forEach((cb) => cb()), 300);
+    }
+  },
+
+  onMessagePopupCleared: (cb) => {
+    if (get().isMessagePopupActive) {
+      pendingMessagePopupCallbacks.push(cb);
+    } else {
+      cb();
+    }
+  },
+
+  resetSessionUiState: () => {
+    pendingMessagePopupCallbacks = [];
+    set({
+      hasShownCongrats: { myInfo: false, ranking: false },
+      hasShownMessagesPopup: false,
+      isMessagePopupActive: true,
+    });
+  },
 }));

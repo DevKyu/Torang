@@ -256,7 +256,7 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
     return false;
   }
 
-  setTimeout(() => showReferrerRewardToast(pin), 1500);
+  useUiStore.getState().onMessagePopupCleared(() => showReferrerRewardToast(pin));
   return true;
 };
 

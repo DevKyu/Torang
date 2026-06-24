@@ -18,6 +18,7 @@ import {
   linkAnonymousAccount,
   logOut,
 } from '../services/firebase';
+import { useUiStore } from '../stores/useUiStore';
 import { useLoading } from '../contexts/LoadingContext';
 import { Button, SmallText } from '../styles/commonStyle';
 import { Input, ErrorText } from '../styles/loginStyle';
@@ -136,6 +137,7 @@ const Login = () => {
           });
           setIsPasswordChangeMode(true);
         } else {
+          useUiStore.getState().resetSessionUiState();
           toast.success('로그인이 완료됐어요.');
           navigate('/menu', { replace: true });
         }
@@ -206,6 +208,7 @@ const Login = () => {
         toast.success('비밀번호가 변경됐어요.');
         await logOut();
         await loginUser(email, newPassword);
+        useUiStore.getState().resetSessionUiState();
         navigate('/menu', { replace: true });
         return;
       }
@@ -213,6 +216,7 @@ const Login = () => {
       const user = await linkAnonymousAccount(email, newPassword);
       await registerUid(employeeId, referrerName);
       if (user) {
+        useUiStore.getState().resetSessionUiState();
         toast.success('비밀번호를 설정했어요.');
         navigate('/menu', { replace: true });
       }

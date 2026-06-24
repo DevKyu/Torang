@@ -135,6 +135,7 @@ const MainMenu = () => {
   const syncServerTime = useUiStore((s) => s.syncServerTime);
   const hasShownMessagesPopup = useUiStore((s) => s.hasShownMessagesPopup);
   const setShownMessagesPopup = useUiStore((s) => s.setShownMessagesPopup);
+  const setMessagePopupActive = useUiStore((s) => s.setMessagePopupActive);
   const loadEventConfig = useEventStore((s) => s.loadEventConfig);
   const menuConfig = useEventStore((s) => s.menu);
   const loaded = useEventStore((s) => s.loaded);
@@ -191,6 +192,11 @@ const MainMenu = () => {
       queueTotalRef.current = autoShowQueue.length;
     }
   }, [autoShowQueue.length]);
+
+  useEffect(() => {
+    const blocking = !hasShownMessagesPopup || autoShowQueue.length > 0;
+    setMessagePopupActive(blocking);
+  }, [hasShownMessagesPopup, autoShowQueue.length, setMessagePopupActive]);
 
   const handleMessagePopupClose = () => {
     setAutoShowQueue((prev) => prev.slice(1));
