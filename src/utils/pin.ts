@@ -256,7 +256,10 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
     return false;
   }
 
-  useUiStore.getState().onMessagePopupCleared(() => showReferrerRewardToast(pin));
+  useUiStore.getState().onMessagePopupCleared(() => {
+    if (getCurrentUserId() !== empId) return;
+    showReferrerRewardToast(pin);
+  });
   return true;
 };
 
