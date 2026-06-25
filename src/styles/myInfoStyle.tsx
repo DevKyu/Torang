@@ -42,6 +42,7 @@ export const InfoSection = styled.div`
 
 export const ScoreContainer = styled.div`
   margin-top: 12px;
+  position: relative;
 `;
 
 export const FilterRow = styled.div`

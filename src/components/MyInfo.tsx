@@ -273,38 +273,41 @@ const MyInfo = () => {
             </SkeletonScoreGrid>
           ) : (
             <>
-              <ScoreGrid
-                key={`${year}-${quarter}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-              >
-                {monthMeta.map((m) => {
-                  const raw = activityMap[+m.key];
-                  const actYmd = raw ? String(raw) : undefined;
-                  const timeAllowed = canEditTarget(actYmd, {
-                    cutoffTime: '18:30',
-                  });
-                  const hasActivity = !!actYmd;
-                  const isCurrentMonth =
-                    year === serverYear && +m.key === serverMonth;
-                  const highlightActivity = isCurrentMonth && hasActivity;
+              <AnimatePresence mode="popLayout">
+                <ScoreGrid
+                  key={`${year}-${quarter}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                >
+                  {monthMeta.map((m) => {
+                    const raw = activityMap[+m.key];
+                    const actYmd = raw ? String(raw) : undefined;
+                    const timeAllowed = canEditTarget(actYmd, {
+                      cutoffTime: '18:30',
+                    });
+                    const hasActivity = !!actYmd;
+                    const isCurrentMonth =
+                      year === serverYear && +m.key === serverMonth;
+                    const highlightActivity = isCurrentMonth && hasActivity;
 
-                  return (
-                    <MonthCell
-                      key={`${year}-${m.key}`}
-                      meta={m}
-                      overallAvg={overallAvg}
-                      onSave={handleSave}
-                      timeAllowed={timeAllowed}
-                      highlightActivity={highlightActivity}
-                      hasActivity={hasActivity}
-                    />
-                  );
-                })}
-              </ScoreGrid>
+                    return (
+                      <MonthCell
+                        key={`${year}-${m.key}`}
+                        meta={m}
+                        overallAvg={overallAvg}
+                        onSave={handleSave}
+                        timeAllowed={timeAllowed}
+                        highlightActivity={highlightActivity}
+                        hasActivity={hasActivity}
+                      />
+                    );
+                  })}
+                </ScoreGrid>
+              </AnimatePresence>
 
-              <AnimatePresence initial={false}>
+              <AnimatePresence>
                 {trend.show && (
                   <TrendBlock
                     key="trend"
