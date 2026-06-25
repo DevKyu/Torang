@@ -87,8 +87,7 @@ const SCATTER_ROTATE = [-15, -100, 100, -135, -50, 135, -160, -80, 80, 160];
 const AIM_SPOTS = [-78, -52, -26, 0, 26, 52, 78];
 
 const measureScreenH = () =>
-  window.visualViewport?.height ??
-  (document.documentElement.clientHeight || window.innerHeight);
+  document.documentElement.clientHeight || window.innerHeight;
 
 type Trajectory = 'left' | 'center' | 'right';
 type Phase = 'pins' | 'rolling' | 'impact' | 'gutter' | 'fadeout';
