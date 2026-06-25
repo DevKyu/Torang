@@ -86,6 +86,10 @@ const PINS = [
 const SCATTER_ROTATE = [-15, -100, 100, -135, -50, 135, -160, -80, 80, 160];
 const AIM_SPOTS = [-78, -52, -26, 0, 26, 52, 78];
 
+const measureScreenH = () =>
+  window.visualViewport?.height ??
+  (document.documentElement.clientHeight || window.innerHeight);
+
 type Trajectory = 'left' | 'center' | 'right';
 type Phase = 'pins' | 'rolling' | 'impact' | 'gutter' | 'fadeout';
 
@@ -102,9 +106,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     return 'right';
   }, []);
 
-  const [screenH, setScreenH] = useState(
-    () => document.documentElement.clientHeight || window.innerHeight,
-  );
+  const [screenH, setScreenH] = useState(measureScreenH);
   const phaseRef = useLatestRef(phase);
   const animDoneRef = useLatestRef(animDone);
 
@@ -116,7 +118,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
         ((phaseRef.current === 'impact' || phaseRef.current === 'gutter') &&
           !animDoneRef.current);
       if (inFlight) return;
-      const h = document.documentElement.clientHeight || window.innerHeight;
+      const h = measureScreenH();
       setScreenH((prev) => (prev !== h ? h : prev));
     };
     document.addEventListener('visibilitychange', measure);
@@ -181,9 +183,9 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
       style={{
         position: 'fixed',
         top: 0,
-        right: 0,
-        bottom: 0,
         left: 0,
+        right: 0,
+        height: screenH,
         zIndex: 9999,
         background: '#09091a',
         display: 'flex',
