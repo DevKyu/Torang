@@ -23,3 +23,17 @@
 .swiper-pagination-bullet-active {
   opacity: 0.8;
 }
+
+/* 사진이 9장 이하(페이지 1개)면 swiper가 dots row를 display:none으로 접어버려
+   페이지 수에 따라 갤러리 컨테이너 높이가 달라짐. 자리만 항상 차지하도록 유지. */
+.swiper-pagination-lock {
+  display: block;
+  visibility: hidden;
+}
+
+/* 점이 1개뿐일 때(단일 페이지) swiper 기본 CSS가 그 점만 따로 display:none 처리해
+   위 lock 처리와 별개로 8px(점 높이)가 또 사라짐 — 자리 차지는 유지, 시각적으로는
+   계속 숨김(부모의 visibility:hidden을 그대로 상속). */
+.swiper-pagination-bullet:only-child {
+  display: inline-block !important;
+}

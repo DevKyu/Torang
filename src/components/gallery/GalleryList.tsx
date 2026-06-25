@@ -26,6 +26,8 @@ import {
   GridItem,
   Thumb,
   Skeleton,
+  SwiperArea,
+  SpinnerOverlay,
   InfoBar,
   InfoItem,
 } from '../../styles/galleryGridStyle';
@@ -50,13 +52,15 @@ type GalleryItem = {
 };
 
 type Props = {
-  list: GalleryItem[];
+  list: GalleryItem[] | null;
   onMoveUpload: () => void;
   onCancel: () => void;
   onChangeMonth: (ym: string) => void;
   ym: string;
   loading?: boolean;
 };
+
+const SKELETON_PAGE: null[] = Array(9).fill(null);
 
 const GalleryList = ({
   list,
@@ -66,6 +70,7 @@ const GalleryList = ({
   ym,
   loading,
 }: Props) => {
+  const monthLoading = list === null;
   const { images: storeImages, setImages, open } = useLightBoxStore();
 
   useEffect(() => {
@@ -106,7 +111,7 @@ const GalleryList = ({
   }, [ym]);
 
   const sorted = useMemo(() => {
-    const clean = list.filter(
+    const clean = (list ?? []).filter(
       (i) => i.url && i.empId && i.uploadedAt !== undefined,
     );
 
@@ -177,6 +182,10 @@ const GalleryList = ({
     setPageLoadedCounts(new Array(pages.length).fill(0));
   }, [pages.length, filter]);
 
+  const isPlaceholder = Boolean(loading) || monthLoading;
+  const isEmpty = !isPlaceholder && sorted.length === 0;
+  const displayPages = isPlaceholder ? [SKELETON_PAGE] : pages;
+
   const moveMonth = (dir: -1 | 1) => {
     let nextMonth = month + dir;
     let nextYear = year;
@@ -243,127 +252,161 @@ const GalleryList = ({
             </FilterButton>
           </FilterRow>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`g-${ym}-${filter}-${loading}`}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-            >
-              {loading ? (
-                <EmptyBox>
-                  <ClipLoader size={24} color="#9ca3af" />
-                </EmptyBox>
-              ) : sorted.length === 0 ? (
+          <AnimatePresence mode="wait" initial={false}>
+            {isEmpty ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+              >
                 <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
-              ) : (
-                <Swiper
-                  modules={[Pagination]}
-                  slidesPerView={1}
-                  pagination={{ clickable: true }}
-                >
-                  {pages.map((page, pageIdx) => {
-                    const filled = page;
-                    const allLoaded =
-                      pageLoadedCounts[pageIdx] >=
-                      filled.filter((x) => x !== null).length;
+              </motion.div>
+            ) : (
+              <motion.div
+                key="grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+              >
+                <SwiperArea>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`g-${ym}-${filter}-${loading}-${monthLoading}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                    >
+                      <Swiper
+                        modules={[Pagination]}
+                        slidesPerView={1}
+                        pagination={{ clickable: true }}
+                      >
+                        {displayPages.map((page, pageIdx) => {
+                          const filled = page;
+                          const allLoaded =
+                            pageLoadedCounts[pageIdx] >=
+                            filled.filter((x) => x !== null).length;
 
-                    return (
-                      <SwiperSlide key={pageIdx}>
-                        <GridWrapper>
-                          {filled.map((img, i) => {
-                            if (!img)
-                              return (
-                                <GridItem
-                                  key={`empty-${pageIdx}-${i}`}
-                                  style={{ visibility: 'hidden' }}
-                                />
-                              );
-
-                            const offset = pages[0].length;
-                            const storeIdx = pageIdx * offset + i;
-                            const storeImg = storeImages[storeIdx];
-                            const likes = storeImg?.likes ?? 0;
-                            const comments = storeImg?.commentCount ?? 0;
-
-                            return (
-                              <GridItem
-                                key={img.id}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{
-                                  duration: 0.18,
-                                  delay: i * 0.04,
-                                  ease: 'easeOut',
-                                }}
-                                onClick={() => preloadOpenLightBox(storeIdx)}
-                              >
-                                {!loading && <Skeleton hidden={allLoaded} />}
-
-                                <Thumb
-                                  src={img.url}
-                                  visible={allLoaded}
-                                  loading={pageIdx === 0 ? 'eager' : 'lazy'}
-                                  onLoad={(e) => {
-                                    const imgEl = e.currentTarget;
-                                    const token = loadTokenRef.current;
-
-                                    const commit = () => {
-                                      if (loadTokenRef.current !== token) return;
-                                      setPageLoadedCounts((p) => {
-                                        const next = [...p];
-                                        next[pageIdx] += 1;
-                                        return next;
-                                      });
-                                    };
-
-                                    if (imgEl.decode) imgEl.decode().then(commit).catch(commit);
-                                    else commit();
-                                  }}
-                                  onError={() =>
-                                    setPageLoadedCounts((p) => {
-                                      const next = [...p];
-                                      next[pageIdx] += 1;
-                                      return next;
-                                    })
+                          return (
+                            <SwiperSlide key={pageIdx}>
+                              <GridWrapper>
+                                {filled.map((img, i) => {
+                                  if (loading) {
+                                    return <GridItem key={`placeholder-${i}`} />;
                                   }
-                                />
 
-                                <InfoBar>
-                                  <InfoItem
-                                    key={`like-${img.id}`}
-                                    initial={{ opacity: 0, scale: 0.7 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                  >
-                                    <Heart
-                                      fill={storeImg?.liked ? 'red' : 'none'}
-                                      color={
-                                        storeImg?.liked ? 'red' : 'currentColor'
-                                      }
-                                    />
-                                    {likes}
-                                  </InfoItem>
+                                  if (monthLoading) {
+                                    return (
+                                      <GridItem key={`skeleton-${i}`}>
+                                        <Skeleton hidden={false} />
+                                      </GridItem>
+                                    );
+                                  }
 
-                                  <InfoItem
-                                    key={`comment-${img.id}`}
-                                    initial={{ opacity: 0, scale: 0.7 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                  >
-                                    <MessageCircle />
-                                    {comments}
-                                  </InfoItem>
-                                </InfoBar>
-                              </GridItem>
-                            );
-                          })}
-                        </GridWrapper>
-                      </SwiperSlide>
-                    );
-                  })}
-                </Swiper>
-              )}
-            </motion.div>
+                                  if (!img)
+                                    return (
+                                      <GridItem
+                                        key={`empty-${pageIdx}-${i}`}
+                                        style={{ visibility: 'hidden' }}
+                                      />
+                                    );
+
+                                  const offset = pages[0].length;
+                                  const storeIdx = pageIdx * offset + i;
+                                  const storeImg = storeImages[storeIdx];
+                                  const likes = storeImg?.likes ?? 0;
+                                  const comments = storeImg?.commentCount ?? 0;
+
+                                  return (
+                                    <GridItem
+                                      key={img.id}
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      transition={{
+                                        duration: 0.18,
+                                        delay: i * 0.04,
+                                        ease: 'easeOut',
+                                      }}
+                                      onClick={() => preloadOpenLightBox(storeIdx)}
+                                    >
+                                      <Skeleton hidden={allLoaded} />
+
+                                      <Thumb
+                                        src={img.url}
+                                        visible={allLoaded}
+                                        loading={pageIdx === 0 ? 'eager' : 'lazy'}
+                                        onLoad={(e) => {
+                                          const imgEl = e.currentTarget;
+                                          const token = loadTokenRef.current;
+
+                                          const commit = () => {
+                                            if (loadTokenRef.current !== token) return;
+                                            setPageLoadedCounts((p) => {
+                                              const next = [...p];
+                                              next[pageIdx] += 1;
+                                              return next;
+                                            });
+                                          };
+
+                                          if (imgEl.decode) imgEl.decode().then(commit).catch(commit);
+                                          else commit();
+                                        }}
+                                        onError={() =>
+                                          setPageLoadedCounts((p) => {
+                                            const next = [...p];
+                                            next[pageIdx] += 1;
+                                            return next;
+                                          })
+                                        }
+                                      />
+
+                                      <InfoBar>
+                                        <InfoItem
+                                          key={`like-${img.id}`}
+                                          initial={{ opacity: 0, scale: 0.7 }}
+                                          animate={{ opacity: 1, scale: 1 }}
+                                        >
+                                          <Heart
+                                            fill={storeImg?.liked ? 'red' : 'none'}
+                                            color={
+                                              storeImg?.liked ? 'red' : 'currentColor'
+                                            }
+                                          />
+                                          {likes}
+                                        </InfoItem>
+
+                                        <InfoItem
+                                          key={`comment-${img.id}`}
+                                          initial={{ opacity: 0, scale: 0.7 }}
+                                          animate={{ opacity: 1, scale: 1 }}
+                                        >
+                                          <MessageCircle />
+                                          {comments}
+                                        </InfoItem>
+                                      </InfoBar>
+                                    </GridItem>
+                                  );
+                                })}
+                              </GridWrapper>
+                            </SwiperSlide>
+                          );
+                        })}
+                      </Swiper>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {loading && (
+                    <SpinnerOverlay>
+                      <ClipLoader size={24} color="#9ca3af" />
+                    </SpinnerOverlay>
+                  )}
+                </SwiperArea>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <AddButton disabled={loading} onClick={onMoveUpload}>

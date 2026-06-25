@@ -240,7 +240,7 @@ const GalleryPage = () => {
     <>
       {mode === 'list' && (
         <GalleryListPage
-          list={galleryList ?? []}
+          list={galleryList}
           ym={ym}
           loading={!initialLoadDone.current && galleryList === null}
           onMoveUpload={() => setMode('upload')}
