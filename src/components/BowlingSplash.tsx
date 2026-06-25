@@ -110,12 +110,6 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   const phaseRef = useLatestRef(phase);
   const animDoneRef = useLatestRef(animDone);
 
-  // Pin fade-ins and the 'pins'->'rolling' timer run on wall-clock time, not paint time.
-  // On a cold iOS Safari launch, first paint can land well after mount, so by the time the
-  // user actually sees a frame those wall-clock animations may have already finished —
-  // pins appear fully drawn and the ball already departing. Double-rAF confirms a real
-  // paint has happened before starting either, so the visible animation always begins from
-  // its own true zero regardless of how long first paint took.
   useEffect(() => {
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
