@@ -106,8 +106,26 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   }, []);
 
   const [screenH, setScreenH] = useState(measureScreenH);
+  const [animArmed, setAnimArmed] = useState(false);
   const phaseRef = useLatestRef(phase);
   const animDoneRef = useLatestRef(animDone);
+
+  // Pin fade-ins and the 'pins'->'rolling' timer run on wall-clock time, not paint time.
+  // On a cold iOS Safari launch, first paint can land well after mount, so by the time the
+  // user actually sees a frame those wall-clock animations may have already finished —
+  // pins appear fully drawn and the ball already departing. Double-rAF confirms a real
+  // paint has happened before starting either, so the visible animation always begins from
+  // its own true zero regardless of how long first paint took.
+  useEffect(() => {
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setAnimArmed(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, []);
 
   useEffect(() => {
     const measure = () => {
@@ -137,6 +155,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
 
   useEffect(() => {
     if (phase === 'pins') {
+      if (!animArmed) return;
       const t = setTimeout(() => setPhase('rolling'), 400);
       return () => clearTimeout(t);
     }
@@ -152,7 +171,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
       const t = setTimeout(() => setAnimDone(true), 800);
       return () => clearTimeout(t);
     }
-  }, [phase, trajectory]);
+  }, [phase, trajectory, animArmed]);
 
   useEffect(() => {
     if (!animDone || !readyToComplete) return;
@@ -252,6 +271,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
         );
       })}
 
+      {animArmed && (
       <motion.div
         style={{
           position: 'absolute',
@@ -384,6 +404,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
           />
         )}
       </motion.div>
+      )}
 
       {isImpact && (
         <div style={LABEL_WRAPPER}>
