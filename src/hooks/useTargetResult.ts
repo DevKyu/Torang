@@ -14,7 +14,6 @@ export type TargetResult = {
 
 export const useTargetResult = (
   user: UserInfo | null,
-  ym: string,
   activityYmd?: string,
   withinDays = 7,
 ): TargetResult => {
@@ -47,7 +46,7 @@ export const useTargetResult = (
     setResult({ achieved: isAchieved, special: isSpecial, myScore, target });
     setShow(true);
     setInitialized(true);
-  }, [user, ym, activityYmd, withinDays, initialized]);
+  }, [user, activityYmd, withinDays, initialized]);
 
   return { ...result, show, setShow };
 };

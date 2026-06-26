@@ -1,6 +1,6 @@
 import { ref, set, remove, onValue } from 'firebase/database';
 import { db, getCurrentUserId } from '../services/firebase';
-import { scheduleLikeUpdate } from './likeScheduler.ts';
+import { scheduleLikeUpdate } from './likeScheduler';
 
 export const toggleGalleryLike = (
   ym: string,

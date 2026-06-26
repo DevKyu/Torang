@@ -10,46 +10,6 @@ export const SectionTitle = styled.h3`
   margin-bottom: 14px;
 `;
 
-export const MenuGrid = styled.div`
-  display: grid;
-  grid-template-columns: minmax(100px, 1fr) 72px 88px 64px;
-  gap: 8px 10px;
-  align-items: center;
-
-  @media (max-width: 420px) {
-    display: block;
-  }
-`;
-
-export const MenuHeader = styled.div`
-  font-size: 12px;
-  color: #6b7280;
-
-  @media (max-width: 420px) {
-    display: none;
-  }
-`;
-
-export const MenuRow = styled.div`
-  display: contents;
-
-  @media (max-width: 420px) {
-    display: block;
-    padding: 12px;
-    margin-bottom: 12px;
-    background: #f9fafb;
-    border-radius: 12px;
-  }
-`;
-
-export const MenuName = styled.div`
-  font-weight: 600;
-
-  @media (max-width: 420px) {
-    margin-bottom: 8px;
-  }
-`;
-
 export const OrderInput = styled.input`
   width: 100%;
   padding: 6px 8px;
