@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { ref, get, update, onValue } from 'firebase/database';
 import { toast } from 'sonner';
 
@@ -47,6 +48,7 @@ export type GalleryItem = {
 
 const GalleryPage = () => {
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const { formatServerDate } = useUiStore();
@@ -244,7 +246,7 @@ const GalleryPage = () => {
           ym={ym}
           loading={!initialLoadDone.current && galleryList === null}
           onMoveUpload={() => setMode('upload')}
-          onCancel={() => navigate('/menu', { replace: true })}
+          onCancel={goBack}
           onChangeMonth={(newYm) => { setGalleryList(null); setYm(newYm); }}
         />
       )}

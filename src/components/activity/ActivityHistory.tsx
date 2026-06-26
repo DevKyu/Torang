@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { cubicBezier } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { MyInfoContainer, MyInfoBox } from '../../styles/myInfoStyle';
@@ -86,7 +86,7 @@ const joinNames = (names: string[], max = 3) =>
     : names.slice(0, max).join(' · ') + ' · …';
 
 const ActivityHistory = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack();
   const currentYm = useMemo(
     () => toYm(useUiStore.getState().getServerNow().getTime()),
     [],
@@ -309,7 +309,7 @@ const ActivityHistory = () => {
             top="middle"
             onClick={() => {
               if (isLoading) return;
-              navigate('/menu', { replace: true });
+              goBack();
             }}
           >
             돌아가기

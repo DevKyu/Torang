@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { get, ref, set } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
 
 import AdminLayout from './AdminLayout';
@@ -91,7 +91,7 @@ interface Props {
 }
 
 const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
   const { path, title } = MODE_CONFIG[mode];
 
   const monthOptions = useMemo(createMonthOptions, []);
@@ -391,11 +391,7 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
 
           <SmallText
             top="narrow"
-            onClick={() =>
-              navigate('/admin', {
-                replace: true,
-              })
-            }
+            onClick={goBack}
           >
             돌아가기
           </SmallText>

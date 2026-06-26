@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
@@ -92,7 +92,7 @@ const renderBody = (content: string) =>
   );
 
 const MissionPage = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack();
 
   const currentYm = useMemo(() => {
     const now = useUiStore.getState().getServerNow();
@@ -461,7 +461,7 @@ const MissionPage = () => {
         top="middle"
         onClick={() => {
           if (!isReady) return;
-          navigate('/menu', { replace: true });
+          goBack();
         }}
       >
         돌아가기

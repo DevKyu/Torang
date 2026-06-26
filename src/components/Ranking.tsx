@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   getCurrentUserId,
@@ -80,6 +81,7 @@ const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
 
 const Ranking = () => {
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
   const MATCH_TYPE = useEventStore((s) => s.matchType);
   const { maps: activityAll } = useActivityDates();
 
@@ -505,7 +507,7 @@ const Ranking = () => {
           top="middle"
           onClick={() => {
             if (!rankingReady) return;
-            navigate('/menu', { replace: true });
+            goBack();
           }}
         >
           돌아가기

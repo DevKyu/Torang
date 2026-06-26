@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
 import {
   fetchAllUsers,
@@ -90,6 +91,7 @@ const AdminUserManagement = () => {
   const [newType, setNewType] = useState<'Member' | 'Associate'>('Member');
   const [newJoin, setNewJoin] = useState(getCurrentMonthInput());
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
 
   useEffect(() => {
     fetchAllUsers().then(setUsers);
@@ -313,7 +315,7 @@ const AdminUserManagement = () => {
 
       <AdminLinkSection>
         <AdminMainLink
-          onClick={() => navigate('/admin/event', { replace: true })}
+          onClick={() => navigate('/admin/event')}
         >
           ⚙️ 이벤트 / 메뉴 운영 설정
         </AdminMainLink>
@@ -322,13 +324,13 @@ const AdminUserManagement = () => {
           <AdminSubLinkRow>
             <AdminSubLink
               onClick={() =>
-                navigate('/admin/team-formation', { replace: true })
+                navigate('/admin/team-formation')
               }
             >
               👥 팀 편성 관리
             </AdminSubLink>
             <AdminSubLink
-              onClick={() => navigate('/admin/league', { replace: true })}
+              onClick={() => navigate('/admin/league')}
             >
               🏆 정기전 관리
             </AdminSubLink>
@@ -339,16 +341,14 @@ const AdminUserManagement = () => {
           <AdminSubLinkRow>
             <AdminSubLink
               onClick={() =>
-                navigate('/admin/activity-participants', { replace: true })
+                navigate('/admin/activity-participants')
               }
             >
               ✅ 활동 참여자 관리
             </AdminSubLink>
             <AdminSubLink
               onClick={() =>
-                navigate('/admin/after-party-participants', {
-                  replace: true,
-                })
+                navigate('/admin/after-party-participants')
               }
             >
               🍻 뒤풀이 참여자 관리
@@ -359,12 +359,12 @@ const AdminUserManagement = () => {
         <AdminLinkGroup>
           <AdminSubLinkRow>
             <AdminSubLink
-              onClick={() => navigate('/admin/mission', { replace: true })}
+              onClick={() => navigate('/admin/mission')}
             >
               🎭 활동 미션 관리
             </AdminSubLink>
             <AdminSubLink
-              onClick={() => navigate('/admin/products', { replace: true })}
+              onClick={() => navigate('/admin/products')}
             >
               📦 분기 상품 관리
             </AdminSubLink>
@@ -375,7 +375,7 @@ const AdminUserManagement = () => {
           <AdminSubLinkRow>
             <AdminSubLink
               style={{ gridColumn: '1 / -1' }}
-              onClick={() => navigate('/admin/messages', { replace: true })}
+              onClick={() => navigate('/admin/messages')}
             >
               📬 공지사항 관리
             </AdminSubLink>
@@ -586,9 +586,7 @@ const AdminUserManagement = () => {
           zIndex: 20,
           pointerEvents: 'auto',
         }}
-        onClick={() => {
-          navigate('/menu', { replace: true });
-        }}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

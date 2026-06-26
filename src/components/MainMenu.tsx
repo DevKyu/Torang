@@ -238,7 +238,7 @@ const MainMenu = () => {
 
     const path = PATH_MAP[id];
     if (!path) return;
-    navigate(path, { replace: true });
+    navigate(path);
   };
 
   return (

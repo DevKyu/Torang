@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ref, set, remove, get, update } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import { db } from '../../services/firebase';
@@ -99,7 +99,7 @@ const toFirebasePlayers = (players: PlayerEntry[]) =>
   );
 
 const AdminLeague = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
 
   const [currentYm] = useState(() => {
     const now = useUiStore.getState().getServerNow();
@@ -622,7 +622,7 @@ const AdminLeague = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

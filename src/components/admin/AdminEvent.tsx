@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ref, set } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
 import { useEventStore, type MenuBadgeType } from '../../stores/eventStore';
 import type { MatchType } from '../../types/match';
@@ -141,7 +141,7 @@ export default function AdminEvent() {
     loadEventConfig,
   } = useEventStore();
   const ui = useUiStore();
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
 
   const currentYm = String(ui.formatServerDate('ym'));
   const ymOptions = useMemo(() => getYmList(currentYm, 4), [currentYm]);
@@ -595,7 +595,7 @@ export default function AdminEvent() {
 
       <SaveButton onClick={saveAll}>💾 전체 저장</SaveButton>
 
-      <SmallText onClick={() => navigate('/admin', { replace: true })}>
+      <SmallText onClick={goBack}>
         돌아가기
       </SmallText>
     </AdminLayout>

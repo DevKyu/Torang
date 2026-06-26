@@ -199,9 +199,11 @@ const unsub = onValue(ref(db, `products/${ym}`), (snap) => { ... });
 1. `SmallText` 컴포넌트 자체: `onClick` prop을 내부에서 `onPointerUp`으로 바인딩 + `e.preventDefault()` (ghost click 방지)
 2. 각 페이지 `SmallText`의 onClick 핸들러: 페이지 로딩 상태 가드
 ```tsx
+const goBack = useNavigateBack();
+
 <SmallText onClick={() => {
   if (!isReady) return; // ghost click 구간 = 항상 초기 로딩 중
-  navigate('/menu', { replace: true });
+  goBack();
 }}>
   돌아가기
 </SmallText>
@@ -209,14 +211,38 @@ const unsub = onValue(ref(db, `products/${ym}`), (snap) => { ... });
 
 ---
 
-## 10. Admin navigate `replace: true` 양방향 필수
+## 10. 뒤로가기 navigation 모델 — forward = push, back = `useNavigateBack`
 
-**증상**: Admin 서브 페이지 진입 시 `replace: true` 누락 → 히스토리 스택에 `/admin`이 두 개 쌓여 뒤로가기를 두 번 눌러야 어드민 섹션을 탈출할 수 있음.
+**증상(구 패턴)**: 모든 `navigate()` 호출에 `replace: true` → 히스토리 스택이 항상 depth 1 → Android/iOS 물리 뒤로가기·브라우저 내장 back이 앱을 즉시 종료함.
 
 **규칙**
-- `AdminUserManagement`(`/admin`) → 각 서브 페이지: `navigate(path, { replace: true })`
-- 각 서브 페이지 → "돌아가기": `navigate('/admin', { replace: true })`
-- 양방향 모두 `replace: true` 없으면 stack 중복 발생
+- **앞으로 이동** (MainMenu 타일, Admin 서브 페이지 링크, MyInfo→Achievements 등): `navigate(path)` — `replace` 없음, push로 스택 쌓기
+- **"돌아가기"/"나가기"**: `useNavigateBack(fallback?)` (`src/hooks/useNavigateBack.ts`) 사용
+  - `location.key !== 'default'`(인앱 push 경로) → `navigate(-1)`
+  - `location.key === 'default'`(새탭·직접 URL·새로고침) → `navigate(fallback, { replace: true })`
+  - 기본 fallback: `'/menu'`; Admin 서브 페이지는 `'/admin'`; Achievements는 `'/myinfo'`
+- **경계 전환**(로그인→메뉴, 로그아웃→/, 인증 오류 리다이렉트, AdminLayout 권한 거부): `replace: true` 유지
+
+**잘못된 패턴**
+```tsx
+navigate(path, { replace: true }); // 앞으로 이동에 — 물리 뒤로가기 불가
+navigate(-1);                       // "돌아가기" 직접 사용 — 새로고침/직접 URL 시 앱 종료
+navigate('/menu', { replace: true }); // "돌아가기" 하드코딩 — useNavigateBack 훅 대체
+```
+
+**올바른 패턴**
+```tsx
+// 앞으로 이동
+navigate(path);
+
+// 돌아가기 (기본 fallback: '/menu')
+const goBack = useNavigateBack();
+goBack();
+
+// Admin 서브 페이지 돌아가기 (fallback: '/admin')
+const goBack = useNavigateBack('/admin');
+goBack();
+```
 
 ---
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
@@ -72,6 +73,7 @@ const Reward = () => {
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps } = useActivityDates();
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
   const quarterYm = useMemo(() => getQuarterEndYm(), []);
 
   const activityYmd = activityMaps[CUR_YEAR]?.[String(CUR_MONTHN)];
@@ -324,7 +326,7 @@ const Reward = () => {
                 <GuideIcon>🎁</GuideIcon>
                 <GuideTitle>이번 분기 신청이 마감됐어요</GuideTitle>
                 <GuideDesc>결과를 확인해보세요</GuideDesc>
-                <GuideButton onClick={() => navigate('/draw', { replace: true })}>
+                <GuideButton onClick={() => navigate('/draw')}>
                   추첨 결과 보러가기
                 </GuideButton>
               </GuideSection>
@@ -414,7 +416,7 @@ const Reward = () => {
         top="middle"
         onClick={() => {
           if (!isReady) return;
-          navigate('/menu', { replace: true });
+          goBack();
         }}
       >
         돌아가기

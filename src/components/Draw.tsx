@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { onValue, ref } from 'firebase/database';
 import { ClipLoader } from 'react-spinners';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -58,7 +58,7 @@ const Draw = () => {
 
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const goBack = useNavigateBack();
 
   const ym = useMemo(() => getQuarterEndYm(), []);
 
@@ -335,7 +335,7 @@ const Draw = () => {
         top="middle"
         onClick={() => {
           if (loading) return;
-          navigate('/menu', { replace: true });
+          goBack();
         }}
       >
         돌아가기

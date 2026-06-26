@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
@@ -52,7 +52,7 @@ const toMonthLabel = (dateStr: string): string => {
 };
 
 const Achievements = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/myinfo');
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
 
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
@@ -306,7 +306,7 @@ const Achievements = () => {
           top="narrow"
           onClick={() => {
             if (!achievementsLoaded) return;
-            navigate('/myinfo', { replace: true });
+            goBack();
           }}
         >
           돌아가기

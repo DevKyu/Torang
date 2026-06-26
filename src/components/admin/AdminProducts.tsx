@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { ref, get, update } from 'firebase/database';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
@@ -68,7 +68,7 @@ const getQuarterOptions = (): string[] => {
 };
 
 const AdminProducts = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
   const ymOptions = useMemo(() => getQuarterOptions(), []);
   const [selectedYm, setSelectedYm] = useState(getQuarterEndYm());
   const [drafts, setDrafts] = useState<DraftProduct[]>([]);
@@ -413,7 +413,7 @@ const AdminProducts = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

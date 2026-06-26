@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import VillainMissionModal from '../mission/VillainMissionModal';
 import { ref, get } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
@@ -84,7 +84,7 @@ const toSuccessStyle = {
 };
 
 const AdminMission = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
 
   const currentYm = useMemo(() => {
     const now = useUiStore.getState().getServerNow();
@@ -934,7 +934,7 @@ const AdminMission = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

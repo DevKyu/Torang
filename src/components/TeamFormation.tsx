@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { auth, empIdFromEmail } from '../services/firebase';
@@ -46,7 +46,7 @@ const scoreAvg = (s: [number, number]) =>
   s[0] > 0 && s[1] > 0 ? (s[0] + s[1]) / 2 : s[1] || s[0];
 
 const TeamFormation = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack();
 
   const currentYm = useMemo(() => {
     const now = useUiStore.getState().getServerNow();
@@ -307,7 +307,7 @@ const TeamFormation = () => {
         top="middle"
         onClick={() => {
           if (loading) return;
-          navigate('/menu', { replace: true });
+          goBack();
         }}
       >
         돌아가기

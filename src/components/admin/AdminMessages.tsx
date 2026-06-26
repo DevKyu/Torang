@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ref, get } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
@@ -88,7 +88,7 @@ const formatDateFromMs = (ms: number) => {
 };
 
 const AdminMessages = () => {
-  const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
   const { messages } = useAdminMessages();
 
   const [allNames, setAllNames] = useState<Record<string, string>>({});
@@ -446,7 +446,7 @@ const AdminMessages = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

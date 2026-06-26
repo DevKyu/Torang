@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ref, get, update, remove, push, set } from 'firebase/database'
-import { useNavigate } from 'react-router-dom'
+import { useNavigateBack } from '../../hooks/useNavigateBack'
 import { toast } from 'sonner'
 import AdminLayout from './AdminLayout'
 import { db, fetchAllUsers } from '../../services/firebase'
@@ -99,7 +99,7 @@ const formatSavedAt = (ts: number) => {
 }
 
 const AdminTeamFormation = () => {
-  const navigate = useNavigate()
+  const goBack = useNavigateBack('/admin')
 
   const [currentYm] = useState(() => {
     const now = useUiStore.getState().getServerNow()
@@ -935,7 +935,7 @@ const AdminTeamFormation = () => {
 
       <SmallText
         top="middle"
-        onClick={() => navigate('/admin', { replace: true })}
+        onClick={goBack}
       >
         돌아가기
       </SmallText>

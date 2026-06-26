@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useNavigateBack } from '../hooks/useNavigateBack';
 import { toast } from 'sonner';
 
 import useUserInfo from '../hooks/useUserInfo';
@@ -51,6 +52,7 @@ import { useEventStore } from '../stores/eventStore';
 
 const MyInfo = () => {
   const navigate = useNavigate();
+  const goBack = useNavigateBack();
   const userInfo = useUserInfo();
   const isUserReady = userInfo !== null;
   const { name = '', pin = 0, type = '' } = userInfo ?? {};
@@ -241,7 +243,7 @@ const MyInfo = () => {
           <InfoRow>
             <LabelEmoji>🏅</LabelEmoji>
             <Label>업적</Label>
-            <BadgeButton onClick={() => navigate('/achievements', { replace: true })}>
+            <BadgeButton onClick={() => navigate('/achievements')}>
               업적 보기 <ChevronRight size={14} strokeWidth={2} />
             </BadgeButton>
           </InfoRow>
@@ -328,7 +330,7 @@ const MyInfo = () => {
             top="middle"
             onClick={() => {
               if (!isReady) return;
-              navigate('/menu', { replace: true });
+              goBack();
             }}
           >
             돌아가기
