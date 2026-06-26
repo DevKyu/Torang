@@ -122,18 +122,18 @@ const MessageModal = ({
         >
           <Card
             accent={accent}
-            initial={{ opacity: 0, scale: 0.9, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={displayMessage.id}
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
               >
                 <TypeTag color={accent}>
@@ -173,9 +173,9 @@ const MessageModal = ({
                       {count > 0 && (
                         <ReactionPillCount
                           key="count"
-                          initial={{ opacity: 0, scale: 0.5 }}
+                          initial={{ opacity: 0, scale: 0.7 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
+                          exit={{ opacity: 0, scale: 0.7 }}
                           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                         >
                           {count > 99 ? '99+' : count}

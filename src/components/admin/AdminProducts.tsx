@@ -288,19 +288,21 @@ const AdminProducts = () => {
                       onChange={(e) => updateDraft(i, 'name', e.target.value)}
                     />
                     <ProductInput
-                      type="number"
-                      min={0}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
                       value={d.requiredPins}
                       onChange={(e) =>
-                        updateDraft(i, 'requiredPins', e.target.value)
+                        updateDraft(i, 'requiredPins', e.target.value.replace(/[^\d]/g, ''))
                       }
                     />
                     <ProductInput
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
                       value={d.winnersCount}
                       onChange={(e) =>
-                        updateDraft(i, 'winnersCount', e.target.value)
+                        updateDraft(i, 'winnersCount', e.target.value.replace(/[^\d]/g, ''))
                       }
                     />
                     <IconButton onClick={() => removeProduct(i)} title="삭제">

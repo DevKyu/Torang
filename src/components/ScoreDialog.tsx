@@ -37,7 +37,6 @@ const Content = styled(Dialog.Content)`
   @keyframes pop {
     to {
       transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
     }
   }
 `;
@@ -137,7 +136,7 @@ const ScoreDialog = ({
 
       <Dialog.Portal>
         <Overlay />
-        <Content>
+        <Content onOpenAutoFocus={(e) => e.preventDefault()}>
           <Dialog.Title asChild>
             <Heading>{monthLabel} 목표 점수</Heading>
           </Dialog.Title>
@@ -146,10 +145,10 @@ const ScoreDialog = ({
           </Dialog.Description>
 
           <Input
-            type="number"
-            min={minScore}
-            max={300}
+            type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
             value={value}
             onChange={(e) =>
               /^\d{0,3}$/.test(e.target.value) && setValue(e.target.value)

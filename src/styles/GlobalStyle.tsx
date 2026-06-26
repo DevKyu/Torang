@@ -5,6 +5,7 @@ const GlobalStyle = () => (
     styles={css`
       html,
       body {
+        height: 100%;
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
           'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo',

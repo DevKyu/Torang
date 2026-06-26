@@ -103,6 +103,8 @@ const AdminMission = () => {
     helperVoteThreshold: 3,
     villainCatchThreshold: 1,
   });
+  const [rewardPinRaw, setRewardPinRaw] = useState('1');
+  const [villainRewardPinRaw, setVillainRewardPinRaw] = useState('1');
 
   const [hiddenDraft, setHiddenDraft] = useState<MissionHidden>({
     villain: { title: '또랑 빌런 미션', description: '' },
@@ -137,15 +139,19 @@ const AdminMission = () => {
 
   useEffect(() => {
     if (data) {
+      const rp = data.config?.rewardPin ?? 1;
+      const vp = data.config?.villainRewardPin ?? rp;
       setConfigDraft({
         title: data.config?.title ?? '',
         description: data.config?.description ?? '',
         revealDays: data.config?.revealDays ?? 7,
-        rewardPin: data.config?.rewardPin ?? 1,
-        villainRewardPin: data.config?.villainRewardPin ?? data.config?.rewardPin ?? 1,
+        rewardPin: rp,
+        villainRewardPin: vp,
         helperVoteThreshold: data.config?.helperVoteThreshold ?? 3,
         villainCatchThreshold: data.config?.villainCatchThreshold ?? 1,
       });
+      setRewardPinRaw(String(rp));
+      setVillainRewardPinRaw(String(vp));
       setHiddenDraft({
         villain: {
           title: data.hidden?.villain?.title ?? '또랑 빌런 미션',
@@ -175,6 +181,8 @@ const AdminMission = () => {
         helperVoteThreshold: 3,
         villainCatchThreshold: 1,
       });
+      setRewardPinRaw('1');
+      setVillainRewardPinRaw('1');
       setHiddenDraft({
         villain: { title: '또랑 빌런 미션', description: '' },
         helper: { title: '빌런 조력자 미션', description: '' },
@@ -534,16 +542,14 @@ const AdminMission = () => {
           <NumberRow>
             활동일
             <MissionInput
-              type="number"
-              min={1}
-              max={30}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
               value={configDraft.revealDays}
-              onChange={(e) =>
-                setConfigDraft((p) => ({
-                  ...p,
-                  revealDays: Number(e.target.value),
-                }))
-              }
+              onChange={(e) => {
+                const v = e.target.value.replace(/[^\d]/g, '');
+                setConfigDraft((p) => ({ ...p, revealDays: v === '' ? 0 : Number(v) }));
+              }}
             />
             일 전부터 공개
           </NumberRow>
@@ -558,16 +564,18 @@ const AdminMission = () => {
               <SettingCellLabel>정답자</SettingCellLabel>
               <NumberRow>
                 <MissionInput
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={configDraft.rewardPin}
-                  onChange={(e) =>
-                    setConfigDraft((p) => ({
-                      ...p,
-                      rewardPin: Number(e.target.value),
-                    }))
-                  }
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={rewardPinRaw}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (!/^[\d.]*$/.test(raw)) return;
+                    setRewardPinRaw(raw);
+                    const n = parseFloat(raw);
+                    if (!isNaN(n)) setConfigDraft((p) => ({ ...p, rewardPin: n }));
+                  }}
+                  onBlur={() => setRewardPinRaw(String(configDraft.rewardPin))}
                 />
                 PIN
               </NumberRow>
@@ -576,16 +584,18 @@ const AdminMission = () => {
               <SettingCellLabel>빌런 성공</SettingCellLabel>
               <NumberRow>
                 <MissionInput
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={configDraft.villainRewardPin}
-                  onChange={(e) =>
-                    setConfigDraft((p) => ({
-                      ...p,
-                      villainRewardPin: Number(e.target.value),
-                    }))
-                  }
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={villainRewardPinRaw}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (!/^[\d.]*$/.test(raw)) return;
+                    setVillainRewardPinRaw(raw);
+                    const n = parseFloat(raw);
+                    if (!isNaN(n)) setConfigDraft((p) => ({ ...p, villainRewardPin: n }));
+                  }}
+                  onBlur={() => setVillainRewardPinRaw(String(configDraft.villainRewardPin))}
                 />
                 PIN
               </NumberRow>
@@ -602,15 +612,14 @@ const AdminMission = () => {
               <SettingCellLabel>빌런 검거 기준</SettingCellLabel>
               <NumberRow>
                 <MissionInput
-                  type="number"
-                  min={1}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
                   value={configDraft.villainCatchThreshold}
-                  onChange={(e) =>
-                    setConfigDraft((p) => ({
-                      ...p,
-                      villainCatchThreshold: Number(e.target.value),
-                    }))
-                  }
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^\d]/g, '');
+                    setConfigDraft((p) => ({ ...p, villainCatchThreshold: v === '' ? 0 : Number(v) }));
+                  }}
                 />
                 표 이상
               </NumberRow>
@@ -619,15 +628,14 @@ const AdminMission = () => {
               <SettingCellLabel>조력자 공동 수상</SettingCellLabel>
               <NumberRow>
                 <MissionInput
-                  type="number"
-                  min={1}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
                   value={configDraft.helperVoteThreshold}
-                  onChange={(e) =>
-                    setConfigDraft((p) => ({
-                      ...p,
-                      helperVoteThreshold: Number(e.target.value),
-                    }))
-                  }
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^\d]/g, '');
+                    setConfigDraft((p) => ({ ...p, helperVoteThreshold: v === '' ? 0 : Number(v) }));
+                  }}
                 />
                 표 이상
               </NumberRow>
@@ -739,6 +747,7 @@ const AdminMission = () => {
             }
             placeholder="이름 검색"
             onKeyDown={(e) => {
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
               if (e.key === 'Enter') {
                 e.preventDefault();
                 lookupRole('villain');
@@ -790,6 +799,7 @@ const AdminMission = () => {
             }
             placeholder="이름 검색"
             onKeyDown={(e) => {
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
               if (e.key === 'Enter') {
                 e.preventDefault();
                 lookupRole('helper');

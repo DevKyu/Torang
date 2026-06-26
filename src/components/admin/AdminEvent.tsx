@@ -335,14 +335,17 @@ export default function AdminEvent() {
                 <MenuControlRow>
                   <span>순서</span>
                   <OrderInput
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
                     value={cfg.order ?? 999}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^\d]/g, '');
                       setMenuDraft((p) => ({
                         ...p,
-                        [id]: { ...cfg, order: Number(e.target.value) },
-                      }))
-                    }
+                        [id]: { ...cfg, order: v === '' ? 999 : Number(v) },
+                      }));
+                    }}
                   />
                 </MenuControlRow>
 
@@ -538,17 +541,19 @@ export default function AdminEvent() {
                 <ThresholdRow>
                   <span>임계치</span>
                   <ThresholdInput
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
                     value={item.threshold || ''}
                     disabled={!enabled}
                     placeholder="0"
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^\d]/g, '');
                       setGalleryRewardDraft((p) => ({
                         ...p,
-                        [key]: { ...p[key], threshold: Number(e.target.value) },
-                      }))
-                    }
+                        [key]: { ...p[key], threshold: v === '' ? 0 : Number(v) },
+                      }));
+                    }}
                   />
                   <span>{GALLERY_REWARD_UNIT[key]} 이상</span>
                 </ThresholdRow>

@@ -430,6 +430,7 @@ const AdminLeague = () => {
                 value={p.name}
                 onChange={(e) => updatePlayer(teamKey, idx, 'name', e.target.value)}
                 onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
                   if (e.key === 'Enter') {
                     e.preventDefault();
                     lookupByName(teamKey, idx);

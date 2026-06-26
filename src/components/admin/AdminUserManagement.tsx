@@ -301,7 +301,10 @@ const AdminUserManagement = () => {
           placeholder="사번 또는 이름 입력 (부분 검색 가능)"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+          onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+            if (e.key === 'Enter') handleSearchUser();
+          }}
         />
         <button onClick={handleSearchUser} disabled={loading}>
           조회
@@ -443,19 +446,18 @@ const AdminUserManagement = () => {
                               <p>{scores[y]?.[m] ?? '-'}</p>
                               <div className="input-wrapper">
                                 <input
-                                  type="number"
+                                  type="text"
+                                  inputMode="numeric"
+                                  autoComplete="off"
                                   value={
                                     editMonth === m && openYear === y
                                       ? newScore
                                       : ''
                                   }
-                                  onChange={(e) =>
-                                    setNewScore(
-                                      e.target.value === ''
-                                        ? ''
-                                        : Number(e.target.value),
-                                    )
-                                  }
+                                  onChange={(e) => {
+                                    const v = e.target.value.replace(/[^\d]/g, '');
+                                    setNewScore(v === '' ? '' : Number(v));
+                                  }}
                                   disabled={
                                     !(editMonth === m && openYear === y)
                                   }
@@ -530,10 +532,12 @@ const AdminUserManagement = () => {
                     onChange={(e) => setNewName(e.target.value)}
                   />
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
                     placeholder="핀"
                     value={newPin}
-                    onChange={(e) => setNewPin(Number(e.target.value))}
+                    onChange={(e) => setNewPin(Number(e.target.value.replace(/[^\d]/g, '')))}
                   />
                   <select
                     value={newType}

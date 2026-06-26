@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import Underline from '@tiptap/extension-underline';
 import { useEffect } from 'react';
 import {
   Wrapper,
@@ -12,7 +13,7 @@ import {
   EditorArea,
 } from '../../styles/MissionRichEditorStyle';
 
-const EXTENSIONS = [StarterKit, TextStyle, Color];
+const EXTENSIONS = [StarterKit, TextStyle, Color, Underline];
 
 const COLORS = [
   { label: '기본', value: '' },

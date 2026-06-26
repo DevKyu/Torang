@@ -716,7 +716,10 @@ const AdminTeamFormation = () => {
                   placeholder="이름"
                   value={guestName}
                   onChange={e => setGuestName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addGuest(gIdx, teamNum)}
+                  onKeyDown={e => {
+                    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                    if (e.key === 'Enter') addGuest(gIdx, teamNum);
+                  }}
                 />
                 <input
                   type="text"

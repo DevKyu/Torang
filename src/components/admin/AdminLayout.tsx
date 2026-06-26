@@ -48,10 +48,10 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
 };
 
 const OuterWrapper = styled.div`
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   touch-action: pan-y;
-
 `;
 
 const AdminBox = styled(ContentBox)`

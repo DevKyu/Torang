@@ -34,7 +34,7 @@ const MonthCell = ({
     <ScoreDialog
       monthLabel={`${month}월`}
       defaultValue={defaultValue}
-      minScore={overallAvg ?? 50}
+      minScore={overallAvg ?? 100}
       onSave={(val) => onSave(val, key)}
       trigger={(open) => (
         <MonthCard

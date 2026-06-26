@@ -119,7 +119,7 @@ const CongratulationOverlay = ({
       window.removeEventListener('keydown', onKey);
       hasConfettiFired.current = false;
     };
-  }, [open, durationMs, onClose, safeResult, isTargetCase]);
+  }, [open, durationMs, onClose, safeResult]);
 
   return (
     <AnimatePresence>
