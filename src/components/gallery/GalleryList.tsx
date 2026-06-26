@@ -272,15 +272,16 @@ const GalleryList = ({
                 transition={{ duration: 0.15, ease: 'easeOut' }}
               >
                 <SwiperArea>
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence mode="wait" initial={false}>
                     <motion.div
-                      key={`g-${ym}-${filter}-${loading}-${monthLoading}`}
+                      key={`g-${ym}-${filter}-${loading}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      transition={{ duration: 0.12, ease: 'easeOut' }}
                     >
                       <Swiper
+                        key={`swiper-${monthLoading}`}
                         modules={[Pagination]}
                         slidesPerView={1}
                         pagination={{ clickable: true }}
@@ -328,7 +329,7 @@ const GalleryList = ({
                                       animate={{ opacity: 1 }}
                                       transition={{
                                         duration: 0.18,
-                                        delay: i * 0.04,
+                                        delay: i * 0.03,
                                         ease: 'easeOut',
                                       }}
                                       onClick={() => preloadOpenLightBox(storeIdx)}
