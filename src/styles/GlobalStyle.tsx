@@ -10,8 +10,6 @@ const GlobalStyle = () => (
           'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo',
           'Malgun Gothic', sans-serif;
 
-        height: 100%;
-        background: #fff;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         -webkit-text-size-adjust: 100%;

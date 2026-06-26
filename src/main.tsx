@@ -8,7 +8,7 @@ type AppComponent = React.ComponentType;
 const SPLASH_KEY = 'torang_splash';
 const splashShown = sessionStorage.getItem(SPLASH_KEY) === '1';
 
-if (splashShown) document.body.style.background = '#fff';
+if (splashShown) document.body.style.background = '#f9f9f9';
 
 const loadApp = (): Promise<typeof import('./App')> =>
   import('./App').catch(
@@ -81,7 +81,7 @@ const Root = () => {
           readyToComplete={App !== null}
           onComplete={() => {
             sessionStorage.setItem(SPLASH_KEY, '1');
-            document.body.style.background = '#fff';
+            document.body.style.background = '#f9f9f9';
             setSplashDone(true);
           }}
         />
