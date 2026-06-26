@@ -281,7 +281,6 @@ const GalleryList = ({
                       transition={{ duration: 0.12, ease: 'easeOut' }}
                     >
                       <Swiper
-                        key={`swiper-${monthLoading}`}
                         modules={[Pagination]}
                         slidesPerView={1}
                         pagination={{ clickable: true }}
