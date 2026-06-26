@@ -1,15 +1,12 @@
 import styled from '@emotion/styled';
-import { motion } from 'framer-motion';
 
 const colors = {
   bgSoft: '#f9fafb',
   bgCard: '#ffffff',
-  border: '#e5e7eb',
   textMain: '#2d3748',
   textSub: '#6b7280',
   primary: '#3b82f6',
   primaryHover: '#2563eb',
-  shadow: '0 2px 6px rgba(0,0,0,0.06)',
 };
 
 export const GalleryOuter = styled.div`
@@ -21,7 +18,7 @@ export const GalleryOuter = styled.div`
   align-items: center;
 `;
 
-export const GalleryBox = styled(motion.div)`
+export const GalleryBox = styled.div`
   width: 90%;
   max-width: 400px;
   background: ${colors.bgCard};
@@ -31,9 +28,6 @@ export const GalleryBox = styled(motion.div)`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
 `;
 
 export const GalleryTitle = styled.h2`
@@ -42,69 +36,6 @@ export const GalleryTitle = styled.h2`
   color: ${colors.textMain};
   margin-bottom: 16px;
   text-align: center;
-`;
-
-export const ScrollableList = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  touch-action: pan-y;
-
-  will-change: scroll-position;
-`;
-
-export const ListGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(121px, 1fr));
-  gap: 12px;
-  will-change: transform;
-  transform: translateZ(0);
-`;
-
-export const ListCard = styled.div`
-  background: ${colors.bgCard};
-  border: 1px solid ${colors.border};
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-`;
-
-export const ListImageWrapper = styled.div`
-  height: 110px;
-  background: ${colors.bgSoft};
-  cursor: pointer;
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-  will-change: transform;
-  transform: translateZ(0);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 10px;
-    display: block;
-    will-change: opacity;
-    backface-visibility: hidden;
-    transform: translateZ(0);
-  }
-`;
-
-export const CaptionPreview = styled.div`
-  padding: 6px 8px;
-  font-size: 12px;
-  color: ${colors.textSub};
-`;
-
-export const FooterRow = styled.div`
-  padding: 6px 8px 8px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: ${colors.textSub};
 `;
 
 export const AddButton = styled.button`
@@ -117,8 +48,6 @@ export const AddButton = styled.button`
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  will-change: background-color, transform;
-  backface-visibility: hidden;
 
   &:active {
     transform: scale(0.96);

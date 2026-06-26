@@ -66,15 +66,6 @@ export const SwiperArea = styled.div`
   position: relative;
 `;
 
-export const SpinnerOverlay = styled.div`
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-`;
-
 export const InfoBar = styled.div`
   position: absolute;
   bottom: 4px;

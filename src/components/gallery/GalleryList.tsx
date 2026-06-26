@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ClipLoader } from 'react-spinners';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Heart, MessageCircle } from 'lucide-react';
@@ -27,7 +26,6 @@ import {
   Thumb,
   Skeleton,
   SwiperArea,
-  SpinnerOverlay,
   InfoBar,
   InfoItem,
 } from '../../styles/galleryGridStyle';
@@ -107,7 +105,6 @@ const GalleryList = ({
   useEffect(() => {
     setYear(Number(ym.slice(0, 4)));
     setMonth(Number(ym.slice(4, 6)));
-    setPageLoadedCounts([]);
   }, [ym]);
 
   const sorted = useMemo(() => {
@@ -274,11 +271,10 @@ const GalleryList = ({
                 <SwiperArea>
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
-                      key={`g-${ym}-${filter}-${loading}`}
+                      key={`g-${ym}-${loading}`}
                       initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.12, ease: 'easeOut' }}
+                      animate={{ opacity: 1, transition: { duration: 0.15, ease: 'easeOut' } }}
+                      exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeOut' } }}
                     >
                       <Swiper
                         modules={[Pagination]}
@@ -286,51 +282,42 @@ const GalleryList = ({
                         pagination={{ clickable: true }}
                       >
                         {displayPages.map((page, pageIdx) => {
-                          const filled = page;
                           const allLoaded =
                             pageLoadedCounts[pageIdx] >=
-                            filled.filter((x) => x !== null).length;
+                            page.filter((x) => x !== null).length;
 
                           return (
                             <SwiperSlide key={pageIdx}>
                               <GridWrapper>
-                                {filled.map((img, i) => {
-                                  if (loading) {
-                                    return <GridItem key={`placeholder-${i}`} />;
-                                  }
+                                {page.map((img, i) => {
+                                  const cellKey = `${pageIdx}-${i}`;
 
-                                  if (monthLoading) {
-                                    return (
-                                      <GridItem key={`skeleton-${i}`}>
+                                  if (!img) {
+                                    return isPlaceholder ? (
+                                      <GridItem
+                                        key={cellKey}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.18, delay: i * 0.04, ease: 'easeOut' }}
+                                      >
                                         <Skeleton hidden={false} />
                                       </GridItem>
+                                    ) : (
+                                      <GridItem key={cellKey} style={{ visibility: 'hidden' }} />
                                     );
                                   }
 
-                                  if (!img)
-                                    return (
-                                      <GridItem
-                                        key={`empty-${pageIdx}-${i}`}
-                                        style={{ visibility: 'hidden' }}
-                                      />
-                                    );
-
-                                  const offset = pages[0].length;
-                                  const storeIdx = pageIdx * offset + i;
+                                  const storeIdx = pageIdx * 9 + i;
                                   const storeImg = storeImages[storeIdx];
                                   const likes = storeImg?.likes ?? 0;
                                   const comments = storeImg?.commentCount ?? 0;
 
                                   return (
                                     <GridItem
-                                      key={img.id}
+                                      key={cellKey}
                                       initial={{ opacity: 0 }}
                                       animate={{ opacity: 1 }}
-                                      transition={{
-                                        duration: 0.18,
-                                        delay: i * 0.03,
-                                        ease: 'easeOut',
-                                      }}
+                                      transition={{ duration: 0.18, delay: i * 0.04, ease: 'easeOut' }}
                                       onClick={() => preloadOpenLightBox(storeIdx)}
                                     >
                                       <Skeleton hidden={allLoaded} />
@@ -342,45 +329,40 @@ const GalleryList = ({
                                         onLoad={(e) => {
                                           const imgEl = e.currentTarget;
                                           const token = loadTokenRef.current;
-
                                           const commit = () => {
                                             if (loadTokenRef.current !== token) return;
                                             setPageLoadedCounts((p) => {
                                               const next = [...p];
-                                              next[pageIdx] += 1;
+                                              next[pageIdx] = (next[pageIdx] ?? 0) + 1;
                                               return next;
                                             });
                                           };
-
                                           if (imgEl.decode) imgEl.decode().then(commit).catch(commit);
                                           else commit();
                                         }}
-                                        onError={() =>
+                                        onError={() => {
+                                          const token = loadTokenRef.current;
                                           setPageLoadedCounts((p) => {
+                                            if (loadTokenRef.current !== token) return p;
                                             const next = [...p];
-                                            next[pageIdx] += 1;
+                                            next[pageIdx] = (next[pageIdx] ?? 0) + 1;
                                             return next;
-                                          })
-                                        }
+                                          });
+                                        }}
                                       />
 
                                       <InfoBar>
                                         <InfoItem
-                                          key={`like-${img.id}`}
                                           initial={{ opacity: 0, scale: 0.7 }}
                                           animate={{ opacity: 1, scale: 1 }}
                                         >
                                           <Heart
                                             fill={storeImg?.liked ? 'red' : 'none'}
-                                            color={
-                                              storeImg?.liked ? 'red' : 'currentColor'
-                                            }
+                                            color={storeImg?.liked ? 'red' : 'currentColor'}
                                           />
                                           {likes}
                                         </InfoItem>
-
                                         <InfoItem
-                                          key={`comment-${img.id}`}
                                           initial={{ opacity: 0, scale: 0.7 }}
                                           animate={{ opacity: 1, scale: 1 }}
                                         >
@@ -399,11 +381,7 @@ const GalleryList = ({
                     </motion.div>
                   </AnimatePresence>
 
-                  {loading && (
-                    <SpinnerOverlay>
-                      <ClipLoader size={24} color="#9ca3af" />
-                    </SpinnerOverlay>
-                  )}
+
                 </SwiperArea>
               </motion.div>
             )}
