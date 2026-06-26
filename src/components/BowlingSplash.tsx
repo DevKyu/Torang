@@ -105,6 +105,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     return 'right';
   }, []);
 
+  const [isIOS] = useState(() => document.body.classList.contains('ios'));
   const [screenH, setScreenH] = useState(measureScreenH);
   const [animArmed, setAnimArmed] = useState(false);
   const phaseRef = useLatestRef(phase);
@@ -197,7 +198,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
         top: 0,
         left: 0,
         right: 0,
-        height: screenH,
+        ...(isIOS ? { height: screenH, minHeight: '100svh' } : { bottom: 0 }),
         zIndex: 9999,
         background: '#09091a',
         display: 'flex',

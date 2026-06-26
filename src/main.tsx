@@ -5,6 +5,10 @@ import './styles/swiper.css';
 
 type AppComponent = React.ComponentType;
 
+if (/iP(hone|od|ad)/.test(navigator.userAgent)) {
+  document.body.classList.add('ios');
+}
+
 const SPLASH_KEY = 'torang_splash';
 const splashShown = sessionStorage.getItem(SPLASH_KEY) === '1';
 
