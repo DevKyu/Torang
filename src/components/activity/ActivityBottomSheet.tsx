@@ -6,6 +6,7 @@ import {
   type PanInfo,
 } from 'framer-motion';
 import { useCallback, useEffect, useRef } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import type { ActivityItem } from '../../types/activity';
 import {
   Backdrop,
@@ -82,6 +83,8 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
   const resetPosition = useCallback(() => {
     animate(y, 0, { duration: 0.22, ease: EASE_OUT });
   }, [y]);
+
+  useBackClose(open, runClose);
 
   const handleDragEnd = useCallback(
     (_: any, info: PanInfo) => {

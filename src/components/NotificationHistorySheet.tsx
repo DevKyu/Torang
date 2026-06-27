@@ -6,6 +6,7 @@ import {
   type PanInfo,
 } from 'framer-motion';
 import { useCallback, useEffect, useRef } from 'react';
+import { useBackClose } from '../hooks/useBackClose';
 import {
   MESSAGE_TYPE_COLOR,
   MESSAGE_TYPE_LABEL,
@@ -65,6 +66,8 @@ const NotificationHistorySheet = ({
   const resetPosition = useCallback(() => {
     animate(y, 0, { duration: 0.22, ease: EASE_OUT });
   }, [y]);
+
+  useBackClose(open, runClose);
 
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {

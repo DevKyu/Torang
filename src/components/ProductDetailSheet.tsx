@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useBackClose } from '../hooks/useBackClose';
 import { getRatioLabel } from './ProductItem';
 import { AnimatePresence, animate, useMotionValue, useDragControls } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
@@ -65,6 +66,13 @@ export const ProductDetailSheet = ({ open, product, onClose }: Props) => {
   const resetPosition = useCallback(() => {
     animate(y, 0, { duration: 0.22, ease: EASE_OUT });
   }, [y]);
+
+  const handleBackNavigation = useCallback(() => {
+    if (viewerOpen) setViewerOpen(false);
+    else runClose();
+  }, [viewerOpen, runClose]);
+
+  useBackClose(open, handleBackNavigation);
 
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {

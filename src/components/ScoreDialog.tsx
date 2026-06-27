@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useBackClose } from '../hooks/useBackClose';
 import styled from '@emotion/styled';
 import { toast } from 'sonner';
 
@@ -115,6 +116,8 @@ const ScoreDialog = ({
     setOpen(o);
     if (o) setValue(defaultValue?.toString() ?? '');
   };
+
+  useBackClose(open, () => handleOpenChange(false));
 
   const handleSave = () => {
     const num = Number(value);

@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import { useBackClose } from '../hooks/useBackClose';
 import {
   MESSAGE_REACTION_EMOJIS,
   MESSAGE_TYPE_COLOR,
@@ -52,6 +53,8 @@ const MessageModal = ({
     lockBodyScroll();
     return unlockBodyScroll;
   }, [isOpen]);
+
+  useBackClose(isOpen, onDismiss ?? onClose);
 
   const [displayMessage, setDisplayMessage] = useState(message);
   if (message && message !== displayMessage) {

@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import { Check as CheckIcon } from 'lucide-react';
 import {
   Backdrop,
@@ -28,6 +29,8 @@ const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props)
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  useBackClose(isOpen, onClose);
 
   return createPortal(
     <AnimatePresence>

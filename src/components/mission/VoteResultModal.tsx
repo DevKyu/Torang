@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import { Check } from 'lucide-react';
 import type { MissionRoles } from '../../hooks/useMission';
 import {
@@ -52,6 +53,8 @@ const VoteResultModal = ({
       document.body.style.overflow = '';
     };
   }, [isOpen]);
+
+  useBackClose(isOpen, onClose);
 
   const voteCounts = Object.values(votes).reduce<Record<string, number>>(
     (acc, target) => ({ ...acc, [target]: (acc[target] ?? 0) + 1 }),

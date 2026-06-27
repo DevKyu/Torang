@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import type { HiddenContent } from '../../hooks/useMission';
 import { HtmlBody, PlainBody } from '../../styles/MissionStyle';
 import {
@@ -27,6 +28,8 @@ const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  useBackClose(isOpen, onClose);
 
   return createPortal(
     <AnimatePresence>
