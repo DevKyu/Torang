@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import { createPortal } from 'react-dom';
 import {
   AnimatePresence,
@@ -213,6 +214,8 @@ export const LightBox = () => {
     onClose();
   }, [overlayOpacity, onClose]);
 
+  useBackClose(isOpen, runClose);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -228,23 +231,6 @@ export const LightBox = () => {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, commentOpen, prev, next, closeComment, runClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    window.history.pushState({ lb: true }, '');
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onPop = () => {
-      if (commentOpen) closeComment();
-      else runClose();
-    };
-
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, [isOpen, commentOpen, closeComment, runClose]);
 
   if (!isOpen) return null;
 

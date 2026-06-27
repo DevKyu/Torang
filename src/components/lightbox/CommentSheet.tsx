@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import {
   AnimatePresence,
   motion,
@@ -160,6 +161,7 @@ export const CommentSheet = () => {
   useEffect(() => {
     setReplyTo(null);
     setText('');
+    setLikeOpen(false);
   }, [commentIndex]);
 
   useLayoutEffect(() => {
@@ -182,6 +184,8 @@ export const CommentSheet = () => {
       onComplete: closeComment,
     });
   }, [closeComment, y]);
+
+  useBackClose(commentOpen, runClose);
 
   const onDragEnd = useCallback(
     (_: any, info: PanInfo) => {
@@ -235,6 +239,8 @@ export const CommentSheet = () => {
       const skipCount = myTotalCount >= MY_COMMENT_LIMIT;
       const realId = await addGalleryComment(ym, imageId, t, parentId, skipCount);
       if (realId) updateComment(imageId, tempId, { id: realId });
+    } catch {
+      storeDelete(imageId, tempId);
     } finally {
       sendingRef.current = false;
     }
@@ -248,6 +254,7 @@ export const CommentSheet = () => {
     myTotalCount,
     addComment,
     updateComment,
+    storeDelete,
     scrollToBottom,
   ]);
 

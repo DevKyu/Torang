@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useBackClose } from '../../hooks/useBackClose';
 import { AnimatePresence } from 'framer-motion';
 import { Heart, X } from 'lucide-react';
 import {
@@ -24,6 +25,8 @@ type Props = {
 };
 
 export const LikeSheet = ({ open, onClose, users, myId }: Props) => {
+  useBackClose(open, onClose);
+
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
       if (a === myId) return -1;
