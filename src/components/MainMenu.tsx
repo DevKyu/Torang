@@ -272,6 +272,7 @@ const MainMenu = () => {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: index * 0.04, ease: 'easeOut' }}
+            transformTemplate={(_, t) => `translateZ(0) ${t}`}
             whileTap={disabled ? undefined : { scale: 0.98 }}
             onPointerUp={(e) => { e.preventDefault(); if (e.isPrimary) handleClick(id, disabled); }}
             onContextMenu={(e) => e.preventDefault()}
