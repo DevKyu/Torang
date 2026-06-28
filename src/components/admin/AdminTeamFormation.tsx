@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import AdminLayout from './AdminLayout'
 import { db, fetchAllUsers } from '../../services/firebase'
 import { useUiStore } from '../../stores/useUiStore'
-import { SmallText } from '../../styles/commonStyle'
+import { SmallText } from '../../styles/global/commonStyle'
 import { getRecent3Scores, calcAvg } from '../../utils/score'
 import {
   generateTeams,
@@ -70,7 +70,7 @@ import {
   CaptureWrapper,
   CaptureTitle,
   CaptureCard,
-} from '../../styles/AdminTeamFormationStyle'
+} from '../../styles/admin/AdminTeamFormationStyle'
 
 type FormationStatus = 'none' | 'draft' | 'confirmed'
 

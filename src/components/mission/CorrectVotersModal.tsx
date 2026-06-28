@@ -14,7 +14,7 @@ import {
   Row,
   CheckWrap,
   CloseBtn,
-} from '../../styles/CorrectVotersModalStyle';
+} from '../../styles/mission/CorrectVotersModalStyle';
 
 type Props = {
   isOpen: boolean;

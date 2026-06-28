@@ -4,7 +4,7 @@ import {
   HeaderRow,
   MonthNavButton,
   MonthText,
-} from '../../styles/MonthNavigatorStyle';
+} from '../../styles/activity/MonthNavigatorStyle';
 
 type Props = {
   ym: string;

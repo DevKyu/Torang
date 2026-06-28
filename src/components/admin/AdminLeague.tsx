@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import {
   CancelBtn,
   ApplyScoreBtn,
@@ -37,7 +37,7 @@ import {
   PlayerRowWrap,
   PlayerRowMain,
   PlayerRowSub,
-} from '../../styles/AdminLeagueStyle';
+} from '../../styles/admin/AdminLeagueStyle';
 import type { RawGroup } from '../../hooks/useActivityLeague';
 
 type PlayerEntry = {

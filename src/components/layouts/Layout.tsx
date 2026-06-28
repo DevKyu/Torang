@@ -1,4 +1,4 @@
-import { Container, ContentBox, Title } from '../../styles/commonStyle';
+import { Container, ContentBox, Title } from '../../styles/global/commonStyle';
 
 type LayoutProps = {
   title?: string;

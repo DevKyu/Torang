@@ -44,8 +44,8 @@ import {
   AdminMainLink,
   AdminSubLinkRow,
   AdminSubLink,
-} from '../../styles/AdminUserManagementStyle';
-import { SmallText } from '../../styles/commonStyle';
+} from '../../styles/admin/AdminUserManagementStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 
 const MONTHS: Month[] = [
   '1',

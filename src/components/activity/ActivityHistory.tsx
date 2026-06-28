@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { cubicBezier } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
-import { MyInfoContainer, MyInfoBox } from '../../styles/myInfoStyle';
-import { Title as PageTitle } from '../../styles/commonStyle';
+import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
+import { Title as PageTitle } from '../../styles/global/commonStyle';
 import MonthNavigator from './MonthNavigator';
 import { useUiStore } from '../../stores/useUiStore';
 
@@ -20,8 +20,8 @@ import {
   Value,
   ContentCell,
   ActivitySummaryCell,
-} from '../../styles/ActivityHistoryStyle';
-import { SmallText } from '../../styles/commonStyle';
+} from '../../styles/activity/ActivityHistoryStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 
 import type { ActivityItem } from '../../types/activity';
 import ActivityBottomSheet from './ActivityBottomSheet';

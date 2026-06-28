@@ -1,9 +1,9 @@
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import GlobalStyle from './styles/GlobalStyle';
+import GlobalStyle from './styles/global/GlobalStyle';
 import { LoadingProvider } from './contexts/LoadingContext';
-import { LoadingOverlay } from './components/LoadingOverlay';
-import ErrorBoundary from './components/ErrorBoundary';
+import { LoadingOverlay } from './components/shared/LoadingOverlay';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 import RouteSpinner from './routes/RouteSpinner';
 import Router from './routes/Router';
 

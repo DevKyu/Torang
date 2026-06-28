@@ -7,7 +7,7 @@ import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import {
   MonthSelect,
   EmptyMsg,
@@ -46,7 +46,7 @@ import {
   SettingCell,
   SettingCellLabel,
   SettingDivider,
-} from '../../styles/AdminMissionStyle';
+} from '../../styles/admin/AdminMissionStyle';
 import {
   useMission,
   saveMissionContent,

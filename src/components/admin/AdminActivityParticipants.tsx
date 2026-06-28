@@ -9,7 +9,7 @@ import { db, fetchAllUsers } from '../../services/firebase';
 
 import type { UserInfo } from '../../types/UserInfo';
 
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 
 import {
   PageWrap,
@@ -41,7 +41,7 @@ import {
   ActivityDateLabel,
   ActivityDateInput,
   ActivityDateBtn,
-} from '../../styles/AdminActivityParticipantsStyle';
+} from '../../styles/admin/AdminActivityParticipantsStyle';
 
 const createMonthOptions = () => {
   const now = new Date();

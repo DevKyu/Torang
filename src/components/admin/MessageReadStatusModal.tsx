@@ -25,7 +25,7 @@ import {
   LoadingRow,
   Footer,
   CloseBtn,
-} from '../../styles/MessageReadStatusModalStyle';
+} from '../../styles/shared/MessageReadStatusModalStyle';
 
 type Props = {
   isOpen: boolean;

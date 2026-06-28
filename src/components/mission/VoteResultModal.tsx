@@ -21,7 +21,7 @@ import {
   MyVoteIndicator,
   Empty,
   CloseBtn,
-} from '../../styles/VoteResultModalStyle';
+} from '../../styles/mission/VoteResultModalStyle';
 
 type Props = {
   isOpen: boolean;

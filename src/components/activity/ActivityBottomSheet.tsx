@@ -45,7 +45,7 @@ import {
   TargetScoreRow,
   TargetScoreUnit,
   TargetScoreValue,
-} from '../../styles/ActivityBottomSheetStyle';
+} from '../../styles/activity/ActivityBottomSheetStyle';
 
 type Props = { open: boolean; item: ActivityItem | null; onClose: () => void };
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];

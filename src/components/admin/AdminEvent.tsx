@@ -6,7 +6,7 @@ import { useEventStore, type MenuBadgeType } from '../../stores/eventStore';
 import type { MatchType } from '../../types/match';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { distributeMatchPins, rollbackMatchPins } from '../../utils/pin';
 import {
   Section,
@@ -31,7 +31,7 @@ import {
   BadgeSelect,
   ToggleLabel,
   ToggleGroup,
-} from '../../styles/AdminEventStyle';
+} from '../../styles/admin/AdminEventStyle';
 
 const MENU_KEYS = [
   'user',

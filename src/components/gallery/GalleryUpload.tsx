@@ -21,9 +21,9 @@ import {
   ClearText,
   NoticeBox,
   BoostButton,
-} from '../../styles/galleryStyle';
+} from '../../styles/gallery/galleryStyle';
 
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import LightBox from '../lightbox/LightBox';
 import { preloadOpenUploadLightBox } from '../../utils/gallery';

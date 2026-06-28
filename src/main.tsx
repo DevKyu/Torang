@@ -1,7 +1,7 @@
 import { StrictMode, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import BowlingSplash from './components/BowlingSplash';
-import './styles/swiper.css';
+import BowlingSplash from './components/pages/BowlingSplash';
+import './styles/global/swiper.css';
 
 type AppComponent = React.ComponentType;
 

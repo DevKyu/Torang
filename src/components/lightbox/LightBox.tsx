@@ -33,7 +33,7 @@ import {
   Count,
   CountBox,
   NameBox,
-} from '../../styles/lightBoxStyle';
+} from '../../styles/lightbox/lightBoxStyle';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';

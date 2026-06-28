@@ -11,7 +11,7 @@ import {
   ToolDivider,
   ColorBtn,
   EditorArea,
-} from '../../styles/MissionRichEditorStyle';
+} from '../../styles/mission/MissionRichEditorStyle';
 
 const EXTENSIONS = [StarterKit, TextStyle, Color, Underline];
 

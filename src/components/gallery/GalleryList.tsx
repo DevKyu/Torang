@@ -9,7 +9,7 @@ import {
   GalleryBox,
   GalleryTitle,
   AddButton,
-} from '../../styles/galleryListStyle';
+} from '../../styles/gallery/galleryListStyle';
 
 import {
   HeaderRow,
@@ -18,7 +18,7 @@ import {
   FilterRow,
   FilterButton,
   EmptyBox,
-} from '../../styles/galleryListFilterStyle';
+} from '../../styles/gallery/galleryListFilterStyle';
 
 import {
   GridWrapper,
@@ -28,9 +28,9 @@ import {
   SwiperArea,
   InfoBar,
   InfoItem,
-} from '../../styles/galleryGridStyle';
+} from '../../styles/gallery/galleryGridStyle';
 
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';

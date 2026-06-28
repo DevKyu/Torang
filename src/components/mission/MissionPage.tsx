@@ -5,7 +5,7 @@ import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
 import { ClipLoader } from 'react-spinners';
 import Layout from '../layouts/Layout';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useMission, submitVote } from '../../hooks/useMission';
@@ -46,7 +46,7 @@ import {
   MissionEmptyIcon,
   MissionEmptyTitle,
   MissionEmptyDesc,
-} from '../../styles/MissionStyle';
+} from '../../styles/mission/MissionStyle';
 
 type VoterCardItemProps = {
   id: string;

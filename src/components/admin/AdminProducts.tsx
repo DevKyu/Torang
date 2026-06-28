@@ -8,7 +8,7 @@ import {
   getCachedUserName,
   preloadAllNames,
 } from '../../services/firebase';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { getQuarterEndYm } from '../../utils/date';
 import { computeAndSaveWinners } from '../../utils/computeAndSaveWinners';
 import type { ProductItem } from '../../types/Product';
@@ -38,7 +38,7 @@ import {
   DrawActionRow,
   StatusBadge,
   ComputeButton,
-} from '../../styles/AdminProductsStyle';
+} from '../../styles/admin/AdminProductsStyle';
 
 type DraftProduct = {
   name: string;

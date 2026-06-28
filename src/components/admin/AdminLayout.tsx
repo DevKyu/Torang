@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
 import { checkAdminId, waitForAuthUser } from '../../services/firebase';
-import { Container, ContentBox, Title } from '../../styles/commonStyle';
+import { Container, ContentBox, Title } from '../../styles/global/commonStyle';
 import { useRouteLoading } from '../../routes/RouteSpinner';
 
 type AdminLayoutProps = {

@@ -13,7 +13,7 @@ import {
   Sheet,
   Title,
   Wrapper,
-} from '../../styles/likeSheetStyle';
+} from '../../styles/lightbox/likeSheetStyle';
 import { getCachedUserName } from '../../services/firebase';
 import { getAvatarColor, getInitial } from '../../utils/avatar';
 

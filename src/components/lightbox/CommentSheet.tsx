@@ -39,7 +39,7 @@ import {
   MetaBar,
   LikeUsers,
   LikeCount,
-} from '../../styles/commentSheetStyle';
+} from '../../styles/lightbox/commentSheetStyle';
 import { LikeSheet } from './LikeSheet';
 
 const MY_COMMENT_LIMIT = 5;

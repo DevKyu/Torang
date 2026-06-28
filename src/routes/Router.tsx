@@ -1,19 +1,19 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Routes, Route } from 'react-router-dom';
-import Login from '../components/Login';
-import Menu from '../components/MainMenu';
+import Login from '../components/pages/Login';
+import Menu from '../components/pages/MainMenu';
 import ProtectedRoute from './ProtectedRoute';
 import MenuGuard from './MenuGuard';
 import { useRouteLoading } from './RouteSpinner';
-import Reward from '../components/Reward';
-import Draw from '../components/Draw';
-import Achievements from '../components/Achievements';
+import Reward from '../components/pages/Reward';
+import Draw from '../components/pages/Draw';
+import Achievements from '../components/pages/Achievements';
 import ActivityHistory from '../components/activity/ActivityHistory';
 import MissionPage from '../components/mission/MissionPage';
-import TeamFormation from '../components/TeamFormation';
+import TeamFormation from '../components/pages/TeamFormation';
 
-const preloadMyInfo = () => import('../components/MyInfo');
-const preloadRanking = () => import('../components/Ranking');
+const preloadMyInfo = () => import('../components/pages/MyInfo');
+const preloadRanking = () => import('../components/pages/Ranking');
 const preloadGalleryPage = () => import('../components/gallery/GalleryPage');
 
 const MyInfo = lazy(preloadMyInfo);

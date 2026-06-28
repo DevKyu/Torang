@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
 import type { HiddenContent } from '../../hooks/useMission';
-import { HtmlBody, PlainBody } from '../../styles/MissionStyle';
+import { HtmlBody, PlainBody } from '../../styles/mission/MissionStyle';
 import {
   Backdrop,
   Card,
@@ -14,7 +14,7 @@ import {
   Divider,
   ContentArea,
   ConfirmBtn,
-} from '../../styles/HiddenMissionModalStyle';
+} from '../../styles/mission/HiddenMissionModalStyle';
 
 type Props = {
   isOpen: boolean;

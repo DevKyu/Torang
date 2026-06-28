@@ -7,7 +7,7 @@ import MissionRichEditor from './MissionRichEditor';
 import MessageReadStatusModal from './MessageReadStatusModal';
 import { db, getCurrentUserOrThrow, empIdFromEmail } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { SmallText } from '../../styles/commonStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import {
   FormTitle,
   FieldLabel,
@@ -42,7 +42,7 @@ import {
   DisplayTimeField,
   DisplayTimeCaption,
   DisplayTimeInput,
-} from '../../styles/AdminMessagesStyle';
+} from '../../styles/admin/AdminMessagesStyle';
 import {
   useAdminMessages,
   sendMessage,
