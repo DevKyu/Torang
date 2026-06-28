@@ -607,7 +607,7 @@ const AdminTeamFormation = () => {
             return { empId, name, average: avg }
           }))
         }
-      } catch {}
+      } catch { /* ignore */ }
     }
     setEditMode(v => !v)
     setAddingTo(null)
@@ -630,7 +630,7 @@ const AdminTeamFormation = () => {
     setAddingTo(null)
   }, [])
 
-  const displayGroups = draft ?? (saved?.groups ?? [])
+  const displayGroups = useMemo(() => draft ?? (saved?.groups ?? []), [draft, saved?.groups])
   const isConfirmed = saved?.status === 'confirmed'
   const isLegacy = saved?.isLegacy ?? false
 

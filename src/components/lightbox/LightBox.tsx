@@ -176,7 +176,7 @@ export const LightBox = () => {
   }, [isOpen, overlayOpacity]);
 
   const onDragEnd = useCallback(
-    (_: any, info: PanInfo) => {
+    (_: unknown, info: PanInfo) => {
       const { offset, velocity } = info;
       const T = 16;
       const V = 130;

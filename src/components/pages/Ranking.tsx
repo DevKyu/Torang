@@ -147,6 +147,7 @@ const Ranking = () => {
       }
     })();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const quarterEntries = useMemo(
@@ -286,6 +287,7 @@ const Ranking = () => {
         appliedRef.current = false;
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchResults, myId, activityYm]);
 
   const resultMessages = useMemo(() => {
@@ -415,6 +417,7 @@ const Ranking = () => {
         </MotionTableRow>
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [rankingType, ym, myId, timeAllowed, myLeague, participants, handleSendLetter, ranking],
   );
 

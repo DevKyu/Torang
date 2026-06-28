@@ -87,7 +87,7 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
   useBackClose(open, runClose);
 
   const handleDragEnd = useCallback(
-    (_: any, info: PanInfo) => {
+    (_: unknown, info: PanInfo) => {
       const scrollTop = contentRef.current?.scrollTop ?? 0;
       if (scrollTop > 5) {
         resetPosition();

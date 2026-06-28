@@ -45,7 +45,7 @@ type GalleryItem = {
   uploadedAt: number;
   order?: number;
   empId: string;
-  likes?: Record<string, any>;
+  likes?: Record<string, true>;
   comments?: Record<string, LightboxComment>;
 };
 
@@ -162,7 +162,7 @@ const GalleryList = ({
         })(),
       })),
     );
-  }, [sorted, open, setImages, ym]);
+  }, [sorted, open, setImages, ym, loading]);
 
   const pages = useMemo(() => {
     const rows: (GalleryItem | null)[][] = [];

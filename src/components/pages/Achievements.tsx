@@ -137,6 +137,7 @@ const Achievements = () => {
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityLoading, activityMaps, isPinRewardEnabled]);
 
   useEffect(() => {

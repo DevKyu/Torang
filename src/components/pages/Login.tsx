@@ -143,8 +143,8 @@ const Login = () => {
         }
         return;
       }
-    } catch (error: any) {
-      const code = error.code;
+    } catch (error: unknown) {
+      const code = (error as { code?: string }).code ?? '';
       const isInitialPassword =
         employeeId.length === 8 &&
         employeeId === password &&

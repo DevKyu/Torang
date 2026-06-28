@@ -133,7 +133,7 @@ const AdminMission = () => {
       try {
         const snap = await get(ref(db, 'names'));
         if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch {}
+      } catch { /* ignore */ }
     })();
   }, []);
 
@@ -379,7 +379,7 @@ const AdminMission = () => {
   }, [currentYm]);
 
   const status = data?.config?.status ?? 'draft';
-  const votes = data?.votes ?? {};
+  const votes = useMemo(() => data?.votes ?? {}, [data?.votes]);
   const totalVotes = Object.keys(votes).length;
 
   const voteCounts = useMemo(() => {

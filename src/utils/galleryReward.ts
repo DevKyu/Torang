@@ -7,6 +7,7 @@ import {
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
 import { showGalleryRewardToast, showGalleryPopularityRewardToast } from './toast';
+import type { LightboxComment } from '../types/lightbox';
 
 export const rewardGalleryMaxUpload = async (ym: string, uploadedCount: number) => {
   const empId = getCurrentUserId();
@@ -90,7 +91,7 @@ export const rewardGalleryCommentCreator = async (
   ym: string,
   imageId: string,
   creatorEmpId: string,
-  rawComments: Record<string, any>,
+  rawComments: Record<string, LightboxComment>,
 ): Promise<number | null> => {
   const cfg = useEventStore.getState().getGalleryReward(ym);
   const { pin, threshold } = cfg.commentCreator;
@@ -98,8 +99,8 @@ export const rewardGalleryCommentCreator = async (
 
   const uniqueEmpIds = new Set(
     Object.values(rawComments)
-      .filter((c: any) => !c.deleted && !c.parentId && c.empId !== creatorEmpId)
-      .map((c: any) => c.empId),
+      .filter((c) => !c.deleted && !c.parentId && c.empId !== creatorEmpId)
+      .map((c) => c.empId),
   );
   const count = uniqueEmpIds.size;
   if (count < threshold) return null;

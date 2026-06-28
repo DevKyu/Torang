@@ -7,6 +7,7 @@ export const useLightBox = (images?: GalleryImage[]) => {
 
   useEffect(() => {
     if (images) store.setImages(images);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images]);
 
   return store;

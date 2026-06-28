@@ -174,7 +174,7 @@ const AdminProducts = () => {
         ...(d.winners.length > 0 ? { winners: d.winners } : {}),
       }));
 
-      const batch: Record<string, any> = {
+      const batch: Record<string, unknown> = {
         [`products/${selectedYm}/items`]: items,
       };
       if (meta?.winnersReady) {

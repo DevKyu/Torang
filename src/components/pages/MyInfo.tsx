@@ -66,8 +66,8 @@ const MyInfo = () => {
   const [quarter, setQuarter] = useState(monthToQuarter(serverMonth));
   const [optimisticTargets, setOptimisticTargets] = useState<UserTargets>({});
 
-  const scores: UserScores = userInfo?.scores ?? {};
-  const targets: UserTargets = userInfo?.targets ?? {};
+  const scores = useMemo<UserScores>(() => userInfo?.scores ?? {}, [userInfo?.scores]);
+  const targets = useMemo<UserTargets>(() => userInfo?.targets ?? {}, [userInfo?.targets]);
   const typeLabel = getTypeLabel(type);
 
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
@@ -190,6 +190,7 @@ const MyInfo = () => {
         special,
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     targetResult.show,
     targetResult.achieved,

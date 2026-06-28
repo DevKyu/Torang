@@ -1,6 +1,7 @@
+import { type CSSProperties } from 'react';
 import styled from '@emotion/styled';
 
-export const POPOVER_STYLE: React.CSSProperties = {
+export const POPOVER_STYLE: CSSProperties = {
   backgroundColor: '#f9fafb',
   padding: '8px 12px',
   borderRadius: '12px',

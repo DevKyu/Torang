@@ -13,11 +13,11 @@ type MiniTrendChartProps = {
   height?: number;
 };
 
-const DotLabel = memo(({ x, y, value }: any) =>
+const DotLabelFn = ({ x, y, value }: { x?: number; y?: number; value?: number | null }) =>
   value == null ? null : (
     <text
       x={x}
-      y={y + 16}
+      y={(y ?? 0) + 16}
       textAnchor="middle"
       fontSize={12}
       fontWeight={600}
@@ -25,8 +25,8 @@ const DotLabel = memo(({ x, y, value }: any) =>
     >
       {value}
     </text>
-  )
-);
+  );
+const DotLabel = memo(DotLabelFn);
 DotLabel.displayName = 'DotLabel';
 
 const MiniTrendChart = ({

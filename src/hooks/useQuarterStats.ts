@@ -23,9 +23,8 @@ export const useQuarterStats = (
 ): Return => {
   const months = quarters[quarter];
 
-  const yearScores = scores[asYear(year)] ?? {};
-
   return useMemo(() => {
+    const yearScores = scores[asYear(year)] ?? {};
     const curArr = months.map((m) => yearScores?.[asMonth(m)]);
     const avgCur = calcAvg(curArr);
 
@@ -42,5 +41,5 @@ export const useQuarterStats = (
     ).length;
 
     return { months, curArr, avgCur, avgPrev, validCount };
-  }, [months, yearScores, scores, year, quarter]);
+  }, [months, scores, year, quarter]);
 };

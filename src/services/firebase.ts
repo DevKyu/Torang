@@ -105,7 +105,7 @@ export const registerUid = async (empId: string, referrerName?: string) => {
   const uid = getCurrentUserOrThrow().uid;
   const join = getYearMonth();
 
-  const userUpdates: Record<string, any> = { uid, join };
+  const userUpdates: Record<string, unknown> = { uid, join };
   await update(ref(db, `users/${empId}`), userUpdates);
 
   if (referrerName && referrerName.trim()) {
@@ -180,7 +180,7 @@ export const getProductData = async (ym: string) => {
 
 export const getProductDataWithRaffle = async (ym: string) => {
   const all = await getProductData(ym);
-  return all?.filter((product: any) => product.raffle?.length > 0);
+  return all?.filter((product: { raffle?: unknown[] }) => (product.raffle?.length ?? 0) > 0);
 };
 
 export const parseProductBundle = (snapshot: DataSnapshot): ProductBundle => {
@@ -259,7 +259,7 @@ export const resetAllUserPins = async (value: number = 0) => {
   if (!snapshot.exists()) return;
 
   const users = snapshot.val();
-  const updates: Record<string, any> = {};
+  const updates: Record<string, unknown> = {};
 
   Object.keys(users).forEach((empId) => {
     updates[`users/${empId}/pin`] = value;
@@ -448,11 +448,11 @@ export const saveMatchResult = async (
 // 12. 업적 관련
 export const getUserMatchResults = async (
   ym: string,
-): Promise<Record<MatchType, Record<string, any>>> => {
+): Promise<Record<MatchType, Record<string, unknown>>> => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   const types: MatchType[] = ['rival', 'pin'];
 
-  const result = {} as Record<MatchType, Record<string, any>>;
+  const result = {} as Record<MatchType, Record<string, unknown>>;
 
   for (const type of types) {
     const snap = await get(ref(db, `matchResults/${ym}/${type}/${empId}`));
@@ -465,7 +465,7 @@ export const getUserMatchResults = async (
 };
 
 export const getAllUserMatchResults = async (): Promise<
-  Record<string, Record<MatchType, Record<string, Record<string, any>>>>
+  Record<string, Record<MatchType, Record<string, Record<string, unknown>>>>
 > => {
   const snapshot = await get(ref(db, 'matchResults'));
   return snapshot.exists() ? snapshot.val() : {};
@@ -478,7 +478,7 @@ export const saveAchievements = async (
 ) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
 
-  const updates: Record<string, any> = {
+  const updates: Record<string, unknown> = {
     [`users/${empId}/achievements`]: achievements,
   };
   if (updateLast) {
@@ -589,7 +589,7 @@ export const getAfterPartyParticipation = async (
 
   for (const [year, months] of Object.entries(data)) {
     for (const [month, members] of Object.entries(
-      months as Record<string, any>,
+      months as Record<string, Record<string, boolean>>,
     )) {
       if (members[empId]) {
         result[year] ??= {};

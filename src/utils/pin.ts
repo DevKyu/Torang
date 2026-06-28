@@ -70,7 +70,7 @@ export const applyPinChangeBatch = async (
   const serverTs = serverNow.getTime();
   const serverReadable = getServerTimestamp();
 
-  const updates: Record<string, any> = {};
+  const updates: Record<string, unknown> = {};
   let gainedPins = 0;
 
   for (const { opponentId, opponentName, result } of results) {

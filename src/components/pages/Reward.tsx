@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import type { ProductItem as ProductItemType } from '../../types/Product';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -111,7 +112,7 @@ const Reward = () => {
         const isDrawDone = bundle.meta?.winnersReady ?? false;
 
         const prodList: Product[] = (bundle.items ?? [])
-          .map((item: any, i: number) => ({
+          .map((item: ProductItemType, i: number) => ({
             name: item.name ?? '',
             requiredPins: item.requiredPins ?? 0,
             index: String(item.index ?? i),
@@ -198,7 +199,7 @@ const Reward = () => {
   const toggleSelect = (index: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(index) ? next.delete(index) : next.add(index);
+      if (next.has(index)) { next.delete(index); } else { next.add(index); }
       return next;
     });
   };

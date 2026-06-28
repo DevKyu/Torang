@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { type TouchEvent, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   HeaderRow,
@@ -65,12 +65,12 @@ const MonthNavigator = ({ ym, minYm, maxYm, onChange }: Props) => {
 
   const touchStartX = useRef<number | null>(null);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   }, []);
 
   const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
+    (e: TouchEvent) => {
       if (touchStartX.current === null) return;
       const diff = e.changedTouches[0].clientX - touchStartX.current;
       touchStartX.current = null;

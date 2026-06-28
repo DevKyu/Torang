@@ -54,7 +54,7 @@ export const ProductCard = ({
   const raffleNames = useMemo(() => {
     if (raffleCount === 0) return [];
     return raffle.map(getCachedUserName);
-  }, [raffle]);
+  }, [raffle, raffleCount]);
 
   const handleShowHiddenNames = useCallback(() => {
     if (raffleNames.length === 0) return;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
@@ -8,7 +8,7 @@ import { useRouteLoading } from '../../routes/RouteSpinner';
 
 type AdminLayoutProps = {
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 const AdminLayout = ({ title, children }: AdminLayoutProps) => {

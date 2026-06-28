@@ -136,7 +136,7 @@ const AdminLeague = () => {
       try {
         const snap = await get(ref(db, 'names'));
         if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch {}
+      } catch { /* ignore */ }
     })();
   }, []);
 
@@ -157,6 +157,7 @@ const AdminLeague = () => {
     if (editing.winner !== auto) {
       setEditing((prev) => (prev ? { ...prev, winner: auto } : prev));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing?.team1, editing?.team2]);
 
   const closeEditing = () => {

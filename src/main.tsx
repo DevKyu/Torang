@@ -1,9 +1,9 @@
-import { StrictMode, useState, useEffect } from 'react';
+import { type ComponentType, type CSSProperties, StrictMode, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import BowlingSplash from './components/pages/BowlingSplash';
 import './styles/global/swiper.css';
 
-type AppComponent = React.ComponentType;
+type AppComponent = ComponentType;
 
 if (/iP(hone|od|ad)/.test(navigator.userAgent)) {
   document.body.classList.add('ios');
@@ -21,7 +21,7 @@ const loadApp = (): Promise<typeof import('./App')> =>
 
 const appPromise = loadApp();
 
-const FAIL_SCREEN_STYLE: React.CSSProperties = {
+const FAIL_SCREEN_STYLE: CSSProperties = {
   position: 'fixed',
   top: 0,
   right: 0,

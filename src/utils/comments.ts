@@ -1,4 +1,4 @@
-import { ref, get, set, update, remove, onValue, off, increment } from 'firebase/database';
+import { type DataSnapshot, ref, get, set, update, remove, onValue, off, increment } from 'firebase/database';
 import { db, getCurrentUserId, getCachedUserName } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import { scheduleLikeUpdate } from './likeScheduler';
@@ -79,10 +79,10 @@ export const deleteGalleryComment = async (
 
   const raw = snap.val() as Record<string, Raw>;
   const children = Object.entries(raw)
-    .filter(([_, v]) => v.parentId === cid)
+    .filter(([, v]) => v.parentId === cid)
     .map(([id]) => id);
 
-  const updates: Record<string, any> = {
+  const updates: Record<string, unknown> = {
     [`${base}/${cid}/deleted`]: true,
     [`${base}/${cid}/text`]: '',
   };
@@ -127,7 +127,7 @@ export const subscribeGalleryComments = (
   const commentsRef = ref(db, `gallery/${ym}/${imageId}/comments`);
   const empId = getCurrentUserId();
 
-  const handler = (snap: any) => {
+  const handler = (snap: DataSnapshot) => {
     if (!snap.exists()) {
       cb([]);
       return;

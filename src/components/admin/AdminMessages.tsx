@@ -110,8 +110,7 @@ const AdminMessages = () => {
       try {
         const snap = await get(ref(db, 'names'));
         if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch {
-      } finally {
+      } catch { /* ignore */ } finally {
         setNamesLoaded(true);
       }
     })();

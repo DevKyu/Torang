@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { type ReactNode, useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import {
@@ -52,7 +52,7 @@ import {
 type MenuItemBase = {
   id: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 type MenuItem = MenuItemBase & {

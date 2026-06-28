@@ -83,7 +83,7 @@ export const CommentSheet = () => {
 
   const empId = getCurrentUserId();
   const myName = empId ? getCachedUserName(empId) : '나';
-  const likedUsers = image?.likedUsers ?? [];
+  const likedUsers = useMemo(() => image?.likedUsers ?? [], [image?.likedUsers]);
   const likedNames = useMemo(
     () => likedUsers.map((id) => getCachedUserName(id)),
     [likedUsers],
@@ -188,7 +188,7 @@ export const CommentSheet = () => {
   useBackClose(commentOpen, runClose);
 
   const onDragEnd = useCallback(
-    (_: any, info: PanInfo) => {
+    (_: unknown, info: PanInfo) => {
       if (closingRef.current) {
         animate(y, 440, {
           duration: 0.2,

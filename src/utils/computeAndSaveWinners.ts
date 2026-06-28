@@ -17,7 +17,7 @@ export const computeAndSaveWinners = async (ym: string): Promise<void> => {
   );
   const { winnersPerProduct, supplementPerProduct } = batchComputeWinners(sortedProducts, userMap);
 
-  const updates: Record<string, any> = {};
+  const updates: Record<string, unknown> = {};
   for (const [index, winners] of Object.entries(winnersPerProduct)) {
     updates[`products/${ym}/items/${index}/winners`] = winners;
   }

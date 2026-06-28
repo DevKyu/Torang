@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useMemo } from 'react';
+import { type CSSProperties, memo, useState, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useLatestRef } from '../../hooks/useLatestRef';
 
@@ -16,19 +16,19 @@ const SYS_FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
 const LANE_LINES = ['calc(50% - 100px)', 'calc(50% + 100px)'];
 
-const GPU: React.CSSProperties = {
+const GPU: CSSProperties = {
   transform: 'translate3d(0,0,0)',
   backfaceVisibility: 'hidden',
   WebkitBackfaceVisibility: 'hidden',
 };
 
-const HOLE: React.CSSProperties = {
+const HOLE: CSSProperties = {
   position: 'absolute',
   borderRadius: '50%',
   background: 'rgba(0,10,60,0.45)',
 };
 
-const LABEL_WRAPPER: React.CSSProperties = {
+const LABEL_WRAPPER: CSSProperties = {
   position: 'absolute',
   top: '50%',
   left: '50%',
@@ -38,7 +38,7 @@ const LABEL_WRAPPER: React.CSSProperties = {
   WebkitBackfaceVisibility: 'hidden',
 };
 
-const BowlingPinShape = memo(({ uid }: { uid: number }) => {
+const BowlingPinShapeFn = ({ uid }: { uid: number }) => {
   const gId = `pg-${uid}`;
 
   return (
@@ -68,7 +68,8 @@ const BowlingPinShape = memo(({ uid }: { uid: number }) => {
       />
     </svg>
   );
-});
+};
+const BowlingPinShape = memo(BowlingPinShapeFn);
 
 const PINS = [
   { id: 0, rx: 0,   ry: 30,  sx: 0,    sy: -140 },
@@ -137,6 +138,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     return () => {
       document.removeEventListener('visibilitychange', measure);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pinFrontRy = -(screenH * 0.29);
@@ -166,6 +168,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
       const t = setTimeout(() => setAnimDone(true), 800);
       return () => clearTimeout(t);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, trajectory, animArmed]);
 
   useEffect(() => {
@@ -173,6 +176,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     setPhase('fadeout');
     const t = setTimeout(() => onCompleteRef.current(), 900);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animDone, readyToComplete]);
 
   useEffect(() => {

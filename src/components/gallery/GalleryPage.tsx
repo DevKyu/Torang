@@ -27,6 +27,7 @@ import { useActivityDates } from '../../hooks/useActivityDates';
 import { useUiStore } from '../../stores/useUiStore';
 import { useEventStore } from '../../stores/eventStore';
 import { getInitialGalleryYm } from '../../utils/gallery';
+import type { LightboxComment } from '../../types/lightbox';
 import { applyGalleryBoost } from '../../utils/galleryBoost';
 import {
   rewardGalleryMaxUpload,
@@ -42,8 +43,8 @@ export type GalleryItem = {
   empId: string;
   uploadedAt: number;
   order?: number;
-  likes?: Record<string, any>;
-  comments?: Record<string, any>;
+  likes?: Record<string, true>;
+  comments?: Record<string, LightboxComment>;
 };
 
 const GalleryPage = () => {
@@ -121,7 +122,7 @@ const GalleryPage = () => {
         return;
       }
 
-      const list = Object.entries(snap.val()).map(([id, v]: any) => ({
+      const list = Object.entries(snap.val() as Record<string, GalleryItem>).map(([id, v]) => ({
         id,
         url: v.url,
         caption: v.caption ?? '',

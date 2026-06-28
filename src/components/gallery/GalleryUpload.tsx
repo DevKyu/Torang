@@ -41,6 +41,7 @@ export type GalleryUploadProps = {
 
 const MAX_FILES = GALLERY_POLICY.BASE_UPLOAD;
 const MAX_CAPTION_LENGTH = 20;
+const MAX_GIF_SIZE = 6 * 1024 * 1024;
 
 const waitForKeyboardToClose = () =>
   new Promise((resolve) => {
@@ -76,11 +77,10 @@ const GalleryUpload = ({
     if (url.startsWith('blob:')) {
       try {
         URL.revokeObjectURL(url);
-      } catch {}
+      } catch { /* ignore */ }
     }
   }, []);
 
-  const MAX_GIF_SIZE = 6 * 1024 * 1024;
   const compress = useCallback(async (file: File) => {
     if (file.type === 'image/gif') {
       if (file.size > MAX_GIF_SIZE) {
@@ -210,6 +210,7 @@ const GalleryUpload = ({
   useEffect(() => {
     const arr = items.map((i) => i.preview);
     return () => arr.forEach(revoke);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const blocked = disabled && reason !== 'loading';

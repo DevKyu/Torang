@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { X } from 'lucide-react';
 import { useBackClose } from '../../hooks/useBackClose';
 import styled from '@emotion/styled';
@@ -97,8 +97,8 @@ export type ScoreDialogProps = {
   minScore: number;
   defaultValue?: number | null;
   onSave: (val: number) => void;
-  children?: React.ReactNode;
-  trigger?: (open: () => void) => React.ReactNode;
+  children?: ReactNode;
+  trigger?: (open: () => void) => ReactNode;
 };
 
 const ScoreDialog = ({

@@ -14,6 +14,7 @@ export type GalleryImage = {
 export type LightboxComment = {
   id: string;
   parentId: string | null;
+  empId?: string;
   user: string;
   text: string;
   createdAt: number;

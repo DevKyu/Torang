@@ -329,6 +329,7 @@ export const useMessageReadStatus = (
       readsUnsub();
       reactionsUnsub();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, message?.id]);
 
   const loading =

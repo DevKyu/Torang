@@ -1,10 +1,11 @@
+import { type ReactNode } from 'react';
 import { Container, ContentBox, Title } from '../../styles/global/commonStyle';
 
 type LayoutProps = {
   title?: string;
   maxWidth?: string;
   padding?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 const Layout = ({ title, maxWidth, padding, children }: LayoutProps) => {

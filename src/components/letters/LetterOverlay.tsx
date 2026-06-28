@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { type ChangeEvent, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import styled from '@emotion/styled';
 
@@ -26,7 +26,7 @@ const LetterOverlay = ({ targetName, open, onSubmit, onClose }: Props) => {
     }
   }, [open, targetName]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const lines = value.split('\n');
 
