@@ -308,6 +308,7 @@ export const LightBox = () => {
                             inset: 0,
                             maxHeight: '100%',
                             background: 'rgba(0,0,0,0.32)',
+                            WebkitBackdropFilter: 'blur(10px)',
                             backdropFilter: 'blur(10px)',
                           }}
                         />

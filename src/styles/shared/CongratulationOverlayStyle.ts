@@ -43,6 +43,7 @@ export const Backdrop = styled(motion.div)`
   position: fixed;
   inset: 0;
   background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
