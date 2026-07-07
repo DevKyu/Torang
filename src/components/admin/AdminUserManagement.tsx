@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
@@ -16,6 +16,7 @@ import {
 } from '../../services/firebase';
 import type { UserInfo, Year, Month } from '../../types/UserInfo';
 import { CUR_MONTHN, CUR_YEAR } from '../../constants/date';
+import { useUiStore } from '../../stores/useUiStore';
 import {
   SearchRow,
   ResultList,
@@ -61,7 +62,7 @@ const MONTHS: Month[] = [
   '11',
   '12',
 ];
-const YEARS: Year[] = ['2022', '2023', '2024', '2025', '2026'] as Year[];
+const FIRST_SCORE_YEAR = 2022;
 
 const getCurrentMonthInput = () => {
   const d = new Date();
@@ -92,6 +93,13 @@ const AdminUserManagement = () => {
   const [newJoin, setNewJoin] = useState(getCurrentMonthInput());
   const navigate = useNavigate();
   const goBack = useNavigateBack();
+
+  const years = useMemo<Year[]>(() => {
+    const end = Number(useUiStore.getState().formatServerDate('year'));
+    const list: Year[] = [];
+    for (let y = FIRST_SCORE_YEAR; y <= end; y++) list.push(String(y) as Year);
+    return list;
+  }, []);
 
   useEffect(() => {
     fetchAllUsers().then(setUsers);
@@ -433,7 +441,7 @@ const AdminUserManagement = () => {
                     setOpenYear(val as Year);
                   }}
                 >
-                  {YEARS.map((y) => (
+                  {years.map((y) => (
                     <InnerItem key={y} value={y}>
                       <AccordionHeader>
                         <InnerTrigger>{y}년</InnerTrigger>
