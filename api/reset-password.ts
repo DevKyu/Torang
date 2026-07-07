@@ -41,8 +41,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await auth.updateUser(userRecord.uid, { password: newPassword });
 
     res.status(200).json({ success: true });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Password reset error:', err);
-    res.status(400).json({ error: err.message });
+    res.status(400).json({
+      error: err instanceof Error ? err.message : 'unknown error',
+    });
   }
 }

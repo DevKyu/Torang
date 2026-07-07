@@ -178,11 +178,6 @@ export const getProductData = async (ym: string) => {
   return snapshot.exists() ? snapshot.val() : null;
 };
 
-export const getProductDataWithRaffle = async (ym: string) => {
-  const all = await getProductData(ym);
-  return all?.filter((product: { raffle?: unknown[] }) => (product.raffle?.length ?? 0) > 0);
-};
-
 export const parseProductBundle = (snapshot: DataSnapshot): ProductBundle => {
   if (!snapshot.exists()) {
     return { items: [], meta: {} };
@@ -328,25 +323,6 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
   }
 };
 
-// 8. 추첨 관련
-export const drawWinnerIfNotExists = async (
-  ym: string,
-  productIndex: number,
-  raffle: string[],
-): Promise<string | undefined> => {
-  const winnerRef = ref(db, `products/${ym}/items/${productIndex}/winner`);
-
-  const result = await runTransaction(winnerRef, (current) => {
-    if (current !== null) return current;
-    if (!raffle || raffle.length === 0) return null;
-
-    const randomIndex = Math.floor(Math.random() * raffle.length);
-    return raffle[randomIndex];
-  });
-
-  return result.snapshot.val() || undefined;
-};
-
 let nameCache: Record<string, string> = {};
 let allNamesLoaded = false;
 
@@ -405,7 +381,6 @@ export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
         type: u.type,
         scores: u.scores,
         targets: u.targets,
-        usedItems: u.usedItems,
         invitedCount: u.invitedCount,
       } as UserInfo,
     ]),
@@ -496,25 +471,6 @@ export const getActivityParticipants = async (
   return snap.exists() ? Object.keys(snap.val()) : [];
 };
 
-export const setActivityParticipant = async (year: string, month: string) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const r = ref(db, `activityParticipants/${year}/${month}/${empId}`);
-  await runTransaction(r, (current) => {
-    return current === true ? current : true;
-  });
-};
-
-export const removeActivityParticipant = async (
-  year: string,
-  month: string,
-) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const r = ref(db, `activityParticipants/${year}/${month}/${empId}`);
-  await runTransaction(r, (current) => {
-    return current === null ? current : null;
-  });
-};
-
 // 14. 점수 관련
 export const getUserYearScores = async (
   empId: string,
@@ -535,15 +491,6 @@ export const getUserYearScores = async (
   return cleanData;
 };
 
-export const getUserMonthScore = async (
-  empId: string,
-  year: Year,
-  month: Month,
-): Promise<number | undefined> => {
-  const snap = await get(ref(db, `users/${empId}/scores/${year}/${month}`));
-  return snap.exists() ? (snap.val() as number) : undefined;
-};
-
 export const setUserMonthScore = async (
   empId: string,
   year: Year,
@@ -551,23 +498,6 @@ export const setUserMonthScore = async (
   score: number,
 ) => {
   await set(ref(db, `users/${empId}/scores/${year}/${month}`), score);
-};
-
-export const updateUserScores = async (
-  empId: string,
-  year: Year,
-  scores: Partial<Record<Month, number>>,
-) => {
-  const updates: Record<string, number> = {};
-  Object.entries(scores).forEach(([month, val]) => {
-    if (typeof val === 'number') {
-      updates[`users/${empId}/scores/${year}/${month}`] = val;
-    }
-  });
-
-  if (Object.keys(updates).length > 0) {
-    await update(ref(db), updates);
-  }
 };
 
 export const removeUserScore = async (

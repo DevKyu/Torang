@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import { asYear, asMonth } from '../utils/score';
-import { getResultType } from '../utils/ranking';
+import { getResultType, type Result } from '../utils/ranking';
 import type { UserInfo } from '../types/UserInfo';
 import type { YearMonth, MatchType } from '../types/match';
-import type { Incoming } from './useMatchIncoming';
 import type { ReceivedLetter } from './useReceivedLetters';
+
+export type Incoming = {
+  name: string;
+  result: Result;
+  delta?: number;
+};
 
 type RawMatchData = Record<
   string,

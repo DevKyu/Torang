@@ -1,13 +1,5 @@
 import { useUiStore } from '../stores/useUiStore';
 
-export const toYmd = (d?: Date): string => {
-  const date = d ?? useUiStore.getState().getServerNow();
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${y}${m}${day}`;
-};
-
 export const canEditTarget = (
   activityYmd?: string,
   {

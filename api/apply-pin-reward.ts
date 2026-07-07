@@ -56,8 +56,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await Promise.all(ops);
     res.status(200).json({ success: true });
-  } catch (e: any) {
+  } catch (e) {
     console.error('[APPLY PIN]', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({
+      error: e instanceof Error ? e.message : 'unknown error',
+    });
   }
 }

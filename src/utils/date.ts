@@ -30,20 +30,6 @@ export const getQuarterEndYm = (date = new Date()): string => {
   return `${year}${String(endMonth).padStart(2, '0')}`;
 };
 
-export const getDiffDays = (activityYmd: string): number => {
-  if (!activityYmd || activityYmd.length !== 8) return Infinity;
-
-  const today = new Date();
-  const actDate = new Date(
-    Number(activityYmd.slice(0, 4)),
-    Number(activityYmd.slice(4, 6)) - 1,
-    Number(activityYmd.slice(6, 8)),
-  );
-
-  const diffMs = today.getTime() - actDate.getTime();
-  return diffMs / (1000 * 60 * 60 * 24);
-};
-
 export const getDiffDaysServer = (activityYmd: string): number => {
   if (!activityYmd || activityYmd.length !== 8) return Infinity;
 

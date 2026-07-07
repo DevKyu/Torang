@@ -2,9 +2,6 @@ import type { Month, UserScores } from '../types/UserInfo';
 import { useUiStore } from '../stores/useUiStore';
 import { asYear, normalizeMonth } from './score';
 
-export const today = (): string =>
-  useUiStore.getState().getServerNow().toISOString().slice(0, 10);
-
 export const todayYm = (): string =>
   useUiStore.getState().formatServerDate('ym');
 

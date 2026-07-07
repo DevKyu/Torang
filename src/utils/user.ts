@@ -26,8 +26,3 @@ export const getAllUserInfo = async (
 
   return result;
 };
-
-export const getAllUsers = async (): Promise<Record<string, UserInfo>> => {
-  const allUsers = await fetchAllUsers();
-  return allUsers as Record<string, UserInfo>;
-};
