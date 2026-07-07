@@ -28,7 +28,6 @@ export const applyGalleryBoost = async (ym: string) => {
   if (serverPin < 1) return null;
 
   const tx = await runTransaction(pinRef, (cur) => {
-    // cur는 캐시 미적재 시 null로 먼저 호출됨 — abort 대신 서버 읽기 값으로 시드
     const pin = typeof cur === 'number' ? cur : serverPin;
     if (pin < 1) return;
     return pin - 1;
