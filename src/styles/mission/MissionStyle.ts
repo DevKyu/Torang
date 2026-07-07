@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
+export const MISSION_INFO_MIN_HEIGHT = 220;
+
 export const MissionCard = styled.div`
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -94,6 +96,11 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
 export const UpcomingCard = styled.div`
   text-align: center;
   padding: 40px 16px;
+  min-height: ${MISSION_INFO_MIN_HEIGHT}px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
 `;
 
 export const UpcomingDays = styled.div`
@@ -117,9 +124,13 @@ export const VotingInstruction = styled.div`
   line-height: 1.5;
 `;
 
-export const VoteListWrapper = styled.div`
+export const VoteListWrapper = styled.div<{
+  faded: boolean;
+  fadeHeight?: number;
+  marginBottom?: number;
+}>`
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: ${({ marginBottom }) => marginBottom ?? 12}px;
 
   &::after {
     content: '';
@@ -127,9 +138,11 @@ export const VoteListWrapper = styled.div`
     bottom: 0;
     left: 0;
     right: 0;
-    height: 48px;
+    height: ${({ fadeHeight }) => fadeHeight ?? 48}px;
     background: linear-gradient(to bottom, transparent, #fff);
+    opacity: ${({ faded }) => (faded ? 1 : 0)};
     pointer-events: none;
+    transition: opacity 0.15s ease;
   }
 `;
 
@@ -138,6 +151,7 @@ export const VoteListArea = styled.div`
   flex-direction: column;
   gap: 6px;
   max-height: 40vh;
+  max-height: 40dvh;
   overflow-y: auto;
   touch-action: pan-y;
   padding-bottom: 8px;
@@ -198,28 +212,42 @@ export const SubmitBtn = styled.button`
   }
 `;
 
+export const VotedStateArea = styled.div`
+  min-height: ${MISSION_INFO_MIN_HEIGHT}px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+`;
+
 export const AlreadyVotedBox = styled.div`
   text-align: center;
   padding: 32px 16px;
   background: #f9fafb;
   border-radius: 14px;
-  min-height: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 `;
 
 export const VotedEmoji = styled.div`
   font-size: 44px;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 `;
 
 export const VotedName = styled.div`
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 400;
   color: #374151;
+`;
+
+export const VotedHeadline = styled.div`
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
 `;
 
 export const VotedSub = styled.div`
@@ -337,7 +365,7 @@ export const MissionLoadingBox = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 160px;
+  min-height: ${MISSION_INFO_MIN_HEIGHT}px;
 `;
 
 export const MissionEmptyBox = styled.div`
@@ -345,7 +373,7 @@ export const MissionEmptyBox = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 160px;
+  min-height: ${MISSION_INFO_MIN_HEIGHT}px;
   gap: 6px;
   text-align: center;
 `;
@@ -353,7 +381,7 @@ export const MissionEmptyBox = styled.div`
 export const MissionEmptyIcon = styled.div`
   font-size: 38px;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 `;
 
 export const MissionEmptyTitle = styled.p`

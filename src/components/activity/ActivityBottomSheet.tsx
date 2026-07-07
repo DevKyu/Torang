@@ -260,6 +260,43 @@ const ActivityBottomSheet = ({ open, item, onClose }: Props) => {
                       </>
                     );
                   })()
+                ) : item.category === 'mission' && item.missionMeta ? (
+                  (() => {
+                    const { predictedScore, actualScore } = item.missionMeta;
+                    const diff = Math.abs(predictedScore - actualScore);
+                    const special = diff === 0;
+                    const variant = special ? 'special' : 'regular';
+                    return (
+                      <>
+                        <TargetScoreRow>
+                          <TargetScoreBox variant="goal">
+                            <TargetScoreLabel variant="goal">
+                              예측
+                            </TargetScoreLabel>
+                            <TargetScoreValue variant="goal">
+                              {predictedScore}
+                              <TargetScoreUnit>점</TargetScoreUnit>
+                            </TargetScoreValue>
+                          </TargetScoreBox>
+                          <TargetArrow>→</TargetArrow>
+                          <TargetScoreBox variant={variant}>
+                            <TargetScoreLabel variant={variant}>
+                              실제
+                            </TargetScoreLabel>
+                            <TargetScoreValue variant={variant}>
+                              {actualScore}
+                              <TargetScoreUnit>점</TargetScoreUnit>
+                            </TargetScoreValue>
+                          </TargetScoreBox>
+                        </TargetScoreRow>
+                        <TargetDelta special={special}>
+                          {special
+                            ? '정확히 예측 성공!'
+                            : `${diff}점 차이로 예측 성공`}
+                        </TargetDelta>
+                      </>
+                    );
+                  })()
                 ) : (
                   <Desc>{item.description}</Desc>
                 )}

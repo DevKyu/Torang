@@ -3,28 +3,33 @@ import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
-import { Check as CheckIcon } from 'lucide-react';
 import {
   Backdrop,
   Card,
-  Header,
-  Title,
-  Sub,
+  RoleTag,
+  MissionTitle,
   Divider,
-  ScrollArea,
-  Row,
-  CheckWrap,
+  MessageScrollArea,
+  Empty,
+  CheerItem,
+  CheerSender,
+  CheerText,
   CloseBtn,
-} from '../../styles/mission/CorrectVotersModalStyle';
+  CHEER_COLOR,
+} from '../../styles/mission/CheerMessagesModalStyle';
+
+export type CheerMessageEntry = {
+  senderName: string;
+  message: string;
+};
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  correctVoters: string[];
-  allNames: Record<string, string>;
+  messages: CheerMessageEntry[];
 };
 
-const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props) => {
+const CheerMessagesModal = ({ isOpen, onClose, messages }: Props) => {
   useEffect(() => {
     if (!isOpen) return;
     lockBodyScroll();
@@ -44,28 +49,28 @@ const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props)
           onClick={onClose}
         >
           <Card
+            accent={CHEER_COLOR}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Header>
-              <Title>정답 투표자 명단</Title>
-              <Sub>총 {correctVoters.length}명</Sub>
-            </Header>
+            <RoleTag color={CHEER_COLOR}>응원 메시지</RoleTag>
+            <MissionTitle>🎉 받은 응원 메시지 ({messages.length})</MissionTitle>
             <Divider />
-            <ScrollArea>
-              {correctVoters.map((id) => (
-                <Row key={id}>
-                  <span>{allNames[id] ?? id}</span>
-                  <CheckWrap>
-                    <CheckIcon size={16} color="#10b981" strokeWidth={2.5} />
-                  </CheckWrap>
-                </Row>
-              ))}
-            </ScrollArea>
-            <Divider />
+            <MessageScrollArea>
+              {messages.length === 0 ? (
+                <Empty>아직 도착한 메시지가 없습니다.</Empty>
+              ) : (
+                messages.map((m, i) => (
+                  <CheerItem key={i}>
+                    <CheerSender>{m.senderName}</CheerSender>
+                    <CheerText>{m.message}</CheerText>
+                  </CheerItem>
+                ))
+              )}
+            </MessageScrollArea>
             <CloseBtn onClick={onClose}>닫기</CloseBtn>
           </Card>
         </Backdrop>
@@ -75,4 +80,4 @@ const CorrectVotersModal = ({ isOpen, onClose, correctVoters, allNames }: Props)
   );
 };
 
-export default CorrectVotersModal;
+export default CheerMessagesModal;

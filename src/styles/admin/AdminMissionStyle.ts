@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-export { MonthSelect, EmptyMsg, FormSection, FormTitle, FieldLabel, SaveRow, SaveBtn, CancelBtn, EmpIdBadge, NameDropdown, NameDropdownItem, LookupBtn } from './AdminLeagueStyle';
+export { MonthSelect, EmptyMsg, FormTitle, FieldLabel, SaveRow, SaveBtn, EmpIdBadge, NameDropdown, NameDropdownItem, LookupBtn } from './AdminLeagueStyle';
 
 export const SectionBlock = styled.div`
   margin-bottom: 20px;
@@ -215,9 +215,9 @@ export const SettingSectionTitle = styled.div`
   letter-spacing: 0.4px;
 `;
 
-export const SettingGrid = styled.div`
+export const SettingGrid = styled.div<{ cols?: number }>`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(${({ cols }) => cols ?? 2}, 1fr);
   gap: 10px;
 `;
 

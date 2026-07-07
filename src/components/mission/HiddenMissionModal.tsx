@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import type { HiddenContent } from '../../hooks/useMission';
 import { HtmlBody, PlainBody } from '../../styles/mission/MissionStyle';
 import {
@@ -62,8 +63,8 @@ const HiddenMissionModal = ({ isOpen, onClose, role, hidden }: Props) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    lockBodyScroll();
+    return unlockBodyScroll;
   }, [isOpen]);
 
   useBackClose(isOpen, onClose);

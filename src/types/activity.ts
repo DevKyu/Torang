@@ -28,6 +28,7 @@ export type ActivityItem =
       delta: number;
       category?: 'activity' | 'achievement' | 'target' | 'match' | 'referral' | 'gallery' | 'mission';
       targetMeta?: { myScore: number; target: number; special: boolean };
+      missionMeta?: { predictedScore: number; actualScore: number };
     }
   | {
       id: string;

@@ -104,6 +104,19 @@ const toRewardItem = (
       },
     };
   }
+  if (
+    category === 'mission' &&
+    typeof entry.predictedScore === 'number' &&
+    typeof entry.actualScore === 'number'
+  ) {
+    return {
+      ...base,
+      missionMeta: {
+        predictedScore: entry.predictedScore,
+        actualScore: entry.actualScore,
+      },
+    };
+  }
   return base;
 };
 

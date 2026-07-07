@@ -250,6 +250,7 @@ export const CommentSheet = () => {
     replyTo,
     imageId,
     ym,
+    empId,
     myName,
     isLimitReached,
     myTotalCount,

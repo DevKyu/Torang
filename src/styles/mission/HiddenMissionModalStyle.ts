@@ -63,9 +63,14 @@ export const Divider = styled.hr`
   margin: 0 0 16px;
 `;
 
+const CONTENT_BG: Record<string, string> = {
+  '#ef4444': '#fef2f2',
+  '#3b82f6': '#eff6ff',
+};
+
 export const ContentArea = styled.div<{ color: string }>`
   margin: 0 24px 20px;
-  background: ${({ color }) => (color === '#ef4444' ? '#fef2f2' : '#eff6ff')};
+  background: ${({ color }) => CONTENT_BG[color] ?? '#eff6ff'};
   border-radius: 10px;
   padding: 14px 16px;
 `;

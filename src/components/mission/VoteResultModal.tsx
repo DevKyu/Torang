@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import { Check } from 'lucide-react';
 import type { MissionRoles } from '../../hooks/useMission';
 import {
@@ -48,10 +49,8 @@ const VoteResultModal = ({
 }: Props) => {
   useEffect(() => {
     if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
+    lockBodyScroll();
+    return unlockBodyScroll;
   }, [isOpen]);
 
   useBackClose(isOpen, onClose);
