@@ -70,7 +70,12 @@ const Achievements = () => {
 
     const init = async () => {
       try {
-        await waitForAuthUser();
+        const eventStore = useEventStore.getState();
+        await Promise.all([
+          waitForAuthUser(),
+          useUiStore.getState().syncServerTime(),
+          eventStore.loaded ? Promise.resolve() : eventStore.loadEventConfig(),
+        ]);
         const user = await getCurrentUserData();
         if (!user) return;
 

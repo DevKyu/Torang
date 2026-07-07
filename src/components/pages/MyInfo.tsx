@@ -142,9 +142,10 @@ const MyInfo = () => {
   const rollbackTarget = useCallback(
     (key: Month) => {
       setOptimisticTargets((prev) => {
-        const copy = { ...prev };
-        if (copy[year]) delete copy[year][key];
-        return copy;
+        if (!prev[year]) return prev;
+        const yearCopy = { ...prev[year] };
+        delete yearCopy[key];
+        return { ...prev, [year]: yearCopy };
       });
     },
     [year],

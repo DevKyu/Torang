@@ -21,8 +21,9 @@ export const rewardGalleryMaxUpload = async (ym: string, uploadedCount: number) 
   const snap = await get(rewardRef);
   if (snap.exists()) return null;
 
-  const { getServerNow, getServerTimestamp } = useUiStore.getState();
+  const { getServerNow, getServerTimestamp, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
+  const rewardKey = formatServerDate('ymdhmsms');
   const nowMs = getServerNow().getTime();
 
   await incrementPinsByEmpId(empId, pin);
@@ -33,7 +34,7 @@ export const rewardGalleryMaxUpload = async (ym: string, uploadedCount: number) 
       rewardedAt,
       rewardedAtMs: nowMs,
     },
-    [`users/${empId}/rewards/${ym}/gallery/${rewardedAt}`]: {
+    [`users/${empId}/rewards/${ym}/gallery/${rewardKey}`]: {
       type: 'gallery',
       detail: `사진 ${threshold}장 이상 업로드`,
       direction: 'gain',
@@ -65,14 +66,15 @@ export const rewardGalleryLikeCreator = async (
   const snap = await get(ref(db, checkPath));
   if (snap.exists()) return null;
 
-  const { getServerTimestamp, getServerNow } = useUiStore.getState();
+  const { getServerTimestamp, getServerNow, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
+  const rewardKey = formatServerDate('ymdhmsms');
   const rewardedAtMs = getServerNow().getTime();
 
   await incrementPinsByEmpId(creatorEmpId, pin);
   await update(ref(db), {
     [checkPath]: { pin, rewardedAt, rewardedAtMs },
-    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardedAt}`]: {
+    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
       type: 'gallery',
       detail: `내 사진 좋아요 ${threshold}개 달성`,
       direction: 'gain',
@@ -109,14 +111,15 @@ export const rewardGalleryCommentCreator = async (
   const snap = await get(ref(db, checkPath));
   if (snap.exists()) return null;
 
-  const { getServerTimestamp, getServerNow } = useUiStore.getState();
+  const { getServerTimestamp, getServerNow, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
+  const rewardKey = formatServerDate('ymdhmsms');
   const rewardedAtMs = getServerNow().getTime();
 
   await incrementPinsByEmpId(creatorEmpId, pin);
   await update(ref(db), {
     [checkPath]: { pin, rewardedAt, rewardedAtMs },
-    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardedAt}`]: {
+    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
       type: 'gallery',
       detail: `내 사진 댓글 ${threshold}개 달성`,
       direction: 'gain',
