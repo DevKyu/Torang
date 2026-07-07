@@ -26,6 +26,7 @@ const convertRaw = (
   Object.entries(raw).map(([cid, v]) => ({
     id: cid,
     parentId: v.parentId ?? null,
+    empId: v.empId,
     user: v.userName ?? getCachedUserName(v.empId ?? ''),
     text: v.deleted ? '' : (v.text ?? ''),
     createdAt: Number(v.createdAt ?? 0),

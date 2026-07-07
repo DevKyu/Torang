@@ -149,12 +149,12 @@ export const CommentSheet = () => {
   const isScrollable = total > 3;
 
   const myVisibleCount = useMemo(
-    () => list.filter((c) => !c.deleted && c.user === myName).length,
-    [list, myName],
+    () => list.filter((c) => !c.deleted && c.empId === empId).length,
+    [list, empId],
   );
   const myTotalCount = useMemo(
-    () => list.filter((c) => c.user === myName).length,
-    [list, myName],
+    () => list.filter((c) => c.empId === empId).length,
+    [list, empId],
   );
   const isLimitReached = myVisibleCount >= MY_COMMENT_LIMIT;
 
@@ -222,6 +222,7 @@ export const CommentSheet = () => {
     const optimistic: LightboxComment = {
       id: tempId,
       parentId,
+      empId,
       user: myName,
       text: t,
       createdAt: Date.now(),
@@ -402,7 +403,7 @@ export const CommentSheet = () => {
                         답글
                       </button>
 
-                      {c.user === myName && (
+                      {c.empId === empId && (
                         <button
                           className="delBtn"
                           onClick={() => handleDelete(c.id)}
@@ -445,7 +446,7 @@ export const CommentSheet = () => {
                               <span>{r.likes || ''}</span>
                             </motion.div>
 
-                            {r.user === myName && (
+                            {r.empId === empId && (
                               <button
                                 className="delBtn"
                                 onClick={() => handleDelete(r.id)}
@@ -466,7 +467,7 @@ export const CommentSheet = () => {
               {replyTo && (
                 <ReplyNotice>
                   <span>
-                    {replyTo.user === myName
+                    {replyTo.empId === empId
                       ? '나에게 답글 작성 중'
                       : `${replyTo.user}님에게 답글 작성 중`}
                   </span>
