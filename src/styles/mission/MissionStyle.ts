@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
-export const MISSION_INFO_MIN_HEIGHT = 220;
+export const MISSION_INFO_MIN_HEIGHT = 180;
 
 export const MissionCard = styled.div`
   background: #fff;

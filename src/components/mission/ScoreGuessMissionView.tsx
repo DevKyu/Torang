@@ -125,7 +125,7 @@ const ScoreGuessMissionView = ({
       await deleteScoreGuessVote(ym, myEmpId);
       setSelectedTarget('');
     } catch {
-      toast.error('투표 변경 중 오류가 발생했습니다.', { position: 'top-center' });
+      toast.error('예측 변경 중 오류가 발생했습니다.', { position: 'top-center' });
     } finally {
       setChangingVote(false);
     }
@@ -246,7 +246,7 @@ const ScoreGuessMissionView = ({
               <AlreadyVotedBox>
                 <VotedEmoji>🚫</VotedEmoji>
                 <VotedHeadline>이달의 활동에 참여하지 않았습니다</VotedHeadline>
-                <VotedSub>투표는 활동 참여자만 할 수 있어요</VotedSub>
+                <VotedSub>예측은 활동 참여자만 할 수 있어요</VotedSub>
               </AlreadyVotedBox>
             </VotedStateArea>
           )}
@@ -256,11 +256,11 @@ const ScoreGuessMissionView = ({
               <AlreadyVotedBox>
                 <VotedEmoji>🎉</VotedEmoji>
                 <VotedHeadline>
-                  {allNames[myEmpId] ?? myEmpId}님이 이달의 미션 주인공이에요 🎉
+                  {allNames[myEmpId] ?? myEmpId}님이 이달의 미션 주인공이에요
                 </VotedHeadline>
                 <VotedSub>
                   {myCheerMessages.length === 0
-                    ? '회원들이 나를 응원해줄 거예요'
+                    ? '또랑 첫 활동, 응원할게요!'
                     : `${myCheerMessages.length}명이 나를 응원하고 있어요`}
                 </VotedSub>
               </AlreadyVotedBox>
@@ -286,7 +286,7 @@ const ScoreGuessMissionView = ({
               </AlreadyVotedBox>
               <VoteActionRow>
                 <VoteResultBtn onClick={handleVoteChange} disabled={changingVote}>
-                  {changingVote ? '변경 중...' : '투표 변경하기'}
+                  {changingVote ? '변경 중...' : '예측 변경하기'}
                 </VoteResultBtn>
               </VoteActionRow>
             </VotedStateArea>

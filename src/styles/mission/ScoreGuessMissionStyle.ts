@@ -82,7 +82,7 @@ export const CheerTriggerBtn = styled.button`
   background: #fffbeb;
   color: ${CHEER_COLOR};
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
   transition:

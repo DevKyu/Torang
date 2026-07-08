@@ -23,6 +23,7 @@ import {
   MissionEmptyIcon,
   MissionEmptyTitle,
   MissionEmptyDesc,
+  MISSION_INFO_MIN_HEIGHT,
 } from '../../styles/mission/MissionStyle';
 
 const MissionPage = () => {
@@ -111,6 +112,7 @@ const MissionPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.25 }}
+            style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
           >
             {viewState === 'empty' && (
               <MissionEmptyBox>

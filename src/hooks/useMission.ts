@@ -53,7 +53,7 @@ export type MissionRoles = {
   assignedAt: number;
 };
 
-export type ScoreGuessTargets = {
+type ScoreGuessTargets = {
   empIds: string[];
   confirmedAt: number;
 };
@@ -65,7 +65,7 @@ export type ScoreGuessVote = {
   anonymous?: boolean;
 };
 
-export type MissionResult = {
+type MissionResult = {
   revealed: boolean;
   revealedAt: number;
   villainWon: boolean;
@@ -73,7 +73,7 @@ export type MissionResult = {
   correctVoters: string[];
 };
 
-export type ScoreGuessMissionResult = {
+type ScoreGuessMissionResult = {
   revealed: boolean;
   revealedAt: number;
   actualScores: Record<string, number>;
