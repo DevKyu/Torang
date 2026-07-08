@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Yarn is the project's package manager — npm lockfile is not tracked
+package-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
