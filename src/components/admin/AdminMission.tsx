@@ -855,7 +855,7 @@ const AdminMission = () => {
                   </NumberRow>
                 </SettingCell>
                 <SettingCell>
-                  <SettingCellLabel>순위 보상 PIN (1~3위)</SettingCellLabel>
+                  <SettingCellLabel>순위 보상 PIN (상위 점수자)</SettingCellLabel>
                   <NumberRow>
                     <MissionInput
                       type="text"

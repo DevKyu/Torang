@@ -1,42 +1,6 @@
 import styled from '@emotion/styled';
 import { CHEER_COLOR } from './CheerMessagesModalStyle';
-import {
-  SectionLabel,
-  VotingInstruction,
-  VoteListWrapper,
-  VoteListArea,
-  SubmitBtn,
-  AlreadyVotedBox,
-  VotedStateArea,
-  VotedEmoji,
-  VotedName,
-  VotedHeadline,
-  VotedSub,
-  ResultRevealCard,
-  ResultRole,
-  ResultName,
-  VoteActionRow,
-  VoteResultBtn,
-} from './MissionStyle';
-
-export {
-  SectionLabel,
-  VotingInstruction,
-  VoteListWrapper,
-  VoteListArea,
-  SubmitBtn,
-  AlreadyVotedBox,
-  VotedStateArea,
-  VotedEmoji,
-  VotedName,
-  VotedHeadline,
-  VotedSub,
-  ResultRevealCard,
-  ResultRole,
-  ResultName,
-  VoteActionRow,
-  VoteResultBtn,
-};
+import { MISSION_INFO_MIN_HEIGHT } from './MissionStyle';
 
 const NEW_MEMBER_COLOR = '#3b82f6';
 
@@ -44,12 +8,12 @@ export const PreviewInfoArea = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 160px;
+  min-height: ${MISSION_INFO_MIN_HEIGHT}px;
 `;
 
 export const VoteTriggerBtn = styled.button`
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   border-radius: 10px;
   border: 1.5px solid #93c5fd;
   background: #eff6ff;

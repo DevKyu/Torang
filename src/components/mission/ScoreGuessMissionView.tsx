@@ -13,6 +13,15 @@ import ScoreGuessResultModal, {
 import CheerMessagesModal from './CheerMessagesModal';
 import { renderMissionBody } from './missionBody';
 import {
+  CheerTriggerBtn,
+  VoteTriggerBtn,
+  PreviewInfoArea,
+  TargetScoreRow,
+  TargetScoreRank,
+  TargetScoreName,
+  TargetScoreValue,
+} from '../../styles/mission/ScoreGuessMissionStyle';
+import {
   VotingInstruction,
   VoteListWrapper,
   VoteListArea,
@@ -29,15 +38,6 @@ import {
   ResultName,
   VoteActionRow,
   VoteResultBtn,
-  CheerTriggerBtn,
-  VoteTriggerBtn,
-  PreviewInfoArea,
-  TargetScoreRow,
-  TargetScoreRank,
-  TargetScoreName,
-  TargetScoreValue,
-} from '../../styles/mission/ScoreGuessMissionStyle';
-import {
   MissionCard,
   CardTitle,
   ResultRevealRow,
@@ -246,7 +246,7 @@ const ScoreGuessMissionView = ({
               <AlreadyVotedBox>
                 <VotedEmoji>🚫</VotedEmoji>
                 <VotedHeadline>이달의 활동에 참여하지 않았습니다</VotedHeadline>
-                <VotedSub>예측은 활동 참여자만 할 수 있어요</VotedSub>
+                <VotedSub>미션은 활동 참여자만 할 수 있어요</VotedSub>
               </AlreadyVotedBox>
             </VotedStateArea>
           )}
@@ -255,13 +255,16 @@ const ScoreGuessMissionView = ({
             <VotedStateArea>
               <AlreadyVotedBox>
                 <VotedEmoji>🎉</VotedEmoji>
-                <VotedHeadline>
-                  {allNames[myEmpId] ?? myEmpId}님이 이달의 미션 주인공이에요
-                </VotedHeadline>
+                <VotedHeadline>이달의 미션 주인공이에요!</VotedHeadline>
                 <VotedSub>
-                  {myCheerMessages.length === 0
-                    ? '또랑 첫 활동, 응원할게요!'
-                    : `${myCheerMessages.length}명이 나를 응원하고 있어요`}
+                  {myCheerMessages.length === 0 ? (
+                    '또랑 첫 활동, 응원할게요'
+                  ) : (
+                    <>
+                      <strong>{myCheerMessages.length}명</strong>의 회원이 나를
+                      응원하고 있어요
+                    </>
+                  )}
                 </VotedSub>
               </AlreadyVotedBox>
               {myCheerMessages.length > 0 && (
@@ -282,7 +285,7 @@ const ScoreGuessMissionView = ({
                   <strong>{allNames[myVote?.targetEmpId ?? ''] ?? myVote?.targetEmpId}</strong>님을{' '}
                   <strong>{myVote?.predictedScore}점</strong>으로 예측했어요!
                 </VotedName>
-                <VotedSub>결과는 공개 후 확인할 수 있어요</VotedSub>
+                <VotedSub>결과는 활동 후 확인할 수 있어요</VotedSub>
               </AlreadyVotedBox>
               <VoteActionRow>
                 <VoteResultBtn onClick={handleVoteChange} disabled={changingVote}>
@@ -355,7 +358,7 @@ const ScoreGuessMissionView = ({
                     </ResultName>
                   </ResultRevealCard>
                   <ResultRevealCard role="reward">
-                    <ResultRole role="reward">순위 보상</ResultRole>
+                    <ResultRole role="reward">우수 점수 보상</ResultRole>
                     <ResultName style={{ fontSize: 15 }}>
                       {(result.topTargets ?? []).length}명
                     </ResultName>

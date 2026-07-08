@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
-export const MISSION_INFO_MIN_HEIGHT = 180;
+export const MISSION_INFO_MIN_HEIGHT = 160;
 
 export const MissionCard = styled.div`
   background: #fff;
@@ -95,12 +95,11 @@ export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
 
 export const UpcomingCard = styled.div`
   text-align: center;
-  padding: 40px 16px;
+  padding: 24px 16px;
   min-height: ${MISSION_INFO_MIN_HEIGHT}px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-sizing: border-box;
 `;
 
 export const UpcomingDays = styled.div`
@@ -108,7 +107,7 @@ export const UpcomingDays = styled.div`
   font-weight: 800;
   color: #111827;
   line-height: 1;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 `;
 
 export const UpcomingLabel = styled.div`
@@ -190,7 +189,7 @@ export const VoteCheckmark = styled.span`
 
 export const SubmitBtn = styled.button`
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   background: #3b82f6;
   color: #fff;
   border: none;
@@ -217,43 +216,42 @@ export const VotedStateArea = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-sizing: border-box;
 `;
 
 export const AlreadyVotedBox = styled.div`
   text-align: center;
-  padding: 32px 16px;
+  padding: 24px 16px;
   background: #f9fafb;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 `;
 
 export const VotedEmoji = styled.div`
   font-size: 44px;
   line-height: 1;
-  margin-bottom: 8px;
 `;
 
 export const VotedName = styled.div`
   font-size: 15px;
   font-weight: 400;
   color: #374151;
+  margin-top: 20px;
 `;
 
 export const VotedHeadline = styled.div`
   font-size: 15px;
   font-weight: 700;
   color: #111827;
+  margin-top: 20px;
 `;
 
 export const VotedSub = styled.div`
   font-size: 13px;
   color: #9ca3af;
-  margin-top: 4px;
+  margin-top: 6px;
 `;
 
 export const ResultRevealRow = styled.div`
@@ -374,14 +372,12 @@ export const MissionEmptyBox = styled.div`
   align-items: center;
   justify-content: center;
   min-height: ${MISSION_INFO_MIN_HEIGHT}px;
-  gap: 6px;
   text-align: center;
 `;
 
 export const MissionEmptyIcon = styled.div`
   font-size: 38px;
   line-height: 1;
-  margin-bottom: 12px;
 `;
 
 export const MissionEmptyTitle = styled.p`
@@ -389,12 +385,12 @@ export const MissionEmptyTitle = styled.p`
   font-weight: 600;
   line-height: 1.4;
   color: #374151;
-  margin: 0;
+  margin: 18px 0 0;
 `;
 
 export const MissionEmptyDesc = styled.p`
   font-size: 13px;
   line-height: 1.4;
   color: #9ca3af;
-  margin: 0;
+  margin: 6px 0 0;
 `;

@@ -112,7 +112,12 @@ const MissionPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.25 }}
-            style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+            style={{
+              minHeight: MISSION_INFO_MIN_HEIGHT,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
           >
             {viewState === 'empty' && (
               <MissionEmptyBox>
