@@ -38,6 +38,7 @@ import {
   BadgeColorInput,
   ToggleLabel,
   ToggleGroup,
+  GhostButton,
 } from '../../styles/admin/AdminEventStyle';
 
 const MENU_KEYS = [
@@ -61,6 +62,17 @@ const MENU_LABEL: Record<MenuKey, string> = {
   gallery: '또랑 갤러리',
   reward: '상품 신청',
   draw: '추첨 결과',
+};
+
+const PRESET_BADGE: Record<MenuKey, MenuBadgeConfig> = {
+  user: { text: '새소식', color: '#0891b2' },
+  rank: { text: '접전중', color: '#ef4444' },
+  history: { text: '새기록', color: '#f97316' },
+  mission: { text: '진행중', color: '#16a34a' },
+  teams: { text: '편성중', color: '#7c3aed' },
+  gallery: { text: '인기글', color: '#db2777' },
+  reward: { text: '임박', color: '#2563eb' },
+  draw: { text: '발표', color: '#6b7280' },
 };
 
 const PIN_KEYS = [
@@ -225,6 +237,36 @@ export default function AdminEvent() {
     });
   }, [visiblePinKeys, rewardDraft, galleryRewardDraft]);
 
+  const setAllBadges = useCallback(
+    (preset: Record<MenuKey, MenuBadgeConfig> | null) => {
+      const confirmMsg = preset
+        ? '현재 뱃지 문구/색상을 추천 값으로 모두 덮어씁니다. 계속할까요?'
+        : '모든 메뉴의 뱃지 문구/색상을 초기화합니다. 계속할까요?';
+      if (!confirm(confirmMsg)) return;
+
+      setMenuDraft((prev) => {
+        const next = { ...prev };
+        MENU_KEYS.forEach((id) => {
+          const cfg = { ...(next[id] ?? {}) };
+          if (preset) {
+            cfg.badge = preset[id];
+          } else {
+            delete cfg.badge;
+          }
+          next[id] = cfg;
+        });
+        return next;
+      });
+
+      toast.success(
+        preset
+          ? '추천 뱃지 값을 적용했어요. 전체 저장을 눌러 반영하세요.'
+          : '뱃지를 초기화했어요. 전체 저장을 눌러 반영하세요.',
+      );
+    },
+    [],
+  );
+
   const saveAll = useCallback(async () => {
     await Promise.all([
       set(ref(db, 'eventConfig/menu'), menuDraft),
@@ -300,6 +342,20 @@ export default function AdminEvent() {
     <AdminLayout title="이벤트 설정">
       <Section>
         <SectionTitle>📋 메뉴 설정</SectionTitle>
+
+        <RewardActionRow>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            🏷️ 뱃지 문구
+          </span>
+          <ToggleGroup>
+            <GhostButton onClick={() => setAllBadges(null)}>
+              전체 초기화
+            </GhostButton>
+            <BulkRewardButton onClick={() => setAllBadges(PRESET_BADGE)}>
+              추천 값 적용
+            </BulkRewardButton>
+          </ToggleGroup>
+        </RewardActionRow>
 
         <MenuCardGrid>
           {MENU_KEYS.map((id) => {

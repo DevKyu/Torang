@@ -125,6 +125,22 @@ export const BulkRewardButton = styled.button`
   }
 `;
 
+export const GhostButton = styled.button`
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+`;
+
 export const RewardGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
