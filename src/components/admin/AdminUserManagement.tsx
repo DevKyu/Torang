@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
 import {
@@ -120,7 +121,7 @@ const AdminUserManagement = () => {
         u.name?.toLowerCase().includes(lowerInput),
     );
     if (results.length === 0) {
-      alert('검색 결과가 없습니다.');
+      toast('검색 결과가 없습니다.');
       setSearchResults([]);
       return;
     }
@@ -163,7 +164,7 @@ const AdminUserManagement = () => {
       await resetAllUserPins();
       const data = await fetchAllUsers();
       setUsers(data);
-      alert('✅ 전체 유저 핀 초기화 완료');
+      toast.success('전체 유저 핀 초기화 완료');
     } finally {
       setLoading(false);
     }
@@ -181,12 +182,12 @@ const AdminUserManagement = () => {
       `"${selectedEmpId}" 를 다시 입력하면 삭제됩니다.`,
     );
     if (confirm2 !== selectedEmpId) {
-      alert('❌ 입력이 일치하지 않아 삭제가 취소되었습니다.');
+      toast.error('입력이 일치하지 않아 삭제가 취소되었습니다.');
       return;
     }
 
     await deleteUser(selectedEmpId);
-    alert(`✅ ${displayName} 삭제 완료`);
+    toast.success(`${displayName} 삭제 완료`);
     setSelectedEmpId('');
     setSelectedUser(null);
     const data = await fetchAllUsers();
@@ -216,7 +217,7 @@ const AdminUserManagement = () => {
 
   const handleAddUser = async () => {
     if (!newEmpId || !newName || !newJoin) {
-      alert('필수 항목을 모두 입력하세요.');
+      toast.error('필수 항목을 모두 입력하세요.');
       return;
     }
     const joinYm = newJoin.replace('-', '');
@@ -226,7 +227,7 @@ const AdminUserManagement = () => {
       type: newType,
       join: joinYm,
     });
-    alert(`✅ ${newEmpId} (${newName}) 유저 추가 완료`);
+    toast.success(`${newEmpId} (${newName}) 유저 추가 완료`);
     const data = await fetchAllUsers();
     setUsers(data);
     await handleSelectUser(newEmpId);
@@ -268,15 +269,15 @@ const AdminUserManagement = () => {
 
       const { success } = await response.json();
       if (success) {
-        alert(
-          `✅ ${selectedEmpId}의 비밀번호가 '00000000'로 초기화되었습니다.`,
+        toast.success(
+          `${selectedEmpId}의 비밀번호가 '00000000'로 초기화되었습니다.`,
         );
       } else {
-        alert(`❌ 초기화에 실패했습니다.`);
+        toast.error('초기화에 실패했습니다.');
       }
     } catch (err: unknown) {
-      alert(
-        `❌ 비밀번호 초기화 중 오류가 발생했습니다.\n\n${err instanceof Error ? err.message : ''}`,
+      toast.error(
+        err instanceof Error ? err.message : '비밀번호 초기화 중 오류가 발생했습니다.',
       );
     }
   };
@@ -295,9 +296,9 @@ const AdminUserManagement = () => {
     if (ok) {
       const data = await fetchAllUsers();
       setUsers(data);
-      alert(`✅ ${CUR_YEAR}년 ${CUR_MONTHN}월 활동자 핀 지급 완료`);
+      toast.success(`${CUR_YEAR}년 ${CUR_MONTHN}월 활동자 핀 지급 완료`);
     } else {
-      alert('🚫 대상자 없음 또는 오류 발생');
+      toast.error('대상자 없음 또는 오류 발생');
     }
 
     setLoading(false);

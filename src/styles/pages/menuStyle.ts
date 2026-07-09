@@ -1,5 +1,7 @@
 import styled from '@emotion/styled';
+import { css } from '@emotion/react';
 import { motion } from 'framer-motion';
+import { DEFAULT_BADGE_COLOR } from '../../stores/eventStore';
 
 export const MenuGrid = styled.div`
   display: grid;
@@ -125,30 +127,45 @@ export const MenuLabel = styled.span`
   word-break: keep-all;
 `;
 
-type BadgeVariant = 'new' | 'hot' | 'soon';
-
-const badgeColors: Record<BadgeVariant, { bg: string; color: string }> = {
-  new: { bg: '#f97316', color: '#fff' },
-  hot: { bg: '#ef4444', color: '#fff' },
-  soon: { bg: '#2563eb', color: '#fff' },
+const getReadableTextColor = (hex: string): string => {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return '#fff';
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? '#1f2937' : '#fff';
 };
 
+export const BadgeSlot = styled.div`
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+`;
+
 type MenuBadgeProps = {
-  variant?: BadgeVariant;
+  bg?: string;
 };
 
 export const MenuBadge = styled(motion.span)<MenuBadgeProps>`
-  position: absolute;
-  top: -6px;
-  right: ${({ variant = 'new' }) => (variant === 'soon' ? '-26px' : '-22px')};
-  padding: 3px 7px;
+  display: inline-block;
+  max-width: 100px;
+  padding: 3px 8px;
   font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
-  color: ${({ variant = 'new' }) => badgeColors[variant].color};
-  background-color: ${({ variant = 'new' }) => badgeColors[variant].bg};
+  font-weight: 700;
+  line-height: 1.3;
   border-radius: 9999px;
   user-select: none;
   pointer-events: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ${({ bg = DEFAULT_BADGE_COLOR }) => css`
+    background-color: ${bg};
+    color: ${getReadableTextColor(bg)};
+  `}
 `;

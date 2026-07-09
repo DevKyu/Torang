@@ -20,16 +20,51 @@ export type GalleryRewardConfig = {
   commentCreator: GalleryRewardItem;
 };
 
-export type MenuBadgeType = 'new' | 'soon' | 'hot';
+export type MenuBadgeConfig = {
+  text: string;
+  color: string;
+};
+
+export const DEFAULT_BADGE_COLOR = '#f97316';
 
 export type MenuConfigItem = {
   order?: number;
-  badge?: MenuBadgeType;
+  badge?: MenuBadgeConfig;
   disabled?: boolean;
   hidden?: boolean;
 };
 
 export type MenuConfig = Record<string, MenuConfigItem>;
+
+const LEGACY_BADGE_PRESET: Record<string, MenuBadgeConfig> = {
+  new: { text: 'NEW', color: DEFAULT_BADGE_COLOR },
+  hot: { text: 'HOT', color: '#ef4444' },
+  soon: { text: 'SOON', color: '#2563eb' },
+};
+
+const normalizeMenuConfig = (raw: Record<string, unknown>): MenuConfig => {
+  const out: MenuConfig = {};
+  Object.entries(raw ?? {}).forEach(([id, value]) => {
+    const cfg = { ...(value as MenuConfigItem) };
+    const rawBadge = (value as { badge?: unknown } | undefined)?.badge;
+
+    if (typeof rawBadge === 'string' && LEGACY_BADGE_PRESET[rawBadge]) {
+      cfg.badge = LEGACY_BADGE_PRESET[rawBadge];
+    } else if (rawBadge && typeof rawBadge === 'object') {
+      const b = rawBadge as Partial<MenuBadgeConfig>;
+      if (b.text) {
+        cfg.badge = { text: String(b.text), color: b.color ?? DEFAULT_BADGE_COLOR };
+      } else {
+        delete cfg.badge;
+      }
+    } else {
+      delete cfg.badge;
+    }
+
+    out[id] = cfg;
+  });
+  return out;
+};
 
 const DEFAULT_MENU: MenuConfigItem = {
   order: 999,
@@ -105,7 +140,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       });
 
       set({
-        menu: v.menu ?? {},
+        menu: normalizeMenuConfig(v.menu ?? {}),
         pinReward: normalizedReward,
         galleryReward: normalizedGalleryReward,
         matchType: (v.matchType as MatchType) ?? 'rival',

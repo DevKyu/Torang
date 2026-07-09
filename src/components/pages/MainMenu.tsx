@@ -29,6 +29,7 @@ import {
   MotionMenuCard,
   MenuLabel,
   IconWrapper,
+  BadgeSlot,
   MenuBadge,
   MenuHeaderRow,
   MenuTitleText,
@@ -39,7 +40,7 @@ import {
 import {
   useEventStore,
   DEFAULT_MENU_DISABLED,
-  type MenuBadgeType,
+  type MenuBadgeConfig,
 } from '../../stores/eventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import { applyReferralRewardIfNeeded } from '../../utils/pin';
@@ -57,7 +58,7 @@ type MenuItemBase = {
 
 type MenuItem = MenuItemBase & {
   order: number;
-  badge?: MenuBadgeType;
+  badge?: MenuBadgeConfig;
   disabled: boolean;
   loading: boolean;
   hidden: boolean;
@@ -223,7 +224,7 @@ const MainMenu = () => {
         return {
           ...base[id],
           order: cfg?.order ?? DEFAULT_ORDER[id] ?? 999,
-          badge: cfg?.badge as MenuBadgeType | undefined,
+          badge: cfg?.badge,
           disabled,
           hidden: cfg?.hidden ?? false,
           loading: !loaded,
@@ -279,20 +280,22 @@ const MainMenu = () => {
           >
             <IconWrapper style={{ opacity: loading ? 0.55 : 1 }}>
               {icon}
-              <AnimatePresence>
-                {!loading && badge && (
-                  <MenuBadge
-                    key="menu-badge"
-                    variant={badge}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                  >
-                    {badge.toUpperCase()}
-                  </MenuBadge>
-                )}
-              </AnimatePresence>
+              <BadgeSlot>
+                <AnimatePresence>
+                  {!loading && badge?.text && (
+                    <MenuBadge
+                      key="menu-badge"
+                      bg={badge.color}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                    >
+                      {badge.text}
+                    </MenuBadge>
+                  )}
+                </AnimatePresence>
+              </BadgeSlot>
             </IconWrapper>
             <MenuLabel style={{ opacity: loading ? 0.55 : 1 }}>
               {label}

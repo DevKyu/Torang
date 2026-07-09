@@ -12,18 +12,52 @@ export const SectionTitle = styled.h3`
 
 export const OrderInput = styled.input`
   width: 100%;
+  min-width: 0;
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #d1d5db;
   font-size: 12px;
 `;
 
-export const BadgeSelect = styled.select`
-  width: 100%;
+export const BadgeInputGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+`;
+
+export const BadgeTextInput = styled.input`
+  flex: 1;
+  min-width: 0;
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #d1d5db;
   font-size: 12px;
+`;
+
+export const BadgeColorInput = styled.input`
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 2px;
+  }
+  &::-webkit-color-swatch {
+    border-radius: 4px;
+    border: none;
+  }
 `;
 
 export const ToggleLabel = styled.label`
@@ -99,10 +133,6 @@ export const RewardGrid = styled.div`
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
 `;
 
 export const RewardCard = styled.div`
@@ -175,21 +205,10 @@ export const SaveButton = styled.button`
   }
 `;
 
-export const MenuCardGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-`;
+export const MenuCardGrid = styled(RewardGrid)``;
 
 export const MenuCard = styled.div`
+  min-width: 0;
   padding: 14px;
   border-radius: 14px;
   background: #f9fafb;

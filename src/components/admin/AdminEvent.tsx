@@ -1,8 +1,13 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { ref, set } from 'firebase/database';
+import { toast } from 'sonner';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
-import { useEventStore, type MenuBadgeType } from '../../stores/eventStore';
+import {
+  useEventStore,
+  DEFAULT_BADGE_COLOR,
+  type MenuBadgeConfig,
+} from '../../stores/eventStore';
 import type { MatchType } from '../../types/match';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
@@ -28,7 +33,9 @@ import {
   MenuCardHeader,
   MenuControlRow,
   OrderInput,
-  BadgeSelect,
+  BadgeInputGroup,
+  BadgeTextInput,
+  BadgeColorInput,
   ToggleLabel,
   ToggleGroup,
 } from '../../styles/admin/AdminEventStyle';
@@ -75,7 +82,7 @@ type MenuDraft = Record<
   MenuKey,
   {
     order?: number;
-    badge?: 'new' | 'hot' | 'soon';
+    badge?: MenuBadgeConfig;
     disabled?: boolean;
     hidden?: boolean;
   }
@@ -230,7 +237,7 @@ export default function AdminEvent() {
       set(ref(db, 'eventConfig/referralPin'), referralPinDraft),
     ]);
     await loadEventConfig();
-    alert('✅ 저장 완료');
+    toast.success('저장 완료');
   }, [
     menuDraft,
     rewardDraft,
@@ -244,7 +251,7 @@ export default function AdminEvent() {
   const handleDistribute = useCallback(async () => {
     const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
     if (pinRate <= 0) {
-      alert('핀 매치 지급 금액이 0입니다. 먼저 저장하세요.');
+      toast.error('핀 매치 지급 금액이 0입니다. 먼저 저장하세요.');
       return;
     }
     if (
@@ -257,9 +264,9 @@ export default function AdminEvent() {
     try {
       const users = await fetchAllUsers();
       const count = await distributeMatchPins(selectedYm, users, pinRate);
-      alert(`✅ ${count}개 매치 처리 완료\n(참여자 수와 다를 수 있음 — 선택 쌍 기준)`);
+      toast.success(`${count}개 매치 처리 완료\n(참여자 수와 다를 수 있음 — 선택 쌍 기준)`);
     } catch (e) {
-      alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
+      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.');
     } finally {
       setDistributing(false);
     }
@@ -277,13 +284,13 @@ export default function AdminEvent() {
     setRollingBack(true);
     try {
       const affected = await rollbackMatchPins(selectedYm);
-      alert(
-        affected > 0
-          ? `✅ 롤백 완료 — ${affected}명 핀 조정`
-          : '롤백할 지급 내역이 없습니다.',
-      );
+      if (affected > 0) {
+        toast.success(`롤백 완료 — ${affected}명 핀 조정`);
+      } else {
+        toast('롤백할 지급 내역이 없습니다.');
+      }
     } catch (e) {
-      alert(`❌ 오류: ${e instanceof Error ? e.message : String(e)}`);
+      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.');
     } finally {
       setRollingBack(false);
     }
@@ -351,22 +358,46 @@ export default function AdminEvent() {
 
                 <MenuControlRow>
                   <span>뱃지</span>
-                  <BadgeSelect
-                    value={cfg.badge ?? ''}
-                    onChange={(e) =>
-                      setMenuDraft((p) => {
-                        const next = { ...cfg };
-                        if (!e.target.value) delete next.badge;
-                        else next.badge = e.target.value as MenuBadgeType;
-                        return { ...p, [id]: next };
-                      })
-                    }
-                  >
-                    <option value="">없음</option>
-                    <option value="new">NEW</option>
-                    <option value="hot">HOT</option>
-                    <option value="soon">SOON</option>
-                  </BadgeSelect>
+                  <BadgeInputGroup>
+                    <BadgeTextInput
+                      type="text"
+                      maxLength={6}
+                      placeholder="예: NEW"
+                      value={cfg.badge?.text ?? ''}
+                      onChange={(e) =>
+                        setMenuDraft((p) => {
+                          const text = e.target.value;
+                          const next = { ...cfg };
+                          if (!text.trim()) {
+                            delete next.badge;
+                          } else {
+                            next.badge = {
+                              text,
+                              color: cfg.badge?.color ?? DEFAULT_BADGE_COLOR,
+                            };
+                          }
+                          return { ...p, [id]: next };
+                        })
+                      }
+                    />
+                    <BadgeColorInput
+                      type="color"
+                      disabled={!cfg.badge?.text}
+                      value={cfg.badge?.color ?? DEFAULT_BADGE_COLOR}
+                      onChange={(e) =>
+                        setMenuDraft((p) => {
+                          if (!cfg.badge) return p;
+                          return {
+                            ...p,
+                            [id]: {
+                              ...cfg,
+                              badge: { ...cfg.badge, color: e.target.value },
+                            },
+                          };
+                        })
+                      }
+                    />
+                  </BadgeInputGroup>
                 </MenuControlRow>
               </MenuCard>
             );
