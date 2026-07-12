@@ -43,6 +43,16 @@ import {
   type MenuBadgeConfig,
 } from '../../stores/eventStore';
 import { useUiStore } from '../../stores/useUiStore';
+import {
+  preloadMyInfo,
+  preloadRanking,
+  preloadGalleryPage,
+  preloadReward,
+  preloadDraw,
+  preloadActivityHistory,
+  preloadMissionPage,
+  preloadTeamFormation,
+} from '../../routes/lazyPreloads';
 import { applyReferralRewardIfNeeded } from '../../utils/pin';
 import {
   useMessageInbox,
@@ -121,6 +131,33 @@ const PATH_MAP: Record<string, string> = {
   teams: '/teams',
 };
 
+const CHUNK_PRELOADERS: Record<string, () => Promise<unknown>> = {
+  user: preloadMyInfo,
+  rank: preloadRanking,
+  gallery: preloadGalleryPage,
+  reward: preloadReward,
+  draw: preloadDraw,
+  history: preloadActivityHistory,
+  mission: preloadMissionPage,
+  teams: preloadTeamFormation,
+};
+
+let mainMenuChunksReady = false;
+let mainMenuChunksReadyPromise: Promise<void> | null = null;
+
+const ensureMainMenuChunksLoaded = () => {
+  if (!mainMenuChunksReadyPromise) {
+    mainMenuChunksReadyPromise = Promise.all(
+      Object.values(CHUNK_PRELOADERS).map((preload) =>
+        preload().catch(() => {}),
+      ),
+    ).then(() => {
+      mainMenuChunksReady = true;
+    });
+  }
+  return mainMenuChunksReadyPromise;
+};
+
 const MainMenu = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -131,6 +168,7 @@ const MainMenu = () => {
   const [historyDetail, setHistoryDetail] = useState<MessageHistoryItem | null>(
     null,
   );
+  const [chunksReady, setChunksReady] = useState(mainMenuChunksReady);
   const queueTotalRef = useRef(0);
 
   const syncServerTime = useUiStore((s) => s.syncServerTime);
@@ -148,10 +186,17 @@ const MainMenu = () => {
   } = useMessageInbox(myEmpId);
 
   useEffect(() => {
-    import('./MyInfo').catch(() => {});
-    import('./Ranking').catch(() => {});
-    import('../gallery/GalleryPage').catch(() => {});
+    if (chunksReady) return;
+    let cancelled = false;
+    ensureMainMenuChunksLoaded().then(() => {
+      if (!cancelled) setChunksReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [chunksReady]);
 
+  useEffect(() => {
     const run = async () => {
       await Promise.all([syncServerTime(), loadEventConfig()]);
       const user = await waitForAuthUser();
@@ -215,7 +260,9 @@ const MainMenu = () => {
     return Object.keys(base)
       .map((id) => {
         const cfg = menuConfig[id];
-        const disabled = !loaded
+        const chunkReady = CHUNK_PRELOADERS[id] ? chunksReady : true;
+        const isLoading = !loaded || !chunkReady;
+        const disabled = isLoading
           ? true
           : cfg?.disabled !== undefined
             ? cfg.disabled
@@ -227,12 +274,12 @@ const MainMenu = () => {
           badge: cfg?.badge,
           disabled,
           hidden: cfg?.hidden ?? false,
-          loading: !loaded,
+          loading: isLoading,
         };
       })
       .filter((item) => !item.hidden)
       .sort((a, b) => a.order - b.order);
-  }, [menuConfig, isAdmin, loaded]);
+  }, [menuConfig, isAdmin, loaded, chunksReady]);
 
   const handleClick = (id: string, disabled: boolean) => {
     if (disabled) return;

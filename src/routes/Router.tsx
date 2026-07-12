@@ -5,20 +5,27 @@ import Menu from '../components/pages/MainMenu';
 import ProtectedRoute from './ProtectedRoute';
 import MenuGuard from './MenuGuard';
 import { useRouteLoading } from './RouteSpinner';
-import Reward from '../components/pages/Reward';
-import Draw from '../components/pages/Draw';
-import Achievements from '../components/pages/Achievements';
-import ActivityHistory from '../components/activity/ActivityHistory';
-import MissionPage from '../components/mission/MissionPage';
-import TeamFormation from '../components/pages/TeamFormation';
+import {
+  preloadAchievements,
+  preloadMyInfo,
+  preloadRanking,
+  preloadGalleryPage,
+  preloadReward,
+  preloadDraw,
+  preloadActivityHistory,
+  preloadMissionPage,
+  preloadTeamFormation,
+} from './lazyPreloads';
 
-const preloadMyInfo = () => import('../components/pages/MyInfo');
-const preloadRanking = () => import('../components/pages/Ranking');
-const preloadGalleryPage = () => import('../components/gallery/GalleryPage');
-
+const Achievements = lazy(preloadAchievements);
 const MyInfo = lazy(preloadMyInfo);
 const Ranking = lazy(preloadRanking);
 const GalleryPage = lazy(preloadGalleryPage);
+const Reward = lazy(preloadReward);
+const Draw = lazy(preloadDraw);
+const ActivityHistory = lazy(preloadActivityHistory);
+const MissionPage = lazy(preloadMissionPage);
+const TeamFormation = lazy(preloadTeamFormation);
 
 const AdminUserManagement = lazy(
   () => import('../components/admin/AdminUserManagement'),
@@ -48,10 +55,10 @@ const Router = () => (
       <Route element={<ProtectedRoute />}>
         <Route path="/menu" element={<Menu />} />
 
-        <Route element={<MenuGuard menuKey="reward" />}>
+        <Route element={<MenuGuard menuKey="reward" preload={preloadReward} />}>
           <Route path="/reward" element={<Reward />} />
         </Route>
-        <Route element={<MenuGuard menuKey="draw" />}>
+        <Route element={<MenuGuard menuKey="draw" preload={preloadDraw} />}>
           <Route path="/draw" element={<Draw />} />
         </Route>
         <Route element={<MenuGuard menuKey="user" preload={preloadMyInfo} />}>
@@ -66,13 +73,23 @@ const Router = () => (
         >
           <Route path="/gallery" element={<GalleryPage />} />
         </Route>
-        <Route element={<MenuGuard menuKey="history" />}>
+        <Route
+          element={
+            <MenuGuard menuKey="history" preload={preloadActivityHistory} />
+          }
+        >
           <Route path="/history" element={<ActivityHistory />} />
         </Route>
-        <Route element={<MenuGuard menuKey="mission" />}>
+        <Route
+          element={<MenuGuard menuKey="mission" preload={preloadMissionPage} />}
+        >
           <Route path="/mission" element={<MissionPage />} />
         </Route>
-        <Route element={<MenuGuard menuKey="teams" />}>
+        <Route
+          element={
+            <MenuGuard menuKey="teams" preload={preloadTeamFormation} />
+          }
+        >
           <Route path="/teams" element={<TeamFormation />} />
         </Route>
         <Route path="/admin" element={<AdminUserManagement />} />

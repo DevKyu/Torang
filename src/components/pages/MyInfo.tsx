@@ -21,6 +21,7 @@ import RadixSelect from '../shared/RadixSelect';
 import MonthCell from '../shared/MonthCell';
 import TrendBlock from '../shared/TrendBlock';
 import CongratulationOverlay from '../match/CongratulationOverlay';
+import { preloadAchievements } from '../../routes/lazyPreloads';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   MyInfoContainer,
@@ -168,6 +169,10 @@ const MyInfo = () => {
     },
     [year, rollbackTarget],
   );
+
+  useEffect(() => {
+    preloadAchievements().catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!targetResult.show || !targetResult.achieved) return;

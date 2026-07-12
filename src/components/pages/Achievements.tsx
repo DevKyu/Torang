@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
 
 import { useActivityDates } from '../../hooks/useActivityDates';
@@ -103,6 +102,7 @@ const Achievements = () => {
         if (Object.keys(newResults).length > 0) {
           const empId = getCurrentUserId();
 
+          const { default: confetti } = await import('canvas-confetti');
           confetti({
             particleCount: 150,
             spread: 100,

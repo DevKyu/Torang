@@ -1,4 +1,3 @@
-import confetti from 'canvas-confetti';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { onValue, ref } from 'firebase/database';
@@ -141,11 +140,12 @@ const Draw = () => {
     wrapper.scrollTo({ top: scrollTarget, behavior: 'smooth' });
   };
 
-  const fireConfettiAtCard = (index: number) => {
+  const fireConfettiAtCard = async (index: number) => {
     const el = cardRefs.current[index];
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
+    const { default: confetti } = await import('canvas-confetti');
     confetti({
       particleCount: 120,
       spread: 100,
