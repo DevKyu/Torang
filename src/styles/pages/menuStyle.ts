@@ -90,7 +90,11 @@ export const MotionMenuCard = styled(motion.button)<MenuCardProps>`
   -moz-osx-font-smoothing: grayscale;
   box-shadow: ${({ disabled }) =>
     disabled ? 'none' : '0 2px 6px rgba(0, 0, 0, 0.03)'};
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,6 +117,7 @@ export const IconWrapper = styled.div`
   align-items: center;
   justify-content: center;
   margin-bottom: 6px;
+  transition: opacity 0.25s ease;
 
   svg {
     color: #0070f3;
@@ -125,6 +130,7 @@ export const MenuLabel = styled.span`
   color: #333;
   line-height: 1.3;
   word-break: keep-all;
+  transition: opacity 0.25s ease;
 `;
 
 const getReadableTextColor = (hex: string): string => {

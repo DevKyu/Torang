@@ -142,7 +142,6 @@ const CHUNK_PRELOADERS: Record<string, () => Promise<unknown>> = {
   teams: preloadTeamFormation,
 };
 
-let mainMenuChunksReady = false;
 let mainMenuChunksReadyPromise: Promise<void> | null = null;
 
 const ensureMainMenuChunksLoaded = () => {
@@ -151,9 +150,7 @@ const ensureMainMenuChunksLoaded = () => {
       Object.values(CHUNK_PRELOADERS).map((preload) =>
         preload().catch(() => {}),
       ),
-    ).then(() => {
-      mainMenuChunksReady = true;
-    });
+    ).then(() => {});
   }
   return mainMenuChunksReadyPromise;
 };
@@ -168,7 +165,6 @@ const MainMenu = () => {
   const [historyDetail, setHistoryDetail] = useState<MessageHistoryItem | null>(
     null,
   );
-  const [chunksReady, setChunksReady] = useState(mainMenuChunksReady);
   const queueTotalRef = useRef(0);
 
   const syncServerTime = useUiStore((s) => s.syncServerTime);
@@ -186,15 +182,8 @@ const MainMenu = () => {
   } = useMessageInbox(myEmpId);
 
   useEffect(() => {
-    if (chunksReady) return;
-    let cancelled = false;
-    ensureMainMenuChunksLoaded().then(() => {
-      if (!cancelled) setChunksReady(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [chunksReady]);
+    ensureMainMenuChunksLoaded();
+  }, []);
 
   useEffect(() => {
     const run = async () => {
@@ -260,8 +249,7 @@ const MainMenu = () => {
     return Object.keys(base)
       .map((id) => {
         const cfg = menuConfig[id];
-        const chunkReady = CHUNK_PRELOADERS[id] ? chunksReady : true;
-        const isLoading = !loaded || !chunkReady;
+        const isLoading = !loaded;
         const disabled = isLoading
           ? true
           : cfg?.disabled !== undefined
@@ -279,7 +267,7 @@ const MainMenu = () => {
       })
       .filter((item) => !item.hidden)
       .sort((a, b) => a.order - b.order);
-  }, [menuConfig, isAdmin, loaded, chunksReady]);
+  }, [menuConfig, isAdmin, loaded]);
 
   const handleClick = (id: string, disabled: boolean) => {
     if (disabled) return;
