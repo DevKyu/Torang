@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
-import { cubicBezier } from 'framer-motion';
+import { AnimatePresence, motion, cubicBezier } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
 import { Title as PageTitle } from '../../styles/global/commonStyle';
@@ -106,7 +106,13 @@ const ActivityHistory = () => {
   const { items: drawItems, loading: drawLoading } =
     useActivityDraw(ym);
 
+  const [ymPending, setYmPending] = useState(false);
+  useEffect(() => {
+    setYmPending(false);
+  }, [ym]);
+
   const isLoading =
+    ymPending ||
     rewardLoading ||
     matchLoading ||
     summaryLoading ||
@@ -153,7 +159,10 @@ const ActivityHistory = () => {
 
           <MonthNavigator
             ym={ym}
-            onChange={setYm}
+            onChange={(newYm) => {
+              setYmPending(true);
+              setYm(newYm);
+            }}
             minYm="202507"
             maxYm={currentYm}
           />
@@ -179,22 +188,38 @@ const ActivityHistory = () => {
             ))}
           </CategoryRow>
 
-          <ListFrame
-            variants={listVariants}
-            initial="hidden"
-            animate="visible"
-            key={`${ym}-${category}`}
-          >
-            {isLoading ? (
-              <EmptyState variants={rowVariants}>
-                <ClipLoader size={24} color="#9ca3af" />
-              </EmptyState>
-            ) : filtered.length === 0 ? (
-              <EmptyState variants={rowVariants}>
-                {month}월의 활동 기록이 없습니다.
-              </EmptyState>
+          <ListFrame key={`${ym}-${category}`}>
+            {isLoading || filtered.length === 0 ? (
+              <AnimatePresence mode="wait" initial={false}>
+                {isLoading ? (
+                  <EmptyState
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                  >
+                    <ClipLoader size={24} color="#9ca3af" />
+                  </EmptyState>
+                ) : (
+                  <EmptyState
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                  >
+                    {month}월의 활동 기록이 없습니다.
+                  </EmptyState>
+                )}
+              </AnimatePresence>
             ) : (
-              filtered.map((item) => (
+              <motion.div
+                variants={listVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {filtered.map((item) => (
                 <Row
                   key={item.id}
                   variants={rowVariants}
@@ -301,7 +326,8 @@ const ActivityHistory = () => {
                     </>
                   )}
                 </Row>
-              ))
+                ))}
+              </motion.div>
             )}
           </ListFrame>
 
