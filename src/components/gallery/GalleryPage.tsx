@@ -159,6 +159,14 @@ const GalleryPage = () => {
     return checkGalleryUploadAvailability(activityMaps, y, m);
   }, [activityLoading, activityMaps, ym]);
 
+  const gallerySkipState: 'checking' | 'known-empty' | undefined =
+    uploadPolicy.reason === 'loading'
+      ? 'checking'
+      : uploadPolicy.reason === 'no_activity' ||
+          uploadPolicy.reason === 'before_activity'
+        ? 'known-empty'
+        : undefined;
+
   const handleUpload = useCallback(
     async (files: File[], captions: string[]) => {
       if (!empId) return;
@@ -246,6 +254,7 @@ const GalleryPage = () => {
           list={galleryList}
           ym={ym}
           loading={!initialLoadDone.current && galleryList === null}
+          emptyState={gallerySkipState}
           onMoveUpload={() => setMode('upload')}
           onCancel={goBack}
           onChangeMonth={(newYm) => { setGalleryList(null); setYm(newYm); }}

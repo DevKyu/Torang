@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Heart, MessageCircle } from 'lucide-react';
+import { ClipLoader } from 'react-spinners';
 
 import {
   GalleryOuter,
@@ -56,6 +57,7 @@ type Props = {
   onChangeMonth: (ym: string) => void;
   ym: string;
   loading?: boolean;
+  emptyState?: 'checking' | 'known-empty';
 };
 
 const SKELETON_PAGE: null[] = Array(9).fill(null);
@@ -67,6 +69,7 @@ const GalleryList = ({
   onChangeMonth,
   ym,
   loading,
+  emptyState,
 }: Props) => {
   const monthLoading = list === null;
   const { images: storeImages, setImages, open } = useLightBoxStore();
@@ -179,8 +182,11 @@ const GalleryList = ({
     setPageLoadedCounts(new Array(pages.length).fill(0));
   }, [pages.length, filter]);
 
-  const isPlaceholder = Boolean(loading) || monthLoading;
-  const isEmpty = !isPlaceholder && sorted.length === 0;
+  const dataLoading = Boolean(loading) || monthLoading;
+  const isChecking = emptyState === 'checking';
+  const knownEmpty = emptyState === 'known-empty';
+  const isPlaceholder = dataLoading && !isChecking && !knownEmpty;
+  const isEmpty = !isChecking && (dataLoading ? knownEmpty : sorted.length === 0);
   const displayPages = isPlaceholder ? [SKELETON_PAGE] : pages;
 
   const moveMonth = (dir: -1 | 1) => {
@@ -250,7 +256,19 @@ const GalleryList = ({
           </FilterRow>
 
           <AnimatePresence mode="wait" initial={false}>
-            {isEmpty ? (
+            {isChecking ? (
+              <motion.div
+                key="checking"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+              >
+                <EmptyBox>
+                  <ClipLoader size={24} color="#9ca3af" />
+                </EmptyBox>
+              </motion.div>
+            ) : isEmpty ? (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}
