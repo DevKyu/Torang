@@ -132,7 +132,7 @@ const Modal = styled(motion.div)`
   background: #fffaf2;
   border: 1px solid #e0d6c8;
   border-radius: 16px;
-  width: 320px;
+  width: 340px;
   padding: 24px 20px;
   text-align: center;
   box-shadow:
@@ -153,13 +153,13 @@ const TextArea = styled.textarea`
   height: 96px;
   border: 1px solid #e2d9cd;
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   background: #fffdf8;
   resize: none;
   font-size: 16px;
   color: #3a2d22;
   outline: none;
-  line-height: 1.5;
+  line-height: 1.4;
   overflow-y: auto;
   touch-action: pan-y;
   white-space: pre-wrap;
