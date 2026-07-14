@@ -390,6 +390,17 @@ const AdminUserManagement = () => {
             </AdminSubLink>
           </AdminSubLinkRow>
         </AdminLinkGroup>
+
+        <AdminLinkGroup>
+          <AdminSubLinkRow>
+            <AdminSubLink
+              style={{ gridColumn: '1 / -1' }}
+              onClick={() => navigate('/admin/monthly-checklist')}
+            >
+              📋 체크리스트 현황
+            </AdminSubLink>
+          </AdminSubLinkRow>
+        </AdminLinkGroup>
       </AdminLinkSection>
 
       {searchResults.length > 0 && !selectedUser && (

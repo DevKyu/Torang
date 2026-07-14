@@ -23,6 +23,7 @@ import {
 import Layout from '../layouts/Layout';
 import MessageModal from '../shared/MessageModal';
 import NotificationHistorySheet from '../shared/NotificationHistorySheet';
+import ChecklistPopupModal from '../shared/ChecklistPopupModal';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   MenuGrid,
@@ -59,6 +60,8 @@ import {
   type AdminMessage,
   type MessageHistoryItem,
 } from '../../hooks/useMessages';
+import { useMonthlyChecklist } from '../../hooks/useMonthlyChecklist';
+import { useLatestRef } from '../../hooks/useLatestRef';
 
 type MenuItemBase = {
   id: string;
@@ -181,6 +184,14 @@ const MainMenu = () => {
     loading: queueLoading,
   } = useMessageInbox(myEmpId);
 
+  const hasShownChecklistPopup = useUiStore((s) => s.hasShownChecklistPopup);
+  const setShownChecklistPopup = useUiStore((s) => s.setShownChecklistPopup);
+  const { items: checklistItems, loading: checklistLoading } =
+    useMonthlyChecklist(myEmpId || null);
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const checklistItemsRef = useLatestRef(checklistItems);
+  const checklistRegisteredRef = useRef(false);
+
   useEffect(() => {
     ensureMainMenuChunksLoaded();
   }, []);
@@ -236,6 +247,26 @@ const MainMenu = () => {
   const handleMessagePopupClose = () => {
     setAutoShowQueue((prev) => prev.slice(1));
   };
+
+  useEffect(() => {
+    if (checklistRegisteredRef.current) return;
+    if (!myEmpId || !loaded || checklistLoading || hasShownChecklistPopup) {
+      return;
+    }
+    checklistRegisteredRef.current = true;
+
+    useUiStore.getState().onMessagePopupCleared(() => {
+      setShownChecklistPopup();
+      if (checklistItemsRef.current.length > 0) setChecklistOpen(true);
+    });
+  }, [
+    myEmpId,
+    loaded,
+    checklistLoading,
+    hasShownChecklistPopup,
+    setShownChecklistPopup,
+    checklistItemsRef,
+  ]);
 
   const handleHistoryDetailClose = () => {
     setHistoryDetail(null);
@@ -375,6 +406,12 @@ const MainMenu = () => {
         queueLength={1}
         onClose={handleHistoryDetailClose}
         onDismiss={handleHistoryDetailClose}
+      />
+
+      <ChecklistPopupModal
+        isOpen={checklistOpen}
+        items={checklistItems}
+        onClose={() => setChecklistOpen(false)}
       />
     </Layout>
   );

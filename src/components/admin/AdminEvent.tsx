@@ -19,6 +19,8 @@ import {
   MonthSelect,
   SaveButton,
   RewardActionRow,
+  RewardActionLabel,
+  SectionHint,
   BulkRewardButton,
   RewardGrid,
   RewardCard,
@@ -157,6 +159,7 @@ export default function AdminEvent() {
     galleryReward,
     matchType: storedMatchType,
     referralPin: storedReferralPin,
+    checklistReminderDays: storedChecklistReminderDays,
     loadEventConfig,
   } = useEventStore();
   const ui = useUiStore();
@@ -172,6 +175,8 @@ export default function AdminEvent() {
     useState<GalleryRewardDraft>(DEFAULT_GALLERY_REWARD_DRAFT);
   const [matchTypeDraft, setMatchTypeDraft] = useState<MatchType>('rival');
   const [referralPinDraft, setReferralPinDraft] = useState<number>(0);
+  const [checklistReminderDaysDraft, setChecklistReminderDaysDraft] =
+    useState<number>(0);
   const [distributing, setDistributing] = useState(false);
   const [rollingBack, setRollingBack] = useState(false);
 
@@ -186,6 +191,10 @@ export default function AdminEvent() {
   useEffect(() => {
     setReferralPinDraft(storedReferralPin);
   }, [storedReferralPin]);
+
+  useEffect(() => {
+    setChecklistReminderDaysDraft(storedChecklistReminderDays);
+  }, [storedChecklistReminderDays]);
 
   useEffect(() => {
     const next: MenuDraft = {} as MenuDraft;
@@ -277,6 +286,10 @@ export default function AdminEvent() {
       ),
       set(ref(db, 'eventConfig/matchType'), matchTypeDraft),
       set(ref(db, 'eventConfig/referralPin'), referralPinDraft),
+      set(
+        ref(db, 'eventConfig/checklistReminderDays'),
+        checklistReminderDaysDraft,
+      ),
     ]);
     await loadEventConfig();
     toast.success('저장 완료');
@@ -286,6 +299,7 @@ export default function AdminEvent() {
     galleryRewardDraft,
     matchTypeDraft,
     referralPinDraft,
+    checklistReminderDaysDraft,
     selectedYm,
     loadEventConfig,
   ]);
@@ -678,6 +692,33 @@ export default function AdminEvent() {
           월별 설정과 무관하게 적용되는 고정 보상입니다. 추천인·신규 가입자
           양측에 동일하게 지급됩니다.
         </p>
+      </Section>
+
+      <Section>
+        <SectionTitle>📋 체크리스트 알림</SectionTitle>
+        <RewardActionRow>
+          <RewardActionLabel>알림 시작 시점</RewardActionLabel>
+          <RateGroup>
+            {[1, 3, 5, 7].map((v) => (
+              <button
+                key={v}
+                className={checklistReminderDaysDraft === v ? 'active' : ''}
+                onClick={() => setChecklistReminderDaysDraft(v)}
+              >
+                {v}일 전
+              </button>
+            ))}
+            <button
+              className={checklistReminderDaysDraft === 0 ? 'active' : ''}
+              onClick={() => setChecklistReminderDaysDraft(0)}
+            >
+              제한없음
+            </button>
+          </RateGroup>
+        </RewardActionRow>
+        <SectionHint>
+          로그인 시 뜨는 체크리스트 팝업을 활동일 며칠 전부터 띄울지 정해요.
+        </SectionHint>
       </Section>
 
       <SaveButton onClick={saveAll}>💾 전체 저장</SaveButton>

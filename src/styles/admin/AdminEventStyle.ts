@@ -97,6 +97,19 @@ export const MonthSelect = styled.select`
   background-size: 14px;
 `;
 
+export const RewardActionLabel = styled.span`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2f2f2f;
+`;
+
+export const SectionHint = styled.p`
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: #8d8d8d;
+  line-height: 1.5;
+`;
+
 export const RewardActionRow = styled.div`
   display: flex;
   align-items: center;

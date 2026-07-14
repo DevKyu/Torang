@@ -94,6 +94,7 @@ type EventStore = {
   galleryReward: Record<string, GalleryRewardConfig>;
   matchType: MatchType;
   referralPin: number;
+  checklistReminderDays: number;
   loaded: boolean;
 
   loadEventConfig(): Promise<void>;
@@ -114,6 +115,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
   galleryReward: {},
   matchType: 'rival',
   referralPin: 0,
+  checklistReminderDays: 0,
   loaded: false,
 
   loadEventConfig: async () => {
@@ -145,6 +147,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
         galleryReward: normalizedGalleryReward,
         matchType: (v.matchType as MatchType) ?? 'rival',
         referralPin: typeof v.referralPin === 'number' ? v.referralPin : 0,
+        checklistReminderDays:
+          typeof v.checklistReminderDays === 'number'
+            ? v.checklistReminderDays
+            : 0,
         loaded: true,
       });
     } catch {

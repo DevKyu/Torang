@@ -41,6 +41,9 @@ const AdminTeamFormation = lazy(
   () => import('../components/admin/AdminTeamFormation'),
 );
 const AdminMessages = lazy(() => import('../components/admin/AdminMessages'));
+const AdminMonthlyChecklist = lazy(
+  () => import('../components/admin/AdminMonthlyChecklist'),
+);
 
 const SuspenseFallback = () => {
   useRouteLoading(true);
@@ -110,6 +113,10 @@ const Router = () => (
           element={<AdminTeamFormation />}
         />
         <Route path="/admin/messages" element={<AdminMessages />} />
+        <Route
+          path="/admin/monthly-checklist"
+          element={<AdminMonthlyChecklist />}
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
