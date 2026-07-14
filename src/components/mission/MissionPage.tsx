@@ -8,6 +8,10 @@ import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useMission, isScoreGuessMission } from '../../hooks/useMission';
+import {
+  getDaysUntilMissionReveal,
+  getMissionViewState,
+} from '../../utils/missionViewState';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import { renderMissionBody } from './missionBody';
@@ -61,31 +65,20 @@ const MissionPage = () => {
       .catch(() => setParticipantsLoaded(true));
   }, [currentYm]);
 
-  const daysUntilReveal = useMemo(() => {
-    if (!activityDateNum || !data?.config) return null;
-    const revealDays = data.config.revealDays ?? 7;
-    const n = activityDateNum;
-    const revealTimestamp =
-      new Date(
-        Math.floor(n / 10000),
-        Math.floor((n % 10000) / 100) - 1,
-        n % 100,
-      ).getTime() -
-      revealDays * 86400000;
-    return Math.ceil(
-      (revealTimestamp - useUiStore.getState().getServerNow().getTime()) /
-        86400000,
-    );
-  }, [activityDateNum, data]);
+  const daysUntilReveal = useMemo(
+    () =>
+      getDaysUntilMissionReveal(
+        activityDateNum,
+        data?.config,
+        useUiStore.getState().getServerNow(),
+      ),
+    [activityDateNum, data],
+  );
 
-  const viewState = useMemo(() => {
-    if (!data?.config || data.config.status === 'draft') return 'empty';
-    const { status } = data.config;
-    if (status === 'revealed') return 'revealed';
-    if (status === 'voting') return 'voting';
-    if (daysUntilReveal === null || daysUntilReveal > 0) return 'upcoming';
-    return 'preview';
-  }, [data, daysUntilReveal]);
+  const viewState = useMemo(
+    () => getMissionViewState(data?.config, daysUntilReveal),
+    [data, daysUntilReveal],
+  );
 
   const isReady = !loading && participantsLoaded;
   const pageTitle = '활동 미션';

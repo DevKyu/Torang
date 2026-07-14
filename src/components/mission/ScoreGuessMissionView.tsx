@@ -2,7 +2,11 @@ import { useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { submitScoreGuessVote, deleteScoreGuessVote } from '../../hooks/useScoreGuessMission';
+import {
+  submitScoreGuessVote,
+  deleteScoreGuessVote,
+  markCheerRead,
+} from '../../hooks/useScoreGuessMission';
 import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import VoterCardItem from './VoterCardItem';
@@ -229,7 +233,16 @@ const ScoreGuessMissionView = ({
                 </>
               )}
               {isTarget && (
-                <VoteTriggerBtn onClick={() => setVoteScreenOpen(true)}>
+                <VoteTriggerBtn
+                  onClick={() => {
+                    setVoteScreenOpen(true);
+                    if (myEmpId) {
+                      markCheerRead(ym, myEmpId, myCheerMessages.length).catch(
+                        () => {},
+                      );
+                    }
+                  }}
+                >
                   🎉 나의 미션 확인하기
                 </VoteTriggerBtn>
               )}

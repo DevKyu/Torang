@@ -7,6 +7,14 @@ import type {
   ScoreGuessVote,
 } from './useMission';
 
+export async function markCheerRead(
+  ym: string,
+  empId: string,
+  messageCount: number,
+): Promise<void> {
+  await set(ref(db, `missions/${ym}/cheerReads/${empId}`), messageCount);
+}
+
 export async function confirmScoreGuessTargets(
   ym: string,
   empIds: string[],

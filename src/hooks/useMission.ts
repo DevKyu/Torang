@@ -94,6 +94,7 @@ export type ScoreGuessMissionData = {
   targets?: ScoreGuessTargets;
   votes?: Record<string, ScoreGuessVote>;
   result?: ScoreGuessMissionResult;
+  cheerReads?: Record<string, number>;
 };
 
 export type MissionData = VillainMissionData | ScoreGuessMissionData;
