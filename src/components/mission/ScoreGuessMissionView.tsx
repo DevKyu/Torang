@@ -7,6 +7,7 @@ import {
   deleteScoreGuessVote,
   markCheerRead,
 } from '../../hooks/useScoreGuessMission';
+import { useUiStore } from '../../stores/useUiStore';
 import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import VoterCardItem from './VoterCardItem';
@@ -57,6 +58,7 @@ type Props = {
   myVote?: ScoreGuessVote;
   allNames: Record<string, string>;
   participants: string[];
+  activityYmd?: string;
 };
 
 const ScoreGuessMissionView = ({
@@ -67,6 +69,7 @@ const ScoreGuessMissionView = ({
   myVote,
   allNames,
   participants,
+  activityYmd,
 }: Props) => {
   const [selectedTarget, setSelectedTarget] = useState('');
   const [predictModalOpen, setPredictModalOpen] = useState(false);
@@ -83,6 +86,9 @@ const ScoreGuessMissionView = ({
   const isParticipant = myEmpId ? participants.includes(myEmpId) : false;
   const isTarget = !!myEmpId && targets.includes(myEmpId);
   const votingActive = viewState === 'voting' || viewState === 'preview';
+  const stillActionable = useUiStore
+    .getState()
+    .isBeforeCutoff(activityYmd, '18:30');
 
   const sortedTargets = useMemo(
     () =>
@@ -104,6 +110,10 @@ const ScoreGuessMissionView = ({
     anonymous: boolean,
   ) => {
     if (!myEmpId || !selectedTarget) return;
+    if (!stillActionable) {
+      setPredictModalOpen(false);
+      return;
+    }
     setSubmitting(true);
     try {
       await submitScoreGuessVote(
@@ -123,7 +133,7 @@ const ScoreGuessMissionView = ({
   };
 
   const handleVoteChange = async () => {
-    if (!myEmpId) return;
+    if (!myEmpId || !stillActionable) return;
     setChangingVote(true);
     try {
       await deleteScoreGuessVote(ym, myEmpId);
@@ -208,7 +218,9 @@ const ScoreGuessMissionView = ({
           ? 'vote-trigger'
           : myVote
             ? 'voted'
-            : 'voting'
+            : stillActionable
+              ? 'voting'
+              : 'closed'
     : viewState;
 
   return (
@@ -264,6 +276,16 @@ const ScoreGuessMissionView = ({
             </VotedStateArea>
           )}
 
+          {contentKey === 'closed' && (
+            <VotedStateArea>
+              <AlreadyVotedBox>
+                <VotedEmoji>⏰</VotedEmoji>
+                <VotedHeadline>예측이 마감되었어요</VotedHeadline>
+                <VotedSub>결과는 활동 후 확인할 수 있어요</VotedSub>
+              </AlreadyVotedBox>
+            </VotedStateArea>
+          )}
+
           {contentKey === 'target-detail' && (
             <VotedStateArea>
               <AlreadyVotedBox>
@@ -300,11 +322,13 @@ const ScoreGuessMissionView = ({
                 </VotedName>
                 <VotedSub>결과는 활동 후 확인할 수 있어요</VotedSub>
               </AlreadyVotedBox>
-              <VoteActionRow>
-                <VoteResultBtn onClick={handleVoteChange} disabled={changingVote}>
-                  {changingVote ? '변경 중...' : '예측 변경하기'}
-                </VoteResultBtn>
-              </VoteActionRow>
+              {stillActionable && (
+                <VoteActionRow>
+                  <VoteResultBtn onClick={handleVoteChange} disabled={changingVote}>
+                    {changingVote ? '변경 중...' : '예측 변경하기'}
+                  </VoteResultBtn>
+                </VoteActionRow>
+              )}
             </VotedStateArea>
           )}
 

@@ -466,6 +466,13 @@ const AdminMission = () => {
       toast('신규회원 후보를 1명 이상 선택해주세요.', { position: 'top-center' });
       return;
     }
+    if (isScoreGuessMission(data) && data.result?.revealed === true) {
+      toast('이미 결과가 공개된 미션입니다. 후보를 바꾸려면 먼저 "미션 초기화"를 눌러주세요.', {
+        position: 'top-center',
+        duration: 3000,
+      });
+      return;
+    }
     const hasExistingVotes =
       isScoreGuessMission(data) && Object.keys(data.votes ?? {}).length > 0;
     if (hasExistingVotes && !confirmTargetChange) {
@@ -548,7 +555,7 @@ const AdminMission = () => {
   const handleResetMission = async () => {
     setSaving(true);
     try {
-      await resetMissionState(ym);
+      await resetMissionState(ym, data);
       setConfirmReset(false);
       toast('✅ 미션 상태가 초기화되었습니다.', {
         position: 'top-center',

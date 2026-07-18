@@ -150,6 +150,9 @@ const MissionPage = () => {
                   myVote={typeof myVote === 'object' ? myVote : undefined}
                   allNames={allNames}
                   participants={participants}
+                  activityYmd={
+                    activityDateNum ? String(activityDateNum) : undefined
+                  }
                 />
               ) : data ? (
                 <VillainMissionView
