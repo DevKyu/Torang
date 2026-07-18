@@ -311,13 +311,17 @@ const AdminMonthlyChecklist = () => {
   const year = selectedYm.slice(0, 4) as Year;
   const month = String(Number(selectedYm.slice(4)));
 
-  const targetPinEnabled = (pinReward[selectedYm]?.targetScore ?? 0) > 0;
+  const monthReward = pinReward[selectedYm];
+  const targetRewardEnabled = (monthReward?.targetScore ?? 0) > 0;
+  const matchRewardEnabled =
+    ((monthMatchType === 'pin'
+      ? monthReward?.pinMatch
+      : monthReward?.rivalMatch) ?? 0) > 0;
+  const achievementRewardEnabled = (monthReward?.achievement ?? 0) > 0;
   const galleryRewardConfig = getGalleryReward(selectedYm);
-  const galleryRewardActive =
+  const galleryRewardEnabled =
     galleryRewardConfig.upload.pin > 0 && galleryRewardConfig.upload.threshold > 0;
-  const galleryGoal = galleryRewardActive
-    ? galleryRewardConfig.upload.threshold
-    : 1;
+  const galleryGoal = galleryRewardConfig.upload.threshold;
 
   const usersWithStatus = useMemo(() => {
     const participantSet = new Set(participants);
@@ -343,7 +347,7 @@ const AdminMonthlyChecklist = () => {
           typeof myTargetScore === 'number' &&
           typeof myTarget === 'number' &&
           myTargetScore >= myTarget;
-        const targetRewardApplicable = targetPinEnabled && targetAchieved;
+        const targetRewardApplicable = targetAchieved;
         const targetRewardDone = !!user.rewards?.[selectedYm]?.target;
 
         const matchResultApplicable = rivalDone;
@@ -361,19 +365,26 @@ const AdminMonthlyChecklist = () => {
         const villainVoteDone = !!postStatus.villainVoteDoneMap[empId];
 
         const postSatisfied =
-          (!targetRewardApplicable || targetRewardDone) &&
-          (!matchResultApplicable || matchResultDone) &&
-          achievementDone &&
-          galleryDone &&
+          (!targetRewardEnabled || !targetRewardApplicable || targetRewardDone) &&
+          (!matchRewardEnabled || !matchResultApplicable || matchResultDone) &&
+          (!achievementRewardEnabled || achievementDone) &&
+          (!galleryRewardEnabled || galleryDone) &&
           (!villainVoteApplicable || villainVoteDone);
+
+        const targetDone = user.targets?.[year]?.[month as Month] !== undefined;
+        const preSatisfied =
+          (!targetRewardEnabled || targetDone) &&
+          (!matchRewardEnabled || rivalDone) &&
+          (!predictMission.active || predictSatisfied);
 
         return {
           empId,
           user,
-          targetDone: user.targets?.[year]?.[month as Month] !== undefined,
+          targetDone,
           rivalDone,
           isPredictCandidate,
           predictSatisfied,
+          preSatisfied,
           targetRewardApplicable,
           targetRewardDone,
           matchResultApplicable,
@@ -394,7 +405,10 @@ const AdminMonthlyChecklist = () => {
     participants,
     predictMission,
     selectedYm,
-    targetPinEnabled,
+    targetRewardEnabled,
+    matchRewardEnabled,
+    achievementRewardEnabled,
+    galleryRewardEnabled,
     galleryGoal,
     postStatus,
   ]);
@@ -402,9 +416,7 @@ const AdminMonthlyChecklist = () => {
   const incompleteCount = useMemo(
     () =>
       usersWithStatus.filter((row) =>
-        activeTab === 'pre'
-          ? !row.targetDone || !row.rivalDone || !row.predictSatisfied
-          : !row.postSatisfied,
+        activeTab === 'pre' ? !row.preSatisfied : !row.postSatisfied,
       ).length,
     [usersWithStatus, activeTab],
   );
@@ -414,10 +426,7 @@ const AdminMonthlyChecklist = () => {
 
     return usersWithStatus.filter((row) => {
       if (incompleteOnly) {
-        const done =
-          activeTab === 'pre'
-            ? row.targetDone && row.rivalDone && row.predictSatisfied
-            : row.postSatisfied;
+        const done = activeTab === 'pre' ? row.preSatisfied : row.postSatisfied;
         if (done) return false;
       }
       if (!keyword) return true;
@@ -541,14 +550,18 @@ const AdminMonthlyChecklist = () => {
 
                     {activeTab === 'pre' ? (
                       <ChecksWrap>
-                        <CheckItem>
-                          <CheckLabel>목표</CheckLabel>
-                          {renderCheckCircle(targetDone)}
-                        </CheckItem>
-                        <CheckItem>
-                          <CheckLabel>{rivalNoun}</CheckLabel>
-                          {renderCheckCircle(rivalDone)}
-                        </CheckItem>
+                        {targetRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>목표</CheckLabel>
+                            {renderCheckCircle(targetDone)}
+                          </CheckItem>
+                        )}
+                        {matchRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>{rivalNoun}</CheckLabel>
+                            {renderCheckCircle(rivalDone)}
+                          </CheckItem>
+                        )}
                         {predictMission.active && (
                           <CheckItem>
                             <CheckLabel>예측</CheckLabel>
@@ -558,28 +571,36 @@ const AdminMonthlyChecklist = () => {
                       </ChecksWrap>
                     ) : (
                       <ChecksWrap>
-                        <CheckItem>
-                          <CheckLabel>목표</CheckLabel>
-                          {renderStatusCircle(targetRewardApplicable, targetRewardDone)}
-                        </CheckItem>
-                        <CheckItem>
-                          <CheckLabel>{rivalNoun}</CheckLabel>
-                          {renderStatusCircle(matchResultApplicable, matchResultDone)}
-                        </CheckItem>
-                        <CheckItem>
-                          <CheckLabel>업적</CheckLabel>
-                          {renderCheckCircle(achievementDone)}
-                        </CheckItem>
+                        {targetRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>목표</CheckLabel>
+                            {renderStatusCircle(targetRewardApplicable, targetRewardDone)}
+                          </CheckItem>
+                        )}
+                        {matchRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>{rivalNoun}</CheckLabel>
+                            {renderStatusCircle(matchResultApplicable, matchResultDone)}
+                          </CheckItem>
+                        )}
+                        {achievementRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>업적</CheckLabel>
+                            {renderCheckCircle(achievementDone)}
+                          </CheckItem>
+                        )}
                         {villainVoteApplicable && (
                           <CheckItem>
                             <CheckLabel>투표</CheckLabel>
                             {renderCheckCircle(villainVoteDone)}
                           </CheckItem>
                         )}
-                        <CheckItem>
-                          <CheckLabel>사진</CheckLabel>
-                          {renderCheckCircle(galleryDone)}
-                        </CheckItem>
+                        {galleryRewardEnabled && (
+                          <CheckItem>
+                            <CheckLabel>사진</CheckLabel>
+                            {renderCheckCircle(galleryDone)}
+                          </CheckItem>
+                        )}
                       </ChecksWrap>
                     )}
                   </StatusRow>
