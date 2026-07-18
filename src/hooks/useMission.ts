@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ref,
+  get,
   set,
   remove,
   onValue,
@@ -70,6 +71,8 @@ type MissionResult = {
   revealedAt: number;
   villainWon: boolean;
   helperWon: boolean;
+  villainId: string;
+  helperId: string;
   correctVoters: string[];
 };
 
@@ -191,12 +194,70 @@ export async function resetVotes(ym: string): Promise<void> {
   await remove(ref(db, `missions/${ym}/votes`));
 }
 
-export async function resetMissionState(ym: string): Promise<void> {
-  await Promise.all([
-    remove(ref(db, `missions/${ym}/votes`)),
-    remove(ref(db, `missions/${ym}/result`)),
-    set(ref(db, `missions/${ym}/config/status`), 'active'),
-  ]);
+export async function resetMissionState(
+  ym: string,
+  data: MissionData | null,
+): Promise<void> {
+  const updates: Record<string, unknown> = {
+    [`missions/${ym}/votes`]: null,
+    [`missions/${ym}/result`]: null,
+    [`missions/${ym}/config/status`]: 'active',
+  };
+
+  if (data?.result?.revealed) {
+    const { revealedAt, correctVoters } = data.result;
+    const recipientKeys: { empId: string; key: string }[] = (
+      correctVoters ?? []
+    ).map((empId) => ({ empId, key: buildMissionRewardKey(revealedAt, empId) }));
+
+    if (isScoreGuessMission(data)) {
+      (data.result.topTargets ?? []).forEach((empId) =>
+        recipientKeys.push({
+          empId,
+          key: buildMissionRewardKey(revealedAt, empId, '_rank'),
+        }),
+      );
+    } else {
+      const { villainWon, helperWon, villainId, helperId } = data.result;
+      if (villainWon && villainId) {
+        recipientKeys.push({
+          empId: villainId,
+          key: buildMissionRewardKey(revealedAt, villainId),
+        });
+        if (helperWon && helperId) {
+          recipientKeys.push({
+            empId: helperId,
+            key: buildMissionRewardKey(revealedAt, helperId),
+          });
+        }
+      }
+    }
+
+    const rewardSnaps = await Promise.all(
+      recipientKeys.map(({ empId, key }) =>
+        get(ref(db, `users/${empId}/rewards/${ym}/mission/${key}`)),
+      ),
+    );
+
+    recipientKeys.forEach(({ empId, key }, i) => {
+      const snap = rewardSnaps[i];
+      if (!snap.exists()) return;
+      const pin = (snap.val() as { pin?: number })?.pin ?? 0;
+      if (pin <= 0) return;
+      updates[`users/${empId}/pin`] = increment(-pin);
+      updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
+    });
+  }
+
+  await update(ref(db), updates);
+}
+
+export function buildMissionRewardKey(
+  timestamp: number,
+  empId: string,
+  keySuffix = '',
+): string {
+  return `${timestamp}_${empId}${keySuffix}`;
 }
 
 export function buildMissionPinReward(
@@ -211,7 +272,7 @@ export function buildMissionPinReward(
 ): Record<string, unknown> {
   return {
     [`users/${empId}/pin`]: increment(pin),
-    [`users/${empId}/rewards/${ym}/mission/${now}_${empId}${keySuffix}`]: {
+    [`users/${empId}/rewards/${ym}/mission/${buildMissionRewardKey(now, empId, keySuffix)}`]: {
       type: 'mission',
       direction: 'gain',
       pin,
@@ -297,6 +358,8 @@ export async function revealMissionResult(
       revealedAt: now,
       villainWon,
       helperWon,
+      villainId,
+      helperId,
       correctVoters,
     },
     [`missions/${ym}/config/status`]: 'revealed',

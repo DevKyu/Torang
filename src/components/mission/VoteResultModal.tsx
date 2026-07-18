@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import { Check } from 'lucide-react';
-import type { MissionRoles } from '../../hooks/useMission';
 import {
   Backdrop,
   Card,
@@ -28,7 +27,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   votes: Record<string, string>;
-  roles: MissionRoles;
+  roles: { villain: string; helper: string };
   allNames: Record<string, string>;
   myVote?: string;
 };

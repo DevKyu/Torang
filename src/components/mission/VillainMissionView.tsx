@@ -116,8 +116,8 @@ const VillainMissionView = ({
 
   const result = data.result;
   const votes = data.votes ?? {};
-  const villainId = data.roles?.villain ?? '';
-  const helperId = data.roles?.helper ?? '';
+  const villainId = result?.villainId ?? data.roles?.villain ?? '';
+  const helperId = result?.helperId ?? data.roles?.helper ?? '';
 
   const contentKey =
     viewState === 'voting'
@@ -270,12 +270,12 @@ const VillainMissionView = ({
         </motion.div>
       </AnimatePresence>
 
-      {viewState === 'revealed' && data.roles && (
+      {viewState === 'revealed' && villainId && helperId && (
         <VoteResultModal
           isOpen={voteModalOpen}
           onClose={() => setVoteModalOpen(false)}
           votes={votes}
-          roles={data.roles}
+          roles={{ villain: villainId, helper: helperId }}
           allNames={allNames}
           myVote={myVote}
         />
