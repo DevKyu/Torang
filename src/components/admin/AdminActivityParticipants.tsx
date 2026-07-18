@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
+import { createAdminMonthOptions } from '../../utils/date';
 
 import type { UserInfo } from '../../types/UserInfo';
 
@@ -43,25 +44,6 @@ import {
   ActivityDateBtn,
 } from '../../styles/admin/AdminActivityParticipantsStyle';
 
-const createMonthOptions = () => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  const result: string[] = [];
-
-  for (let y = 2025; y <= currentYear; y++) {
-    const startMonth = y === 2025 ? 9 : 1;
-    const endMonth = y === currentYear ? currentMonth : 12;
-
-    for (let m = startMonth; m <= endMonth; m++) {
-      result.push(`${y}${String(m).padStart(2, '0')}`);
-    }
-  }
-
-  return result.reverse();
-};
-
 const buildParticipantMap = (
   entries: [string, UserInfo][],
   predicate?: (user: UserInfo) => boolean,
@@ -94,7 +76,7 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
   const goBack = useNavigateBack('/admin');
   const { path, title } = MODE_CONFIG[mode];
 
-  const monthOptions = useMemo(createMonthOptions, []);
+  const monthOptions = useMemo(createAdminMonthOptions, []);
 
   const [selectedYm, setSelectedYm] = useState(monthOptions[0]);
 

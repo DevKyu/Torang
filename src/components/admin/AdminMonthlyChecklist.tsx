@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
+import { createAdminMonthOptions } from '../../utils/date';
 import { useEventStore } from '../../stores/eventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import { isScoreGuessMission } from '../../hooks/useMission';
@@ -78,25 +79,6 @@ const toDoneMapFromNonEmpty = (
 const toDoneMapFromKeys = (obj: Record<string, unknown>): Record<string, true> =>
   Object.fromEntries(Object.keys(obj).map((id) => [id, true as const]));
 
-const createMonthOptions = () => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  const result: string[] = [];
-
-  for (let y = 2025; y <= currentYear; y++) {
-    const startMonth = y === 2025 ? 9 : 1;
-    const endMonth = y === currentYear ? currentMonth : 12;
-
-    for (let m = startMonth; m <= endMonth; m++) {
-      result.push(`${y}${String(m).padStart(2, '0')}`);
-    }
-  }
-
-  return result.reverse();
-};
-
 const AdminMonthlyChecklist = () => {
   const goBack = useNavigateBack('/admin');
   const matchType = useEventStore((s) => s.matchType);
@@ -105,7 +87,7 @@ const AdminMonthlyChecklist = () => {
   const pinReward = useEventStore((s) => s.pinReward);
   const getGalleryReward = useEventStore((s) => s.getGalleryReward);
 
-  const monthOptions = useMemo(createMonthOptions, []);
+  const monthOptions = useMemo(createAdminMonthOptions, []);
   const [selectedYm, setSelectedYm] = useState(monthOptions[0]);
   const [activeTab, setActiveTab] = useState<'pre' | 'post'>('pre');
 

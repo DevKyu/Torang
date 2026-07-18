@@ -160,7 +160,7 @@ const GalleryPage = () => {
   }, [activityLoading, activityMaps, ym]);
 
   const gallerySkipState: 'checking' | 'known-empty' | undefined =
-    uploadPolicy.reason === 'loading'
+    uploadPolicy.reason === 'loading' || uploadPolicy.reason === 'no_data'
       ? 'checking'
       : uploadPolicy.reason === 'no_activity' ||
           uploadPolicy.reason === 'before_activity'

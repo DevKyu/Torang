@@ -79,3 +79,22 @@ export const isWithinActivityDays = (
   const diffDays = getDiffDaysServer(activityYmd);
   return diffDays >= 0 && diffDays <= withinDays;
 };
+
+export const createAdminMonthOptions = (): string[] => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const result: string[] = [];
+
+  for (let y = 2025; y <= currentYear; y++) {
+    const startMonth = y === 2025 ? 9 : 1;
+    const endMonth = y === currentYear ? currentMonth : 12;
+
+    for (let m = startMonth; m <= endMonth; m++) {
+      result.push(`${y}${String(m).padStart(2, '0')}`);
+    }
+  }
+
+  return result.reverse();
+};

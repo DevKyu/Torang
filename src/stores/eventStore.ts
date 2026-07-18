@@ -42,7 +42,7 @@ const LEGACY_BADGE_PRESET: Record<string, MenuBadgeConfig> = {
   soon: { text: 'SOON', color: '#2563eb' },
 };
 
-const normalizeMenuConfig = (raw: Record<string, unknown>): MenuConfig => {
+export const normalizeMenuConfig = (raw: Record<string, unknown>): MenuConfig => {
   const out: MenuConfig = {};
   Object.entries(raw ?? {}).forEach(([id, value]) => {
     const cfg = { ...(value as MenuConfigItem) };
