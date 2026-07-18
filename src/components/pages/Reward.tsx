@@ -43,7 +43,6 @@ import { ProductItem } from '../products/ProductItem';
 import { RewardHistory } from '../shared/RewardHistory';
 import { ProductDetailSheet } from '../products/ProductDetailSheet';
 import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../../utils/date';
-import { CUR_YEAR, CUR_MONTHN } from '../../constants/date';
 import type { AppliedProduct } from '../../types/UserInfo';
 
 type Product = {
@@ -77,7 +76,10 @@ const Reward = () => {
   const goBack = useNavigateBack();
   const quarterYm = useMemo(() => getQuarterEndYm(), []);
 
-  const activityYmd = activityMaps[CUR_YEAR]?.[String(CUR_MONTHN)];
+  const { formatServerDate } = useUiStore.getState();
+  const serverYear = formatServerDate('year');
+  const serverMonth = formatServerDate('month');
+  const activityYmd = activityMaps[serverYear]?.[serverMonth];
   const isLocked = useMemo(
     () => isBeforeOrOnActivityDate(activityYmd, useUiStore.getState().getServerNow()),
     [activityYmd],

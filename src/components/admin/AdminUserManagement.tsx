@@ -16,7 +16,6 @@ import {
   adjustPinsForCurrentMonth,
 } from '../../services/firebase';
 import type { UserInfo, Year, Month } from '../../types/UserInfo';
-import { CUR_MONTHN, CUR_YEAR } from '../../constants/date';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   SearchRow,
@@ -85,7 +84,9 @@ const AdminUserManagement = () => {
   >({});
   const [newScore, setNewScore] = useState<number | ''>('');
   const [editMonth, setEditMonth] = useState<Month | null>(null);
-  const [openYear, setOpenYear] = useState<Year | ''>(CUR_YEAR);
+  const [openYear, setOpenYear] = useState<Year | ''>(
+    useUiStore.getState().formatServerDate('year') as Year,
+  );
 
   const [newEmpId, setNewEmpId] = useState('');
   const [newName, setNewName] = useState('');
@@ -142,8 +143,9 @@ const AdminUserManagement = () => {
       const user = await checkEmpId(empId);
       setSelectedEmpId(empId);
       setSelectedUser(user);
-      await loadScores(empId, CUR_YEAR);
-      setOpenYear(CUR_YEAR);
+      const curYear = useUiStore.getState().formatServerDate('year') as Year;
+      await loadScores(empId, curYear);
+      setOpenYear(curYear);
     } finally {
       setLoading(false);
     }
@@ -283,9 +285,13 @@ const AdminUserManagement = () => {
   };
 
   const handleCurrentMonthPinAdjustment = async () => {
+    const { formatServerDate } = useUiStore.getState();
+    const curYear = formatServerDate('year');
+    const curMonth = formatServerDate('month');
+
     if (
       !window.confirm(
-        `${CUR_YEAR}년 ${CUR_MONTHN}월 활동자에게 핀을 지급하시겠습니까?\n(정회원 +1, 준회원 +0.5)`,
+        `${curYear}년 ${curMonth}월 활동자에게 핀을 지급하시겠습니까?\n(정회원 +1, 준회원 +0.5)`,
       )
     )
       return;
@@ -296,7 +302,7 @@ const AdminUserManagement = () => {
     if (ok) {
       const data = await fetchAllUsers();
       setUsers(data);
-      toast.success(`${CUR_YEAR}년 ${CUR_MONTHN}월 활동자 핀 지급 완료`);
+      toast.success(`${curYear}년 ${curMonth}월 활동자 핀 지급 완료`);
     } else {
       toast.error('대상자 없음 또는 오류 발생');
     }
