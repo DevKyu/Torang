@@ -5,10 +5,12 @@ import { db } from '../services/firebase';
 export const useMonthParticipants = (year: string, month: number) => {
   const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(false);
     get(ref(db, `activityParticipants/${year}/${month}`))
       .then((snap) => {
         if (cancelled) return;
@@ -17,7 +19,10 @@ export const useMonthParticipants = (year: string, month: number) => {
         );
       })
       .catch(() => {
-        if (!cancelled) setParticipants([]);
+        if (!cancelled) {
+          setParticipants([]);
+          setError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -27,5 +32,5 @@ export const useMonthParticipants = (year: string, month: number) => {
     };
   }, [year, month]);
 
-  return { participants, loading };
+  return { participants, loading, error };
 };

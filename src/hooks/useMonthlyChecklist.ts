@@ -152,7 +152,7 @@ export const useMonthlyChecklist = (
     const isCandidate =
       !!myEmpId && !!scoreGuessData?.targets?.empIds?.includes(myEmpId);
 
-    if (scoreGuessData && missionViewState === 'preview') {
+    if (scoreGuessData && missionViewState === 'preview' && stillActionable) {
       if (isCandidate) {
         const cheerMessageCount =
           countCheerMessagesByCandidate(scoreGuessData.votes)[myEmpId ?? ''] ??

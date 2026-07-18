@@ -201,7 +201,11 @@ const MainMenu = () => {
   const checklistServerYear = checklistFormatServerDate('year');
   const checklistServerMonth = Number(checklistFormatServerDate('month'));
   const checklistServerYm = checklistFormatServerDate('ym');
-  const { maps: activityAll, loading: activityLoading } = useActivityDates();
+  const {
+    maps: activityAll,
+    loading: activityLoading,
+    error: activityError,
+  } = useActivityDates();
   const activityYmdStr = resolveActivityYmd(
     activityAll,
     checklistServerYear,
@@ -213,8 +217,12 @@ const MainMenu = () => {
   const participantsMonth = activityYmdStr
     ? Number(activityYmdStr.slice(4, 6))
     : checklistServerMonth;
-  const { participants: monthParticipants, loading: participantsLoading } =
-    useMonthParticipants(participantsYear, participantsMonth);
+  const {
+    participants: monthParticipants,
+    loading: participantsLoading,
+    error: participantsError,
+  } = useMonthParticipants(participantsYear, participantsMonth);
+  const checklistDataError = activityError || participantsError;
   const checklistMatchType = useEventStore((s) => s.matchType);
   const checklistActivityYm = activityYmdStr?.slice(0, 6) ?? checklistServerYm;
   const { choices: matchChoices, loading: matchChoicesLoading } = useMatch(
@@ -255,7 +263,6 @@ const MainMenu = () => {
   const postActivityChecklistItemsRef = useLatestRef(
     postActivityChecklistItems,
   );
-  const pendingPostActivityOpenRef = useRef(false);
 
   useEffect(() => {
     ensureMainMenuChunksLoaded();
@@ -323,33 +330,34 @@ const MainMenu = () => {
 
   useEffect(() => {
     if (checklistRegisteredRef.current) return;
-    if (!myEmpId || !loaded || checklistLoading || postActivityChecklistLoading) {
+    if (
+      !myEmpId ||
+      !loaded ||
+      checklistLoading ||
+      postActivityChecklistLoading ||
+      checklistDataError
+    ) {
       return;
     }
     if (hasShownChecklistPopup && hasShownPostActivityChecklistPopup) return;
     checklistRegisteredRef.current = true;
 
     useUiStore.getState().onMessagePopupCleared(() => {
-      let preOpened = false;
       if (!useUiStore.getState().hasShownChecklistPopup) {
         setShownChecklistPopup();
         if (checklistItemsRef.current.length > 0) {
           setChecklistOpen(true);
-          preOpened = true;
         }
       }
 
-      if (preOpened) {
-        pendingPostActivityOpenRef.current = true;
-      } else {
-        openPostActivityChecklist();
-      }
+      openPostActivityChecklist();
     });
   }, [
     myEmpId,
     loaded,
     checklistLoading,
     postActivityChecklistLoading,
+    checklistDataError,
     hasShownChecklistPopup,
     hasShownPostActivityChecklistPopup,
     setShownChecklistPopup,
@@ -502,13 +510,7 @@ const MainMenu = () => {
       <ChecklistPopupModal
         isOpen={checklistOpen}
         items={checklistItems}
-        onClose={() => {
-          setChecklistOpen(false);
-          if (pendingPostActivityOpenRef.current) {
-            pendingPostActivityOpenRef.current = false;
-            openPostActivityChecklist();
-          }
-        }}
+        onClose={() => setChecklistOpen(false)}
       />
 
       <ChecklistPopupModal

@@ -7,6 +7,7 @@ import {
 export const useActivityDates = () => {
   const [maps, setMaps] = useState<ActivityDateAll>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -14,6 +15,8 @@ export const useActivityDates = () => {
       try {
         const all = await getAllActivityDates();
         if (alive) setMaps(all ?? {});
+      } catch {
+        if (alive) setError(true);
       } finally {
         if (alive) setLoading(false);
       }
@@ -23,5 +26,5 @@ export const useActivityDates = () => {
     };
   }, []);
 
-  return { maps, loading };
+  return { maps, loading, error };
 };
