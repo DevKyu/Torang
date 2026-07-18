@@ -7,13 +7,20 @@ import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useEventStore } from '../../stores/eventStore';
+import { useUiStore } from '../../stores/useUiStore';
+import { isScoreGuessMission } from '../../hooks/useMission';
 import {
   countCheerMessagesByCandidate,
   isCheerSatisfied,
 } from '../../utils/scoreGuessCheer';
+import {
+  getDaysUntilMissionReveal,
+  getMissionViewState,
+} from '../../utils/missionViewState';
 
 import type { Month, Year, UserInfo } from '../../types/UserInfo';
 import type { MatchType } from '../../types/match';
+import type { MissionData } from '../../hooks/useMission';
 
 import { SmallText } from '../../styles/global/commonStyle';
 
@@ -42,9 +49,34 @@ import {
   CheckItem,
   CheckLabel,
   CheckCircle,
+  TabRow,
+  TabButton,
+  StatusCircle,
   BottomSection,
   EmptyText,
 } from '../../styles/admin/AdminMonthlyChecklistStyle';
+
+const renderCheckCircle = (done: boolean) => (
+  <CheckCircle checked={done}>{done ? '✓' : ''}</CheckCircle>
+);
+
+const renderStatusCircle = (applicable: boolean, done: boolean) => (
+  <StatusCircle state={!applicable ? 'na' : done ? 'done' : 'pending'}>
+    {!applicable ? '–' : done ? '✓' : ''}
+  </StatusCircle>
+);
+
+const toDoneMapFromNonEmpty = (
+  raw: Record<string, Record<string, unknown>>,
+): Record<string, true> =>
+  Object.fromEntries(
+    Object.entries(raw)
+      .filter(([, v]) => Object.keys(v ?? {}).length > 0)
+      .map(([id]) => [id, true as const]),
+  );
+
+const toDoneMapFromKeys = (obj: Record<string, unknown>): Record<string, true> =>
+  Object.fromEntries(Object.keys(obj).map((id) => [id, true as const]));
 
 const createMonthOptions = () => {
   const now = new Date();
@@ -70,11 +102,15 @@ const AdminMonthlyChecklist = () => {
   const matchType = useEventStore((s) => s.matchType);
   const loadEventConfig = useEventStore((s) => s.loadEventConfig);
   const eventLoaded = useEventStore((s) => s.loaded);
-
-  const rivalNoun = matchType === 'pin' ? '핀매치' : '라이벌';
+  const pinReward = useEventStore((s) => s.pinReward);
+  const getGalleryReward = useEventStore((s) => s.getGalleryReward);
 
   const monthOptions = useMemo(createMonthOptions, []);
   const [selectedYm, setSelectedYm] = useState(monthOptions[0]);
+  const [activeTab, setActiveTab] = useState<'pre' | 'post'>('pre');
+
+  const [monthMatchType, setMonthMatchType] = useState<MatchType>(matchType);
+  const rivalNoun = monthMatchType === 'pin' ? '핀매치' : '라이벌';
 
   const [users, setUsers] = useState<Record<string, UserInfo>>({});
   const [rivalDoneMap, setRivalDoneMap] = useState<Record<string, true>>({});
@@ -91,6 +127,19 @@ const AdminMonthlyChecklist = () => {
     doneMap: {},
     cheerMessageCount: {},
     cheerReadCount: {},
+  });
+  const [postStatus, setPostStatus] = useState<{
+    activityYmd: string | null;
+    matchDoneMap: Record<string, true>;
+    galleryCountMap: Record<string, number>;
+    villainActive: boolean;
+    villainVoteDoneMap: Record<string, true>;
+  }>({
+    activityYmd: null,
+    matchDoneMap: {},
+    galleryCountMap: {},
+    villainActive: false,
+    villainVoteDoneMap: {},
   });
   const [search, setSearch] = useState('');
   const [incompleteOnly, setIncompleteOnly] = useState(false);
@@ -111,24 +160,55 @@ const AdminMonthlyChecklist = () => {
     }
   }, []);
 
-  const loadStatusForMonth = useCallback(async (ym: string, type: MatchType) => {
+  const loadStatusForMonth = useCallback(async (ym: string, fallbackType: MatchType) => {
     setLoading(true);
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
     try {
-      const [rivalSnap, participantsSnap, missionSnap] = await Promise.all([
-        get(ref(db, `match/${ym}/${type}`)),
+      const [
+        rivalMatchSnap,
+        pinMatchSnap,
+        participantsSnap,
+        missionSnap,
+        activityDateSnap,
+        rivalResultsSnap,
+        pinResultsSnap,
+        gallerySnap,
+      ] = await Promise.all([
+        get(ref(db, `match/${ym}/rival`)),
+        get(ref(db, `match/${ym}/pin`)),
         get(ref(db, `activityParticipants/${year}/${month}`)),
         get(ref(db, `missions/${ym}`)),
+        get(ref(db, `activityDate/${year}/${month}`)),
+        get(ref(db, `matchResults/${ym}/rival`)),
+        get(ref(db, `matchResults/${ym}/pin`)),
+        get(ref(db, `gallery/${ym}`)),
       ]);
-      const raw = rivalSnap.exists()
-        ? (rivalSnap.val() as Record<string, Record<string, unknown>>)
+
+      const hasChoices = (snap: typeof rivalMatchSnap): boolean => {
+        if (!snap.exists()) return false;
+        const val = snap.val() as Record<string, Record<string, unknown>>;
+        return Object.values(val).some(
+          (choices) => Object.keys(choices ?? {}).length > 0,
+        );
+      };
+      const rivalHasData = hasChoices(rivalMatchSnap);
+      const pinHasData = hasChoices(pinMatchSnap);
+      const type: MatchType =
+        pinHasData && !rivalHasData
+          ? 'pin'
+          : rivalHasData && !pinHasData
+            ? 'rival'
+            : fallbackType;
+      setMonthMatchType(type);
+
+      const matchSnap = type === 'pin' ? pinMatchSnap : rivalMatchSnap;
+      const matchResultsSnap = type === 'pin' ? pinResultsSnap : rivalResultsSnap;
+
+      const raw = matchSnap.exists()
+        ? (matchSnap.val() as Record<string, Record<string, unknown>>)
         : {};
-      const done = Object.fromEntries(
-        Object.entries(raw)
-          .filter(([, choices]) => Object.keys(choices ?? {}).length > 0)
-          .map(([empId]) => [empId, true as const]),
-      );
+      const done = toDoneMapFromNonEmpty(raw);
       setRivalDoneMap(done);
       setParticipants(
         participantsSnap.exists()
@@ -136,28 +216,64 @@ const AdminMonthlyChecklist = () => {
           : [],
       );
 
+      const activityYmdVal = activityDateSnap.exists()
+        ? String(activityDateSnap.val())
+        : null;
+
       const missionVal = missionSnap.exists()
         ? (missionSnap.val() as {
-            config?: { type?: string };
+            config?: { type?: string; status?: string; revealDays?: number };
             targets?: { empIds?: string[] };
             votes?: Record<string, { targetEmpId?: string; message?: string }>;
             cheerReads?: Record<string, number>;
           })
         : null;
-      const isScoreGuess = missionVal?.config?.type === 'scoreGuess';
+      const missionDaysUntilReveal = getDaysUntilMissionReveal(
+        activityYmdVal,
+        missionVal?.config,
+        useUiStore.getState().getServerNow(),
+      );
+      const missionViewState = getMissionViewState(
+        missionVal?.config,
+        missionDaysUntilReveal,
+      );
+      const missionActive =
+        missionViewState !== 'empty' && missionViewState !== 'upcoming';
+      const isScoreGuess =
+        missionActive && isScoreGuessMission(missionVal as MissionData | null);
       const votes = missionVal?.votes ?? {};
       const cheerMessageCount = countCheerMessagesByCandidate(votes);
 
       setPredictMission({
         active: isScoreGuess,
         candidates: isScoreGuess ? (missionVal?.targets?.empIds ?? []) : [],
-        doneMap: isScoreGuess
-          ? Object.fromEntries(
-              Object.keys(votes).map((id) => [id, true as const]),
-            )
-          : {},
+        doneMap: isScoreGuess ? toDoneMapFromKeys(votes) : {},
         cheerMessageCount: isScoreGuess ? cheerMessageCount : {},
         cheerReadCount: isScoreGuess ? (missionVal?.cheerReads ?? {}) : {},
+      });
+
+      const matchResultsRaw = matchResultsSnap.exists()
+        ? (matchResultsSnap.val() as Record<string, Record<string, unknown>>)
+        : {};
+      const matchDoneMap = toDoneMapFromNonEmpty(matchResultsRaw);
+
+      const galleryRaw = gallerySnap.exists()
+        ? (gallerySnap.val() as Record<string, { empId?: string }>)
+        : {};
+      const galleryCountMap: Record<string, number> = {};
+      Object.values(galleryRaw).forEach((img) => {
+        if (!img.empId) return;
+        galleryCountMap[img.empId] = (galleryCountMap[img.empId] ?? 0) + 1;
+      });
+
+      const isVillain = missionActive && !isScoreGuess;
+
+      setPostStatus({
+        activityYmd: activityYmdVal,
+        matchDoneMap,
+        galleryCountMap,
+        villainActive: isVillain,
+        villainVoteDoneMap: isVillain ? toDoneMapFromKeys(votes) : {},
       });
     } catch {
       setRivalDoneMap({});
@@ -168,6 +284,13 @@ const AdminMonthlyChecklist = () => {
         doneMap: {},
         cheerMessageCount: {},
         cheerReadCount: {},
+      });
+      setPostStatus({
+        activityYmd: null,
+        matchDoneMap: {},
+        galleryCountMap: {},
+        villainActive: false,
+        villainVoteDoneMap: {},
       });
       toast.error('현황 정보를 불러오지 못했습니다.', {
         position: 'top-center',
@@ -188,6 +311,14 @@ const AdminMonthlyChecklist = () => {
   const year = selectedYm.slice(0, 4) as Year;
   const month = String(Number(selectedYm.slice(4)));
 
+  const targetPinEnabled = (pinReward[selectedYm]?.targetScore ?? 0) > 0;
+  const galleryRewardConfig = getGalleryReward(selectedYm);
+  const galleryRewardActive =
+    galleryRewardConfig.upload.pin > 0 && galleryRewardConfig.upload.threshold > 0;
+  const galleryGoal = galleryRewardActive
+    ? galleryRewardConfig.upload.threshold
+    : 1;
+
   const usersWithStatus = useMemo(() => {
     const participantSet = new Set(participants);
     const candidateSet = new Set(predictMission.candidates);
@@ -203,37 +334,91 @@ const AdminMonthlyChecklist = () => {
                 predictMission.cheerMessageCount[empId],
               )
             : !!predictMission.doneMap[empId];
+
+        const rivalDone = !!rivalDoneMap[empId];
+
+        const myTargetScore = user.scores?.[year]?.[month as Month];
+        const myTarget = user.targets?.[year]?.[month as Month];
+        const targetAchieved =
+          typeof myTargetScore === 'number' &&
+          typeof myTarget === 'number' &&
+          myTargetScore >= myTarget;
+        const targetRewardApplicable = targetPinEnabled && targetAchieved;
+        const targetRewardDone = !!user.rewards?.[selectedYm]?.target;
+
+        const matchResultApplicable = rivalDone;
+        const matchResultDone = !!postStatus.matchDoneMap[empId];
+
+        const achievementDone = postStatus.activityYmd
+          ? Number(user.lastAchievementCheck ?? 0) >=
+            Number(postStatus.activityYmd)
+          : false;
+
+        const galleryDone =
+          (postStatus.galleryCountMap[empId] ?? 0) >= galleryGoal;
+
+        const villainVoteApplicable = postStatus.villainActive;
+        const villainVoteDone = !!postStatus.villainVoteDoneMap[empId];
+
+        const postSatisfied =
+          (!targetRewardApplicable || targetRewardDone) &&
+          (!matchResultApplicable || matchResultDone) &&
+          achievementDone &&
+          galleryDone &&
+          (!villainVoteApplicable || villainVoteDone);
+
         return {
           empId,
           user,
           targetDone: user.targets?.[year]?.[month as Month] !== undefined,
-          rivalDone: !!rivalDoneMap[empId],
+          rivalDone,
           isPredictCandidate,
           predictSatisfied,
+          targetRewardApplicable,
+          targetRewardDone,
+          matchResultApplicable,
+          matchResultDone,
+          achievementDone,
+          galleryDone,
+          villainVoteApplicable,
+          villainVoteDone,
+          postSatisfied,
         };
       })
       .sort((a, b) => a.empId.localeCompare(b.empId));
-  }, [users, year, month, rivalDoneMap, participants, predictMission]);
+  }, [
+    users,
+    year,
+    month,
+    rivalDoneMap,
+    participants,
+    predictMission,
+    selectedYm,
+    targetPinEnabled,
+    galleryGoal,
+    postStatus,
+  ]);
 
   const incompleteCount = useMemo(
     () =>
-      usersWithStatus.filter(
-        (row) => !row.targetDone || !row.rivalDone || !row.predictSatisfied,
+      usersWithStatus.filter((row) =>
+        activeTab === 'pre'
+          ? !row.targetDone || !row.rivalDone || !row.predictSatisfied
+          : !row.postSatisfied,
       ).length,
-    [usersWithStatus],
+    [usersWithStatus, activeTab],
   );
 
   const rows = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
     return usersWithStatus.filter((row) => {
-      if (
-        incompleteOnly &&
-        row.targetDone &&
-        row.rivalDone &&
-        row.predictSatisfied
-      ) {
-        return false;
+      if (incompleteOnly) {
+        const done =
+          activeTab === 'pre'
+            ? row.targetDone && row.rivalDone && row.predictSatisfied
+            : row.postSatisfied;
+        if (done) return false;
       }
       if (!keyword) return true;
       return (
@@ -241,12 +426,27 @@ const AdminMonthlyChecklist = () => {
         row.user.name?.toLowerCase().includes(keyword)
       );
     });
-  }, [usersWithStatus, search, incompleteOnly]);
+  }, [usersWithStatus, search, incompleteOnly, activeTab]);
 
   return (
     <AdminLayout title="체크리스트 현황">
       <PageWrap>
         <TopSection>
+          <TabRow>
+            <TabButton
+              active={activeTab === 'pre'}
+              onClick={() => setActiveTab('pre')}
+            >
+              활동 전
+            </TabButton>
+            <TabButton
+              active={activeTab === 'post'}
+              onClick={() => setActiveTab('post')}
+            >
+              활동 후
+            </TabButton>
+          </TabRow>
+
           <SearchRow>
             <MonthSelect
               value={selectedYm}
@@ -294,18 +494,35 @@ const AdminMonthlyChecklist = () => {
         <ListSection>
           <ListHeader>
             <ListCount>총 {rows.length}명</ListCount>
-            <ListSubText>설정 여부</ListSubText>
+            <ListSubText>
+              {activeTab === 'pre' ? '설정 여부' : '완료 여부'}
+            </ListSubText>
           </ListHeader>
 
           <UserList>
-            {loading ? (
+            {loading || !eventLoaded ? (
               <EmptyText>불러오는 중...</EmptyText>
             ) : usersWithStatus.length === 0 ? (
               <EmptyText>이번 달 활동 참여자가 없습니다.</EmptyText>
             ) : rows.length === 0 ? (
               <EmptyText>검색 결과가 없습니다.</EmptyText>
             ) : (
-              rows.map(({ empId, user, targetDone, rivalDone, predictSatisfied }) => {
+              rows.map((row) => {
+                const {
+                  empId,
+                  user,
+                  targetDone,
+                  rivalDone,
+                  predictSatisfied,
+                  targetRewardApplicable,
+                  targetRewardDone,
+                  matchResultApplicable,
+                  matchResultDone,
+                  achievementDone,
+                  galleryDone,
+                  villainVoteApplicable,
+                  villainVoteDone,
+                } = row;
                 const isMember = user.type === 'Member';
 
                 return (
@@ -322,28 +539,49 @@ const AdminMonthlyChecklist = () => {
                       </UserMeta>
                     </UserInfoWrap>
 
-                    <ChecksWrap>
-                      <CheckItem>
-                        <CheckLabel>목표</CheckLabel>
-                        <CheckCircle checked={targetDone}>
-                          {targetDone ? '✓' : ''}
-                        </CheckCircle>
-                      </CheckItem>
-                      <CheckItem>
-                        <CheckLabel>{rivalNoun}</CheckLabel>
-                        <CheckCircle checked={rivalDone}>
-                          {rivalDone ? '✓' : ''}
-                        </CheckCircle>
-                      </CheckItem>
-                      {predictMission.active && (
+                    {activeTab === 'pre' ? (
+                      <ChecksWrap>
                         <CheckItem>
-                          <CheckLabel>예측</CheckLabel>
-                          <CheckCircle checked={predictSatisfied}>
-                            {predictSatisfied ? '✓' : ''}
-                          </CheckCircle>
+                          <CheckLabel>목표</CheckLabel>
+                          {renderCheckCircle(targetDone)}
                         </CheckItem>
-                      )}
-                    </ChecksWrap>
+                        <CheckItem>
+                          <CheckLabel>{rivalNoun}</CheckLabel>
+                          {renderCheckCircle(rivalDone)}
+                        </CheckItem>
+                        {predictMission.active && (
+                          <CheckItem>
+                            <CheckLabel>예측</CheckLabel>
+                            {renderCheckCircle(predictSatisfied)}
+                          </CheckItem>
+                        )}
+                      </ChecksWrap>
+                    ) : (
+                      <ChecksWrap>
+                        <CheckItem>
+                          <CheckLabel>목표</CheckLabel>
+                          {renderStatusCircle(targetRewardApplicable, targetRewardDone)}
+                        </CheckItem>
+                        <CheckItem>
+                          <CheckLabel>{rivalNoun}</CheckLabel>
+                          {renderStatusCircle(matchResultApplicable, matchResultDone)}
+                        </CheckItem>
+                        <CheckItem>
+                          <CheckLabel>업적</CheckLabel>
+                          {renderCheckCircle(achievementDone)}
+                        </CheckItem>
+                        {villainVoteApplicable && (
+                          <CheckItem>
+                            <CheckLabel>투표</CheckLabel>
+                            {renderCheckCircle(villainVoteDone)}
+                          </CheckItem>
+                        )}
+                        <CheckItem>
+                          <CheckLabel>사진</CheckLabel>
+                          {renderCheckCircle(galleryDone)}
+                        </CheckItem>
+                      </ChecksWrap>
+                    )}
                   </StatusRow>
                 );
               })

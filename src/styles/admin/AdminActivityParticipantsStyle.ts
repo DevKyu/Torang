@@ -329,6 +329,7 @@ export const UserMeta = styled.div`
   font-weight: 600;
 
   color: #969696;
+  white-space: nowrap;
 `;
 
 export const UserTypeBadge = styled.div<{
@@ -337,6 +338,9 @@ export const UserTypeBadge = styled.div<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  flex-shrink: 0;
+  white-space: nowrap;
 
   height: 20px;
 
