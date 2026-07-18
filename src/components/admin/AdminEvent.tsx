@@ -6,10 +6,16 @@ import AdminLayout from './AdminLayout';
 import {
   useEventStore,
   DEFAULT_BADGE_COLOR,
+  normalizeMenuConfig,
   type MenuBadgeConfig,
 } from '../../stores/eventStore';
 import type { MatchType } from '../../types/match';
-import { db, fetchAllUsers } from '../../services/firebase';
+import {
+  db,
+  fetchAllUsers,
+  preloadAllNames,
+  getCachedUserName,
+} from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/global/commonStyle';
 import { distributeMatchPins, rollbackMatchPins } from '../../utils/pin';
@@ -287,7 +293,7 @@ export default function AdminEvent() {
 
   const saveAll = useCallback(async () => {
     await Promise.all([
-      set(ref(db, 'eventConfig/menu'), menuDraft),
+      set(ref(db, 'eventConfig/menu'), normalizeMenuConfig(menuDraft)),
       set(ref(db, `eventConfig/pinReward/${selectedYm}`), rewardDraft),
       set(
         ref(db, `eventConfig/galleryReward/${selectedYm}`),
@@ -318,6 +324,18 @@ export default function AdminEvent() {
     loadEventConfig,
   ]);
 
+  const notifyClampedUsers = (
+    empIds: string[],
+    resolveName: (empId: string) => string,
+    message: string,
+  ) => {
+    if (empIds.length === 0) return;
+    const names = empIds
+      .map((empId) => `${resolveName(empId)}(${empId})`)
+      .join(', ');
+    toast(`${message} ${names}`, { duration: 6000 });
+  };
+
   const handleDistribute = useCallback(async () => {
     const pinRate = pinReward[selectedYm]?.pinMatch ?? 0;
     if (pinRate <= 0) {
@@ -333,8 +351,19 @@ export default function AdminEvent() {
     setDistributing(true);
     try {
       const users = await fetchAllUsers();
-      const count = await distributeMatchPins(selectedYm, users, pinRate);
-      toast.success(`${count}개 매치 처리 완료\n(참여자 수와 다를 수 있음 — 선택 쌍 기준)`);
+      const { processedCount, clampedEmpIds } = await distributeMatchPins(
+        selectedYm,
+        users,
+        pinRate,
+      );
+      toast.success(
+        `${processedCount}개 매치 처리 완료\n(참여자 수와 다를 수 있음 — 선택 쌍 기준)`,
+      );
+      notifyClampedUsers(
+        clampedEmpIds,
+        (empId) => users[empId]?.name ?? '?',
+        'ℹ️ 핀 부족으로 0으로 조정된 유저(롤백 시 자동으로 정확한 금액으로 복구됩니다):',
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.');
     } finally {
@@ -353,12 +382,26 @@ export default function AdminEvent() {
       return;
     setRollingBack(true);
     try {
-      const affected = await rollbackMatchPins(selectedYm);
-      if (affected > 0) {
-        toast.success(`롤백 완료 — ${affected}명 핀 조정`);
+      const { affectedCount, clampWarningEmpIds, rollbackClampedEmpIds } =
+        await rollbackMatchPins(selectedYm);
+      if (affectedCount > 0) {
+        toast.success(`롤백 완료 — ${affectedCount}명 핀 조정`);
       } else {
         toast('롤백할 지급 내역이 없습니다.');
       }
+      if (clampWarningEmpIds.length > 0 || rollbackClampedEmpIds.length > 0) {
+        await preloadAllNames();
+      }
+      notifyClampedUsers(
+        clampWarningEmpIds,
+        getCachedUserName,
+        'ℹ️ 정산 당시 핀 부족으로 조정(클램프)됐던 유저(기록된 실제 적용값 기준으로 정확히 복구했습니다):',
+      );
+      notifyClampedUsers(
+        rollbackClampedEmpIds,
+        getCachedUserName,
+        '⚠️ 롤백 중에도 잔액 부족으로 일부만 복구된 유저(잔액을 직접 확인해주세요):',
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.');
     } finally {

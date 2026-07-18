@@ -267,9 +267,9 @@ export const distributeMatchPins = async (
   ym: string,
   users: Record<string, UserInfo>,
   pinRate: number,
-): Promise<number> => {
+): Promise<{ processedCount: number; clampedEmpIds: string[] }> => {
   const matchSnap = await get(ref(db, `match/${ym}/pin`));
-  if (!matchSnap.exists()) return 0;
+  if (!matchSnap.exists()) return { processedCount: 0, clampedEmpIds: [] };
 
   const allMatches = matchSnap.val() as Record<string, Record<string, unknown>>;
   const year = ym.slice(0, 4) as Year;
@@ -339,12 +339,21 @@ export const distributeMatchPins = async (
     }
   }
 
+  const clampedEmpIds: string[] = [];
+
   await Promise.all(
     Object.entries(pinDeltas).map(async ([empId, delta]) => {
       if (delta === 0) return;
       const pinSnap = await get(ref(db, `users/${empId}/pin`));
       const currentPin = (pinSnap.val() as number) ?? 0;
-      updates[`users/${empId}/pin`] = Math.max(0, currentPin + delta);
+      const wouldBe = currentPin + delta;
+      if (wouldBe < 0) {
+        clampedEmpIds.push(empId);
+        updates[`matchResults/${ym}/pinClampWarning/${empId}/shortfall`] =
+          increment(-wouldBe);
+        updates[`matchResults/${ym}/pinClampWarning/${empId}/lastClampedAt`] = now;
+      }
+      updates[`users/${empId}/pin`] = Math.max(0, wouldBe);
     }),
   );
 
@@ -352,12 +361,20 @@ export const distributeMatchPins = async (
     await update(ref(db), updates);
   }
 
-  return processedCount;
+  return { processedCount, clampedEmpIds };
 };
 
-export const rollbackMatchPins = async (ym: string): Promise<number> => {
+export const rollbackMatchPins = async (
+  ym: string,
+): Promise<{
+  affectedCount: number;
+  clampWarningEmpIds: string[];
+  rollbackClampedEmpIds: string[];
+}> => {
   const resultsSnap = await get(ref(db, `matchResults/${ym}/pin`));
-  if (!resultsSnap.exists()) return 0;
+  if (!resultsSnap.exists()) {
+    return { affectedCount: 0, clampWarningEmpIds: [], rollbackClampedEmpIds: [] };
+  }
 
   const allResults = resultsSnap.val() as Record<
     string,
@@ -376,34 +393,59 @@ export const rollbackMatchPins = async (ym: string): Promise<number> => {
     }
   }
 
-  await Promise.all(
-    pairs.map(async ([idA, idB]) => {
-      const rewardSnap = await get(ref(db, `users/${idA}/rewards/${ym}/match/${idB}`));
-      if (!rewardSnap.exists()) return;
-      const reward = rewardSnap.val() as { direction?: string; pin?: number };
-      const pin = reward?.pin ?? 0;
-      if (pin <= 0) return;
-      if (reward?.direction === 'gain') {
-        pinDeltas[idA] = (pinDeltas[idA] ?? 0) - pin;
-      } else if (reward?.direction === 'loss') {
-        pinDeltas[idA] = (pinDeltas[idA] ?? 0) + pin;
-      }
-      updates[`users/${idA}/rewards/${ym}/match/${idB}`] = null;
-    }),
-  );
+  const [warningSnap] = await Promise.all([
+    get(ref(db, `matchResults/${ym}/pinClampWarning`)),
+    Promise.all(
+      pairs.map(async ([idA, idB]) => {
+        const rewardSnap = await get(ref(db, `users/${idA}/rewards/${ym}/match/${idB}`));
+        if (!rewardSnap.exists()) return;
+        const reward = rewardSnap.val() as { direction?: string; pin?: number };
+        const pin = reward?.pin ?? 0;
+        if (pin <= 0) return;
+        if (reward?.direction === 'gain') {
+          pinDeltas[idA] = (pinDeltas[idA] ?? 0) - pin;
+        } else if (reward?.direction === 'loss') {
+          pinDeltas[idA] = (pinDeltas[idA] ?? 0) + pin;
+        }
+        updates[`users/${idA}/rewards/${ym}/match/${idB}`] = null;
+      }),
+    ),
+  ]);
+
+  const clampWarningData = warningSnap.exists()
+    ? (warningSnap.val() as Record<string, { shortfall?: number }>)
+    : {};
+  const clampWarningEmpIds = Object.keys(clampWarningData);
+
+  clampWarningEmpIds.forEach((empId) => {
+    const shortfall = clampWarningData[empId]?.shortfall ?? 0;
+    pinDeltas[empId] = (pinDeltas[empId] ?? 0) - shortfall;
+  });
+
+  const rollbackClampedEmpIds: string[] = [];
 
   await Promise.all(
     Object.entries(pinDeltas).map(async ([empId, delta]) => {
       if (delta === 0) return;
       const pinSnap = await get(ref(db, `users/${empId}/pin`));
       const currentPin = (pinSnap.val() as number) ?? 0;
-      updates[`users/${empId}/pin`] = Math.max(0, currentPin + delta);
+      const wouldBe = currentPin + delta;
+      if (wouldBe < 0) rollbackClampedEmpIds.push(empId);
+      updates[`users/${empId}/pin`] = Math.max(0, wouldBe);
     }),
   );
+
+  if (clampWarningEmpIds.length > 0) {
+    updates[`matchResults/${ym}/pinClampWarning`] = null;
+  }
 
   if (Object.keys(updates).length > 0) {
     await update(ref(db), updates);
   }
 
-  return Object.keys(pinDeltas).length;
+  return {
+    affectedCount: Object.keys(pinDeltas).length,
+    clampWarningEmpIds,
+    rollbackClampedEmpIds,
+  };
 };
