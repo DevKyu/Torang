@@ -9,6 +9,7 @@ type UiState = {
   };
   hasShownMessagesPopup: boolean;
   hasShownChecklistPopup: boolean;
+  hasShownPostActivityChecklistPopup: boolean;
   isMessagePopupActive: boolean;
   serverOffset: number;
   serverDate: Date;
@@ -23,6 +24,7 @@ type UiState = {
   setShownCongrats: (menu: 'myInfo' | 'ranking') => void;
   setShownMessagesPopup: () => void;
   setShownChecklistPopup: () => void;
+  setShownPostActivityChecklistPopup: () => void;
   setMessagePopupActive: (active: boolean) => void;
   onMessagePopupCleared: (cb: () => void) => void;
   resetSessionUiState: () => void;
@@ -46,6 +48,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   },
   hasShownMessagesPopup: false,
   hasShownChecklistPopup: false,
+  hasShownPostActivityChecklistPopup: false,
   isMessagePopupActive: true,
   serverOffset: 0,
   serverDate: new Date(),
@@ -125,6 +128,9 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   setShownChecklistPopup: () => set({ hasShownChecklistPopup: true }),
 
+  setShownPostActivityChecklistPopup: () =>
+    set({ hasShownPostActivityChecklistPopup: true }),
+
   setMessagePopupActive: (active) => {
     set({ isMessagePopupActive: active });
 
@@ -149,6 +155,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       hasShownCongrats: { myInfo: false, ranking: false },
       hasShownMessagesPopup: false,
       hasShownChecklistPopup: false,
+      hasShownPostActivityChecklistPopup: false,
       isMessagePopupActive: true,
     });
   },

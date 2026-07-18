@@ -8,10 +8,7 @@ import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useMission, isScoreGuessMission } from '../../hooks/useMission';
-import {
-  getDaysUntilMissionReveal,
-  getMissionViewState,
-} from '../../utils/missionViewState';
+import { useMissionViewState } from '../../hooks/useMissionViewState';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import { renderMissionBody } from './missionBody';
@@ -65,19 +62,9 @@ const MissionPage = () => {
       .catch(() => setParticipantsLoaded(true));
   }, [currentYm]);
 
-  const daysUntilReveal = useMemo(
-    () =>
-      getDaysUntilMissionReveal(
-        activityDateNum,
-        data?.config,
-        useUiStore.getState().getServerNow(),
-      ),
-    [activityDateNum, data],
-  );
-
-  const viewState = useMemo(
-    () => getMissionViewState(data?.config, daysUntilReveal),
-    [data, daysUntilReveal],
+  const { daysUntilReveal, viewState } = useMissionViewState(
+    activityDateNum,
+    data,
   );
 
   const isReady = !loading && participantsLoaded;

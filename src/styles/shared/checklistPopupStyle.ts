@@ -49,7 +49,8 @@ export const ItemList = styled.div`
   flex-direction: column;
   gap: 10px;
   margin: 0 24px 20px;
-  max-height: 270px;
+  max-height: min(270px, 40vh);
+  max-height: min(270px, 40dvh);
   overflow-y: auto;
   touch-action: pan-y;
   ${HIDDEN_SCROLLBAR}

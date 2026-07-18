@@ -95,6 +95,7 @@ type EventStore = {
   matchType: MatchType;
   referralPin: number;
   checklistReminderDays: number;
+  postActivityChecklistDays: number;
   loaded: boolean;
 
   loadEventConfig(): Promise<void>;
@@ -116,6 +117,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
   matchType: 'rival',
   referralPin: 0,
   checklistReminderDays: 0,
+  postActivityChecklistDays: 0,
   loaded: false,
 
   loadEventConfig: async () => {
@@ -150,6 +152,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
         checklistReminderDays:
           typeof v.checklistReminderDays === 'number'
             ? v.checklistReminderDays
+            : 0,
+        postActivityChecklistDays:
+          typeof v.postActivityChecklistDays === 'number'
+            ? v.postActivityChecklistDays
             : 0,
         loaded: true,
       });

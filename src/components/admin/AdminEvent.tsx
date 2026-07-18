@@ -160,6 +160,7 @@ export default function AdminEvent() {
     matchType: storedMatchType,
     referralPin: storedReferralPin,
     checklistReminderDays: storedChecklistReminderDays,
+    postActivityChecklistDays: storedPostActivityChecklistDays,
     loadEventConfig,
   } = useEventStore();
   const ui = useUiStore();
@@ -177,6 +178,10 @@ export default function AdminEvent() {
   const [referralPinDraft, setReferralPinDraft] = useState<number>(0);
   const [checklistReminderDaysDraft, setChecklistReminderDaysDraft] =
     useState<number>(0);
+  const [
+    postActivityChecklistDaysDraft,
+    setPostActivityChecklistDaysDraft,
+  ] = useState<number>(0);
   const [distributing, setDistributing] = useState(false);
   const [rollingBack, setRollingBack] = useState(false);
 
@@ -195,6 +200,10 @@ export default function AdminEvent() {
   useEffect(() => {
     setChecklistReminderDaysDraft(storedChecklistReminderDays);
   }, [storedChecklistReminderDays]);
+
+  useEffect(() => {
+    setPostActivityChecklistDaysDraft(storedPostActivityChecklistDays);
+  }, [storedPostActivityChecklistDays]);
 
   useEffect(() => {
     const next: MenuDraft = {} as MenuDraft;
@@ -290,6 +299,10 @@ export default function AdminEvent() {
         ref(db, 'eventConfig/checklistReminderDays'),
         checklistReminderDaysDraft,
       ),
+      set(
+        ref(db, 'eventConfig/postActivityChecklistDays'),
+        postActivityChecklistDaysDraft,
+      ),
     ]);
     await loadEventConfig();
     toast.success('저장 완료');
@@ -300,6 +313,7 @@ export default function AdminEvent() {
     matchTypeDraft,
     referralPinDraft,
     checklistReminderDaysDraft,
+    postActivityChecklistDaysDraft,
     selectedYm,
     loadEventConfig,
   ]);
@@ -718,6 +732,29 @@ export default function AdminEvent() {
         </RewardActionRow>
         <SectionHint>
           로그인 시 뜨는 체크리스트 팝업을 활동일 며칠 전부터 띄울지 정해요.
+        </SectionHint>
+        <RewardActionRow style={{ marginTop: '12px' }}>
+          <RewardActionLabel>활동 후 노출 기간</RewardActionLabel>
+          <RateGroup>
+            {[1, 3, 5, 7].map((v) => (
+              <button
+                key={v}
+                className={postActivityChecklistDaysDraft === v ? 'active' : ''}
+                onClick={() => setPostActivityChecklistDaysDraft(v)}
+              >
+                {v}일간
+              </button>
+            ))}
+            <button
+              className={postActivityChecklistDaysDraft === 0 ? 'active' : ''}
+              onClick={() => setPostActivityChecklistDaysDraft(0)}
+            >
+              제한없음
+            </button>
+          </RateGroup>
+        </RewardActionRow>
+        <SectionHint>
+          활동일 다음날부터 활동 후 체크리스트 팝업을 며칠간 띄울지 정해요(제한없음이면 다음 활동일 전까지 계속 노출).
         </SectionHint>
       </Section>
 

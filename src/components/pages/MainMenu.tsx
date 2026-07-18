@@ -1,4 +1,11 @@
-import { type ReactNode, useEffect, useState, useMemo, useRef } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import {
@@ -61,6 +68,12 @@ import {
   type MessageHistoryItem,
 } from '../../hooks/useMessages';
 import { useMonthlyChecklist } from '../../hooks/useMonthlyChecklist';
+import { usePostActivityChecklist } from '../../hooks/usePostActivityChecklist';
+import { useActivityDates } from '../../hooks/useActivityDates';
+import { useMonthParticipants } from '../../hooks/useMonthParticipants';
+import { useMatch } from '../../hooks/useMatch';
+import { resolveActivityYmd } from '../../utils/date';
+import type { YearMonth } from '../../types/match';
 import { useLatestRef } from '../../hooks/useLatestRef';
 
 type MenuItemBase = {
@@ -184,13 +197,65 @@ const MainMenu = () => {
     loading: queueLoading,
   } = useMessageInbox(myEmpId);
 
+  const { formatServerDate: checklistFormatServerDate } = useUiStore.getState();
+  const checklistServerYear = checklistFormatServerDate('year');
+  const checklistServerMonth = Number(checklistFormatServerDate('month'));
+  const checklistServerYm = checklistFormatServerDate('ym');
+  const { maps: activityAll, loading: activityLoading } = useActivityDates();
+  const activityYmdStr = resolveActivityYmd(
+    activityAll,
+    checklistServerYear,
+    checklistServerMonth,
+  );
+  const participantsYear = activityYmdStr
+    ? activityYmdStr.slice(0, 4)
+    : checklistServerYear;
+  const participantsMonth = activityYmdStr
+    ? Number(activityYmdStr.slice(4, 6))
+    : checklistServerMonth;
+  const { participants: monthParticipants, loading: participantsLoading } =
+    useMonthParticipants(participantsYear, participantsMonth);
+  const checklistMatchType = useEventStore((s) => s.matchType);
+  const checklistActivityYm = activityYmdStr?.slice(0, 6) ?? checklistServerYm;
+  const { choices: matchChoices, loading: matchChoicesLoading } = useMatch(
+    checklistActivityYm as YearMonth,
+    myEmpId || null,
+    checklistMatchType,
+  );
+  const sharedChecklistData = {
+    activityAll,
+    activityLoading,
+    activityYmdStr,
+    monthParticipants,
+    participantsLoading,
+    matchChoices,
+    matchChoicesLoading,
+  };
+
   const hasShownChecklistPopup = useUiStore((s) => s.hasShownChecklistPopup);
   const setShownChecklistPopup = useUiStore((s) => s.setShownChecklistPopup);
   const { items: checklistItems, loading: checklistLoading } =
-    useMonthlyChecklist(myEmpId || null);
+    useMonthlyChecklist(myEmpId || null, sharedChecklistData);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const checklistItemsRef = useLatestRef(checklistItems);
   const checklistRegisteredRef = useRef(false);
+
+  const hasShownPostActivityChecklistPopup = useUiStore(
+    (s) => s.hasShownPostActivityChecklistPopup,
+  );
+  const setShownPostActivityChecklistPopup = useUiStore(
+    (s) => s.setShownPostActivityChecklistPopup,
+  );
+  const {
+    items: postActivityChecklistItems,
+    loading: postActivityChecklistLoading,
+  } = usePostActivityChecklist(myEmpId || null, sharedChecklistData);
+  const [postActivityChecklistOpen, setPostActivityChecklistOpen] =
+    useState(false);
+  const postActivityChecklistItemsRef = useLatestRef(
+    postActivityChecklistItems,
+  );
+  const pendingPostActivityOpenRef = useRef(false);
 
   useEffect(() => {
     ensureMainMenuChunksLoaded();
@@ -248,24 +313,50 @@ const MainMenu = () => {
     setAutoShowQueue((prev) => prev.slice(1));
   };
 
+  const openPostActivityChecklist = useCallback(() => {
+    if (useUiStore.getState().hasShownPostActivityChecklistPopup) return;
+    setShownPostActivityChecklistPopup();
+    if (postActivityChecklistItemsRef.current.length > 0) {
+      setPostActivityChecklistOpen(true);
+    }
+  }, [setShownPostActivityChecklistPopup, postActivityChecklistItemsRef]);
+
   useEffect(() => {
     if (checklistRegisteredRef.current) return;
-    if (!myEmpId || !loaded || checklistLoading || hasShownChecklistPopup) {
+    if (!myEmpId || !loaded || checklistLoading || postActivityChecklistLoading) {
       return;
     }
+    if (hasShownChecklistPopup && hasShownPostActivityChecklistPopup) return;
     checklistRegisteredRef.current = true;
 
     useUiStore.getState().onMessagePopupCleared(() => {
-      setShownChecklistPopup();
-      if (checklistItemsRef.current.length > 0) setChecklistOpen(true);
+      let preOpened = false;
+      if (!useUiStore.getState().hasShownChecklistPopup) {
+        setShownChecklistPopup();
+        if (checklistItemsRef.current.length > 0) {
+          setChecklistOpen(true);
+          preOpened = true;
+        }
+      }
+
+      if (preOpened) {
+        pendingPostActivityOpenRef.current = true;
+      } else {
+        openPostActivityChecklist();
+      }
     });
   }, [
     myEmpId,
     loaded,
     checklistLoading,
+    postActivityChecklistLoading,
     hasShownChecklistPopup,
+    hasShownPostActivityChecklistPopup,
     setShownChecklistPopup,
+    setShownPostActivityChecklistPopup,
     checklistItemsRef,
+    postActivityChecklistItemsRef,
+    openPostActivityChecklist,
   ]);
 
   const handleHistoryDetailClose = () => {
@@ -411,7 +502,22 @@ const MainMenu = () => {
       <ChecklistPopupModal
         isOpen={checklistOpen}
         items={checklistItems}
-        onClose={() => setChecklistOpen(false)}
+        onClose={() => {
+          setChecklistOpen(false);
+          if (pendingPostActivityOpenRef.current) {
+            pendingPostActivityOpenRef.current = false;
+            openPostActivityChecklist();
+          }
+        }}
+      />
+
+      <ChecklistPopupModal
+        isOpen={postActivityChecklistOpen}
+        items={postActivityChecklistItems}
+        onClose={() => setPostActivityChecklistOpen(false)}
+        title="활동 후 체크리스트"
+        subtitle="이번 달 활동 마무리가 아직 안됐어요"
+        doneSubtitle="이번 달 활동을 깔끔하게 마무리했어요"
       />
     </Layout>
   );

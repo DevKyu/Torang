@@ -30,9 +30,19 @@ type Props = {
   isOpen: boolean;
   items: ChecklistItem[];
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  doneSubtitle?: string;
 };
 
-const ChecklistPopupModal = ({ isOpen, items, onClose }: Props) => {
+const ChecklistPopupModal = ({
+  isOpen,
+  items,
+  onClose,
+  title = '이달의 체크리스트',
+  subtitle = '이번 달 활동 준비가 아직 안됐어요',
+  doneSubtitle = '이번 달 활동 준비를 모두 마쳤어요',
+}: Props) => {
   const navigate = useNavigate();
   const allDone = items.length > 0 && items.every((item) => item.done);
 
@@ -83,12 +93,8 @@ const ChecklistPopupModal = ({ isOpen, items, onClose }: Props) => {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Title>{allDone ? '🎉 이달의 체크리스트' : '📋 이달의 체크리스트'}</Title>
-            <Subtitle>
-              {allDone
-                ? '이번 달 활동 준비를 모두 마쳤어요'
-                : '이번 달 활동 준비가 아직 안 끝났어요'}
-            </Subtitle>
+            <Title>{allDone ? `🎉 ${title}` : `📋 ${title}`}</Title>
+            <Subtitle>{allDone ? doneSubtitle : subtitle}</Subtitle>
             <Divider />
             <ItemList>
               {items.map((item) => (

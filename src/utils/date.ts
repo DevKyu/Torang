@@ -1,5 +1,6 @@
 import { useUiStore } from '../stores/useUiStore';
 import type { TwoDigitMonth, YearMonth } from '../types/match';
+import type { ActivityDateAll } from '../services/firebase';
 
 export const getTodayYmd = (d = new Date()): number => {
   return Number(
@@ -52,6 +53,21 @@ export const getDiffDaysServer = (activityYmd: string): number => {
 
   const diffMs = serverNow.getTime() - actDate.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+};
+
+export const resolveActivityYmd = (
+  activityAll: ActivityDateAll,
+  serverYear: string,
+  serverMonth: number,
+): string | undefined => {
+  let activityYmd = activityAll[serverYear]?.[String(serverMonth)];
+  if (!activityYmd) {
+    const prevMonth = serverMonth === 1 ? 12 : serverMonth - 1;
+    const prevYear =
+      serverMonth === 1 ? Number(serverYear) - 1 : Number(serverYear);
+    activityYmd = activityAll[String(prevYear)]?.[String(prevMonth)];
+  }
+  return activityYmd ? String(activityYmd) : undefined;
 };
 
 export const isWithinActivityDays = (
