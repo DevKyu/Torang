@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 
 import {
   Backdrop,
@@ -80,33 +79,36 @@ const CongratulationOverlay = ({
   useEffect(() => {
     if (!open || hasConfettiFired.current) return;
     hasConfettiFired.current = true;
+    let cancelled = false;
 
     const t = window.setTimeout(onClose, durationMs);
 
-    if (safeResult === 'win') {
-      requestAnimationFrame(() => {
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          angle: 60,
-          origin: { x: 0, y: 0.6 },
-        });
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          angle: 120,
-          origin: { x: 1, y: 0.6 },
-        });
-      });
-    }
-
-    if (safeResult === 'special') {
-      requestAnimationFrame(() => {
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#3b82f6', '#facc15', '#60a5fa'],
+    if (safeResult === 'win' || safeResult === 'special') {
+      import('canvas-confetti').then(({ default: confetti }) => {
+        if (cancelled) return;
+        requestAnimationFrame(() => {
+          if (cancelled) return;
+          if (safeResult === 'win') {
+            confetti({
+              particleCount: 60,
+              spread: 60,
+              angle: 60,
+              origin: { x: 0, y: 0.6 },
+            });
+            confetti({
+              particleCount: 60,
+              spread: 60,
+              angle: 120,
+              origin: { x: 1, y: 0.6 },
+            });
+          } else {
+            confetti({
+              particleCount: 100,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ['#3b82f6', '#facc15', '#60a5fa'],
+            });
+          }
         });
       });
     }
@@ -115,6 +117,7 @@ const CongratulationOverlay = ({
     window.addEventListener('keydown', onKey);
 
     return () => {
+      cancelled = true;
       window.clearTimeout(t);
       window.removeEventListener('keydown', onKey);
       hasConfettiFired.current = false;
