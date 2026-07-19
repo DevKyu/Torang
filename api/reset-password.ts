@@ -1,22 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getDatabase } from 'firebase-admin/database';
+import {
+  ensureFirebaseAdmin,
+  verifyCallerToken,
+  EMP_ID_REGEX,
+} from './_lib/firebaseAdmin';
 
-const required = (name: string): string => {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
+ensureFirebaseAdmin();
+
+const requireAdmin = async (req: VercelRequest): Promise<string> => {
+  const decoded = await verifyCallerToken(req);
+  const adminSnap = await getDatabase().ref(`admins/${decoded.uid}`).get();
+  if (!adminSnap.exists()) throw new Error('FORBIDDEN');
+
+  return decoded.uid;
 };
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: required('FIREBASE_PROJECT_ID'),
-      clientEmail: required('FIREBASE_CLIENT_EMAIL'),
-      privateKey: required('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-    }),
-  });
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -24,12 +23,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { empId, newPassword } = req.body as {
+  const { empId, newPassword } = (req.body ?? {}) as {
     empId?: string;
     newPassword?: string;
   };
-  if (!empId || !newPassword) {
-    res.status(400).json({ error: 'Missing empId or newPassword' });
+  if (!empId || !newPassword || !EMP_ID_REGEX.test(empId)) {
+    res.status(400).json({ error: 'Missing or invalid empId/newPassword' });
+    return;
+  }
+
+  try {
+    await requireAdmin(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    const status = message === 'FORBIDDEN' ? 403 : 401;
+    res.status(status).json({ error: '권한이 없습니다.' });
     return;
   }
 

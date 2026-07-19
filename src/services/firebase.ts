@@ -64,6 +64,12 @@ export const waitForAuthUser = () =>
     });
   });
 
+export const getAuthHeader = async (): Promise<Record<string, string>> => {
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error('로그인 정보가 만료됐어요. 다시 로그인해주세요.');
+  return { Authorization: `Bearer ${idToken}` };
+};
+
 // 4. 인증 관련
 export const anonLogin = async () => signInAnonymously(auth);
 export const loginUser = async (email: string, password: string) =>

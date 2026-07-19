@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import AdminLayout from './AdminLayout';
 import {
+  getAuthHeader,
   fetchAllUsers,
   checkEmpId,
   incrementPinsByEmpId,
@@ -260,9 +261,14 @@ const AdminUserManagement = () => {
       return;
 
     try {
+      const authHeader = await getAuthHeader();
+
       const response = await fetch('/api/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader,
+        },
         body: JSON.stringify({
           empId: selectedEmpId,
           newPassword: DEFAULT_PASSWORD,
