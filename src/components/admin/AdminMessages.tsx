@@ -322,7 +322,10 @@ const AdminMessages = () => {
             <TargetSearchRow>
               <TargetSearchInput
                 value={targetSearch}
-                onChange={(e) => setTargetSearch(e.target.value)}
+                onChange={(e) => {
+                  setTargetSearch(e.target.value);
+                  setTargetDropdown([]);
+                }}
                 placeholder="이름 검색"
                 autoComplete="off"
                 onKeyDown={(e) => {

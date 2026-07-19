@@ -70,8 +70,8 @@ const PredictScoreModal = ({
 
   const handleSave = async () => {
     const num = Number(value);
-    if (!Number.isInteger(num) || num < 1 || num > 300) {
-      toast.error('1~300 사이의 점수만 입력할 수 있어요.', {
+    if (!Number.isInteger(num) || num < 0 || num > 300) {
+      toast.error('0~300 사이의 점수만 입력할 수 있어요.', {
         position: 'top-center',
       });
       return;

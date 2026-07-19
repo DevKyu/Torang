@@ -60,6 +60,7 @@ export const List = styled.div`
   }
 
   touch-action: pan-y;
+  overscroll-behavior: contain;
 `;
 
 export const Item = styled.div`

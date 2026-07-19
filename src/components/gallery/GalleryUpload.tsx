@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import imageCompression from 'browser-image-compression';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
+import { useLatestRef } from '../../hooks/useLatestRef';
 
 import {
   GalleryOuter,
@@ -207,11 +208,14 @@ const GalleryUpload = ({
     }
   }, [disabled, uploading, items, onUpload, clearAll]);
 
+  const itemsRef = useLatestRef(items);
+
   useEffect(() => {
-    const arr = items.map((i) => i.preview);
-    return () => arr.forEach(revoke);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      itemsRef.current.forEach((i) => revoke(i.preview));
+    };
+  }, [revoke, itemsRef]);
 
   const blocked = disabled && reason !== 'loading';
   const showBoost = !disabled && availableCount <= 0 && !uploading && onBoost;
