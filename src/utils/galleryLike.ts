@@ -6,6 +6,7 @@ export const toggleGalleryLike = (
   ym: string,
   imageId: string,
   nextLiked: boolean,
+  onError?: (liked: boolean) => void,
 ) => {
   const empId = getCurrentUserId();
   if (!empId || !ym) return;
@@ -13,13 +14,18 @@ export const toggleGalleryLike = (
   const key = `${ym}-${imageId}-${empId}`;
   const likeRef = ref(db, `gallery/${ym}/${imageId}/likes/${empId}`);
 
-  scheduleLikeUpdate(key, nextLiked, async (liked) => {
-    if (liked) {
-      await set(likeRef, true);
-    } else {
-      await remove(likeRef);
-    }
-  });
+  scheduleLikeUpdate(
+    key,
+    nextLiked,
+    async (liked) => {
+      if (liked) {
+        await set(likeRef, true);
+      } else {
+        await remove(likeRef);
+      }
+    },
+    onError,
+  );
 };
 
 export const subscribeGalleryLikes = (

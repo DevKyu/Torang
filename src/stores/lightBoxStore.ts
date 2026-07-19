@@ -326,10 +326,10 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     const img = s.images[s.index];
     if (!img?.ym) return;
 
-    const liked = !img.liked;
-    const likes = liked
-      ? (img.likes ?? 0) + 1
-      : Math.max(0, (img.likes ?? 0) - 1);
+    const prevLiked = img.liked;
+    const prevLikes = img.likes ?? 0;
+    const liked = !prevLiked;
+    const likes = liked ? prevLikes + 1 : Math.max(0, prevLikes - 1);
 
     set((st) => {
       const arr = [...st.images];
@@ -337,6 +337,14 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       return { images: arr };
     });
 
-    toggleGalleryLike(img.ym, img.id, liked);
+    toggleGalleryLike(img.ym, img.id, liked, () => {
+      set((st) => {
+        const idx = st.images.findIndex((im) => im.id === img.id);
+        if (idx === -1) return st;
+        const arr = [...st.images];
+        arr[idx] = { ...arr[idx], liked: prevLiked, likes: prevLikes };
+        return { images: arr };
+      });
+    });
   },
 }));

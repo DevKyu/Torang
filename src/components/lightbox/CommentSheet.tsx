@@ -9,6 +9,7 @@ import {
   type PanInfo,
 } from 'framer-motion';
 import { X, Send, CornerDownRight, Heart } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import type { LightboxComment } from '../../types/lightbox';
@@ -264,12 +265,21 @@ export const CommentSheet = () => {
     (c: LightboxComment) => {
       if (!imageId || !ym) return;
 
+      const prevLikedByMe = c.likedByMe;
+      const prevLikes = c.likes;
+      const nextLiked = !c.likedByMe;
+
       updateComment(imageId, c.id, {
-        likedByMe: !c.likedByMe,
-        likes: !c.likedByMe ? c.likes + 1 : Math.max(0, c.likes - 1),
+        likedByMe: nextLiked,
+        likes: nextLiked ? c.likes + 1 : Math.max(0, c.likes - 1),
       });
 
-      toggleCommentLike(ym, imageId, c.id, !c.likedByMe);
+      toggleCommentLike(ym, imageId, c.id, nextLiked, () => {
+        updateComment(imageId, c.id, {
+          likedByMe: prevLikedByMe,
+          likes: prevLikes,
+        });
+      });
     },
     [imageId, ym, updateComment],
   );
@@ -277,10 +287,19 @@ export const CommentSheet = () => {
   const handleDelete = useCallback(
     (cid: string) => {
       if (!imageId || !ym) return;
+
+      const affected = list.filter((c) => c.id === cid || c.parentId === cid);
+
       storeDelete(imageId, cid);
-      deleteGalleryComment(ym, imageId, cid);
+
+      deleteGalleryComment(ym, imageId, cid).catch(() => {
+        affected.forEach((c) => {
+          updateComment(imageId, c.id, { deleted: c.deleted, text: c.text });
+        });
+        toast.error('댓글 삭제에 실패했어요.');
+      });
     },
-    [imageId, ym, storeDelete],
+    [imageId, ym, storeDelete, list, updateComment],
   );
 
   const renderNames = (names: string[]) => {

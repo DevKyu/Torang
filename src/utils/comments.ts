@@ -101,6 +101,7 @@ export const toggleCommentLike = (
   imageId: string,
   cid: string,
   nextLiked: boolean,
+  onError?: (liked: boolean) => void,
 ) => {
   const empId = getCurrentUserId();
   if (!empId || !ym) return;
@@ -112,10 +113,15 @@ export const toggleCommentLike = (
 
   const key = `${ym}-${imageId}-${cid}-${empId}`;
 
-  scheduleLikeUpdate(key, nextLiked, async (liked) => {
-    if (liked) await set(likeRef, true);
-    else await remove(likeRef);
-  });
+  scheduleLikeUpdate(
+    key,
+    nextLiked,
+    async (liked) => {
+      if (liked) await set(likeRef, true);
+      else await remove(likeRef);
+    },
+    onError,
+  );
 };
 
 export const subscribeGalleryComments = (
