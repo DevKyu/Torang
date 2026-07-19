@@ -5,7 +5,7 @@ import {
   ensureFirebaseAdmin,
   verifyCallerToken,
   EMP_ID_REGEX,
-} from './_lib/firebaseAdmin';
+} from './_lib/firebaseAdmin.js';
 
 ensureFirebaseAdmin();
 

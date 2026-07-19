@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getDatabase, ServerValue } from 'firebase-admin/database';
-import { ensureFirebaseAdmin, getCallerEmpId } from './_lib/firebaseAdmin';
+import { ensureFirebaseAdmin, getCallerEmpId } from './_lib/firebaseAdmin.js';
 
 ensureFirebaseAdmin();
 
