@@ -299,6 +299,17 @@ const AdminLeague = () => {
   const handleSave = async () => {
     if (!editing) return;
 
+    const hasUnresolvedEmpId = [...editing.team1, ...editing.team2].some(
+      (p) => p.name.trim() && !p.empId.trim(),
+    );
+    if (hasUnresolvedEmpId) {
+      toast.error(
+        '사번 조회를 하지 않은 선수가 있습니다. "조회" 버튼으로 사번을 확인하거나 게스트로 등록해주세요.',
+        { position: 'top-center' },
+      );
+      return;
+    }
+
     setSaving(true);
 
     const { groupId } = editing;

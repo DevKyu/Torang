@@ -342,6 +342,12 @@ export default function AdminEvent() {
       toast.error('핀 매치 지급 금액이 0입니다. 먼저 저장하세요.');
       return;
     }
+    if ((rewardDraft.pinMatch ?? 0) !== pinRate) {
+      toast.error(
+        '저장하지 않은 핀 매치 요율 변경사항이 있습니다. 먼저 저장 후 지급하세요.',
+      );
+      return;
+    }
     if (
       !confirm(
         `${selectedYm} 핀 매치 보상을 지급하시겠습니까?\n(미처리 건만 계산·지급됩니다)`,
@@ -369,7 +375,7 @@ export default function AdminEvent() {
     } finally {
       setDistributing(false);
     }
-  }, [selectedYm, pinReward]);
+  }, [selectedYm, pinReward, rewardDraft]);
 
   const handleRollback = useCallback(async () => {
     if (
