@@ -11,6 +11,7 @@ import {
   db,
   parseProductBundle,
   getCurrentUserData,
+  getCurrentUserId,
   setProductData,
   setUserPinData,
   getAppliedProducts,
@@ -67,7 +68,7 @@ const Reward = () => {
   const [isReady, setIsReady] = useState(false);
 
   const isCancellingRef = useRef(false);
-  const resolvedRef = useRef({ products: false, profile: false });
+  const resolvedRef = useRef({ products: false, profile: false, pin: false });
   const noPinWarnedRef = useRef(false);
 
   const { showLoading, hideLoading } = useLoading();
@@ -97,11 +98,17 @@ const Reward = () => {
 
   useEffect(() => {
     let cancelled = false;
-    resolvedRef.current = { products: false, profile: false };
+    resolvedRef.current = { products: false, profile: false, pin: false };
     noPinWarnedRef.current = false;
 
+    let unsubPin: (() => void) | null = null;
+
     const tryFinish = () => {
-      if (resolvedRef.current.products && resolvedRef.current.profile) {
+      if (
+        resolvedRef.current.products &&
+        resolvedRef.current.profile &&
+        resolvedRef.current.pin
+      ) {
         setIsReady(true);
       }
     };
@@ -141,6 +148,27 @@ const Reward = () => {
     const loadProfile = async () => {
       try {
         await waitForAuthUser();
+
+        try {
+          const empId = getCurrentUserId();
+          unsubPin = onValue(
+            ref(db, `users/${empId}/pin`),
+            (snap) => {
+              if (cancelled) return;
+              setPinCount(typeof snap.val() === 'number' ? snap.val() : 0);
+              resolvedRef.current.pin = true;
+              tryFinish();
+            },
+            () => {
+              if (cancelled) return;
+              resolvedRef.current.pin = true;
+              tryFinish();
+            },
+          );
+        } catch {
+          resolvedRef.current.pin = true;
+        }
+
         const [user, applied] = await Promise.all([
           getCurrentUserData(),
           getAppliedProducts(quarterYm),
@@ -153,7 +181,6 @@ const Reward = () => {
         }
 
         setUserName(user.name);
-        setPinCount(user.pin ?? 0);
         setAppliedProducts(applied);
       } catch {
         if (!cancelled) toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
@@ -170,6 +197,7 @@ const Reward = () => {
     return () => {
       cancelled = true;
       unsubProducts();
+      unsubPin?.();
     };
   }, [quarterYm]);
 
@@ -215,17 +243,10 @@ const Reward = () => {
     showLoading();
 
     const prevApplied = { ...appliedProducts };
-    const prevRaffleCount = products.find((p) => p.index === index)?.raffleCount ?? 0;
 
     const next = { ...appliedProducts };
     delete next[index];
     setAppliedProducts(next);
-    setPinCount((prev) => prev + applied.requiredPins);
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.index === index ? { ...p, raffleCount: Math.max(0, p.raffleCount - 1) } : p,
-      ),
-    );
 
     try {
       await Promise.all([
@@ -236,10 +257,6 @@ const Reward = () => {
       toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {
       setAppliedProducts(prevApplied);
-      setPinCount((prev) => prev - applied.requiredPins);
-      setProducts((prev) =>
-        prev.map((p) => (p.index === index ? { ...p, raffleCount: prevRaffleCount } : p)),
-      );
       toast.error('신청 취소에 실패했어요.');
     } finally {
       isCancellingRef.current = false;
@@ -273,13 +290,7 @@ const Reward = () => {
         ...Object.entries(newEntries).map(([index, data]) => applyProduct(quarterYm, index, data)),
       ]);
 
-      setPinCount((prev) => prev - totalRequired);
       setAppliedProducts((prev) => ({ ...prev, ...newEntries }));
-      setProducts((prev) =>
-        prev.map((p) =>
-          selected.has(p.index) ? { ...p, raffleCount: p.raffleCount + 1 } : p,
-        ),
-      );
       setSelected(new Set());
 
       toast.success('신청이 완료됐어요.');
