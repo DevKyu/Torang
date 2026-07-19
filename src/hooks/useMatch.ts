@@ -18,6 +18,7 @@ export const useMatch = (
 
   useEffect(() => {
     if (!ym || !myId) return;
+    setLoading(true);
     const r = ref(db, `match/${ym}/${type}/${myId}`);
     const off = onValue(r, (snap) => {
       setChoices(snap.exists() ? (snap.val() as MatchChoices) : {});
