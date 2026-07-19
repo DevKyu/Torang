@@ -233,18 +233,25 @@ export async function resetMissionState(
       }
     }
 
-    const rewardSnaps = await Promise.all(
-      recipientKeys.map(({ empId, key }) =>
-        get(ref(db, `users/${empId}/rewards/${ym}/mission/${key}`)),
+    const [rewardSnaps, currentPinSnaps] = await Promise.all([
+      Promise.all(
+        recipientKeys.map(({ empId, key }) =>
+          get(ref(db, `users/${empId}/rewards/${ym}/mission/${key}`)),
+        ),
       ),
-    );
+      Promise.all(
+        recipientKeys.map(({ empId }) => get(ref(db, `users/${empId}/pin`))),
+      ),
+    ]);
 
     recipientKeys.forEach(({ empId, key }, i) => {
       const snap = rewardSnaps[i];
       if (!snap.exists()) return;
       const pin = (snap.val() as { pin?: number })?.pin ?? 0;
       if (pin <= 0) return;
-      updates[`users/${empId}/pin`] = increment(-pin);
+      const currentPinVal = currentPinSnaps[i].val();
+      const currentPin = typeof currentPinVal === 'number' ? currentPinVal : 0;
+      updates[`users/${empId}/pin`] = Math.max(0, currentPin - pin);
       updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
     });
   }

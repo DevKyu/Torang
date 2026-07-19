@@ -520,7 +520,10 @@ const AdminMission = () => {
 
   const handleReveal = async () => {
     if (!data) return;
-    if (!confirm('결과를 공개하시겠습니까? 공개 즉시 PIN이 지급됩니다.')) return;
+    const confirmMsg = data.result?.revealed
+      ? '이미 공개된 결과입니다. 다시 동기화하시겠습니까? (PIN은 재지급되지 않습니다)'
+      : '결과를 공개하시겠습니까? 공개 즉시 PIN이 지급됩니다.';
+    if (!confirm(confirmMsg)) return;
     setRevealing(true);
     try {
       if (isScoreGuessMission(data)) {
@@ -554,6 +557,14 @@ const AdminMission = () => {
   };
 
   const handleResetMission = async () => {
+    if (
+      data?.result?.revealed &&
+      !confirm(
+        '이미 결과가 공개된 미션입니다. 초기화하면 이미 지급된 PIN이 전부 환수됩니다. 계속하시겠습니까?',
+      )
+    ) {
+      return;
+    }
     setSaving(true);
     try {
       await resetMissionState(ym, data);
