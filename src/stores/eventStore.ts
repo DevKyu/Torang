@@ -121,7 +121,6 @@ type EventStore = {
   getThisMonthPinReward(): PinRewardConfig;
   getPinRewardRate(key: keyof PinRewardConfig): number;
   isPinRewardEnabled(key: keyof PinRewardConfig): boolean;
-  getReferralPin(): number;
   getGalleryReward(ym?: string): GalleryRewardConfig;
 };
 
@@ -208,8 +207,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
   isPinRewardEnabled: (key) => {
     return get().getPinRewardRate(key) > 0;
   },
-
-  getReferralPin: () => get().referralPin,
 
   getGalleryReward: (ym) => {
     const ui = useUiStore.getState();

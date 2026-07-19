@@ -1,7 +1,7 @@
-import { ref, get, update, increment, runTransaction } from 'firebase/database';
+import { ref, get, update, increment } from 'firebase/database';
 import {
+  getAuthHeader,
   db,
-  getCachedUserName,
   getCurrentUserId,
   incrementPinsByEmpId,
 } from '../services/firebase';
@@ -29,28 +29,6 @@ type TargetRewardPayload = {
 
 type AchievementRewardPayload = {
   detail: string;
-};
-
-type ApplyPinRewardPayload = {
-  empId: string;
-  pin: number;
-  type: 'match' | 'referral';
-  ym: string;
-  detail?: string;
-  incrementInvitedCount?: boolean;
-};
-
-export const applyPinRewardServer = async (payload: ApplyPinRewardPayload) => {
-  const res = await fetch('/api/apply-pin-reward', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`applyPinRewardServer failed: ${text}`);
-  }
 };
 
 export const applyPinChangeBatch = async (
@@ -198,67 +176,34 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
   const empId = getCurrentUserId();
   if (!empId) return false;
 
-  const pin = useEventStore.getState().getReferralPin();
-  if (pin <= 0) return false;
+  const referralSnap = await get(ref(db, `referrals/${empId}`));
+  if (!referralSnap.exists()) return false;
 
-  const referralRef = ref(db, `referrals/${empId}`);
-  const snap = await get(referralRef);
-  if (!snap.exists()) return false;
-
-  const data = snap.val();
+  const data = referralSnap.val();
   if (!data.refEmpId || data.rewarded) return false;
 
-  const { getServerTimestamp, formatServerDate } = useUiStore.getState();
-  const rewardedAt = getServerTimestamp();
-  const ym = formatServerDate('ym');
-
-  const tx = await runTransaction(referralRef, (cur) => {
-    if (!cur || cur.rewarded) return cur;
-    return { ...cur, rewarded: true, rewardedAt, pin };
-  });
-
-  if (!tx.committed) return false;
-
-  const myName = typeof data.name === 'string' && data.name
-    ? data.name
-    : getCachedUserName(empId);
-  const referrerName = typeof data.referrerName === 'string' && data.referrerName
-    ? data.referrerName
-    : getCachedUserName(data.refEmpId);
-
+  let result: { rewarded?: boolean; pin?: number };
   try {
-    await Promise.all([
-      applyPinRewardServer({
-        empId: data.refEmpId,
-        pin,
-        type: 'referral',
-        ym,
-        detail: `${myName}님 추천 가입`,
-        incrementInvitedCount: true,
-      }),
-      applyPinRewardServer({
-        empId,
-        pin,
-        type: 'referral',
-        ym,
-        detail: `${referrerName}님 추천으로 가입`,
-      }),
-    ]);
-  } catch {
-    await runTransaction(referralRef, (cur) => {
-      if (!cur) return cur;
-      const reset = { ...cur };
-      delete reset.rewarded;
-      delete reset.rewardedAt;
-      delete reset.pin;
-      return reset;
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/apply-pin-reward', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeader,
+      },
+      body: JSON.stringify({ type: 'referral' }),
     });
+    if (!res.ok) return false;
+    result = await res.json();
+  } catch {
     return false;
   }
 
+  if (!result.rewarded) return false;
+
   useUiStore.getState().onMessagePopupCleared(() => {
     if (getCurrentUserId() !== empId) return;
-    showReferrerRewardToast(pin);
+    showReferrerRewardToast(result.pin ?? 0);
   });
   return true;
 };
