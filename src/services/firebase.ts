@@ -225,7 +225,7 @@ export const removeProductData = async (ym: string, items: Set<string>) => {
 export const setUserPinData = async (pin: number) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
   await runTransaction(ref(db, `users/${empId}/pin`), (current) =>
-    (current ?? 0) + pin,
+    Math.max(0, (current ?? 0) + pin),
   );
 };
 

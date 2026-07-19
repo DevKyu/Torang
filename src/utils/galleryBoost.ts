@@ -16,14 +16,7 @@ export const applyGalleryBoost = async (ym: string) => {
   const countRef = ref(db, `users/${empId}/gallery/uploadCount/${ym}`);
   const pinRef = ref(db, `users/${empId}/pin`);
 
-  const [snap, pinSnap] = await Promise.all([get(countRef), get(pinRef)]);
-
-  const current = snap.exists()
-    ? Number(snap.val())
-    : GALLERY_POLICY.BASE_UPLOAD;
-
-  const next = current + GALLERY_POLICY.BOOST_AMOUNT;
-
+  const pinSnap = await get(pinRef);
   const serverPin = typeof pinSnap.val() === 'number' ? pinSnap.val() : 0;
   if (serverPin < 1) return null;
 
@@ -34,8 +27,16 @@ export const applyGalleryBoost = async (ym: string) => {
   });
   if (!tx.committed) return null;
 
+  const countTx = await runTransaction(countRef, (cur) => {
+    const base = typeof cur === 'number' ? cur : GALLERY_POLICY.BASE_UPLOAD;
+    return base + GALLERY_POLICY.BOOST_AMOUNT;
+  });
+  const next =
+    typeof countTx.snapshot.val() === 'number'
+      ? (countTx.snapshot.val() as number)
+      : GALLERY_POLICY.BASE_UPLOAD + GALLERY_POLICY.BOOST_AMOUNT;
+
   await update(ref(db), {
-    [`users/${empId}/gallery/uploadCount/${ym}`]: next,
     [`users/${empId}/gallery/pinUsage/${ym}/${usageKey}`]: {
       type: 'gallery_boost',
       detail: `업로드 횟수 +${GALLERY_POLICY.BOOST_AMOUNT}`,
