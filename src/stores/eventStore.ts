@@ -1,10 +1,25 @@
 import { create } from 'zustand';
-import { ref, get as dbGet } from 'firebase/database';
+import { ref, onValue, type DataSnapshot } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from './useUiStore';
 import type { MatchType } from '../types/match';
 
 export type { MatchType };
+
+const getConnectedValue = (path: string) =>
+  new Promise<DataSnapshot>((resolve, reject) => {
+    const unsub = onValue(
+      ref(db, path),
+      (snap) => {
+        unsub();
+        resolve(snap);
+      },
+      (err) => {
+        unsub();
+        reject(err);
+      },
+    );
+  });
 
 export type PinRewardConfig = {
   targetScore: number;
@@ -122,7 +137,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
   loadEventConfig: async () => {
     try {
-      const snap = await dbGet(ref(db, 'eventConfig'));
+      const snap = await getConnectedValue('eventConfig');
       const v = snap.exists() ? snap.val() : {};
 
       const rawReward = v.pinReward ?? {};
