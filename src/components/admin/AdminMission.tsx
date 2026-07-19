@@ -520,6 +520,7 @@ const AdminMission = () => {
 
   const handleReveal = async () => {
     if (!data) return;
+    if (!confirm('결과를 공개하시겠습니까? 공개 즉시 PIN이 지급됩니다.')) return;
     setRevealing(true);
     try {
       if (isScoreGuessMission(data)) {
@@ -1271,6 +1272,7 @@ const AdminMission = () => {
               color="#6b7280"
               disabled={saving}
               onClick={async () => {
+                if (!confirm('투표를 초기화하시겠습니까? 지금까지의 투표/예측 기록이 모두 삭제됩니다.')) return;
                 setSaving(true);
                 try {
                   await resetVotes(ym);

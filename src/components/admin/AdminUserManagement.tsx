@@ -153,6 +153,13 @@ const AdminUserManagement = () => {
 
   const handleUpdatePin = async (delta: number) => {
     if (!selectedEmpId) return;
+    const sign = delta > 0 ? '+' : '';
+    if (
+      !window.confirm(
+        `${selectedUser?.name ?? selectedEmpId}님의 PIN을 ${sign}${delta}만큼 조정하시겠습니까?`,
+      )
+    )
+      return;
     await incrementPinsByEmpId(selectedEmpId, delta);
     const updated = await checkEmpId(selectedEmpId);
     setSelectedUser(updated);

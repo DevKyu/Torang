@@ -374,6 +374,7 @@ const AdminTeamFormation = () => {
   }
 
   const handleDeleteSnapshot = async (id: string) => {
+    if (!window.confirm('이 편성안을 삭제하시겠습니까?')) return
     try {
       await remove(ref(db, `teamFormation/${ym}/snapshots/${id}`))
       setSnapshots(prev => prev.filter(s => s.id !== id))
@@ -460,7 +461,12 @@ const AdminTeamFormation = () => {
     try {
       const prevGroups = displayGroups.length > 0 ? [...displayGroups] : null
       await update(ref(db, `teamFormation/${ym}`), { status: 'draft' })
-      await Promise.all([loadSaved(ym), loadSnapshots(ym)])
+      const [, , teammatePenalties] = await Promise.all([
+        loadSaved(ym),
+        loadSnapshots(ym),
+        loadTeammatePenalties(ym),
+      ])
+      teammatePenaltiesRef.current = teammatePenalties
       setDraft(prevGroups)
       setEditMode(false)
       setAddingTo(null)
