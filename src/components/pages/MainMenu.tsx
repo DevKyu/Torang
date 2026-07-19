@@ -184,6 +184,7 @@ const MainMenu = () => {
   const queueTotalRef = useRef(0);
 
   const syncServerTime = useUiStore((s) => s.syncServerTime);
+  const lastSync = useUiStore((s) => s.lastSync);
   const hasShownMessagesPopup = useUiStore((s) => s.hasShownMessagesPopup);
   const setShownMessagesPopup = useUiStore((s) => s.setShownMessagesPopup);
   const setMessagePopupActive = useUiStore((s) => s.setMessagePopupActive);
@@ -333,6 +334,7 @@ const MainMenu = () => {
     if (
       !myEmpId ||
       !loaded ||
+      lastSync === null ||
       checklistLoading ||
       postActivityChecklistLoading ||
       checklistDataError
@@ -355,6 +357,7 @@ const MainMenu = () => {
   }, [
     myEmpId,
     loaded,
+    lastSync,
     checklistLoading,
     postActivityChecklistLoading,
     checklistDataError,

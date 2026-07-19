@@ -64,6 +64,7 @@ export const useMonthlyChecklist = (
   const userInfo = useUserInfo();
   const matchType = useEventStore((s) => s.matchType);
   const reminderDays = useEventStore((s) => s.checklistReminderDays);
+  const lastSync = useUiStore((s) => s.lastSync);
 
   const { formatServerDate } = useUiStore.getState();
   const serverYear = formatServerDate('year') as Year;
@@ -88,11 +89,13 @@ export const useMonthlyChecklist = (
       (activityDate.getTime() - today.getTime()) / 86400000,
     );
     return daysUntil <= reminderDays;
-  }, [activityYmdStr, reminderDays]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityYmdStr, reminderDays, lastSync]);
 
   const stillActionable = useMemo(
     () => useUiStore.getState().isBeforeCutoff(activityYmdStr, '18:30'),
-    [activityYmdStr],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activityYmdStr, lastSync],
   );
 
   const currentMonthActivityYmd = activityAll[serverYear]?.[String(serverMonth)];

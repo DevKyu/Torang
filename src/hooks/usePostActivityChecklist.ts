@@ -34,6 +34,7 @@ export const usePostActivityChecklist = (
   const postActivityWindowDays = useEventStore(
     (s) => s.postActivityChecklistDays,
   );
+  const lastSync = useUiStore((s) => s.lastSync);
 
   const { formatServerDate } = useUiStore.getState();
   const serverYear = formatServerDate('year') as Year;
@@ -48,12 +49,14 @@ export const usePostActivityChecklist = (
 
   const pastCutoff = useMemo(
     () => !useUiStore.getState().isBeforeCutoff(activityYmdStr, '18:30'),
-    [activityYmdStr],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activityYmdStr, lastSync],
   );
 
   const diffDaysSinceActivity = useMemo(
     () => (activityYmdStr ? getDiffDaysServer(activityYmdStr) : null),
-    [activityYmdStr],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activityYmdStr, lastSync],
   );
 
   const withinPostActivityWindow = useMemo(() => {
