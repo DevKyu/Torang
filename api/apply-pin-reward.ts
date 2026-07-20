@@ -40,16 +40,10 @@ const applyReferralReward = async (empId: string) => {
   const ym = `${y}${mo}`;
 
   const referralRef = db.ref(`referrals/${empId}`);
-  const preSnap = await referralRef.get();
-  const preData = preSnap.val() as ReferralData | null;
-  if (!preData || preData.rewarded || !preData.refEmpId) {
-    return { rewarded: false as const };
-  }
 
   const tx = await referralRef.transaction((cur: ReferralData | null) => {
-    const seed = cur ?? preData;
-    if (!seed || seed.rewarded || !seed.refEmpId) return;
-    return { ...seed, rewarded: true, rewardedAt, pin: pinRate };
+    if (!cur || cur.rewarded || !cur.refEmpId) return;
+    return { ...cur, rewarded: true, rewardedAt, pin: pinRate };
   });
 
   if (!tx.committed) return { rewarded: false as const };
