@@ -27,24 +27,39 @@ export const applyGalleryBoost = async (ym: string) => {
   });
   if (!tx.committed) return null;
 
-  const countTx = await runTransaction(countRef, (cur) => {
-    const base = typeof cur === 'number' ? cur : GALLERY_POLICY.BASE_UPLOAD;
-    return base + GALLERY_POLICY.BOOST_AMOUNT;
-  });
-  const next =
-    typeof countTx.snapshot.val() === 'number'
-      ? (countTx.snapshot.val() as number)
-      : GALLERY_POLICY.BASE_UPLOAD + GALLERY_POLICY.BOOST_AMOUNT;
+  const refundPin = () => runTransaction(pinRef, (cur) => (cur ?? 0) + 1).catch(() => {});
+  const revertCount = () =>
+    runTransaction(countRef, (cur) => {
+      const base = typeof cur === 'number' ? cur : GALLERY_POLICY.BASE_UPLOAD;
+      return base - GALLERY_POLICY.BOOST_AMOUNT;
+    }).catch(() => {});
 
-  await update(ref(db), {
-    [`users/${empId}/gallery/pinUsage/${ym}/${usageKey}`]: {
-      type: 'gallery_boost',
-      detail: `업로드 횟수 +${GALLERY_POLICY.BOOST_AMOUNT}`,
-      delta: -1,
-      createdAt,
-      createdAtMs: nowMs,
-    },
-  });
+  let countApplied = false;
+  try {
+    const countTx = await runTransaction(countRef, (cur) => {
+      const base = typeof cur === 'number' ? cur : GALLERY_POLICY.BASE_UPLOAD;
+      return base + GALLERY_POLICY.BOOST_AMOUNT;
+    });
+    countApplied = true;
+    const next =
+      typeof countTx.snapshot.val() === 'number'
+        ? (countTx.snapshot.val() as number)
+        : GALLERY_POLICY.BASE_UPLOAD + GALLERY_POLICY.BOOST_AMOUNT;
 
-  return next;
+    await update(ref(db), {
+      [`users/${empId}/gallery/pinUsage/${ym}/${usageKey}`]: {
+        type: 'gallery_boost',
+        detail: `업로드 횟수 +${GALLERY_POLICY.BOOST_AMOUNT}`,
+        delta: -1,
+        createdAt,
+        createdAtMs: nowMs,
+      },
+    });
+
+    return next;
+  } catch (err) {
+    await refundPin();
+    if (countApplied) await revertCount();
+    throw err;
+  }
 };
