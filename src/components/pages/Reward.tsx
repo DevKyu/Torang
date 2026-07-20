@@ -148,6 +148,7 @@ const Reward = () => {
     const loadProfile = async () => {
       try {
         await waitForAuthUser();
+        if (cancelled) return;
 
         try {
           const empId = getCurrentUserId();
