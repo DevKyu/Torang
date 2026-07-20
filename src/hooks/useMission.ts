@@ -292,15 +292,34 @@ export function buildMissionPinReward(
   };
 }
 
-export async function claimMissionReveal(ym: string): Promise<void> {
+export async function claimMissionReveal(ym: string): Promise<string | null> {
   const statusRef = ref(db, `missions/${ym}/config/status`);
-  const tx = await runTransaction(statusRef, (cur) =>
-    cur === 'revealed' ? undefined : 'revealed',
-  );
+  let previousStatus: string | null = null;
+  const tx = await runTransaction(statusRef, (cur) => {
+    if (cur === 'revealed') return undefined;
+    previousStatus = cur;
+    return 'revealed';
+  });
   if (!tx.committed) {
     throw new Error(
       '이미 다른 곳에서 결과 공개가 진행 중이거나 완료되었습니다. 새로고침 후 확인해주세요.',
     );
+  }
+  return previousStatus;
+}
+
+export async function commitMissionReveal(
+  ym: string,
+  previousStatus: string | null,
+  allWrites: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await update(ref(db), allWrites);
+  } catch (err) {
+    await set(ref(db, `missions/${ym}/config/status`), previousStatus ?? 'voting').catch(
+      () => {},
+    );
+    throw err;
   }
 }
 
@@ -320,7 +339,7 @@ export async function revealMissionResult(
   const { config, roles, votes } = data;
   if (!config || !roles) throw new Error('미션 데이터가 없습니다.');
 
-  await claimMissionReveal(ym);
+  const previousStatus = await claimMissionReveal(ym);
 
   const villainId = roles.villain;
   const helperId = roles.helper;
@@ -381,7 +400,7 @@ export async function revealMissionResult(
     );
   });
 
-  await update(ref(db), allWrites);
+  await commitMissionReveal(ym, previousStatus, allWrites);
 
   return { villainWon, helperWon, correctVoters };
 }

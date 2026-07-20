@@ -1,7 +1,7 @@
-import { ref, set, update, get, remove } from 'firebase/database';
+import { ref, set, get, remove } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
-import { buildMissionPinReward, claimMissionReveal } from './useMission';
+import { buildMissionPinReward, claimMissionReveal, commitMissionReveal } from './useMission';
 import type {
   ScoreGuessMissionData,
   ScoreGuessVote,
@@ -85,7 +85,7 @@ export async function revealScoreGuessMissionResult(
   if (missingEmpIds.length > 0)
     throw new Error(`점수가 입력되지 않은 후보가 있습니다: ${missingEmpIds.join(', ')}`);
 
-  await claimMissionReveal(ym);
+  const previousStatus = await claimMissionReveal(ym);
 
   const threshold = config.scoreDiffThreshold ?? 5;
   const rewardPin = config.rewardPin ?? 0.5;
@@ -149,7 +149,7 @@ export async function revealScoreGuessMissionResult(
   };
   allWrites[`missions/${ym}/config/status`] = 'revealed';
 
-  await update(ref(db), allWrites);
+  await commitMissionReveal(ym, previousStatus, allWrites);
 
   return { actualScores, correctVoters, topTargets };
 }
