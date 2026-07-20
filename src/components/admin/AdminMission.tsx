@@ -195,6 +195,11 @@ const AdminMission = () => {
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [candidateChecked, setCandidateChecked] = useState<Record<string, true>>({});
   const [confirmTargetChange, setConfirmTargetChange] = useState(false);
+  const [confirmRoleChange, setConfirmRoleChange] = useState(false);
+
+  useEffect(() => {
+    setConfirmRoleChange(false);
+  }, [roleDraft.villainId, roleDraft.helperId]);
 
   const [allNames, setAllNames] = useState<Record<string, string>>({});
   const [villainDropdown, setVillainDropdown] = useState<[string, string][]>(
@@ -445,9 +450,21 @@ const AdminMission = () => {
       });
       return;
     }
+    const hasExistingVotes =
+      !isScoreGuessMission(data) && Object.keys(data?.votes ?? {}).length > 0;
+    if (hasExistingVotes && !confirmRoleChange) {
+      setConfirmRoleChange(true);
+      toast('이미 투표가 진행 중입니다. 다시 누르면 기존 투표가 초기화됩니다.', {
+        position: 'top-center',
+        duration: 2500,
+      });
+      return;
+    }
     setSaving(true);
     try {
+      if (hasExistingVotes) await resetVotes(ym);
       await assignRoles(ym, roleDraft.villainId, roleDraft.helperId);
+      setConfirmRoleChange(false);
       toast('✅ 역할 배정이 저장되었습니다.', {
         position: 'top-center',
         duration: 2000,
@@ -1268,7 +1285,11 @@ const AdminMission = () => {
               랜덤 배정
             </RandomBtn>
             <SaveBtn onClick={handleSaveRoles} disabled={saving}>
-              {saving ? '저장 중...' : '역할 저장'}
+              {confirmRoleChange
+                ? '정말 저장 (투표 초기화됨)'
+                : saving
+                  ? '저장 중...'
+                  : '역할 저장'}
             </SaveBtn>
           </SaveRow>
         </>
