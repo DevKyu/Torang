@@ -64,7 +64,7 @@ export const calculateScoreStats = (
   const average = games ? Math.round(total / games) : 0;
   return { average, games, max };
 };
-export const sortByAvgThenGamesThenMax = (
+const sortByAvgThenGamesThenMax = (
   a: RankingEntry,
   b: RankingEntry,
 ): number => {

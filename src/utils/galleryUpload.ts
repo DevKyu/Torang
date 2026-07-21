@@ -12,7 +12,6 @@ import {
 } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import { nanoid } from 'nanoid';
-import { getDiffDaysServer } from './date';
 
 export const uploadGalleryImage = async (file: File, ym: string) => {
   const imageId = nanoid();
@@ -48,20 +47,6 @@ export const saveGalleryMeta = async (params: {
   });
 };
 
-export const getValidGalleryMonth = (
-  activityYmd?: string,
-  extraDays: number = 7,
-): string => {
-  const store = useUiStore.getState();
-  if (!activityYmd || activityYmd.length !== 8) {
-    return store.formatServerDate('ym');
-  }
-  const diff = getDiffDaysServer(activityYmd);
-  if (diff <= extraDays) {
-    return activityYmd.slice(0, 6);
-  }
-  return store.formatServerDate('ym');
-};
 export const checkGalleryUploadAvailability = (
   activityMaps: ActivityDateAll | undefined,
   year: number,

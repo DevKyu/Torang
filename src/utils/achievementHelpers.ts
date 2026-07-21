@@ -5,7 +5,7 @@ import { asYear, normalizeMonth } from './score';
 export const todayYm = (): string =>
   useUiStore.getState().formatServerDate('ym');
 
-export const formatYm = (year: number, month: number): string =>
+const formatYm = (year: number, month: number): string =>
   `${year}${String(month).padStart(2, '0')}`;
 
 export const findFirstParticipationYm = (scores: UserScores): string | null => {
@@ -212,7 +212,7 @@ export const findScoreYms = (
   return achieved;
 };
 
-export const getActiveYm = (join: string, months: number): string => {
+const getActiveYm = (join: string, months: number): string => {
   let y = +join.slice(0, 4);
   let m = +join.slice(4, 6) + months;
 

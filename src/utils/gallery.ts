@@ -3,7 +3,7 @@ import { useLightBoxStore } from '../stores/lightBoxStore';
 import { useUiStore } from '../stores/useUiStore';
 import { getDiffDaysServer } from './date';
 
-export const preloadImage = (src: string): Promise<void> => {
+const preloadImage = (src: string): Promise<void> => {
   if (!src) return Promise.resolve();
 
   return new Promise((resolve) => {
