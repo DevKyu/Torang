@@ -93,7 +93,7 @@ export const CardInner = styled(motion.div)`
   }
 `;
 
-export const CardFace = styled.div`
+const CardFace = styled.div`
   position: absolute;
   inset: 0;
   -webkit-backface-visibility: hidden;

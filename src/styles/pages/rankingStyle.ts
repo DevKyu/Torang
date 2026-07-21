@@ -1,7 +1,6 @@
 import styled from '@emotion/styled';
-import { keyframes, css } from '@emotion/react';
 import { motion } from 'framer-motion';
-import { ContentBox } from '../global/commonStyle';
+import { ContentBox, skeletonBg } from '../global/commonStyle';
 
 const colors = {
   highlight: '#fff8e1',
@@ -84,7 +83,7 @@ export const StyledRankingTable = styled.table`
   }
 `;
 
-export const StyledTableRow = styled.tr<{
+const StyledTableRow = styled.tr<{
   highlight?: boolean;
 }>`
   display: table-row;
@@ -126,7 +125,7 @@ export const FilterTabs = styled.div`
   margin-bottom: 12px;
 `;
 
-export const RankingTab = styled.button<{ active: boolean }>`
+const RankingTab = styled.button<{ active: boolean }>`
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 13px;
@@ -173,17 +172,6 @@ export const itemVariants = {
     transition: { duration: 0.25 },
   },
 };
-
-const shimmer = keyframes`
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-`;
-
-const skeletonBg = css`
-  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-  background-size: 300% 100%;
-  animation: ${shimmer} 1.8s linear infinite;
-`;
 
 export const RankingBody = styled.div`
   width: 100%;

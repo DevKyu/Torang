@@ -1,13 +1,13 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 
-export const HEADER_H = 60;
-export const DESC_H = 72;
-export const FOOTER_H = 60;
+const HEADER_H = 60;
+const DESC_H = 72;
+const FOOTER_H = 60;
 
-export const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
+const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
 
-export const getBottomOffset = (showIcon: boolean) =>
+const getBottomOffset = (showIcon: boolean) =>
   `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
 
 const stableHeight = (showIcon: boolean) => `

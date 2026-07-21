@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
 import { motion } from 'framer-motion';
+import { skeletonBg } from '../global/commonStyle';
 
 const colors = {
   bg: {
@@ -36,17 +37,6 @@ const font = {
   md: '14px',
   lg: '15px',
 };
-
-const shimmer = keyframes`
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-`;
-
-const skeletonBg = css`
-  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-  background-size: 300% 100%;
-  animation: ${shimmer} 1.8s linear infinite;
-`;
 
 const subtleGlow = keyframes`
   0%   { box-shadow: 0 0 3px rgba(147, 197, 253, 0.35); }

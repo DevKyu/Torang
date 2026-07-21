@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 export type Result = 'win' | 'lose' | 'draw' | 'none' | 'special';
 
-export const RESULT_STYLES: Record<
+const RESULT_STYLES: Record<
   Result,
   { border: string; shadow: string; bg: string; text: string }
 > = {
@@ -173,7 +173,7 @@ export const ScoreText = styled.div`
   margin: 4px 0 8px;
 `;
 
-export const DeltaBadge = styled.div<{ result: Result }>`
+const DeltaBadge = styled.div<{ result: Result }>`
   display: inline-flex;
   justify-content: center;
   align-items: center;
