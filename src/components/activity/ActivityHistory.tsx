@@ -6,6 +6,7 @@ import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
 import { Title as PageTitle } from '../../styles/global/commonStyle';
 import MonthNavigator from './MonthNavigator';
 import { useUiStore } from '../../stores/useUiStore';
+import { getYearMonth } from '../../utils/date';
 
 import {
   CategoryRow,
@@ -39,11 +40,6 @@ const iconMap: Record<ActivityItem['type'], string> = {
   activity: '📊',
   league: '🏆',
   draw: '🎀',
-};
-
-const toYm = (t: number) => {
-  const d = new Date(t);
-  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
 const easeOutCubic = cubicBezier(0.22, 1, 0.36, 1);
@@ -88,10 +84,10 @@ const joinNames = (names: string[], max = 3) =>
 const ActivityHistory = () => {
   const goBack = useNavigateBack();
   const currentYm = useMemo(
-    () => toYm(useUiStore.getState().getServerNow().getTime()),
+    () => getYearMonth(useUiStore.getState().getServerNow()),
     [],
   );
-  const [ym, setYm] = useState(currentYm);
+  const [ym, setYm] = useState<string>(currentYm);
   const [category, setCategory] = useState<Category>('all');
   const [selected, setSelected] = useState<ActivityItem | null>(null);
 

@@ -7,6 +7,7 @@ import Layout from '../layouts/Layout';
 import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
+import { getYearMonth } from '../../utils/date';
 import { useMission, isScoreGuessMission } from '../../hooks/useMission';
 import { useMissionViewState } from '../../hooks/useMissionViewState';
 import VillainMissionView from './VillainMissionView';
@@ -30,10 +31,10 @@ import {
 const MissionPage = () => {
   const goBack = useNavigateBack();
 
-  const currentYm = useMemo(() => {
-    const now = useUiStore.getState().getServerNow();
-    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
+  const currentYm = useMemo(
+    () => getYearMonth(useUiStore.getState().getServerNow()),
+    [],
+  );
 
   const { data, myEmpId, myVote, loading } = useMission(currentYm);
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);

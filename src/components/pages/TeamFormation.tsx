@@ -9,6 +9,7 @@ import MonthNavigator from '../activity/MonthNavigator';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import { calcGroupDiff, diffLevel } from '../../utils/teamFormation';
+import { getYearMonth } from '../../utils/date';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   ContentArea,
@@ -48,14 +49,12 @@ const scoreAvg = (s: [number, number]) =>
 const TeamFormation = () => {
   const goBack = useNavigateBack();
 
-  const currentYm = useMemo(() => {
-    const now = useUiStore.getState().getServerNow();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
-    return `${y}${String(m).padStart(2, '0')}`;
-  }, []);
+  const currentYm = useMemo(
+    () => getYearMonth(useUiStore.getState().getServerNow()),
+    [],
+  );
 
-  const [ym, setYm] = useState(currentYm);
+  const [ym, setYm] = useState<string>(currentYm);
   const { status, groups, winnerMap, scoreMap, loading, isLegacy, error } =
     useTeamFormation(ym);
   const rivalIds = useRivalEmpIds(ym);
