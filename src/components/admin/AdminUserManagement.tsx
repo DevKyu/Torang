@@ -401,19 +401,10 @@ const AdminUserManagement = () => {
 
         <AdminLinkGroup>
           <AdminSubLinkRow>
-            <AdminSubLink
-              style={{ gridColumn: '1 / -1' }}
-              onClick={() => navigate('/admin/messages')}
-            >
+            <AdminSubLink onClick={() => navigate('/admin/messages')}>
               📬 공지사항 관리
             </AdminSubLink>
-          </AdminSubLinkRow>
-        </AdminLinkGroup>
-
-        <AdminLinkGroup>
-          <AdminSubLinkRow>
             <AdminSubLink
-              style={{ gridColumn: '1 / -1' }}
               onClick={() => navigate('/admin/monthly-checklist')}
             >
               📋 체크리스트 현황
