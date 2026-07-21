@@ -10,12 +10,12 @@ import {
 import VillainMissionModal from '../mission/VillainMissionModal';
 import { ref, get } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
+import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import { db, fetchAllUsers } from '../../services/firebase';
-import { useUiStore } from '../../stores/useUiStore';
-import { getQuarterStartYm, getQuarterEndYm } from '../../utils/date';
+import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   MonthSelect,
@@ -164,10 +164,7 @@ const DEFAULT_SCORE_GUESS_CONFIG_DRAFT: ScoreGuessConfigDraft = {
 const AdminMission = () => {
   const goBack = useNavigateBack('/admin');
 
-  const currentYm = useMemo(() => {
-    const now = useUiStore.getState().getServerNow();
-    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
+  const { currentYm, monthOptions } = useAdminMonthOptions();
 
   const [ym, setYm] = useState(currentYm);
   const { data, loading } = useMission(ym);
@@ -288,9 +285,9 @@ const AdminMission = () => {
     }
   }, [data, loading, allNames]);
 
-  const [quarterStartYm, quarterEndYm] = useMemo(() => {
+  const [candidateStartYm, quarterEndYm] = useMemo(() => {
     const refDate = new Date(Number(ym.slice(0, 4)), Number(ym.slice(4)) - 1, 1);
-    return [getQuarterStartYm(refDate), getQuarterEndYm(refDate)];
+    return [getPrevYm(getQuarterStartYm(refDate)), getQuarterEndYm(refDate)];
   }, [ym]);
 
   useEffect(() => {
@@ -310,7 +307,7 @@ const AdminMission = () => {
           : [];
         const detected = participantIds.filter((empId) => {
           const join = users[empId]?.join;
-          return !!join && join >= quarterStartYm && join <= quarterEndYm;
+          return !!join && join >= candidateStartYm && join <= quarterEndYm;
         });
         setCandidates(detected.map((empId) => [empId, users[empId]?.name ?? empId]));
       } catch {
@@ -322,7 +319,7 @@ const AdminMission = () => {
     return () => {
       cancelled = true;
     };
-  }, [ym, quarterStartYm, quarterEndYm]);
+  }, [ym, candidateStartYm, quarterEndYm]);
 
   useEffect(() => {
     if (data && isScoreGuessMission(data) && data.targets?.empIds) {
@@ -597,20 +594,6 @@ const AdminMission = () => {
       setSaving(false);
     }
   };
-
-  const monthOptions = useMemo(() => {
-    const options: string[] = [];
-    const curY = Number(currentYm.slice(0, 4));
-    const curM = Number(currentYm.slice(4));
-    for (let y = 2025; y <= curY; y++) {
-      const mStart = y === 2025 ? 7 : 1;
-      const mEnd = y === curY ? curM : 12;
-      for (let m = mStart; m <= mEnd; m++) {
-        options.push(`${y}${String(m).padStart(2, '0')}`);
-      }
-    }
-    return options.reverse();
-  }, [currentYm]);
 
   const status = data?.config?.status ?? 'draft';
   const canChangeType = !data?.config || status === 'draft';
@@ -923,15 +906,15 @@ const AdminMission = () => {
 
           <FormTitle>신규회원 후보</FormTitle>
           <QuarterHint>
-            이번 분기({quarterStartYm.slice(4)}~{quarterEndYm.slice(4)}월)
-            가입 + 이번 달 활동 참여자 기준으로 자동 감지됩니다.
+            {candidateStartYm.slice(4)}~{quarterEndYm.slice(4)}월 가입 + 이번 달
+            활동 참여자 기준으로 자동 감지됩니다.
           </QuarterHint>
 
           <SectionBlock>
             {candidatesLoading ? (
               <EmptyMsg>후보를 불러오는 중...</EmptyMsg>
             ) : candidates.length === 0 ? (
-              <EmptyMsg>이번 분기 신규회원 중 이번 달 활동 참여자가 없습니다.</EmptyMsg>
+              <EmptyMsg>최근 가입 신규회원 중 이번 달 활동 참여자가 없습니다.</EmptyMsg>
             ) : (
               <CandidateList>
                 {candidates.map(([empId, name]) => {

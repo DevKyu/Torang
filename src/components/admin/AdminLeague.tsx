@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ref, set, remove, get, update } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
+import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import { db } from '../../services/firebase';
-import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   CancelBtn,
@@ -101,10 +101,7 @@ const toFirebasePlayers = (players: PlayerEntry[]) =>
 const AdminLeague = () => {
   const goBack = useNavigateBack('/admin');
 
-  const [currentYm] = useState(() => {
-    const now = useUiStore.getState().getServerNow();
-    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const { currentYm, monthOptions } = useAdminMonthOptions();
 
   const [ym, setYm] = useState(currentYm);
   const [groups, setGroups] = useState<Record<string, RawGroup>>({});
@@ -415,21 +412,6 @@ const AdminLeague = () => {
       setApplying(false);
     }
   };
-
-  const monthOptions = useMemo(() => {
-    const options: string[] = [];
-    const curY = Number(currentYm.slice(0, 4));
-    const curM = Number(currentYm.slice(4));
-    for (let y = 2025; y <= curY; y++) {
-      const mStart = y === 2025 ? 7 : 1;
-      const mEnd = y === curY ? curM : 12;
-      for (let m = mStart; m <= mEnd; m++) {
-        options.push(`${y}${String(m).padStart(2, '0')}`);
-      }
-    }
-
-    return options.reverse();
-  }, [currentYm]);
 
   const renderPlayers = (teamKey: 'team1' | 'team2', players: PlayerEntry[]) => (
     <>

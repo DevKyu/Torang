@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ref, get, update, remove, push, set } from 'firebase/database'
 import { useNavigateBack } from '../../hooks/useNavigateBack'
+import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions'
 import { toast } from 'sonner'
 import AdminLayout from './AdminLayout'
 import { db, fetchAllUsers } from '../../services/firebase'
@@ -101,10 +102,7 @@ const formatSavedAt = (ts: number) => {
 const AdminTeamFormation = () => {
   const goBack = useNavigateBack('/admin')
 
-  const [currentYm] = useState(() => {
-    const now = useUiStore.getState().getServerNow()
-    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`
-  })
+  const { currentYm, monthOptions } = useAdminMonthOptions()
 
   const [ym, setYm] = useState(currentYm)
   const [limitScoreStr, setLimitScoreStr] = useState('10')
@@ -520,21 +518,6 @@ const AdminTeamFormation = () => {
       setSavingImage(false)
     }
   }
-
-  const monthOptions = useMemo(() => {
-    const options: string[] = []
-    const curY = Number(currentYm.slice(0, 4))
-    const curM = Number(currentYm.slice(4))
-
-    for (let y = 2025; y <= curY; y++) {
-      const mStart = y === 2025 ? 7 : 1
-      const mEnd = y === curY ? curM : 12
-      for (let m = mStart; m <= mEnd; m++) {
-        options.push(`${y}${String(m).padStart(2, '0')}`)
-      }
-    }
-    return options.reverse()
-  }, [currentYm])
 
   const movePlayer = useCallback((groupIdx: number, fromTeam: '1' | '2', empId: string) => {
     const fromKey = `team${fromTeam}` as 'team1' | 'team2'

@@ -39,6 +39,14 @@ export const getQuarterStartYm = (date = new Date()): string => {
   return `${year}${String(startMonth).padStart(2, '0')}`;
 };
 
+export const getPrevYm = (ym: string): string => {
+  const year = Number(ym.slice(0, 4));
+  const month = Number(ym.slice(4));
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  return `${prevYear}${String(prevMonth).padStart(2, '0')}`;
+};
+
 export const getDiffDaysServer = (activityYmd: string): number => {
   if (!activityYmd || activityYmd.length !== 8) return Infinity;
 
