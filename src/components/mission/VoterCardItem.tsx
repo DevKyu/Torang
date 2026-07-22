@@ -13,7 +13,7 @@ const VoterCardItem = ({ id, index, name, selected, onSelect }: Props) => {
     <VoterCard
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.2, delay: index * 0.06, ease: 'easeOut' }}
+      transition={{ opacity: { duration: 0.2, delay: index * 0.06, ease: 'easeOut' } }}
       whileTap={{ scale: 0.97, transition: { duration: 0.08 } }}
       selected={selected}
       onClick={() => onSelect(id)}
