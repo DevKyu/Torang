@@ -89,6 +89,22 @@ function pairKey(a: string, b: string): string {
   return a < b ? `${a}|${b}` : `${b}|${a}`
 }
 
+const VALUE_CLUSTER_WEIGHT = 4
+
+function valueClusterPenalty(team: FormationPlayer[]): number {
+  const counts = new Map<number, number>()
+  for (const p of team) counts.set(p.average, (counts.get(p.average) ?? 0) + 1)
+  let penalty = 0
+  for (const count of counts.values()) {
+    if (count > 1) penalty += (count - 1) * (count - 1) * VALUE_CLUSTER_WEIGHT
+  }
+  return penalty
+}
+
+function hasClusteredTeam(groups: FormationPlayer[][]): boolean {
+  return groups.some((team) => team.length >= 2 && team.every((p) => p.average === team[0].average))
+}
+
 function teammatePenalty(team: FormationPlayer[], penalties: Map<string, number>): number {
   if (penalties.size === 0) return 0
   let total = 0
@@ -100,10 +116,14 @@ function teammatePenalty(team: FormationPlayer[], penalties: Map<string, number>
   return total
 }
 
+function totalTeammatePenalty(groups: FormationPlayer[][], penalties: Map<string, number>): number {
+  return groups.reduce((sum, team) => sum + teammatePenalty(team, penalties), 0)
+}
+
 function calcPairScore(
   t1: FormationPlayer[],
   t2: FormationPlayer[],
-  penalties: Map<string, number>,
+  teammatePenalties: Map<string, number>,
 ): number {
   const A = scoreTeam(t1)
   const B = scoreTeam(t2)
@@ -118,14 +138,15 @@ function calcPairScore(
       t2.reduce((acc, p) => acc + Math.pow(p.average - B.avg, 2), 0) /
         t2.length,
     ) || 0
-  const penalty = teammatePenalty(t1, penalties) + teammatePenalty(t2, penalties)
-  return diff + (varA + varB) * 0.05 + penalty
+  const penalty = teammatePenalty(t1, teammatePenalties) + teammatePenalty(t2, teammatePenalties)
+  const valuePenalty = valueClusterPenalty(t1) + valueClusterPenalty(t2)
+  return diff + (varA + varB) * 0.05 + penalty + valuePenalty
 }
 
-function totalPairScore(groups: FormationPlayer[][], penalties: Map<string, number>): number {
+function totalPairScore(groups: FormationPlayer[][], teammatePenalties: Map<string, number>): number {
   const diffs: number[] = []
   for (let i = 0; i < groups.length; i += 2) {
-    diffs.push(calcPairScore(groups[i], groups[i + 1], penalties))
+    diffs.push(calcPairScore(groups[i], groups[i + 1], teammatePenalties))
   }
   const sum = diffs.reduce((a, b) => a + b, 0)
   const maxDiff = Math.max(...diffs)
@@ -169,9 +190,12 @@ function buildBalancedSeed(
   return slots
 }
 
-function improveBySwap(groups: FormationPlayer[][], penalties: Map<string, number>): FormationPlayer[][] {
+function improveBySwap(
+  groups: FormationPlayer[][],
+  teammatePenalties: Map<string, number>,
+): FormationPlayer[][] {
   let current = groups.map((g) => [...g])
-  let currentScore = totalPairScore(current, penalties)
+  let currentScore = totalPairScore(current, teammatePenalties)
   let improved = true
   let guard = 100
 
@@ -188,7 +212,7 @@ function improveBySwap(groups: FormationPlayer[][], penalties: Map<string, numbe
           const candidate = current.map((g, idx) =>
             idx === gi ? nt1 : idx === gi + 1 ? nt2 : g,
           )
-          const candScore = totalPairScore(candidate, penalties)
+          const candScore = totalPairScore(candidate, teammatePenalties)
           if (candScore < currentScore - 0.01) {
             current = candidate
             currentScore = candScore
@@ -234,7 +258,7 @@ export function generateTeams(
 
   results.sort((a, b) => a.score - b.score)
 
-  for (const r of results.slice(0, 50)) {
+  for (const r of results.slice(0, 300)) {
     const optimized = improveBySwap(r.groups, teammatePenalties)
     const newScore = totalPairScore(optimized, teammatePenalties)
     if (newScore < r.score - 0.01) {
@@ -252,7 +276,20 @@ export function generateTeams(
     return true
   })
 
-  if (!filtered.length) {
+  const ranked = filtered
+    .map((r) => ({
+      r,
+      teammateTotal: totalTeammatePenalty(r.groups, teammatePenalties),
+      clustered: hasClusteredTeam(r.groups),
+    }))
+    .sort((a, b) => {
+      if (Math.abs(a.teammateTotal - b.teammateTotal) > 0.01) return a.teammateTotal - b.teammateTotal
+      if (a.clustered !== b.clustered) return (a.clustered ? 1 : 0) - (b.clustered ? 1 : 0)
+      return a.r.score - b.r.score
+    })
+    .map(({ r }) => r)
+
+  if (!ranked.length) {
     const best = results[0]
     let maxDiff = 0
     for (let i = 0; i + 1 < best.groups.length; i += 2) {
@@ -265,7 +302,7 @@ export function generateTeams(
     }
   }
 
-  const candidates = filtered.slice(0, 50).map((r) => rawGroupsToFormationGroups(r.groups))
+  const candidates = ranked.slice(0, 50).map((r) => rawGroupsToFormationGroups(r.groups))
   return { candidates }
 }
 

@@ -8,6 +8,7 @@ import { db, fetchAllUsers } from '../../services/firebase'
 import { useUiStore } from '../../stores/useUiStore'
 import { SmallText } from '../../styles/global/commonStyle'
 import { getRecent3Scores, calcAvg } from '../../utils/score'
+import type { UserInfo } from '../../types/UserInfo'
 import {
   generateTeams,
   formationGroupsToFirebase,
@@ -88,6 +89,16 @@ type Snapshot = {
   label: string
   savedAt: number
   groups: FormationGroup[]
+}
+
+const toFormationPlayer = (
+  empId: string,
+  user: UserInfo | undefined,
+  defaultAverage: number,
+): FormationPlayer => {
+  const name = user?.name ?? empId
+  const computed = user?.scores ? calcAvg(getRecent3Scores(user.scores)) : null
+  return { empId, name, average: computed ?? defaultAverage }
 }
 
 const formatSavedAt = (ts: number) => {
@@ -286,17 +297,9 @@ const AdminTeamFormation = () => {
           return
         }
 
-        const players: FormationPlayer[] = participantIds.map((empId) => {
-          const user = allUsers[empId]
-          const name = user?.name ?? empId
-          let avg = defaultAverage
-          if (user?.scores) {
-            const recent = getRecent3Scores(user.scores)
-            const computed = calcAvg(recent)
-            if (computed !== null) avg = computed
-          }
-          return { empId, name, average: avg }
-        })
+        const players: FormationPlayer[] = participantIds.map((empId) =>
+          toFormationPlayer(empId, allUsers[empId], defaultAverage),
+        )
 
         const result = generateTeams(players, limitScore, iterations, teammatePenalties)
 
@@ -307,7 +310,7 @@ const AdminTeamFormation = () => {
 
         teammatePenaltiesRef.current = teammatePenalties
         setAllParticipants(players)
-        const picked = result.candidates[Math.floor(Math.random() * result.candidates.length)]
+        const picked = result.candidates[0]
         setDraft(picked)
         setEditMode(false)
         setAddingTo(null)
@@ -337,7 +340,7 @@ const AdminTeamFormation = () => {
         return
       }
       shuffleKeyRef.current += 1
-      const picked = result.candidates[Math.floor(Math.random() * result.candidates.length)]
+      const picked = result.candidates[0]
       setDraft(picked)
       setGenerating(false)
     }, 20)
@@ -585,16 +588,7 @@ const AdminTeamFormation = () => {
         ])
         if (snap.exists()) {
           const ids = Object.keys(snap.val() as Record<string, true>)
-          setAllParticipants(ids.map(empId => {
-            const user = allUsers[empId]
-            const name = user?.name ?? empId
-            let avg = defaultAverage
-            if (user?.scores) {
-              const computed = calcAvg(getRecent3Scores(user.scores))
-              if (computed !== null) avg = computed
-            }
-            return { empId, name, average: avg }
-          }))
+          setAllParticipants(ids.map(empId => toFormationPlayer(empId, allUsers[empId], defaultAverage)))
         }
       } catch { /* ignore */ }
     }
