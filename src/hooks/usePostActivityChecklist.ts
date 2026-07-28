@@ -70,6 +70,9 @@ export const usePostActivityChecklist = (
   const targetPinEnabled = useEventStore(
     (s) => (s.pinReward[activityYm]?.targetScore ?? 0) > 0,
   );
+  const achievementPinEnabled = useEventStore(
+    (s) => (s.pinReward[activityYm]?.achievement ?? 0) > 0,
+  );
   const targetYear = activityYmdStr?.slice(0, 4) as Year | undefined;
   const targetMonth = activityYmdStr
     ? (String(activityMonthNum) as Month)
@@ -243,20 +246,22 @@ export const usePostActivityChecklist = (
       });
     }
 
-    const lastCheck = Number(userInfo?.lastAchievementCheck ?? 0);
-    const achievementDone = lastCheck >= Number(activityYmdStr);
+    if (achievementPinEnabled) {
+      const lastCheck = Number(userInfo?.lastAchievementCheck ?? 0);
+      const achievementDone = lastCheck >= Number(activityYmdStr);
 
-    result.push({
-      key: 'achievementCheck',
-      emoji: '🏆',
-      label: '업적 달성',
-      description: achievementDone
-        ? `${activityMonthNum}월 활동 업적을 확인했어요.`
-        : `${activityMonthNum}월 활동 업적 확인 전이에요.`,
-      actionLabel: '확인하기',
-      done: achievementDone,
-      path: '/achievements',
-    });
+      result.push({
+        key: 'achievementCheck',
+        emoji: '🏆',
+        label: '업적 달성',
+        description: achievementDone
+          ? `${activityMonthNum}월 활동 업적을 확인했어요.`
+          : `${activityMonthNum}월 활동 업적 확인 전이에요.`,
+        actionLabel: '확인하기',
+        done: achievementDone,
+        path: '/achievements',
+      });
+    }
 
     const isVillainMission =
       !!missionData?.config && !isScoreGuessMission(missionData);
@@ -305,6 +310,7 @@ export const usePostActivityChecklist = (
     monthParticipants,
     myEmpId,
     targetPinEnabled,
+    achievementPinEnabled,
     targetAchieved,
     withinTargetClaimWindow,
     targetRewardClaimed,
