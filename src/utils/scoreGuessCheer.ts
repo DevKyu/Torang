@@ -5,7 +5,7 @@ export const countCheerMessagesByCandidate = (
 ): Record<string, number> => {
   const counts: Record<string, number> = {};
   Object.values(votes ?? {}).forEach((vote) => {
-    if (vote?.targetEmpId && vote.message) {
+    if (vote?.targetEmpId) {
       counts[vote.targetEmpId] = (counts[vote.targetEmpId] ?? 0) + 1;
     }
   });

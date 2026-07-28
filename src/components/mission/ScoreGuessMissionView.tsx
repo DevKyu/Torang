@@ -16,6 +16,7 @@ import ScoreGuessResultModal, {
   type ScoreGuessResultSection,
 } from './ScoreGuessResultModal';
 import CheerMessagesModal from './CheerMessagesModal';
+import { MyTag } from '../../styles/mission/ScoreGuessResultModalStyle';
 import { renderMissionBody } from './missionBody';
 import {
   CheerTriggerBtn,
@@ -49,6 +50,7 @@ import {
 } from '../../styles/mission/MissionStyle';
 
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
+const CHEER_DEFAULT_MESSAGE = '점수 예측 완료! 첫 활동 응원할게요 📣';
 
 type Props = {
   ym: string;
@@ -148,20 +150,34 @@ const ScoreGuessMissionView = ({
   const result = data.result;
   const votes = useMemo(() => data.votes ?? {}, [data.votes]);
 
-  const myCheerMessages = useMemo(
+  const targetVotes = useMemo(
     () =>
       isTarget && myEmpId
-        ? Object.entries(votes)
-            .filter(([, vote]) => vote.targetEmpId === myEmpId && vote.message)
-            .map(([voterEmpId, vote]) => ({
-              senderName: vote.anonymous
-                ? '익명의 회원'
-                : (allNames[voterEmpId] ?? voterEmpId),
-              message: vote.message ?? '',
-            }))
+        ? Object.entries(votes).filter(([, vote]) => vote.targetEmpId === myEmpId)
         : [],
-    [isTarget, myEmpId, votes, allNames],
+    [isTarget, myEmpId, votes],
   );
+
+  const myCheerCount = targetVotes.length;
+
+  const myCheerMessages = useMemo(() => {
+    const entries = targetVotes
+      .filter(([, vote]) => vote.message)
+      .map(([voterEmpId, vote]) => ({
+        senderName: vote.anonymous
+          ? '익명의 회원'
+          : (allNames[voterEmpId] ?? voterEmpId),
+        message: vote.message ?? '',
+      }));
+    const silentCount = targetVotes.length - entries.length;
+    if (silentCount > 0) {
+      entries.push({
+        senderName: silentCount === 1 ? '익명의 회원' : `익명의 회원 ${silentCount}명`,
+        message: CHEER_DEFAULT_MESSAGE,
+      });
+    }
+    return entries;
+  }, [targetVotes, allNames]);
 
   const correctSet = useMemo(
     () => new Set(result?.correctVoters ?? []),
@@ -249,9 +265,7 @@ const ScoreGuessMissionView = ({
                   onClick={() => {
                     setVoteScreenOpen(true);
                     if (myEmpId) {
-                      markCheerRead(ym, myEmpId, myCheerMessages.length).catch(
-                        () => {},
-                      );
+                      markCheerRead(ym, myEmpId, myCheerCount).catch(() => {});
                     }
                   }}
                 >
@@ -292,17 +306,17 @@ const ScoreGuessMissionView = ({
                 <VotedEmoji>🎉</VotedEmoji>
                 <VotedHeadline>이달의 미션 주인공이에요!</VotedHeadline>
                 <VotedSub>
-                  {myCheerMessages.length === 0 ? (
+                  {myCheerCount === 0 ? (
                     '또랑 첫 활동, 응원할게요'
                   ) : (
                     <>
-                      <strong>{myCheerMessages.length}명</strong>의 회원이 나를
+                      <strong>{myCheerCount}명</strong>의 회원이 나를
                       응원하고 있어요
                     </>
                   )}
                 </VotedSub>
               </AlreadyVotedBox>
-              {myCheerMessages.length > 0 && (
+              {myCheerCount > 0 && (
                 <VoteActionRow>
                   <CheerTriggerBtn onClick={() => setCheerModalOpen(true)}>
                     💌 응원 메시지 보기
@@ -378,6 +392,7 @@ const ScoreGuessMissionView = ({
                           {MEDALS[index] ?? (rewarded ? '🏅' : index + 1)}
                         </TargetScoreRank>
                         <TargetScoreName>{allNames[id] ?? id}</TargetScoreName>
+                        {id === myEmpId && <MyTag>나</MyTag>}
                         <TargetScoreValue>{score ?? '-'}점</TargetScoreValue>
                         <ChevronRight size={16} color="#93c5fd" strokeWidth={2.5} />
                       </TargetScoreRow>
@@ -404,6 +419,11 @@ const ScoreGuessMissionView = ({
               )}
 
               <VoteActionRow>
+                {isTarget && myCheerCount > 0 && (
+                  <CheerTriggerBtn onClick={() => setCheerModalOpen(true)}>
+                    💌 응원 메시지 보기
+                  </CheerTriggerBtn>
+                )}
                 <VoteResultBtn
                   onClick={() =>
                     openResultModal(rankedTargets.map(([id]) => buildSection(id)))
