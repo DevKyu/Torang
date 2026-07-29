@@ -67,7 +67,7 @@ export const CheerTriggerBtn = styled.button`
 export const TargetScoreRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 12px 14px;
   border-radius: 10px;
@@ -90,6 +90,21 @@ export const TargetScoreRow = styled.div`
     background: #eff6ff;
     border-color: #93c5fd;
   }
+`;
+
+export const TargetScoreLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+`;
+
+export const TargetScoreRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 `;
 
 const RANK_COLORS: Record<number, { bg: string; color: string }> = {

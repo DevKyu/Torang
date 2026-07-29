@@ -23,6 +23,8 @@ import {
   VoteTriggerBtn,
   PreviewInfoArea,
   TargetScoreRow,
+  TargetScoreLeft,
+  TargetScoreRight,
   TargetScoreRank,
   TargetScoreName,
   TargetScoreValue,
@@ -388,13 +390,17 @@ const ScoreGuessMissionView = ({
                         key={id}
                         onClick={() => openResultModal([buildSection(id)])}
                       >
-                        <TargetScoreRank rank={index + 1}>
-                          {MEDALS[index] ?? (rewarded ? '🏅' : index + 1)}
-                        </TargetScoreRank>
-                        <TargetScoreName>{allNames[id] ?? id}</TargetScoreName>
-                        {id === myEmpId && <MyTag>나</MyTag>}
-                        <TargetScoreValue>{score ?? '-'}점</TargetScoreValue>
-                        <ChevronRight size={16} color="#93c5fd" strokeWidth={2.5} />
+                        <TargetScoreLeft>
+                          <TargetScoreRank rank={index + 1}>
+                            {MEDALS[index] ?? (rewarded ? '🏅' : index + 1)}
+                          </TargetScoreRank>
+                          <TargetScoreName>{allNames[id] ?? id}</TargetScoreName>
+                          {id === myEmpId && <MyTag>나</MyTag>}
+                        </TargetScoreLeft>
+                        <TargetScoreRight>
+                          <TargetScoreValue>{score ?? '-'}점</TargetScoreValue>
+                          <ChevronRight size={16} color="#93c5fd" strokeWidth={2.5} />
+                        </TargetScoreRight>
                       </TargetScoreRow>
                     );
                   })}

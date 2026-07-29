@@ -20,9 +20,9 @@ export const Card = styled(motion.div)`
 `;
 
 export const GroupHeader = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px;
   align-items: baseline;
-  justify-content: space-between;
   gap: 8px;
   padding: 10px 10px 4px;
   border-bottom: 1px solid #eff6ff;
@@ -30,7 +30,6 @@ export const GroupHeader = styled.div`
 `;
 
 export const GroupHeaderName = styled.div`
-  flex: 1;
   min-width: 0;
   font-size: 13px;
   font-weight: 700;
@@ -41,8 +40,8 @@ export const GroupHeaderName = styled.div`
 `;
 
 export const GroupHeaderScore = styled.div`
-  flex-shrink: 0;
-  font-size: 11px;
+  text-align: right;
+  font-size: 13px;
   font-weight: 700;
   color: #2563eb;
   white-space: nowrap;
@@ -51,7 +50,7 @@ export const GroupHeaderScore = styled.div`
 
 export const Row = styled.div<{ correct?: boolean }>`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 56px 20px;
+  grid-template-columns: minmax(0, 1fr) 56px;
   align-items: center;
   gap: 8px;
   padding: 10px 10px;
@@ -89,16 +88,10 @@ export const MyTag = styled.span`
   white-space: nowrap;
 `;
 
-export const ScoreCell = styled.div`
+export const ScoreCell = styled.div<{ correct?: boolean }>`
   font-size: 13px;
   font-weight: 600;
-  color: #4b5563;
+  color: ${({ correct }) => (correct ? '#059669' : '#4b5563')};
   text-align: right;
   font-variant-numeric: tabular-nums;
-`;
-
-export const CheckWrap = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `;

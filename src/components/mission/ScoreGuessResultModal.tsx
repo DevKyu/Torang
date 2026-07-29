@@ -1,7 +1,6 @@
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
-import { Check } from 'lucide-react';
 import { useBackClose } from '../../hooks/useBackClose';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import {
@@ -21,7 +20,6 @@ import {
   Name,
   MyTag,
   ScoreCell,
-  CheckWrap,
   CloseBtn,
 } from '../../styles/mission/ScoreGuessResultModalStyle';
 
@@ -103,12 +101,9 @@ const ScoreGuessResultModal = ({ isOpen, onClose, sections }: Props) => {
                             <Name>{voter.name}</Name>
                             {voter.isMine && <MyTag>내 예측</MyTag>}
                           </NameWrap>
-                          <ScoreCell>{voter.predictedScore}점</ScoreCell>
-                          <CheckWrap>
-                            {voter.correct && (
-                              <Check size={16} color="#059669" strokeWidth={2.5} />
-                            )}
-                          </CheckWrap>
+                          <ScoreCell correct={voter.correct}>
+                            {voter.predictedScore}점
+                          </ScoreCell>
                         </Row>
                       ))
                     )}

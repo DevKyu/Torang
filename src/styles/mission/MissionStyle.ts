@@ -164,13 +164,13 @@ export const VoterCard = styled(motion.div)<{ selected?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 16px;
+  padding: 12px 14px;
   border-radius: 10px;
-  border: 1.5px solid ${({ selected }) => (selected ? '#3b82f6' : '#e5e7eb')};
+  border: 1px solid ${({ selected }) => (selected ? '#3b82f6' : '#e5e7eb')};
   background: ${({ selected }) => (selected ? '#eff6ff' : '#fff')};
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #111827;
   touch-action: manipulation;
   -webkit-user-select: none;
