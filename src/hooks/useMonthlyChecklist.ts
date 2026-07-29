@@ -71,6 +71,16 @@ export const useMonthlyChecklist = (
   const serverMonth = Number(formatServerDate('month'));
   const serverYm = formatServerDate('ym');
 
+  const targetPinEnabled = useEventStore(
+    (s) => (s.pinReward[serverYm]?.targetScore ?? 0) > 0,
+  );
+  const matchPinEnabled = useEventStore(
+    (s) =>
+      (s.pinReward[serverYm]?.[
+        matchType === 'pin' ? 'pinMatch' : 'rivalMatch'
+      ] ?? 0) > 0,
+  );
+
   const hasActivityDate = !!activityYmdStr;
 
   const withinReminderWindow = useMemo(() => {
@@ -125,8 +135,8 @@ export const useMonthlyChecklist = (
       const { labelNoun: rivalLabelNoun, descNoun: rivalDescNoun } =
         getMatchTypeNouns(matchType);
 
-      result.push(
-        {
+      if (targetPinEnabled) {
+        result.push({
           key: 'targetScore',
           emoji: '🎯',
           label: '목표 점수',
@@ -136,8 +146,11 @@ export const useMonthlyChecklist = (
           actionLabel: '저장하기',
           done: targetDone,
           path: '/myinfo',
-        },
-        {
+        });
+      }
+
+      if (matchPinEnabled) {
+        result.push({
           key: 'rivalMatch',
           emoji: '⚔️',
           label: rivalLabelNoun,
@@ -147,8 +160,8 @@ export const useMonthlyChecklist = (
           actionLabel: '설정하기',
           done: rivalDone,
           path: '/ranking',
-        },
-      );
+        });
+      }
     }
 
     const scoreGuessData = isScoreGuessMission(missionData) ? missionData : null;
@@ -201,6 +214,8 @@ export const useMonthlyChecklist = (
     userInfo,
     serverYear,
     serverMonth,
+    targetPinEnabled,
+    matchPinEnabled,
     matchChoices,
     matchType,
     missionData,

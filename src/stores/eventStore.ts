@@ -118,9 +118,9 @@ type EventStore = {
   getMenuItem(id: string): MenuConfigItem;
   isMenuBlocked(id: string): boolean;
 
-  getThisMonthPinReward(): PinRewardConfig;
-  getPinRewardRate(key: keyof PinRewardConfig): number;
-  isPinRewardEnabled(key: keyof PinRewardConfig): boolean;
+  getPinReward(ym?: string): PinRewardConfig;
+  getPinRewardRate(key: keyof PinRewardConfig, ym?: string): number;
+  isPinRewardEnabled(key: keyof PinRewardConfig, ym?: string): boolean;
   getGalleryReward(ym?: string): GalleryRewardConfig;
 };
 
@@ -192,20 +192,18 @@ export const useEventStore = create<EventStore>((set, get) => ({
     return !!(item.hidden || item.disabled);
   },
 
-  getThisMonthPinReward: () => {
+  getPinReward: (ym) => {
     const ui = useUiStore.getState();
-    if (!ui.lastSync) return DEFAULT_REWARD;
-
-    const ym = String(ui.formatServerDate('ym'));
-    return { ...DEFAULT_REWARD, ...(get().pinReward[ym] ?? {}) };
+    const key = ym ?? (ui.lastSync ? String(ui.formatServerDate('ym')) : '');
+    return { ...DEFAULT_REWARD, ...(get().pinReward[key] ?? {}) };
   },
 
-  getPinRewardRate: (key) => {
-    return get().getThisMonthPinReward()[key] || 0;
+  getPinRewardRate: (key, ym) => {
+    return get().getPinReward(ym)[key] || 0;
   },
 
-  isPinRewardEnabled: (key) => {
-    return get().getPinRewardRate(key) > 0;
+  isPinRewardEnabled: (key, ym) => {
+    return get().getPinRewardRate(key, ym) > 0;
   },
 
   getGalleryReward: (ym) => {

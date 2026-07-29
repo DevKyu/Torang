@@ -39,7 +39,7 @@ export const applyPinChangeBatch = async (
 ) => {
   const rate = useEventStore
     .getState()
-    .getPinRewardRate(type === 'rival' ? 'rivalMatch' : 'pinMatch');
+    .getPinRewardRate(type === 'rival' ? 'rivalMatch' : 'pinMatch', ym);
 
   if (rate <= 0) return;
 
@@ -101,7 +101,7 @@ export const grantTargetPinReward = async ({
 }) => {
   if (!isWithinActivityDays(activityYmd, 7)) return false;
 
-  const rate = useEventStore.getState().getPinRewardRate('targetScore');
+  const rate = useEventStore.getState().getPinRewardRate('targetScore', ym);
   if (rate <= 0) return false;
 
   const rewardPath = `users/${empId}/rewards/${ym}/target`;
@@ -140,7 +140,7 @@ export const grantAchievementPinReward = async ({
   ym: string;
   payload: AchievementRewardPayload;
 }) => {
-  const rate = useEventStore.getState().getPinRewardRate('achievement');
+  const rate = useEventStore.getState().getPinRewardRate('achievement', ym);
   if (rate <= 0) return false;
 
   const rewardPath = `users/${empId}/rewards/${ym}/achievement`;

@@ -67,6 +67,8 @@ const Achievements = () => {
   useEffect(() => {
     if (activityLoading) return;
 
+    let cancelled = false;
+
     const init = async () => {
       try {
         const eventStore = useEventStore.getState();
@@ -75,8 +77,10 @@ const Achievements = () => {
           useUiStore.getState().syncServerTime(),
           eventStore.loaded ? Promise.resolve() : eventStore.loadEventConfig(),
         ]);
+        if (cancelled) return;
+
         const user = await getCurrentUserData();
-        if (!user) return;
+        if (cancelled || !user) return;
 
         const existing = user.achievements ?? {};
         const lastCheck = user.lastAchievementCheck ?? null;
@@ -97,12 +101,14 @@ const Achievements = () => {
         }
 
         const newResults = await checkAllAchievements(user, existing);
+        if (cancelled) return;
         const merged = { ...existing, ...newResults };
 
         if (Object.keys(newResults).length > 0) {
           const empId = getCurrentUserId();
 
           const { default: confetti } = await import('canvas-confetti');
+          if (cancelled) return;
           confetti({
             particleCount: 150,
             spread: 100,
@@ -113,11 +119,11 @@ const Achievements = () => {
           });
           showAchievementToast();
 
-          if (isPinRewardEnabled('achievement') && empId) {
-            const activityYm = activityYmd
-              ? String(activityYmd).slice(0, 6)
-              : formatServerDate('ym');
+          const activityYm = activityYmd
+            ? String(activityYmd).slice(0, 6)
+            : formatServerDate('ym');
 
+          if (isPinRewardEnabled('achievement', activityYm) && empId) {
             grantAchievementPinReward({
               empId,
               ym: activityYm,
@@ -126,6 +132,7 @@ const Achievements = () => {
           }
 
           await saveAchievements(merged, String(todayYmd), true);
+          if (cancelled) return;
           setAchievements(merged);
         } else {
           setAchievements(existing);
@@ -135,13 +142,19 @@ const Achievements = () => {
           setActiveTab(achievementGroups[0].category);
         }
       } catch {
-        toast.error('데이터를 불러오지 못했어요.', { id: 'achievements-load-error' });
+        if (!cancelled) {
+          toast.error('데이터를 불러오지 못했어요.', { id: 'achievements-load-error' });
+        }
       } finally {
-        setAchievementsLoaded(true);
+        if (!cancelled) setAchievementsLoaded(true);
       }
     };
 
     init();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityLoading, activityMaps, isPinRewardEnabled]);
 

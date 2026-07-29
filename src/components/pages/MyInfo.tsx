@@ -49,6 +49,7 @@ import type {
   UserTargets,
 } from '../../types/UserInfo';
 import { grantTargetPinReward } from '../../utils/pin';
+import { resolveActivityYmd } from '../../utils/date';
 import { useEventStore } from '../../stores/eventStore';
 
 const MyInfo = () => {
@@ -86,14 +87,7 @@ const MyInfo = () => {
 
   const yearNum = Number(serverYear);
   const monthNum = serverMonth;
-  let activityYmd = activityAll[String(yearNum)]?.[String(monthNum)];
-  if (!activityYmd) {
-    const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
-    const prevYear = monthNum === 1 ? yearNum - 1 : yearNum;
-    activityYmd = activityAll[String(prevYear)]?.[String(prevMonth)];
-  }
-
-  const activityYmdStr = activityYmd ? String(activityYmd) : undefined;
+  const activityYmdStr = resolveActivityYmd(activityAll, String(yearNum), monthNum);
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
   const targetResult = useTargetResult(userInfo, activityYmdStr, 7);
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
@@ -176,7 +170,7 @@ const MyInfo = () => {
 
   useEffect(() => {
     if (!targetResult.show || !targetResult.achieved) return;
-    if (!isPinRewardEnabled('targetScore')) return;
+    if (!isPinRewardEnabled('targetScore', activityYm)) return;
     if (!activityYmdStr) return;
 
     const { myScore, target, special } = targetResult;

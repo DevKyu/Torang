@@ -164,6 +164,12 @@ export const usePostActivityChecklist = (
   }, [myEmpId, galleryYm]);
 
   const matchType = useEventStore((s) => s.matchType);
+  const matchPinEnabled = useEventStore(
+    (s) =>
+      (s.pinReward[activityYm]?.[
+        matchType === 'pin' ? 'pinMatch' : 'rivalMatch'
+      ] ?? 0) > 0,
+  );
 
   const [matchResultReady, setMatchResultReady] = useState(false);
   const [matchResultLoaded, setMatchResultLoaded] = useState(false);
@@ -230,7 +236,7 @@ export const usePostActivityChecklist = (
       });
     }
 
-    if (Object.keys(matchChoices).length > 0) {
+    if (matchPinEnabled && Object.keys(matchChoices).length > 0) {
       const { labelNoun: matchLabelNoun, descNoun: matchDescNoun } =
         getMatchTypeNouns(matchType);
       result.push({
@@ -323,6 +329,7 @@ export const usePostActivityChecklist = (
     activityMonthNum,
     matchChoices,
     matchType,
+    matchPinEnabled,
     matchResultReady,
     missionData,
     missionViewState,

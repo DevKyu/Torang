@@ -16,13 +16,22 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
   const [adminChecked, setAdminChecked] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     waitForAuthUser()
       .then(() => checkAdminId())
       .then((ok) => {
+        if (cancelled) return;
         if (!ok) navigate('/menu', { replace: true });
         else setAdminChecked(true);
       })
-      .catch(() => navigate('/menu', { replace: true }));
+      .catch(() => {
+        if (!cancelled) navigate('/menu', { replace: true });
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   useRouteLoading(!adminChecked);

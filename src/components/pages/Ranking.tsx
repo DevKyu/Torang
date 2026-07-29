@@ -12,6 +12,7 @@ import {
 import { ref, set } from 'firebase/database';
 import { mapUsersToRankingEntries, type Result } from '../../utils/ranking';
 import { showToast } from '../../utils/toast';
+import { resolveActivityYmd } from '../../utils/date';
 
 import RankingPopover from '../match/RankingPopover';
 import MatchOverlay from '../match/MatchOverlay';
@@ -107,15 +108,10 @@ const Ranking = () => {
   const myRowRef = useRef<HTMLTableRowElement>(null);
   const rankingInitRef = useRef(false);
 
-  const activityYmd = useMemo(() => {
-    const current = activityAll[String(year)]?.[String(month)];
-    if (current) return String(current);
-
-    const prevMonth = month === 1 ? 12 : month - 1;
-    const prevYear = month === 1 ? year - 1 : year;
-    const prev = activityAll[String(prevYear)]?.[String(prevMonth)];
-    return prev ? String(prev) : undefined;
-  }, [activityAll, year, month]);
+  const activityYmd = useMemo(
+    () => resolveActivityYmd(activityAll, String(year), month),
+    [activityAll, year, month],
+  );
 
   const activityYm = useMemo<YearMonth>(() => {
     return activityYmd ? (activityYmd.slice(0, 6) as YearMonth) : ym;

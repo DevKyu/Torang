@@ -249,14 +249,25 @@ const Reward = () => {
     delete next[index];
     setAppliedProducts(next);
 
+    let dataRemoved = false;
+
     try {
       await Promise.all([
         cancelAppliedProduct(quarterYm, index),
-        setUserPinData(applied.requiredPins),
         removeProductData(quarterYm, new Set([index])),
       ]);
+      dataRemoved = true;
+
+      await setUserPinData(applied.requiredPins);
+
       toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {
+      if (dataRemoved) {
+        await Promise.allSettled([
+          applyProduct(quarterYm, index, applied),
+          setProductData(quarterYm, new Set([index])),
+        ]);
+      }
       setAppliedProducts(prevApplied);
       toast.error('신청 취소에 실패했어요.');
     } finally {
@@ -275,11 +286,14 @@ const Reward = () => {
     setIsSubmitting(true);
     showLoading();
 
+    const selectedItems = [...selected];
+    let dataApplied = false;
+
     try {
       const now = useUiStore.getState().getServerNow().getTime();
 
       const newEntries: Record<string, AppliedProduct> = {};
-      for (const index of selected) {
+      for (const index of selectedItems) {
         const product = products.find((p) => p.index === index);
         if (!product) continue;
         newEntries[index] = { name: product.name, requiredPins: product.requiredPins, appliedAt: now };
@@ -287,15 +301,23 @@ const Reward = () => {
 
       await Promise.all([
         setProductData(quarterYm, selected),
-        setUserPinData(-totalRequired),
         ...Object.entries(newEntries).map(([index, data]) => applyProduct(quarterYm, index, data)),
       ]);
+      dataApplied = true;
+
+      await setUserPinData(-totalRequired);
 
       setAppliedProducts((prev) => ({ ...prev, ...newEntries }));
       setSelected(new Set());
 
       toast.success('신청이 완료됐어요.');
     } catch {
+      if (dataApplied) {
+        await Promise.allSettled([
+          removeProductData(quarterYm, new Set(selectedItems)),
+          ...selectedItems.map((index) => cancelAppliedProduct(quarterYm, index)),
+        ]);
+      }
       toast.error('신청에 실패했어요.');
     } finally {
       setIsSubmitting(false);
