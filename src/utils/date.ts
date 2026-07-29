@@ -78,9 +78,11 @@ export const resolveActivityYmd = (
   return activityYmd ? String(activityYmd) : undefined;
 };
 
+export const REWARD_CLAIM_WINDOW_DAYS = 7;
+
 export const isWithinActivityDays = (
   activityYmd?: string | null,
-  withinDays = 7,
+  withinDays = REWARD_CLAIM_WINDOW_DAYS,
 ): boolean => {
   if (!activityYmd) return false;
 

@@ -5,7 +5,7 @@ import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
 import type { YearMonth, MatchType } from '../types/match';
-import { getDiffDaysServer } from '../utils/date';
+import { getDiffDaysServer, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 
 type Params = {
   myId: string | null;
@@ -31,7 +31,7 @@ export const useMatchResult = ({
   type,
   users,
   activityYmd,
-  withinDays = 7,
+  withinDays = REWARD_CLAIM_WINDOW_DAYS,
 }: Params) => {
   const [results, setResults] = useState<MatchResult[] | null>(null);
 

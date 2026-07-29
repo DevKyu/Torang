@@ -236,7 +236,6 @@ const Ranking = () => {
     type: MATCH_TYPE,
     users,
     activityYmd,
-    withinDays: 7,
   });
 
   const { incoming, letters: receivedLetters } = useMatchIncomingAndLetters(ym, myId, MATCH_TYPE, users, activityYmd);
@@ -251,7 +250,6 @@ const Ranking = () => {
   const { show: showCongrats, setShow: setShowCongrats } = useCongratulation({
     condition,
     activityYmd,
-    withinDays: 7,
   });
 
   const appliedRef = useRef(false);

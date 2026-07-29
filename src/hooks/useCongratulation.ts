@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useUiStore } from '../stores/useUiStore';
+import { REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 
 type CongratulationOptions = {
   condition: boolean;
@@ -9,7 +10,7 @@ type CongratulationOptions = {
 
 export const useCongratulation = ({
   condition,
-  withinDays = 7,
+  withinDays = REWARD_CLAIM_WINDOW_DAYS,
   activityYmd,
 }: CongratulationOptions) => {
   const [show, setShow] = useState(false);

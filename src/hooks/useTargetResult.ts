@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getCurrentUserId } from '../services/firebase';
 import type { UserInfo, Year, Month } from '../types/UserInfo';
-import { getDiffDaysServer } from '../utils/date';
+import { getDiffDaysServer, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 
 export type TargetResult = {
   show: boolean;
@@ -15,7 +15,7 @@ export type TargetResult = {
 export const useTargetResult = (
   user: UserInfo | null,
   activityYmd?: string,
-  withinDays = 7,
+  withinDays = REWARD_CLAIM_WINDOW_DAYS,
 ): TargetResult => {
   const [show, setShow] = useState(false);
   const [initialized, setInitialized] = useState(false);

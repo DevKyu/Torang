@@ -89,7 +89,7 @@ const MyInfo = () => {
   const monthNum = serverMonth;
   const activityYmdStr = resolveActivityYmd(activityAll, String(yearNum), monthNum);
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
-  const targetResult = useTargetResult(userInfo, activityYmdStr, 7);
+  const targetResult = useTargetResult(userInfo, activityYmdStr);
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
 
   const yearOptions = useMemo<Year[]>(() => {

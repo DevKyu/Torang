@@ -99,7 +99,7 @@ export const grantTargetPinReward = async ({
   activityYmd: string;
   payload: TargetRewardPayload;
 }) => {
-  if (!isWithinActivityDays(activityYmd, 7)) return false;
+  if (!isWithinActivityDays(activityYmd)) return false;
 
   const rate = useEventStore.getState().getPinRewardRate('targetScore', ym);
   if (rate <= 0) return false;
