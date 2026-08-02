@@ -26,7 +26,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useUiStore } from '../../stores/useUiStore';
 import { useEventStore } from '../../stores/eventStore';
-import { getInitialGalleryYm } from '../../utils/gallery';
+import { resolveDisplayYm } from '../../utils/date';
 import type { LightboxComment } from '../../types/lightbox';
 import { applyGalleryBoost } from '../../utils/galleryBoost';
 import {
@@ -75,7 +75,7 @@ const GalleryPage = () => {
 
   useEffect(() => {
     if (activityLoading) return;
-    setYm(getInitialGalleryYm(activityMaps, serverYear, serverMonth));
+    setYm(resolveDisplayYm(activityMaps, serverYear, serverMonth));
   }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {

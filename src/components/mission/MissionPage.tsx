@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, get } from 'firebase/database';
@@ -7,7 +7,8 @@ import Layout from '../layouts/Layout';
 import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import { getYearMonth } from '../../utils/date';
+import { useActivityDates } from '../../hooks/useActivityDates';
+import { resolveDisplayYm } from '../../utils/date';
 import { useMission, isScoreGuessMission } from '../../hooks/useMission';
 import { useMissionViewState } from '../../hooks/useMissionViewState';
 import VillainMissionView from './VillainMissionView';
@@ -31,44 +32,54 @@ import {
 const MissionPage = () => {
   const goBack = useNavigateBack();
 
-  const currentYm = useMemo(
-    () => getYearMonth(useUiStore.getState().getServerNow()),
-    [],
-  );
+  const { formatServerDate } = useUiStore.getState();
+  const { maps: activityMaps, loading: activityLoading } = useActivityDates();
+  const serverYear = Number(formatServerDate('year'));
+  const serverMonth = Number(formatServerDate('month'));
+  const [ym, setYm] = useState(formatServerDate('ym'));
 
-  const { data, myEmpId, myVote, loading } = useMission(currentYm);
+  useEffect(() => {
+    if (activityLoading) return;
+    setYm(resolveDisplayYm(activityMaps, serverYear, serverMonth));
+  }, [activityLoading, activityMaps, serverYear, serverMonth]);
+
+  const { data, myEmpId, myVote, loading } = useMission(ym);
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
   const [allNames, setAllNames] = useState<Record<string, string>>({});
   const [participants, setParticipants] = useState<string[]>([]);
   const [participantsLoaded, setParticipantsLoaded] = useState(false);
 
   useEffect(() => {
-    const year = currentYm.slice(0, 4);
-    const month = String(Number(currentYm.slice(4)));
+    setParticipantsLoaded(false);
+    setActivityDateNum(null);
+    setParticipants([]);
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
     Promise.all([
       get(ref(db, `activityDate/${year}/${month}`)),
       get(ref(db, 'names')),
       get(ref(db, `activityParticipants/${year}/${month}`)),
     ])
       .then(([dateSnap, namesSnap, participantsSnap]) => {
-        if (dateSnap.exists()) setActivityDateNum(dateSnap.val() as number);
+        setActivityDateNum(dateSnap.exists() ? (dateSnap.val() as number) : null);
         if (namesSnap.exists())
           setAllNames(namesSnap.val() as Record<string, string>);
-        if (participantsSnap.exists())
-          setParticipants(
-            Object.keys(participantsSnap.val() as Record<string, true>),
-          );
+        setParticipants(
+          participantsSnap.exists()
+            ? Object.keys(participantsSnap.val() as Record<string, true>)
+            : [],
+        );
         setParticipantsLoaded(true);
       })
       .catch(() => setParticipantsLoaded(true));
-  }, [currentYm]);
+  }, [ym]);
 
   const { daysUntilReveal, viewState } = useMissionViewState(
     activityDateNum,
     data,
   );
 
-  const isReady = !loading && participantsLoaded;
+  const isReady = !activityLoading && !loading && participantsLoaded;
   const pageTitle = '활동 미션';
 
   return (
@@ -144,7 +155,7 @@ const MissionPage = () => {
               viewState === 'revealed') &&
               (isScoreGuessMission(data) ? (
                 <ScoreGuessMissionView
-                  ym={currentYm}
+                  ym={ym}
                   viewState={viewState}
                   data={data}
                   myEmpId={myEmpId}
@@ -157,7 +168,7 @@ const MissionPage = () => {
                 />
               ) : data ? (
                 <VillainMissionView
-                  ym={currentYm}
+                  ym={ym}
                   viewState={viewState}
                   data={data}
                   myEmpId={myEmpId}

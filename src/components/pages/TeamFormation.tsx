@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
@@ -8,8 +8,9 @@ import { SmallText } from '../../styles/global/commonStyle';
 import MonthNavigator from '../activity/MonthNavigator';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
+import { useActivityDates } from '../../hooks/useActivityDates';
 import { calcGroupDiff, diffLevel } from '../../utils/teamFormation';
-import { getYearMonth } from '../../utils/date';
+import { getYearMonth, resolveDisplayYm } from '../../utils/date';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   ContentArea,
@@ -54,9 +55,30 @@ const TeamFormation = () => {
     [],
   );
 
+  const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
-  const { status, groups, winnerMap, scoreMap, loading, isLegacy, error } =
-    useTeamFormation(ym);
+
+  useEffect(() => {
+    if (activityLoading) return;
+    setYm(
+      resolveDisplayYm(
+        activityMaps,
+        Number(currentYm.slice(0, 4)),
+        Number(currentYm.slice(4)),
+      ),
+    );
+  }, [activityLoading, activityMaps, currentYm]);
+
+  const {
+    status,
+    groups,
+    winnerMap,
+    scoreMap,
+    loading: teamLoading,
+    isLegacy,
+    error,
+  } = useTeamFormation(ym);
+  const loading = activityLoading || teamLoading;
   const rivalIds = useRivalEmpIds(ym);
 
   const myEmpId = empIdFromEmail(auth.currentUser?.email);

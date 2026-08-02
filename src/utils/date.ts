@@ -90,6 +90,25 @@ export const isWithinActivityDays = (
   return diffDays >= 0 && diffDays <= withinDays;
 };
 
+export const resolveDisplayYm = (
+  activityAll: ActivityDateAll,
+  serverYear: number,
+  serverMonth: number,
+  extraDays = REWARD_CLAIM_WINDOW_DAYS,
+): string => {
+  const currentYm = useUiStore.getState().formatServerDate('ym');
+
+  const activityYmd = resolveActivityYmd(
+    activityAll,
+    String(serverYear),
+    serverMonth,
+  );
+  if (!activityYmd) return currentYm;
+
+  const diff = getDiffDaysServer(activityYmd);
+  return diff >= 0 && diff <= extraDays ? activityYmd.slice(0, 6) : currentYm;
+};
+
 export const createAdminMonthOptions = (): string[] => {
   const now = new Date();
   const currentYear = now.getFullYear();

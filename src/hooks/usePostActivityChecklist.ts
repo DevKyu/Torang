@@ -7,8 +7,7 @@ import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { checkGalleryUploadAvailability } from '../utils/galleryUpload';
-import { getInitialGalleryYm } from '../utils/gallery';
-import { getDiffDaysServer } from '../utils/date';
+import { getDiffDaysServer, resolveDisplayYm } from '../utils/date';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
 import type { ChecklistItem, SharedChecklistData } from './useMonthlyChecklist';
 import type { Year, Month } from '../types/UserInfo';
@@ -119,7 +118,7 @@ export const usePostActivityChecklist = (
   }, [myEmpId, activityYm, targetAchieved]);
 
   const galleryYm = useMemo(
-    () => getInitialGalleryYm(activityAll, Number(serverYear), serverMonth),
+    () => resolveDisplayYm(activityAll, Number(serverYear), serverMonth),
     [activityAll, serverYear, serverMonth],
   );
 
