@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { get, ref } from 'firebase/database';
 import { db } from '../services/firebase';
 import useUserInfo from './useUserInfo';
-import { useMission, isScoreGuessMission } from './useMission';
+import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
@@ -269,7 +269,9 @@ export const usePostActivityChecklist = (
     }
 
     const isVillainMission =
-      !!missionData?.config && !isScoreGuessMission(missionData);
+      !!missionData?.config &&
+      !isScoreGuessMission(missionData) &&
+      !isTeamGuessMission(missionData);
 
     if (isVillainMission && missionViewState === 'voting') {
       result.push({

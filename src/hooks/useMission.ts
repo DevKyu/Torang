@@ -13,7 +13,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth, empIdFromEmail } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 
-export type MissionType = 'villain' | 'scoreGuess';
+export type MissionType = 'villain' | 'scoreGuess' | 'teamGuess';
 export type MissionStatus = 'draft' | 'active' | 'voting' | 'revealed';
 
 type MissionConfigBase = {
@@ -35,6 +35,11 @@ export type ScoreGuessMissionConfig = MissionConfigBase & {
   type: 'scoreGuess';
   scoreDiffThreshold: number;
   targetRewardPin: number;
+};
+
+export type TeamGuessMissionConfig = MissionConfigBase & {
+  type: 'teamGuess';
+  bonusRewardPin: number;
 };
 
 export const DEFAULT_HELPER_VOTE_THRESHOLD = 3;
@@ -70,6 +75,12 @@ export type ScoreGuessVote = {
   anonymous?: boolean;
 };
 
+export type TeamGuessVote = {
+  myGroupPick: 'team1' | 'team2' | 'draw';
+  bonusGroupId?: string;
+  bonusGroupPick?: 'team1' | 'team2' | 'draw';
+};
+
 type MissionResult = {
   revealed: boolean;
   revealedAt: number;
@@ -88,6 +99,13 @@ type ScoreGuessMissionResult = {
   topTargets: string[];
 };
 
+export type TeamGuessMissionResult = {
+  revealed: boolean;
+  revealedAt: number;
+  myGroupCorrectVoters: string[];
+  bonusCorrectVoters: string[];
+};
+
 export type VillainMissionData = {
   config?: VillainMissionConfig;
   hidden?: VillainMissionHidden;
@@ -104,11 +122,27 @@ export type ScoreGuessMissionData = {
   cheerReads?: Record<string, number>;
 };
 
-export type MissionData = VillainMissionData | ScoreGuessMissionData;
+export type TeamGuessMissionData = {
+  config?: TeamGuessMissionConfig;
+  votes?: Record<string, TeamGuessVote>;
+  result?: TeamGuessMissionResult;
+};
+
+export type MissionData = VillainMissionData | ScoreGuessMissionData | TeamGuessMissionData;
 
 export const isScoreGuessMission = (
   data: MissionData | null,
 ): data is ScoreGuessMissionData => data?.config?.type === 'scoreGuess';
+
+export const isTeamGuessMission = (
+  data: MissionData | null,
+): data is TeamGuessMissionData => data?.config?.type === 'teamGuess';
+
+export const isScoreGuessVote = (v: unknown): v is ScoreGuessVote =>
+  typeof v === 'object' && v !== null && 'targetEmpId' in v;
+
+export const isTeamGuessVote = (v: unknown): v is TeamGuessVote =>
+  typeof v === 'object' && v !== null && 'myGroupPick' in v;
 
 export const useMission = (ym: string) => {
   const [data, setData] = useState<MissionData | null>(null);
@@ -210,20 +244,34 @@ export async function resetMissionState(
   };
 
   if (data?.result?.revealed) {
-    const { revealedAt, correctVoters } = data.result;
-    const recipientKeys: { empId: string; key: string }[] = (
-      correctVoters ?? []
-    ).map((empId) => ({ empId, key: buildMissionRewardKey(revealedAt, empId) }));
+    const { revealedAt } = data.result;
+    const recipientKeys: { empId: string; key: string }[] = [];
 
     if (isScoreGuessMission(data)) {
+      (data.result.correctVoters ?? []).forEach((empId) =>
+        recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
+      );
       (data.result.topTargets ?? []).forEach((empId) =>
         recipientKeys.push({
           empId,
           key: buildMissionRewardKey(revealedAt, empId, '_rank'),
         }),
       );
+    } else if (isTeamGuessMission(data)) {
+      (data.result.myGroupCorrectVoters ?? []).forEach((empId) =>
+        recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
+      );
+      (data.result.bonusCorrectVoters ?? []).forEach((empId) =>
+        recipientKeys.push({
+          empId,
+          key: buildMissionRewardKey(revealedAt, empId, '_bonus'),
+        }),
+      );
     } else {
-      const { villainWon, helperWon, villainId, helperId } = data.result;
+      const { villainWon, helperWon, villainId, helperId, correctVoters } = data.result;
+      (correctVoters ?? []).forEach((empId) =>
+        recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
+      );
       if (villainWon && villainId) {
         recipientKeys.push({
           empId: villainId,

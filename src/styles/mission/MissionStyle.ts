@@ -258,7 +258,7 @@ export const ResultRevealRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   & > * {
     margin-bottom: 0;
   }
@@ -277,25 +277,27 @@ export const ResultRevealCard = styled.div<{
           ? '#c6d8f5'
           : '#c6ecd8'};
   border-radius: 12px;
-  padding: 13px 8px;
-  margin-bottom: 10px;
+  padding: 9px 8px;
+  margin-bottom: 8px;
   text-align: center;
 `;
 
 export const ResultRole = styled.div<{ role: 'villain' | 'helper' | 'reward' }>`
   font-size: 11px;
+  line-height: 1.2;
   font-weight: 700;
   letter-spacing: 0.03em;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   color: ${({ role }) =>
     role === 'villain' ? '#dc2626' : role === 'helper' ? '#2563eb' : '#059669'};
 `;
 
 export const ResultName = styled.div`
   font-size: 18px;
+  line-height: 1.15;
   font-weight: 800;
   color: #111827;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 `;
 
 export const ResultMeta = styled.div`
@@ -335,7 +337,7 @@ export const VoterListBtn = styled.button`
 export const VoteActionRow = styled.div`
   display: flex;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 6px;
 `;
 
 export const VoteResultBtn = styled.button`

@@ -1,7 +1,7 @@
 import { getAllUserMatchResults, getAllMissions, getCurrentUserId } from '../services/firebase';
 import type { AchievementResult } from '../types/achievement';
 import type { MatchType } from '../types/match';
-import { isScoreGuessMission } from '../hooks/useMission';
+import { isScoreGuessMission, isTeamGuessMission } from '../hooks/useMission';
 import { useUiStore } from '../stores/useUiStore';
 
 const START_YYYYMM = 202508;
@@ -97,7 +97,7 @@ export const checkMissionAchievements = async (
   if (!existing['mission_villain_success'] || !existing['mission_villain_found']) {
     const allMissions = await getAllMissions();
     for (const [ym, mission] of Object.entries(allMissions)) {
-      if (isScoreGuessMission(mission)) continue;
+      if (isScoreGuessMission(mission) || isTeamGuessMission(mission)) continue;
       if (!existing['mission_villain_success'] && !results['mission_villain_success'] &&
           mission?.result?.villainWon === true && mission?.roles?.villain === empId) {
         results['mission_villain_success'] = { achievedAt: ym };

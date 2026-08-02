@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import { db, fetchAllUsers } from '../../services/firebase';
+import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
@@ -75,6 +76,7 @@ import {
   resetVotes,
   resetMissionState,
   isScoreGuessMission,
+  isTeamGuessMission,
   DEFAULT_HELPER_VOTE_THRESHOLD,
   DEFAULT_VILLAIN_CATCH_THRESHOLD,
   DEFAULT_SCORE_DIFF_THRESHOLD,
@@ -82,12 +84,17 @@ import {
   type VillainMissionConfig,
   type VillainMissionHidden,
   type ScoreGuessMissionConfig,
+  type TeamGuessMissionConfig,
   type MissionStatus,
 } from '../../hooks/useMission';
 import {
   confirmScoreGuessTargets,
   revealScoreGuessMissionResult,
 } from '../../hooks/useScoreGuessMission';
+import {
+  saveTeamGuessMissionContent,
+  revealTeamGuessMissionResult,
+} from '../../hooks/useTeamGuessMission';
 
 type RoleDraft = {
   villainName: string;
@@ -98,6 +105,7 @@ type RoleDraft = {
 
 type ConfigDraft = Omit<VillainMissionConfig, 'status'>;
 type ScoreGuessConfigDraft = Omit<ScoreGuessMissionConfig, 'status'>;
+type TeamGuessConfigDraft = Omit<TeamGuessMissionConfig, 'status'>;
 
 function createIntFieldHandler<T>(
   setDraft: Dispatch<SetStateAction<T>>,
@@ -164,6 +172,15 @@ const DEFAULT_SCORE_GUESS_CONFIG_DRAFT: ScoreGuessConfigDraft = {
   targetRewardPin: 0.5,
 };
 
+const DEFAULT_TEAM_GUESS_CONFIG_DRAFT: TeamGuessConfigDraft = {
+  type: 'teamGuess',
+  title: '',
+  description: '',
+  revealDays: 7,
+  rewardPin: 1,
+  bonusRewardPin: 1,
+};
+
 const AdminMission = () => {
   const goBack = useNavigateBack('/admin');
 
@@ -171,6 +188,7 @@ const AdminMission = () => {
 
   const [ym, setYm] = useState(currentYm);
   const { data, loading } = useMission(ym);
+  const { status: teamFormationStatus, groups: teamFormationGroups } = useTeamFormation(ym);
 
   const [missionType, setMissionType] = useState<MissionType>('villain');
 
@@ -190,6 +208,12 @@ const AdminMission = () => {
   );
   const [sgRewardPinRaw, setSgRewardPinRaw] = useState('0.5');
   const [targetRewardPinRaw, setTargetRewardPinRaw] = useState('0.5');
+
+  const [teamGuessConfigDraft, setTeamGuessConfigDraft] = useState<TeamGuessConfigDraft>(
+    DEFAULT_TEAM_GUESS_CONFIG_DRAFT,
+  );
+  const [tgRewardPinRaw, setTgRewardPinRaw] = useState('1');
+  const [tgBonusRewardPinRaw, setTgBonusRewardPinRaw] = useState('1');
 
   const [candidates, setCandidates] = useState<[string, string][]>([]);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
@@ -235,6 +259,20 @@ const AdminMission = () => {
       });
       setSgRewardPinRaw(String(rp));
       setTargetRewardPinRaw(String(data.config?.targetRewardPin ?? 0.5));
+    } else if (data && isTeamGuessMission(data)) {
+      setMissionType('teamGuess');
+      const rp = data.config?.rewardPin ?? 1;
+      const brp = data.config?.bonusRewardPin ?? 1;
+      setTeamGuessConfigDraft({
+        type: 'teamGuess',
+        title: data.config?.title ?? '',
+        description: data.config?.description ?? '',
+        revealDays: data.config?.revealDays ?? 7,
+        rewardPin: rp,
+        bonusRewardPin: brp,
+      });
+      setTgRewardPinRaw(String(rp));
+      setTgBonusRewardPinRaw(String(brp));
     } else if (data) {
       const rp = data.config?.rewardPin ?? 1;
       const vp = data.config?.villainRewardPin ?? rp;
@@ -285,6 +323,9 @@ const AdminMission = () => {
       setScoreGuessConfigDraft(DEFAULT_SCORE_GUESS_CONFIG_DRAFT);
       setSgRewardPinRaw('0.5');
       setTargetRewardPinRaw('0.5');
+      setTeamGuessConfigDraft(DEFAULT_TEAM_GUESS_CONFIG_DRAFT);
+      setTgRewardPinRaw('1');
+      setTgBonusRewardPinRaw('1');
     }
   }, [data, loading, allNames]);
 
@@ -419,6 +460,12 @@ const AdminMission = () => {
           scoreGuessConfigDraft,
           data?.config?.status ?? null,
         );
+      } else if (missionType === 'teamGuess') {
+        await saveTeamGuessMissionContent(
+          ym,
+          teamGuessConfigDraft,
+          data?.config?.status ?? null,
+        );
       } else {
         await saveVillainMissionContent(
           ym,
@@ -451,7 +498,9 @@ const AdminMission = () => {
       return;
     }
     const hasExistingVotes =
-      !isScoreGuessMission(data) && Object.keys(data?.votes ?? {}).length > 0;
+      !isScoreGuessMission(data) &&
+      !isTeamGuessMission(data) &&
+      Object.keys(data?.votes ?? {}).length > 0;
     if (hasExistingVotes && !confirmRoleChange) {
       setConfirmRoleChange(true);
       toast('이미 투표가 진행 중입니다. 다시 누르면 기존 투표가 초기화됩니다.', {
@@ -553,6 +602,16 @@ const AdminMission = () => {
             style: toSuccessStyle,
           },
         );
+      } else if (isTeamGuessMission(data)) {
+        const res = await revealTeamGuessMissionResult(ym, data);
+        toast(
+          `✅ 결과 공개 완료 — 내 조 적중 ${res.myGroupCorrectVoters.length}명, 보너스 적중 ${res.bonusCorrectVoters.length}명 🎉`,
+          {
+            position: 'top-center',
+            duration: 3000,
+            style: toSuccessStyle,
+          },
+        );
       } else {
         const res = await revealMissionResult(ym, data);
         const msg = res.villainWon
@@ -600,9 +659,11 @@ const AdminMission = () => {
 
   const status = data?.config?.status ?? 'draft';
   const canChangeType = !data?.config || status === 'draft';
+  const skipsVotingState = isScoreGuessMission(data) || isTeamGuessMission(data);
 
   const villainVotes = useMemo(
-    () => (!isScoreGuessMission(data) ? data?.votes ?? {} : {}),
+    () =>
+      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.votes ?? {} : {},
     [data],
   );
   const totalVillainVotes = Object.keys(villainVotes).length;
@@ -627,10 +688,18 @@ const AdminMission = () => {
     return counts;
   }, [scoreGuessVotes]);
 
+  const teamGuessVotes = useMemo(
+    () => (isTeamGuessMission(data) ? data.votes ?? {} : {}),
+    [data],
+  );
+  const totalTeamGuessVotes = Object.keys(teamGuessVotes).length;
+
   const renderVillainVoteStats = () => {
     if (totalVillainVotes === 0) return <EmptyMsg>아직 투표가 없습니다.</EmptyMsg>;
-    const villainId = !isScoreGuessMission(data) ? data?.roles?.villain : undefined;
-    const helperId = !isScoreGuessMission(data) ? data?.roles?.helper : undefined;
+    const villainId =
+      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.roles?.villain : undefined;
+    const helperId =
+      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.roles?.helper : undefined;
     const sorted = Object.entries(villainVoteCounts).sort(([, a], [, b]) => b - a);
     return (
       <VoteStatList>
@@ -648,6 +717,20 @@ const AdminMission = () => {
           <VoteStatLabel style={{ color: '#6b7280' }}>총 투표</VoteStatLabel>
           <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>
             {totalVillainVotes}명
+          </VoteStatCount>
+        </VoteStatRow>
+      </VoteStatList>
+    );
+  };
+
+  const renderTeamGuessVoteStats = () => {
+    if (totalTeamGuessVotes === 0) return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
+    return (
+      <VoteStatList>
+        <VoteStatRow>
+          <VoteStatLabel style={{ color: '#6b7280' }}>총 예측</VoteStatLabel>
+          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>
+            {totalTeamGuessVotes}명
           </VoteStatCount>
         </VoteStatRow>
       </VoteStatList>
@@ -702,7 +785,7 @@ const AdminMission = () => {
         )}
         {status === 'active' && (
           <>
-            {isScoreGuessMission(data) ? (
+            {skipsVotingState ? (
               <StatusBtn
                 color="#111827"
                 disabled={saving || revealing}
@@ -755,7 +838,7 @@ const AdminMission = () => {
         )}
         {status === 'revealed' && (
           <>
-            {!isScoreGuessMission(data) && (
+            {!skipsVotingState && (
               <StatusBtn
                 color="#f59e0b"
                 disabled={saving}
@@ -796,6 +879,13 @@ const AdminMission = () => {
           onClick={() => setMissionType('scoreGuess')}
         >
           신규회원 점수 맞추기
+        </TypeSelectBtn>
+        <TypeSelectBtn
+          active={missionType === 'teamGuess'}
+          disabled={!canChangeType}
+          onClick={() => setMissionType('teamGuess')}
+        >
+          팀 승부 예측
         </TypeSelectBtn>
       </TypeSelectRow>
 
@@ -959,6 +1049,112 @@ const AdminMission = () => {
               </SaveBtn>
             </SaveRow>
           </SectionBlock>
+        </>
+      ) : missionType === 'teamGuess' ? (
+        <>
+          <SectionBlock>
+            <FieldLabel>미션 제목</FieldLabel>
+            <MissionInput
+              value={teamGuessConfigDraft.title}
+              onChange={(e) =>
+                setTeamGuessConfigDraft((p) => ({ ...p, title: e.target.value }))
+              }
+              placeholder="예: 8월 정기전 팀 승부 예측"
+            />
+          </SectionBlock>
+
+          <SectionBlock>
+            <FieldLabel>미션 내용</FieldLabel>
+            <MissionRichEditor
+              value={teamGuessConfigDraft.description}
+              onChange={(html) =>
+                setTeamGuessConfigDraft((p) => ({ ...p, description: html }))
+              }
+              placeholder="전체 참여자에게 공개될 미션 내용을 입력하세요."
+            />
+          </SectionBlock>
+
+          <SettingGroup>
+            <SettingSection>
+              <SettingSectionTitle>공개 기준</SettingSectionTitle>
+              <NumberRow>
+                활동일
+                <MissionInput
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={teamGuessConfigDraft.revealDays}
+                  onChange={createIntFieldHandler(setTeamGuessConfigDraft, 'revealDays')}
+                />
+                일 전부터 공개
+              </NumberRow>
+            </SettingSection>
+
+            <SettingDivider />
+
+            <SettingSection>
+              <SettingSectionTitle>보상 기준</SettingSectionTitle>
+              <SettingGrid>
+                <SettingCell>
+                  <SettingCellLabel>내 조 적중</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={tgRewardPinRaw}
+                      {...createPinInputHandlers(
+                        setTgRewardPinRaw,
+                        (n) => setTeamGuessConfigDraft((p) => ({ ...p, rewardPin: n })),
+                        teamGuessConfigDraft.rewardPin,
+                      )}
+                    />
+                    PIN
+                  </NumberRow>
+                </SettingCell>
+                <SettingCell>
+                  <SettingCellLabel>보너스까지 적중</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={tgBonusRewardPinRaw}
+                      {...createPinInputHandlers(
+                        setTgBonusRewardPinRaw,
+                        (n) => setTeamGuessConfigDraft((p) => ({ ...p, bonusRewardPin: n })),
+                        teamGuessConfigDraft.bonusRewardPin,
+                      )}
+                    />
+                    PIN
+                  </NumberRow>
+                </SettingCell>
+              </SettingGrid>
+            </SettingSection>
+          </SettingGroup>
+
+          <Divider />
+
+          <SaveRow style={{ marginBottom: 8 }}>
+            <SaveBtn onClick={handleSaveContent} disabled={saving}>
+              {saving ? '저장 중...' : '미션 내용 저장'}
+            </SaveBtn>
+          </SaveRow>
+
+          <Divider />
+
+          <FormTitle>팀 편성 연동</FormTitle>
+          <QuarterHint>
+            이 달 팀 편성 확정 여부에 따라 예측 화면이 열립니다. 확정 전에는
+            사용자에게 &quot;팀 편성 확정 전이에요&quot; 안내만 표시됩니다.
+          </QuarterHint>
+          {teamFormationStatus === 'confirmed' ? (
+            <ConfirmedBadgeRow>
+              확정됨 — {teamFormationGroups.length}개 조
+            </ConfirmedBadgeRow>
+          ) : (
+            <EmptyMsg>아직 팀 편성이 확정되지 않았습니다. /admin/team-formation에서 먼저 확정하세요.</EmptyMsg>
+          )}
         </>
       ) : (
         <>
@@ -1342,8 +1538,12 @@ const AdminMission = () => {
               </>
             )}
           </VoteHeaderRow>
-          {isScoreGuessMission(data) ? renderScoreGuessVoteStats() : renderVillainVoteStats()}
-          {data?.result && !isScoreGuessMission(data) && (
+          {isScoreGuessMission(data)
+            ? renderScoreGuessVoteStats()
+            : isTeamGuessMission(data)
+              ? renderTeamGuessVoteStats()
+              : renderVillainVoteStats()}
+          {data?.result && !isScoreGuessMission(data) && !isTeamGuessMission(data) && (
             <ResultArea>
               <div>
                 <strong>빌런:</strong>{' '}
@@ -1380,6 +1580,22 @@ const AdminMission = () => {
               <div>
                 <strong>예측 성공:</strong>{' '}
                 {(data.result.correctVoters ?? [])
+                  .map((id) => allNames[id] ?? id)
+                  .join(', ') || '없음'}
+              </div>
+            </ResultArea>
+          )}
+          {data?.result && isTeamGuessMission(data) && (
+            <ResultArea>
+              <div>
+                <strong>내 조 적중:</strong>{' '}
+                {(data.result.myGroupCorrectVoters ?? [])
+                  .map((id) => allNames[id] ?? id)
+                  .join(', ') || '없음'}
+              </div>
+              <div>
+                <strong>보너스까지 적중:</strong>{' '}
+                {(data.result.bonusCorrectVoters ?? [])
                   .map((id) => allNames[id] ?? id)
                   .join(', ') || '없음'}
               </div>

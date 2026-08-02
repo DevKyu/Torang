@@ -9,10 +9,17 @@ import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { resolveDisplayYm } from '../../utils/date';
-import { useMission, isScoreGuessMission } from '../../hooks/useMission';
+import {
+  useMission,
+  isScoreGuessMission,
+  isTeamGuessMission,
+  isScoreGuessVote,
+  isTeamGuessVote,
+} from '../../hooks/useMission';
 import { useMissionViewState } from '../../hooks/useMissionViewState';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
+import TeamGuessMissionView from './TeamGuessMissionView';
 import { renderMissionBody } from './missionBody';
 import {
   MissionCard,
@@ -165,7 +172,9 @@ const MissionPage = () => {
                 </MissionEmptyBox>
               ))}
 
-            {viewState === 'preview' && !isScoreGuessMission(data) && (
+            {viewState === 'preview' &&
+              !isScoreGuessMission(data) &&
+              !isTeamGuessMission(data) && (
               <>
                 <SectionLabel>이달의 미션</SectionLabel>
                 <MissionCard>
@@ -187,9 +196,20 @@ const MissionPage = () => {
                   viewState={viewState}
                   data={data}
                   myEmpId={myEmpId}
-                  myVote={typeof myVote === 'object' ? myVote : undefined}
+                  myVote={isScoreGuessVote(myVote) ? myVote : undefined}
                   allNames={allNames}
                   participants={participants}
+                  activityYmd={
+                    activityDateNum ? String(activityDateNum) : undefined
+                  }
+                />
+              ) : isTeamGuessMission(data) ? (
+                <TeamGuessMissionView
+                  ym={ym}
+                  viewState={viewState}
+                  data={data}
+                  myEmpId={myEmpId}
+                  myVote={isTeamGuessVote(myVote) ? myVote : undefined}
                   activityYmd={
                     activityDateNum ? String(activityDateNum) : undefined
                   }

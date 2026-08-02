@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import useUserInfo from './useUserInfo';
-import { useMission, isScoreGuessMission } from './useMission';
+import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
+import { useTeamFormation } from './useTeamFormation';
+import { findGroupIndexForEmpId } from '../utils/teamFormation';
 import { useEventStore } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
 import {
@@ -28,6 +30,7 @@ export type ChecklistItemKey =
   | 'rivalMatch'
   | 'scoreGuessPredict'
   | 'scoreGuessCandidate'
+  | 'teamGuessPredict'
   | 'galleryUpload'
   | 'achievementCheck'
   | 'matchResult'
@@ -121,6 +124,12 @@ export const useMonthlyChecklist = (
     missionData,
   );
 
+  const {
+    status: teamFormationStatus,
+    groups: teamFormationGroups,
+    loading: teamFormationLoading,
+  } = useTeamFormation(serverYm);
+
   const items = useMemo<ChecklistItem[]>(() => {
     const isParticipant = !!myEmpId && monthParticipants.includes(myEmpId);
     if (!hasActivityDate || !isParticipant) return [];
@@ -206,6 +215,29 @@ export const useMonthlyChecklist = (
       }
     }
 
+    const teamGuessData = isTeamGuessMission(missionData) ? missionData : null;
+    if (
+      teamGuessData &&
+      missionViewState === 'preview' &&
+      stillActionable &&
+      teamFormationStatus === 'confirmed' &&
+      !!myEmpId &&
+      findGroupIndexForEmpId(teamFormationGroups, myEmpId) !== -1
+    ) {
+      const predictDone = !!missionMyVote;
+      result.push({
+        key: 'teamGuessPredict',
+        emoji: '⚡',
+        label: '팀 승부 예측',
+        description: predictDone
+          ? `${serverMonth}월 정기전 팀 승부 예측을 완료했어요.`
+          : `${serverMonth}월 정기전 팀 승부 예측 전이에요.`,
+        actionLabel: '예측하기',
+        done: predictDone,
+        path: '/mission',
+      });
+    }
+
     return result;
   }, [
     hasActivityDate,
@@ -223,11 +255,14 @@ export const useMonthlyChecklist = (
     missionMyVote,
     monthParticipants,
     myEmpId,
+    teamFormationStatus,
+    teamFormationGroups,
   ]);
 
   const loading =
     userInfo === null ||
     activityLoading ||
+    teamFormationLoading ||
     matchChoicesLoading ||
     missionLoading ||
     participantsLoading;

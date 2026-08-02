@@ -396,3 +396,18 @@ export function diffLevel(diff: number): 'low' | 'mid' | 'high' {
   if (diff <= 7) return 'mid'
   return 'high'
 }
+
+export function findGroupIndexForEmpId(groups: FormationGroup[], empId: string): number {
+  return groups.findIndex(
+    (g) => g.team1.some((p) => p.empId === empId) || g.team2.some((p) => p.empId === empId),
+  )
+}
+
+export function getGroupTeamKey(
+  group: FormationGroup,
+  empId: string,
+): 'team1' | 'team2' | null {
+  if (group.team1.some((p) => p.empId === empId)) return 'team1'
+  if (group.team2.some((p) => p.empId === empId)) return 'team2'
+  return null
+}
