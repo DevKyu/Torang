@@ -376,7 +376,10 @@ const MainMenu = () => {
 
   const menuItems = useMemo<MenuItem[]>(() => {
     const base = isAdmin
-      ? { ...BASE_MENU_MAP, admin: ADMIN_MENU }
+      ? {
+          ...BASE_MENU_MAP,
+          admin: ADMIN_MENU,
+        }
       : BASE_MENU_MAP;
 
     return Object.keys(base)

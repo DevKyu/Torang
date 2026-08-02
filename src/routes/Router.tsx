@@ -44,6 +44,8 @@ const AdminMessages = lazy(() => import('../components/admin/AdminMessages'));
 const AdminMonthlyChecklist = lazy(
   () => import('../components/admin/AdminMonthlyChecklist'),
 );
+const MissionDevPreview = lazy(() => import('../components/dev/MissionDevPreview'));
+const MissionPreviewScreen = lazy(() => import('../components/dev/MissionPreviewScreen'));
 
 const SuspenseFallback = () => {
   useRouteLoading(true);
@@ -117,6 +119,8 @@ const Router = () => (
           path="/admin/monthly-checklist"
           element={<AdminMonthlyChecklist />}
         />
+        <Route path="/admin/mission-dev-preview" element={<MissionDevPreview />} />
+        <Route path="/admin/mission-preview-screen" element={<MissionPreviewScreen />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
