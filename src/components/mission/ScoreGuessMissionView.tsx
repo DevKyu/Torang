@@ -8,6 +8,7 @@ import {
   markCheerRead,
 } from '../../hooks/useScoreGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
+import { MEDALS } from '../../utils/ranking';
 import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import VoterCardItem from './VoterCardItem';
@@ -51,7 +52,6 @@ import {
   ResultRevealRow,
 } from '../../styles/mission/MissionStyle';
 
-const MEDALS = ['🥇', '🥈', '🥉'] as const;
 const CHEER_DEFAULT_MESSAGE = '점수 예측 완료! 첫 활동 응원할게요 📣';
 
 type Props = {
@@ -90,9 +90,10 @@ const ScoreGuessMissionView = ({
   const isParticipant = myEmpId ? participants.includes(myEmpId) : false;
   const isTarget = !!myEmpId && targets.includes(myEmpId);
   const votingActive = viewState === 'voting' || viewState === 'preview';
+  useUiStore((s) => s.lastSync);
   const stillActionable = useUiStore
     .getState()
-    .isBeforeCutoff(activityYmd, '18:30');
+    .isBeforeCutoff(activityYmd);
 
   const sortedTargets = useMemo(
     () =>

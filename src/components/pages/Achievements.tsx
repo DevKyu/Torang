@@ -92,7 +92,7 @@ const Achievements = () => {
 
         const shouldRun =
           activityYmd &&
-          !isBeforeCutoff(String(activityYmd), '18:30') &&
+          !isBeforeCutoff(String(activityYmd)) &&
           String(todayYmd) !== lastCheck;
 
         if (!shouldRun) {

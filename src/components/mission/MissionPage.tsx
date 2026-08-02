@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ref, get } from 'firebase/database';
+import { ref, get, onValue } from 'firebase/database';
 import { ClipLoader } from 'react-spinners';
 import Layout from '../layouts/Layout';
 import { SmallText } from '../../styles/global/commonStyle';
@@ -55,23 +55,51 @@ const MissionPage = () => {
     setParticipants([]);
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
-    Promise.all([
-      get(ref(db, `activityDate/${year}/${month}`)),
-      get(ref(db, 'names')),
-      get(ref(db, `activityParticipants/${year}/${month}`)),
-    ])
-      .then(([dateSnap, namesSnap, participantsSnap]) => {
-        setActivityDateNum(dateSnap.exists() ? (dateSnap.val() as number) : null);
+
+    get(ref(db, 'names'))
+      .then((namesSnap) => {
         if (namesSnap.exists())
           setAllNames(namesSnap.val() as Record<string, string>);
-        setParticipants(
-          participantsSnap.exists()
-            ? Object.keys(participantsSnap.val() as Record<string, true>)
-            : [],
-        );
-        setParticipantsLoaded(true);
       })
-      .catch(() => setParticipantsLoaded(true));
+      .catch(() => {});
+
+    const resolved = { date: false, participants: false };
+    const tryFinish = () => {
+      if (resolved.date && resolved.participants) setParticipantsLoaded(true);
+    };
+
+    const unsubDate = onValue(
+      ref(db, `activityDate/${year}/${month}`),
+      (snap) => {
+        setActivityDateNum(snap.exists() ? (snap.val() as number) : null);
+        resolved.date = true;
+        tryFinish();
+      },
+      () => {
+        resolved.date = true;
+        tryFinish();
+      },
+    );
+
+    const unsubParticipants = onValue(
+      ref(db, `activityParticipants/${year}/${month}`),
+      (snap) => {
+        setParticipants(
+          snap.exists() ? Object.keys(snap.val() as Record<string, true>) : [],
+        );
+        resolved.participants = true;
+        tryFinish();
+      },
+      () => {
+        resolved.participants = true;
+        tryFinish();
+      },
+    );
+
+    return () => {
+      unsubDate();
+      unsubParticipants();
+    };
   }, [ym]);
 
   const { daysUntilReveal, viewState } = useMissionViewState(

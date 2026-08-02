@@ -6,7 +6,7 @@ import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
 import { Title as PageTitle } from '../../styles/global/commonStyle';
 import MonthNavigator from './MonthNavigator';
 import { useUiStore } from '../../stores/useUiStore';
-import { getYearMonth, resolveDisplayYm } from '../../utils/date';
+import { getYearMonth, resolveDisplayYm, EARLIEST_ACTIVITY_YM } from '../../utils/date';
 import { useActivityDates } from '../../hooks/useActivityDates';
 
 import {
@@ -179,7 +179,7 @@ const ActivityHistory = () => {
               setYmPending(true);
               setYm(newYm);
             }}
-            minYm="202507"
+            minYm={EARLIEST_ACTIVITY_YM}
             maxYm={currentYm}
           />
 

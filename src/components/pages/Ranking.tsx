@@ -10,7 +10,7 @@ import {
   waitForAuthUser,
 } from '../../services/firebase';
 import { ref, set } from 'firebase/database';
-import { mapUsersToRankingEntries, type Result } from '../../utils/ranking';
+import { mapUsersToRankingEntries, MEDALS, type Result } from '../../utils/ranking';
 import { showToast } from '../../utils/toast';
 import { resolveActivityYmd } from '../../utils/date';
 
@@ -68,7 +68,6 @@ const SKELETON_ROWS = [
 ] as const;
 
 const RANKING_TABS: RankingType[] = ['monthly', 'quarter', 'year', 'total'];
-const MEDALS = ['🥇', '🥈', '🥉'] as const;
 
 const HEADER_LABELS: Record<keyof typeof HEADER_TOAST_MAP, string> = {
   rank: '순위',
@@ -117,7 +116,7 @@ const Ranking = () => {
     return activityYmd ? (activityYmd.slice(0, 6) as YearMonth) : ym;
   }, [activityYmd, ym]);
 
-  const timeAllowed = canEditTarget(activityYmd, { cutoffTime: '18:30' });
+  const timeAllowed = canEditTarget(activityYmd);
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
 
   const monthlyEnabled = useMemo(() => {
@@ -255,7 +254,7 @@ const Ranking = () => {
   const appliedRef = useRef(false);
 
   useEffect(() => {
-    if (!myId || !matchResults || appliedRef.current) return;
+    if (!myId || !matchResults || !hasActivity || appliedRef.current) return;
     if (!hasMatchResults && !hasIncoming) return;
     appliedRef.current = true;
     (async () => {

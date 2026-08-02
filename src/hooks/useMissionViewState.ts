@@ -16,6 +16,8 @@ export const useMissionViewState = (
   activityYmd: string | number | null | undefined,
   missionData: MissionData | null,
 ): MissionViewStateResult => {
+  const lastSync = useUiStore((s) => s.lastSync);
+
   const daysUntilReveal = useMemo(
     () =>
       getDaysUntilMissionReveal(
@@ -23,7 +25,8 @@ export const useMissionViewState = (
         missionData?.config,
         useUiStore.getState().getServerNow(),
       ),
-    [activityYmd, missionData],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activityYmd, missionData, lastSync],
   );
 
   const viewState = useMemo(

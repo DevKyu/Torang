@@ -37,6 +37,10 @@ export type ScoreGuessMissionConfig = MissionConfigBase & {
   targetRewardPin: number;
 };
 
+export const DEFAULT_HELPER_VOTE_THRESHOLD = 3;
+export const DEFAULT_VILLAIN_CATCH_THRESHOLD = 1;
+export const DEFAULT_SCORE_DIFF_THRESHOLD = 5;
+
 export type HiddenContent = {
   title: string;
   description: string;
@@ -346,8 +350,8 @@ export async function revealMissionResult(
   const helperId = roles.helper;
   const rewardPin = config.rewardPin ?? 1;
   const villainRewardPin = config.villainRewardPin ?? rewardPin;
-  const helperThreshold = config.helperVoteThreshold ?? 3;
-  const villainCatchThreshold = config.villainCatchThreshold ?? 1;
+  const helperThreshold = config.helperVoteThreshold ?? DEFAULT_HELPER_VOTE_THRESHOLD;
+  const villainCatchThreshold = config.villainCatchThreshold ?? DEFAULT_VILLAIN_CATCH_THRESHOLD;
 
   const voteMap: Record<string, number> = {};
   const correctVoters: string[] = [];

@@ -1,7 +1,12 @@
 import { ref, set, get, remove } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
-import { buildMissionPinReward, claimMissionReveal, commitMissionReveal } from './useMission';
+import {
+  buildMissionPinReward,
+  claimMissionReveal,
+  commitMissionReveal,
+  DEFAULT_SCORE_DIFF_THRESHOLD,
+} from './useMission';
 import type {
   ScoreGuessMissionData,
   ScoreGuessVote,
@@ -87,7 +92,7 @@ export async function revealScoreGuessMissionResult(
 
   const previousStatus = await claimMissionReveal(ym);
 
-  const threshold = config.scoreDiffThreshold ?? 5;
+  const threshold = config.scoreDiffThreshold ?? DEFAULT_SCORE_DIFF_THRESHOLD;
   const rewardPin = config.rewardPin ?? 0.5;
   const correctVoters: string[] = [];
   const { getServerNow, getServerTimestamp } = useUiStore.getState();

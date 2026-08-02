@@ -75,6 +75,9 @@ import {
   resetVotes,
   resetMissionState,
   isScoreGuessMission,
+  DEFAULT_HELPER_VOTE_THRESHOLD,
+  DEFAULT_VILLAIN_CATCH_THRESHOLD,
+  DEFAULT_SCORE_DIFF_THRESHOLD,
   type MissionType,
   type VillainMissionConfig,
   type VillainMissionHidden,
@@ -142,8 +145,8 @@ const DEFAULT_CONFIG_DRAFT: ConfigDraft = {
   revealDays: 7,
   rewardPin: 1,
   villainRewardPin: 1,
-  helperVoteThreshold: 3,
-  villainCatchThreshold: 1,
+  helperVoteThreshold: DEFAULT_HELPER_VOTE_THRESHOLD,
+  villainCatchThreshold: DEFAULT_VILLAIN_CATCH_THRESHOLD,
 };
 
 const DEFAULT_HIDDEN_DRAFT: VillainMissionHidden = {
@@ -157,7 +160,7 @@ const DEFAULT_SCORE_GUESS_CONFIG_DRAFT: ScoreGuessConfigDraft = {
   description: '',
   revealDays: 7,
   rewardPin: 0.5,
-  scoreDiffThreshold: 5,
+  scoreDiffThreshold: DEFAULT_SCORE_DIFF_THRESHOLD,
   targetRewardPin: 0.5,
 };
 
@@ -227,7 +230,7 @@ const AdminMission = () => {
         description: data.config?.description ?? '',
         revealDays: data.config?.revealDays ?? 7,
         rewardPin: rp,
-        scoreDiffThreshold: data.config?.scoreDiffThreshold ?? 5,
+        scoreDiffThreshold: data.config?.scoreDiffThreshold ?? DEFAULT_SCORE_DIFF_THRESHOLD,
         targetRewardPin: data.config?.targetRewardPin ?? 0.5,
       });
       setSgRewardPinRaw(String(rp));
@@ -243,8 +246,8 @@ const AdminMission = () => {
         revealDays: data.config?.revealDays ?? 7,
         rewardPin: rp,
         villainRewardPin: vp,
-        helperVoteThreshold: data.config?.helperVoteThreshold ?? 3,
-        villainCatchThreshold: data.config?.villainCatchThreshold ?? 1,
+        helperVoteThreshold: data.config?.helperVoteThreshold ?? DEFAULT_HELPER_VOTE_THRESHOLD,
+        villainCatchThreshold: data.config?.villainCatchThreshold ?? DEFAULT_VILLAIN_CATCH_THRESHOLD,
       });
       setRewardPinRaw(String(rp));
       setVillainRewardPinRaw(String(vp));

@@ -41,10 +41,9 @@ export const useMatchResult = ({
   }, [users]);
 
   useEffect(() => {
-    if (!myId) {
-      setResults(null);
-      return;
-    }
+    setResults(null);
+
+    if (!myId) return;
 
     let cancelled = false;
 

@@ -241,13 +241,6 @@ export const getUserPins = async (): Promise<number> => {
   return snap.exists() ? (snap.val() as number) : 0;
 };
 
-export const incrementUserPins = async (delta: number) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
-    return (current ?? 0) + delta;
-  });
-};
-
 export const incrementPinsByEmpId = async (empId: string, delta: number) => {
   await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
     const newValue = (current ?? 0) + delta;

@@ -10,7 +10,7 @@ import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { calcGroupDiff, diffLevel } from '../../utils/teamFormation';
-import { getYearMonth, resolveDisplayYm } from '../../utils/date';
+import { getYearMonth, resolveDisplayYm, EARLIEST_ACTIVITY_YM } from '../../utils/date';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   ContentArea,
@@ -40,7 +40,6 @@ import {
   FadeSpan,
 } from '../../styles/pages/TeamFormationStyle';
 
-const MIN_YM = '202507';
 const GRID_MIN_HEIGHT = 172;
 const PENDING_MIN_HEIGHT = 220;
 
@@ -141,7 +140,7 @@ const TeamFormation = () => {
     <Layout title="팀 편성">
       <MonthNavigator
         ym={ym}
-        minYm={MIN_YM}
+        minYm={EARLIEST_ACTIVITY_YM}
         maxYm={currentYm}
         onChange={handleYmChange}
       />

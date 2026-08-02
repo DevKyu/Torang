@@ -47,7 +47,7 @@ export const usePostActivityChecklist = (
     : serverMonth;
 
   const pastCutoff = useMemo(
-    () => !useUiStore.getState().isBeforeCutoff(activityYmdStr, '18:30'),
+    () => !useUiStore.getState().isBeforeCutoff(activityYmdStr),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activityYmdStr, lastSync],
   );

@@ -103,7 +103,7 @@ export const useMonthlyChecklist = (
   }, [activityYmdStr, reminderDays, lastSync]);
 
   const stillActionable = useMemo(
-    () => useUiStore.getState().isBeforeCutoff(activityYmdStr, '18:30'),
+    () => useUiStore.getState().isBeforeCutoff(activityYmdStr),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activityYmdStr, lastSync],
   );

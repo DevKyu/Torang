@@ -5,7 +5,7 @@ export const canEditTarget = (
   {
     isAdmin = true,
     allowWhenNoActivity = false,
-    cutoffTime = '18:00',
+    cutoffTime = '18:30',
   }: {
     isAdmin?: boolean;
     allowWhenNoActivity?: boolean;

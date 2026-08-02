@@ -78,12 +78,14 @@ const Reward = () => {
   const quarterYm = useMemo(() => getQuarterEndYm(), []);
 
   const { formatServerDate } = useUiStore.getState();
+  const lastSync = useUiStore((s) => s.lastSync);
   const serverYear = formatServerDate('year');
   const serverMonth = formatServerDate('month');
   const activityYmd = activityMaps[serverYear]?.[serverMonth];
   const isLocked = useMemo(
     () => isBeforeOrOnActivityDate(activityYmd, useUiStore.getState().getServerNow()),
-    [activityYmd],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activityYmd, lastSync],
   );
   const lockNoticeText = useMemo(() => {
     const ymd = activityYmd ? String(activityYmd) : '';

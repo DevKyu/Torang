@@ -6,6 +6,7 @@ export function useRivalEmpIds(ym: string): Set<string> {
   const [rivalIds, setRivalIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    setRivalIds(new Set())
     if (!ym) return
 
     const unsubs: (() => void)[] = []

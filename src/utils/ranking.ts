@@ -3,6 +3,8 @@ import type { RankingEntry, RankingType } from '../types/Ranking';
 import { useUiStore } from '../stores/useUiStore';
 import { getRecent3Scores } from './score';
 
+export const MEDALS = ['🥇', '🥈', '🥉'] as const;
+
 const QUARTER_MONTHS_MAP: Record<number, Month[]> = {
   1: ['1', '2', '3'],
   2: ['4', '5', '6'],

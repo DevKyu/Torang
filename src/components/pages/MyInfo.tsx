@@ -287,9 +287,7 @@ const MyInfo = () => {
                   {monthMeta.map((m) => {
                     const raw = activityMap[+m.key];
                     const actYmd = raw ? String(raw) : undefined;
-                    const timeAllowed = canEditTarget(actYmd, {
-                      cutoffTime: '18:30',
-                    });
+                    const timeAllowed = canEditTarget(actYmd);
                     const hasActivity = !!actYmd;
                     const isCurrentMonth =
                       year === serverYear && +m.key === serverMonth;

@@ -126,6 +126,7 @@ export type MessageHistoryItem = AdminMessage & { read: boolean };
 
 export const useMessageInbox = (myEmpId: string) => {
   const { allMessages, readIds, loading } = useMessagesData(myEmpId);
+  const lastSync = useUiStore((s) => s.lastSync);
 
   const queue = useMemo(() => {
     if (loading || readIds === null) return [];
@@ -138,7 +139,8 @@ export const useMessageInbox = (myEmpId: string) => {
       .filter((m) => !readIds[m.id])
       .filter((m) => isWithinPopupWindow(m, now))
       .sort((a, b) => (a.createdAtMs ?? 0) - (b.createdAtMs ?? 0));
-  }, [allMessages, readIds, myEmpId, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMessages, readIds, myEmpId, loading, lastSync]);
 
   const history = useMemo<MessageHistoryItem[]>(() => {
     if (loading || readIds === null) return [];
@@ -151,7 +153,8 @@ export const useMessageInbox = (myEmpId: string) => {
       .filter((m) => isWithinHistoryWindow(m, now))
       .map((m) => ({ ...m, read: !!readIds[m.id] }))
       .sort((a, b) => (b.createdAtMs ?? 0) - (a.createdAtMs ?? 0));
-  }, [allMessages, readIds, myEmpId, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMessages, readIds, myEmpId, loading, lastSync]);
 
   const unreadCount = useMemo(
     () => history.filter((m) => !m.read).length,

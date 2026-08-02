@@ -80,6 +80,8 @@ export const resolveActivityYmd = (
 
 export const REWARD_CLAIM_WINDOW_DAYS = 7;
 
+export const EARLIEST_ACTIVITY_YM = '202507';
+
 export const isWithinActivityDays = (
   activityYmd?: string | null,
   withinDays = REWARD_CLAIM_WINDOW_DAYS,
