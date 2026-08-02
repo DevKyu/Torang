@@ -76,7 +76,7 @@ export const PickResultRow = styled.div<{ correct?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 6px;
+  margin-top: 10px;
   padding: 9px 12px;
   border-radius: 8px;
   background: ${({ correct }) => (correct ? '#f0fdf4' : '#f9fafb')};
