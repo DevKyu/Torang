@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion, cubicBezier } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
@@ -6,7 +6,8 @@ import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
 import { Title as PageTitle } from '../../styles/global/commonStyle';
 import MonthNavigator from './MonthNavigator';
 import { useUiStore } from '../../stores/useUiStore';
-import { getYearMonth } from '../../utils/date';
+import { getYearMonth, resolveDisplayYm } from '../../utils/date';
+import { useActivityDates } from '../../hooks/useActivityDates';
 
 import {
   CategoryRow,
@@ -87,9 +88,23 @@ const ActivityHistory = () => {
     () => getYearMonth(useUiStore.getState().getServerNow()),
     [],
   );
+  const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
+  const [ymPending, setYmPending] = useState(false);
   const [category, setCategory] = useState<Category>('all');
   const [selected, setSelected] = useState<ActivityItem | null>(null);
+
+  useEffect(() => {
+    if (activityLoading) return;
+    const resolved = resolveDisplayYm(
+      activityMaps,
+      Number(currentYm.slice(0, 4)),
+      Number(currentYm.slice(4)),
+    );
+    if (resolved === currentYm) return;
+    setYmPending(true);
+    setYm(resolved);
+  }, [activityLoading, activityMaps, currentYm]);
 
   const { items: rewardItems, loading: rewardLoading } =
     useActivityRewards(ym);
@@ -102,12 +117,12 @@ const ActivityHistory = () => {
   const { items: drawItems, loading: drawLoading } =
     useActivityDraw(ym);
 
-  const [ymPending, setYmPending] = useState(false);
   useEffect(() => {
     setYmPending(false);
   }, [ym]);
 
   const isLoading =
+    activityLoading ||
     ymPending ||
     rewardLoading ||
     matchLoading ||
@@ -147,6 +162,11 @@ const ActivityHistory = () => {
 
   const month = Number(ym.slice(4, 6));
 
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [ym, category]);
+
   return (
     <>
       <MyInfoContainer>
@@ -184,38 +204,37 @@ const ActivityHistory = () => {
             ))}
           </CategoryRow>
 
-          <ListFrame key={`${ym}-${category}`}>
-            {isLoading || filtered.length === 0 ? (
-              <AnimatePresence mode="wait" initial={false}>
-                {isLoading ? (
-                  <EmptyState
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                  >
-                    <ClipLoader size={24} color="#9ca3af" />
-                  </EmptyState>
-                ) : (
-                  <EmptyState
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                  >
-                    {month}월의 활동 기록이 없습니다.
-                  </EmptyState>
-                )}
-              </AnimatePresence>
-            ) : (
-              <motion.div
-                variants={listVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {filtered.map((item) => (
+          <ListFrame ref={listRef}>
+            <AnimatePresence mode="wait" initial={false}>
+              {isLoading ? (
+                <EmptyState
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                >
+                  <ClipLoader size={24} color="#9ca3af" />
+                </EmptyState>
+              ) : filtered.length === 0 ? (
+                <EmptyState
+                  key={`empty-${ym}-${category}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                >
+                  {month}월의 활동 기록이 없습니다.
+                </EmptyState>
+              ) : (
+                <motion.div
+                  key={`data-${ym}-${category}`}
+                  variants={listVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                >
+                  {filtered.map((item) => (
                 <Row
                   key={item.id}
                   variants={rowVariants}
@@ -322,9 +341,10 @@ const ActivityHistory = () => {
                     </>
                   )}
                 </Row>
-                ))}
-              </motion.div>
-            )}
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </ListFrame>
 
           <SmallText

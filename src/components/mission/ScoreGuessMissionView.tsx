@@ -198,9 +198,7 @@ const ScoreGuessMissionView = ({
         isMine: voterEmpId === myEmpId,
       }))
       .sort(
-        (a, b) =>
-          Math.abs(a.predictedScore - (actualScore ?? 0)) -
-          Math.abs(b.predictedScore - (actualScore ?? 0)),
+        (a, b) => b.predictedScore - a.predictedScore || a.name.localeCompare(b.name, 'ko'),
       );
     return {
       targetEmpId: targetId,
