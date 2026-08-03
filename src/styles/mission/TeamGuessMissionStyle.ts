@@ -46,7 +46,7 @@ export const AddBonusBtn = styled.button`
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1.5px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   background: #fff;
   color: #6b7280;
   font-size: 13px;
