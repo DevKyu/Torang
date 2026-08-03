@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ref, get } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import MessageReadStatusModal from './MessageReadStatusModal';
+import MessageModal from '../shared/MessageModal';
 import { db, getCurrentUserOrThrow, empIdFromEmail } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/global/commonStyle';
@@ -20,6 +21,7 @@ import {
   WinnerBtn,
   Divider,
   SectionBlock,
+  PreviewBtn,
   TitleInput,
   CharCount,
   TargetSearchRow,
@@ -104,6 +106,7 @@ const AdminMessages = () => {
   const [sending, setSending] = useState(false);
   const [readStatusMessage, setReadStatusMessage] =
     useState<AdminMessage | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -271,6 +274,21 @@ const AdminMessages = () => {
 
   const messagesNow = useUiStore.getState().getServerNow().getTime();
 
+  const canPreview = title.trim() !== '' && content.trim() !== '' && content !== '<p></p>';
+  const previewMessage: AdminMessage = useMemo(
+    () => ({
+      id: 'preview',
+      title: title.trim(),
+      content,
+      type: targetMode,
+      createdBy: '',
+      createdAt: '',
+      createdAtMs: 0,
+      status: 'active',
+    }),
+    [title, content, targetMode],
+  );
+
   return (
     <AdminLayout title="공지사항 관리">
       <FormTitle>새 메시지 작성</FormTitle>
@@ -396,6 +414,9 @@ const AdminMessages = () => {
       </SectionBlock>
 
       <SaveRow>
+        <PreviewBtn onClick={() => setPreviewOpen(true)} disabled={!canPreview}>
+          미리보기
+        </PreviewBtn>
         <SaveBtn onClick={handleSend} disabled={sending}>
           {sending ? '발송 중...' : '발송'}
         </SaveBtn>
@@ -459,6 +480,17 @@ const AdminMessages = () => {
         allNames={allNames}
         namesLoaded={namesLoaded}
         onClose={() => setReadStatusMessage(null)}
+      />
+
+      <MessageModal
+        isOpen={previewOpen}
+        message={previewMessage}
+        empId="preview"
+        queuePosition={1}
+        queueLength={1}
+        previewMode
+        onClose={() => setPreviewOpen(false)}
+        onDismiss={() => setPreviewOpen(false)}
       />
     </AdminLayout>
   );

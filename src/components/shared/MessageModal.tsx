@@ -36,6 +36,7 @@ type Props = {
   alreadyRead?: boolean;
   onClose: () => void;
   onDismiss?: () => void;
+  previewMode?: boolean;
 };
 
 const MessageModal = ({
@@ -47,6 +48,7 @@ const MessageModal = ({
   alreadyRead,
   onClose,
   onDismiss,
+  previewMode,
 }: Props) => {
   useEffect(() => {
     if (!isOpen) return;
@@ -62,7 +64,7 @@ const MessageModal = ({
   }
 
   const { myReaction: remoteReaction, counts: reactionCounts } =
-    useMessageReactions(isOpen, displayMessage?.id, empId);
+    useMessageReactions(isOpen && !previewMode, displayMessage?.id, empId);
   const [pendingReaction, setPendingReaction] = useState<
     MessageReactionKey | null | undefined
   >(undefined);
@@ -86,6 +88,7 @@ const MessageModal = ({
     pendingReaction !== undefined ? pendingReaction : remoteReaction;
 
   const markSeenOnce = () => {
+    if (previewMode) return;
     const id = displayMessage.id;
     if (seenMarkedIdRef.current === id) return;
     seenMarkedIdRef.current = id;
@@ -99,9 +102,11 @@ const MessageModal = ({
   const handlePickReaction = (key: MessageReactionKey) => {
     const next = myReaction === key ? null : key;
     setPendingReaction(next);
-    setMessageReaction(displayMessage.id, empId, next).catch(() => {
-      setPendingReaction(undefined);
-    });
+    if (!previewMode) {
+      setMessageReaction(displayMessage.id, empId, next).catch(() => {
+        setPendingReaction(undefined);
+      });
+    }
     markSeenOnce();
   };
 

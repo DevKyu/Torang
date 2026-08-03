@@ -19,6 +19,29 @@ export const Divider = styled.hr`
   margin: 20px 0;
 `;
 
+export const PreviewBtn = styled.button`
+  padding: 9px 20px;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.15s ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      border-color: #cbd5e1;
+    }
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 export const SectionBlock = styled.div`
   margin-bottom: 20px;
 `;
