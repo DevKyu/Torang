@@ -124,7 +124,7 @@ const Achievements = () => {
             : formatServerDate('ym');
 
           if (isPinRewardEnabled('achievement', activityYm) && empId) {
-            grantAchievementPinReward({
+            await grantAchievementPinReward({
               empId,
               ym: activityYm,
               payload: { detail: Object.keys(newResults).join(', ') },

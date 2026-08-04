@@ -189,7 +189,7 @@ const MyInfo = () => {
         achieved: true,
         special,
       },
-    });
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     targetResult.show,

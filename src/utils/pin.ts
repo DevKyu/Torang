@@ -1,10 +1,5 @@
-import { ref, get, update, increment } from 'firebase/database';
-import {
-  getAuthHeader,
-  db,
-  getCurrentUserId,
-  incrementPinsByEmpId,
-} from '../services/firebase';
+import { ref, get, update, increment, runTransaction } from 'firebase/database';
+import { getAuthHeader, db, getCurrentUserId } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import { getResultType } from './ranking';
@@ -105,26 +100,31 @@ export const grantTargetPinReward = async ({
   if (rate <= 0) return false;
 
   const rewardPath = `users/${empId}/rewards/${ym}/target`;
-  const snap = await get(ref(db, rewardPath));
-  if (snap.exists()) return false;
-
-  await incrementPinsByEmpId(empId, rate);
-
   const { getServerNow, getServerTimestamp } = useUiStore.getState();
   const now = getServerNow();
   const readable = getServerTimestamp();
 
-  await update(ref(db), {
-    [rewardPath]: {
-      type: 'target',
-      ...payload,
-      pin: rate,
-      ym,
-      direction: 'gain',
-      createdAt: readable,
-      createdAtMs: now.getTime(),
-    },
-  });
+  const rewardRecord = {
+    type: 'target',
+    ...payload,
+    pin: rate,
+    ym,
+    direction: 'gain',
+    createdAt: readable,
+    createdAtMs: now.getTime(),
+  };
+
+  const claim = await runTransaction(ref(db, rewardPath), (cur) =>
+    cur === null ? rewardRecord : undefined,
+  );
+  if (!claim.committed) return false;
+
+  try {
+    await update(ref(db), { [`users/${empId}/pin`]: increment(rate) });
+  } catch (err) {
+    await update(ref(db), { [rewardPath]: null }).catch(() => {});
+    throw err;
+  }
 
   showTargetWithPinToast(rate);
 
@@ -144,26 +144,31 @@ export const grantAchievementPinReward = async ({
   if (rate <= 0) return false;
 
   const rewardPath = `users/${empId}/rewards/${ym}/achievement`;
-  const snap = await get(ref(db, rewardPath));
-  if (snap.exists()) return false;
-
-  await incrementPinsByEmpId(empId, rate);
-
   const { getServerNow, getServerTimestamp } = useUiStore.getState();
   const now = getServerNow();
   const readable = getServerTimestamp();
 
-  await update(ref(db), {
-    [rewardPath]: {
-      type: 'achievement',
-      ...payload,
-      pin: rate,
-      ym,
-      direction: 'gain',
-      createdAt: readable,
-      createdAtMs: now.getTime(),
-    },
-  });
+  const rewardRecord = {
+    type: 'achievement',
+    ...payload,
+    pin: rate,
+    ym,
+    direction: 'gain',
+    createdAt: readable,
+    createdAtMs: now.getTime(),
+  };
+
+  const claim = await runTransaction(ref(db, rewardPath), (cur) =>
+    cur === null ? rewardRecord : undefined,
+  );
+  if (!claim.committed) return false;
+
+  try {
+    await update(ref(db), { [`users/${empId}/pin`]: increment(rate) });
+  } catch (err) {
+    await update(ref(db), { [rewardPath]: null }).catch(() => {});
+    throw err;
+  }
 
   setTimeout(() => {
     showPinRewardToast(rate);
