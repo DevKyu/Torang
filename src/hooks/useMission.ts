@@ -297,15 +297,27 @@ export async function resetMissionState(
       ),
     ]);
 
+    const pinDeltas: Record<string, number> = {};
+    const currentPinByEmpId: Record<string, number> = {};
+
     recipientKeys.forEach(({ empId, key }, i) => {
       const snap = rewardSnaps[i];
       if (!snap.exists()) return;
       const pin = (snap.val() as { pin?: number })?.pin ?? 0;
       if (pin <= 0) return;
-      const currentPinVal = currentPinSnaps[i].val();
-      const currentPin = typeof currentPinVal === 'number' ? currentPinVal : 0;
-      updates[`users/${empId}/pin`] = Math.max(0, currentPin - pin);
+
+      pinDeltas[empId] = (pinDeltas[empId] ?? 0) + pin;
+      if (!(empId in currentPinByEmpId)) {
+        const currentPinVal = currentPinSnaps[i].val();
+        currentPinByEmpId[empId] =
+          typeof currentPinVal === 'number' ? currentPinVal : 0;
+      }
       updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
+    });
+
+    Object.entries(pinDeltas).forEach(([empId, totalPin]) => {
+      const currentPin = currentPinByEmpId[empId] ?? 0;
+      updates[`users/${empId}/pin`] = Math.max(0, currentPin - totalPin);
     });
   }
 

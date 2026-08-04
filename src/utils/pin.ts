@@ -43,19 +43,23 @@ export const applyPinChangeBatch = async (
   const serverTs = serverNow.getTime();
   const serverReadable = getServerTimestamp();
 
+  const claimedFlagPaths: string[] = [];
   const updates: Record<string, unknown> = {};
   let gainedPins = 0;
 
   for (const { opponentId, opponentName, result } of results) {
     const matchPath = `matchResults/${ym}/${type}/${myId}/${opponentId}`;
-    const rewardPath = `users/${myId}/rewards/${ym}/match/${opponentId}`;
+    const flagPath = `${matchPath}/pinUpdated`;
 
-    const pinUpdatedSnap = await get(ref(db, `${matchPath}/pinUpdated`));
-    if (pinUpdatedSnap.val() === true) continue;
+    const claim = await runTransaction(ref(db, flagPath), (cur) =>
+      cur === true ? undefined : true,
+    );
+    if (!claim.committed) continue;
+    claimedFlagPaths.push(flagPath);
 
     if (result === 'win') {
       gainedPins += rate;
-      updates[rewardPath] = {
+      updates[`users/${myId}/rewards/${ym}/match/${opponentId}`] = {
         type: 'match',
         matchType: type,
         opponentId,
@@ -68,18 +72,27 @@ export const applyPinChangeBatch = async (
         createdAtMs: serverTs,
       };
     }
-
-    updates[`${matchPath}/pinUpdated`] = true;
   }
+
+  if (claimedFlagPaths.length === 0) return;
 
   if (gainedPins > 0) {
     updates[`users/${myId}/pin`] = increment(gainedPins);
   }
 
   if (Object.keys(updates).length > 0) {
-    await update(ref(db), updates);
-    showMatchWithPinToast(gainedPins, type);
+    try {
+      await update(ref(db), updates);
+    } catch (err) {
+      await update(
+        ref(db),
+        Object.fromEntries(claimedFlagPaths.map((path) => [path, null])),
+      ).catch(() => {});
+      throw err;
+    }
   }
+
+  showMatchWithPinToast(gainedPins, type);
 };
 
 
