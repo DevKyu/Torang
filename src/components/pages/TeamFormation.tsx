@@ -56,16 +56,18 @@ const TeamFormation = () => {
 
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
+  const [ymPending, setYmPending] = useState(false);
 
   useEffect(() => {
     if (activityLoading) return;
-    setYm(
-      resolveDisplayYm(
-        activityMaps,
-        Number(currentYm.slice(0, 4)),
-        Number(currentYm.slice(4)),
-      ),
+    const resolved = resolveDisplayYm(
+      activityMaps,
+      Number(currentYm.slice(0, 4)),
+      Number(currentYm.slice(4)),
     );
+    if (resolved === currentYm) return;
+    setYmPending(true);
+    setYm(resolved);
   }, [activityLoading, activityMaps, currentYm]);
 
   const {
@@ -77,7 +79,12 @@ const TeamFormation = () => {
     isLegacy,
     error,
   } = useTeamFormation(ym);
-  const loading = activityLoading || teamLoading;
+
+  useEffect(() => {
+    setYmPending(false);
+  }, [ym]);
+
+  const loading = activityLoading || ymPending || teamLoading;
   const rivalIds = useRivalEmpIds(ym);
 
   const myEmpId = empIdFromEmail(auth.currentUser?.email);
@@ -87,6 +94,7 @@ const TeamFormation = () => {
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const handleYmChange = useCallback((next: string) => {
+    setYmPending(true);
     setYm(next);
     setActiveIdx(0);
     setOpenKey(null);

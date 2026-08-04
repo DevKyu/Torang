@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ref, get, onValue } from 'firebase/database';
@@ -43,12 +43,21 @@ const MissionPage = () => {
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const serverYear = Number(formatServerDate('year'));
   const serverMonth = Number(formatServerDate('month'));
-  const [ym, setYm] = useState(formatServerDate('ym'));
+  const currentYm = useMemo(() => useUiStore.getState().formatServerDate('ym'), []);
+  const [ym, setYm] = useState(currentYm);
+  const [ymPending, setYmPending] = useState(false);
 
   useEffect(() => {
     if (activityLoading) return;
-    setYm(resolveDisplayYm(activityMaps, serverYear, serverMonth));
-  }, [activityLoading, activityMaps, serverYear, serverMonth]);
+    const resolved = resolveDisplayYm(activityMaps, serverYear, serverMonth);
+    if (resolved === currentYm) return;
+    setYmPending(true);
+    setYm(resolved);
+  }, [activityLoading, activityMaps, serverYear, serverMonth, currentYm]);
+
+  useEffect(() => {
+    setYmPending(false);
+  }, [ym]);
 
   const { data, myEmpId, myVote, loading } = useMission(ym);
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
@@ -114,7 +123,7 @@ const MissionPage = () => {
     data,
   );
 
-  const isReady = !activityLoading && !loading && participantsLoaded;
+  const isReady = !activityLoading && !ymPending && !loading && participantsLoaded;
   const pageTitle = '활동 미션';
 
   return (
