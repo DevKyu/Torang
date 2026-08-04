@@ -254,13 +254,15 @@ const Reward = () => {
     let dataRemoved = false;
 
     try {
-      await Promise.all([
+      const [cancelled] = await Promise.all([
         cancelAppliedProduct(quarterYm, index),
         removeProductData(quarterYm, new Set([index])),
       ]);
       dataRemoved = true;
 
-      await setUserPinData(applied.requiredPins);
+      if (cancelled) {
+        await setUserPinData(applied.requiredPins);
+      }
 
       toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {

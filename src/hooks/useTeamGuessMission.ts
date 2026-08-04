@@ -1,4 +1,4 @@
-import { ref, set, get, remove, update } from 'firebase/database';
+import { ref, set, get, remove, update, increment } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import {
@@ -106,6 +106,7 @@ export async function revealTeamGuessMissionResult(
   const now = getServerNow().getTime();
   const createdAt = getServerTimestamp();
   const allWrites: Record<string, unknown> = {};
+  const pinDeltas: Record<string, number> = {};
 
   for (const [voterEmpId, vote] of Object.entries(votes ?? {})) {
     const groupId = voterGroupMap[voterEmpId];
@@ -115,6 +116,7 @@ export async function revealTeamGuessMissionResult(
     if (!myCorrect) continue;
 
     myGroupCorrectVoters.push(voterEmpId);
+    pinDeltas[voterEmpId] = (pinDeltas[voterEmpId] ?? 0) + rewardPin;
     Object.assign(
       allWrites,
       buildMissionPinReward(
@@ -131,6 +133,7 @@ export async function revealTeamGuessMissionResult(
       const bonusCorrect = vote.bonusGroupPick === winnerMap[vote.bonusGroupId];
       if (bonusCorrect) {
         bonusCorrectVoters.push(voterEmpId);
+        pinDeltas[voterEmpId] = (pinDeltas[voterEmpId] ?? 0) + bonusRewardPin;
         Object.assign(
           allWrites,
           buildMissionPinReward(
@@ -146,6 +149,10 @@ export async function revealTeamGuessMissionResult(
       }
     }
   }
+
+  Object.entries(pinDeltas).forEach(([empId, totalPin]) => {
+    allWrites[`users/${empId}/pin`] = increment(totalPin);
+  });
 
   allWrites[`missions/${ym}/result`] = {
     revealed: true,

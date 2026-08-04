@@ -7,7 +7,7 @@ import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/eventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { checkGalleryUploadAvailability } from '../utils/galleryUpload';
-import { getDiffDaysServer, resolveDisplayYm } from '../utils/date';
+import { getDiffDaysServer, resolveDisplayYm, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
 import type { ChecklistItem, SharedChecklistData } from './useMonthlyChecklist';
 import type { Year, Month } from '../types/UserInfo';
@@ -88,7 +88,7 @@ export const usePostActivityChecklist = (
   const withinTargetClaimWindow =
     diffDaysSinceActivity !== null &&
     diffDaysSinceActivity > 0 &&
-    diffDaysSinceActivity <= 7;
+    diffDaysSinceActivity <= REWARD_CLAIM_WINDOW_DAYS;
 
   const [targetRewardClaimed, setTargetRewardClaimed] = useState(false);
   const [targetRewardLoaded, setTargetRewardLoaded] = useState(false);

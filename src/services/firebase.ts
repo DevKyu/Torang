@@ -152,9 +152,13 @@ export const applyProduct = async (ym: string, index: string, data: AppliedProdu
   await set(ref(db, `users/${empId}/products/${ym}/${index}`), data);
 };
 
-export const cancelAppliedProduct = async (ym: string, index: string): Promise<void> => {
+export const cancelAppliedProduct = async (ym: string, index: string): Promise<boolean> => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  await remove(ref(db, `users/${empId}/products/${ym}/${index}`));
+  const result = await runTransaction(
+    ref(db, `users/${empId}/products/${ym}/${index}`),
+    (current) => (current === null ? undefined : null),
+  );
+  return result.committed;
 };
 
 export const addUser = async (empId: string, user: UserInfo) => {
@@ -230,9 +234,14 @@ export const removeProductData = async (ym: string, items: Set<string>) => {
 // 7. 핀 관련
 export const setUserPinData = async (pin: number) => {
   const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  await runTransaction(ref(db, `users/${empId}/pin`), (current) =>
-    Math.max(0, (current ?? 0) + pin),
-  );
+  const result = await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
+    const next = (current ?? 0) + pin;
+    if (next < 0) return;
+    return next;
+  });
+  if (!result.committed) {
+    throw new Error('PIN 잔액이 부족합니다.');
+  }
 };
 
 export const getUserPins = async (): Promise<number> => {
@@ -294,25 +303,32 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
 
         if (rewardBaseSnap.exists()) return;
 
-        const pinRef = ref(db, `users/${empId}/pin`);
-        const rewardRef = ref(
-          db,
-          `users/${empId}/rewards/${ym}/activity/${readableTime}`,
+        const claim = await runTransaction(rewardBaseRef, (cur) =>
+          cur === null
+            ? {
+                [readableTime]: {
+                  type: 'activity',
+                  direction: 'gain',
+                  pin: inc,
+                  ym,
+                  createdAt: readableTime,
+                  createdAtMs: nowMs,
+                },
+              }
+            : undefined,
         );
+        if (!claim.committed) return;
 
-        await Promise.all([
-          runTransaction(pinRef, (cur) =>
+        try {
+          await runTransaction(ref(db, `users/${empId}/pin`), (cur) =>
             typeof cur === 'number' ? cur + inc : inc,
-          ),
-          runTransaction(rewardRef, () => ({
-            type: 'activity',
-            direction: 'gain',
-            pin: inc,
-            ym,
-            createdAt: readableTime,
-            createdAtMs: nowMs,
-          })),
-        ]);
+          );
+        } catch (err) {
+          await update(ref(db), { [`users/${empId}/rewards/${ym}/activity`]: null }).catch(
+            () => {},
+          );
+          throw err;
+        }
       }),
     );
 

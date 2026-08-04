@@ -230,6 +230,10 @@ const AdminUserManagement = () => {
       toast.error('필수 항목을 모두 입력하세요.');
       return;
     }
+    if (!/^\d{8}$/.test(newEmpId)) {
+      toast.error('사번은 숫자 8자리여야 합니다.');
+      return;
+    }
     const joinYm = newJoin.replace('-', '');
     await addUser(newEmpId, {
       name: newName,
@@ -563,7 +567,9 @@ const AdminUserManagement = () => {
               <AccordionContent>
                 <NewUserForm>
                   <input
-                    placeholder="사번"
+                    placeholder="사번(숫자 8자리)"
+                    inputMode="numeric"
+                    maxLength={8}
                     value={newEmpId}
                     onChange={(e) => setNewEmpId(e.target.value)}
                   />

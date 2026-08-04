@@ -1,9 +1,5 @@
-import { ref, get, update } from 'firebase/database';
-import {
-  db,
-  getCurrentUserId,
-  incrementPinsByEmpId,
-} from '../services/firebase';
+import { ref, update, runTransaction, increment } from 'firebase/database';
+import { db, getCurrentUserId } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/eventStore';
 import { showGalleryRewardToast, showGalleryPopularityRewardToast } from './toast';
@@ -17,33 +13,34 @@ export const rewardGalleryMaxUpload = async (ym: string, uploadedCount: number) 
   const { pin, threshold } = upload;
   if (!pin || threshold <= 0 || uploadedCount < threshold) return null;
 
-  const rewardRef = ref(db, `users/${empId}/gallery/uploadReward/${ym}`);
-  const snap = await get(rewardRef);
-  if (snap.exists()) return null;
-
   const { getServerNow, getServerTimestamp, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
   const rewardKey = formatServerDate('ymdhmsms');
   const nowMs = getServerNow().getTime();
 
-  await incrementPinsByEmpId(empId, pin);
-  await update(ref(db), {
-    [`users/${empId}/gallery/uploadReward/${ym}`]: {
-      rewarded: true,
-      pin,
-      rewardedAt,
-      rewardedAtMs: nowMs,
-    },
-    [`users/${empId}/rewards/${ym}/gallery/${rewardKey}`]: {
-      type: 'gallery',
-      detail: `사진 ${threshold}장 이상 업로드`,
-      direction: 'gain',
-      pin,
-      ym,
-      createdAt: rewardedAt,
-      createdAtMs: nowMs,
-    },
-  });
+  const rewardPath = `users/${empId}/gallery/uploadReward/${ym}`;
+  const claim = await runTransaction(ref(db, rewardPath), (cur) =>
+    cur === null ? { rewarded: true, pin, rewardedAt, rewardedAtMs: nowMs } : undefined,
+  );
+  if (!claim.committed) return null;
+
+  try {
+    await update(ref(db), {
+      [`users/${empId}/pin`]: increment(pin),
+      [`users/${empId}/rewards/${ym}/gallery/${rewardKey}`]: {
+        type: 'gallery',
+        detail: `사진 ${threshold}장 이상 업로드`,
+        direction: 'gain',
+        pin,
+        ym,
+        createdAt: rewardedAt,
+        createdAtMs: nowMs,
+      },
+    });
+  } catch (err) {
+    await update(ref(db), { [rewardPath]: null }).catch(() => {});
+    throw err;
+  }
 
   showGalleryRewardToast(pin);
   return pin;
@@ -63,27 +60,33 @@ export const rewardGalleryLikeCreator = async (
   if (count < threshold) return null;
 
   const checkPath = `users/${creatorEmpId}/gallery/likeCreatorReward/${ym}/${imageId}`;
-  const snap = await get(ref(db, checkPath));
-  if (snap.exists()) return null;
-
   const { getServerTimestamp, getServerNow, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
   const rewardKey = formatServerDate('ymdhmsms');
   const rewardedAtMs = getServerNow().getTime();
 
-  await incrementPinsByEmpId(creatorEmpId, pin);
-  await update(ref(db), {
-    [checkPath]: { pin, rewardedAt, rewardedAtMs },
-    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
-      type: 'gallery',
-      detail: `내 사진 좋아요 ${threshold}개 달성`,
-      direction: 'gain',
-      pin,
-      ym,
-      createdAt: rewardedAt,
-      createdAtMs: rewardedAtMs,
-    },
-  });
+  const claim = await runTransaction(ref(db, checkPath), (cur) =>
+    cur === null ? { pin, rewardedAt, rewardedAtMs } : undefined,
+  );
+  if (!claim.committed) return null;
+
+  try {
+    await update(ref(db), {
+      [`users/${creatorEmpId}/pin`]: increment(pin),
+      [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
+        type: 'gallery',
+        detail: `내 사진 좋아요 ${threshold}개 달성`,
+        direction: 'gain',
+        pin,
+        ym,
+        createdAt: rewardedAt,
+        createdAtMs: rewardedAtMs,
+      },
+    });
+  } catch (err) {
+    await update(ref(db), { [checkPath]: null }).catch(() => {});
+    throw err;
+  }
 
   showGalleryPopularityRewardToast(pin, 'like', threshold);
   return pin;
@@ -108,27 +111,33 @@ export const rewardGalleryCommentCreator = async (
   if (count < threshold) return null;
 
   const checkPath = `users/${creatorEmpId}/gallery/commentCreatorReward/${ym}/${imageId}`;
-  const snap = await get(ref(db, checkPath));
-  if (snap.exists()) return null;
-
   const { getServerTimestamp, getServerNow, formatServerDate } = useUiStore.getState();
   const rewardedAt = getServerTimestamp();
   const rewardKey = formatServerDate('ymdhmsms');
   const rewardedAtMs = getServerNow().getTime();
 
-  await incrementPinsByEmpId(creatorEmpId, pin);
-  await update(ref(db), {
-    [checkPath]: { pin, rewardedAt, rewardedAtMs },
-    [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
-      type: 'gallery',
-      detail: `내 사진 댓글 ${threshold}개 달성`,
-      direction: 'gain',
-      pin,
-      ym,
-      createdAt: rewardedAt,
-      createdAtMs: rewardedAtMs,
-    },
-  });
+  const claim = await runTransaction(ref(db, checkPath), (cur) =>
+    cur === null ? { pin, rewardedAt, rewardedAtMs } : undefined,
+  );
+  if (!claim.committed) return null;
+
+  try {
+    await update(ref(db), {
+      [`users/${creatorEmpId}/pin`]: increment(pin),
+      [`users/${creatorEmpId}/rewards/${ym}/gallery/${rewardKey}`]: {
+        type: 'gallery',
+        detail: `내 사진 댓글 ${threshold}개 달성`,
+        direction: 'gain',
+        pin,
+        ym,
+        createdAt: rewardedAt,
+        createdAtMs: rewardedAtMs,
+      },
+    });
+  } catch (err) {
+    await update(ref(db), { [checkPath]: null }).catch(() => {});
+    throw err;
+  }
 
   showGalleryPopularityRewardToast(pin, 'comment', threshold);
   return pin;
