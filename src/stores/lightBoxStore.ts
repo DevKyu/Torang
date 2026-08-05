@@ -4,12 +4,8 @@ import { toggleGalleryLike, subscribeGalleryLikes } from '../utils/galleryLike';
 import {
   fetchGalleryComments,
   subscribeGalleryComments,
+  countVisibleComments,
 } from '../utils/comments';
-
-const countVisibleComments = (list: LightboxComment[]) => {
-  const rootIds = new Set(list.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
-  return list.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
-};
 
 type LightBoxState = {
   images: GalleryImage[];
@@ -19,9 +15,6 @@ type LightBoxState = {
   uploadImages: GalleryImage[];
   uploadOpen: boolean;
   uploadIndex: number;
-
-  showIcon: boolean;
-  showCaption: boolean;
 
   commentOpen: boolean;
   commentIndex: number;
@@ -79,9 +72,6 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
   uploadImages: [],
   uploadOpen: false,
   uploadIndex: 0,
-
-  showIcon: true,
-  showCaption: true,
 
   commentOpen: false,
   commentIndex: 0,

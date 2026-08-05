@@ -31,7 +31,7 @@ import { preloadOpenUploadLightBox } from '../../utils/gallery';
 import { getCurrentUserId } from '../../services/firebase';
 import { GALLERY_POLICY } from '../../utils/galleryPolicy';
 
-export type GalleryUploadProps = {
+type GalleryUploadProps = {
   onUpload: (files: File[], captions: string[]) => Promise<void>;
   disabled: boolean;
   availableCount: number;

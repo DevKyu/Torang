@@ -6,14 +6,12 @@ const DESC_H = 72;
 const FOOTER_H = 60;
 
 const topOffset = `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`;
+const bottomOffset = `calc(${DESC_H + FOOTER_H}px + env(safe-area-inset-bottom, 0px))`;
 
-const getBottomOffset = (showIcon: boolean) =>
-  `calc(${DESC_H + (showIcon ? FOOTER_H : 0)}px + env(safe-area-inset-bottom, 0px))`;
-
-const stableHeight = (showIcon: boolean) => `
+const stableHeight = `
   max(
     300px,
-    calc(100dvh - ${topOffset} - ${getBottomOffset(showIcon)} - 16px)
+    calc(100dvh - ${topOffset} - ${bottomOffset} - 16px)
   )
 `;
 
@@ -89,9 +87,9 @@ export const IconButton = styled.button`
   }
 `;
 
-export const ImageBox = styled.div<{ showIcon: boolean }>`
+export const ImageBox = styled.div`
   width: 100%;
-  height: ${({ showIcon }) => stableHeight(showIcon)};
+  height: ${stableHeight};
   min-height: 300px;
   position: relative;
   overflow: hidden;
@@ -133,12 +131,9 @@ export const NameBox = styled.div`
   text-align: center;
 `;
 
-export const DescriptionWrap = styled.div<{ showIcon: boolean }>`
+export const DescriptionWrap = styled.div`
   position: absolute;
-  bottom: ${({ showIcon }) =>
-    showIcon
-      ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px) + 4px)`
-      : `calc(env(safe-area-inset-bottom, 0px) + 4px)`};
+  bottom: calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px) + 4px);
 
   left: 50%;
   transform: translateX(-50%);
@@ -182,11 +177,10 @@ export const Description = styled(motion.div)`
   text-size-adjust: 100%;
 `;
 
-export const Footer = styled.div<{ showIcon: boolean }>`
+export const Footer = styled.div`
   width: 100%;
-  height: ${({ showIcon }) =>
-    showIcon ? `calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px))` : '0'};
-  display: ${({ showIcon }) => (showIcon ? 'flex' : 'none')};
+  height: calc(${FOOTER_H}px + env(safe-area-inset-bottom, 0px));
+  display: flex;
   justify-content: center;
   align-items: flex-start;
   position: fixed;

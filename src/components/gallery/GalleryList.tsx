@@ -37,18 +37,8 @@ import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
 import { getCurrentUserId } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
-import type { LightboxComment } from '../../types/lightbox';
-
-type GalleryItem = {
-  id: string;
-  url: string;
-  caption: string;
-  uploadedAt: number;
-  order?: number;
-  empId: string;
-  likes?: Record<string, true>;
-  comments?: Record<string, LightboxComment>;
-};
+import { countVisibleComments } from '../../utils/comments';
+import type { GalleryItem } from './GalleryPage';
 
 type Props = {
   list: GalleryItem[] | null;
@@ -157,12 +147,9 @@ const GalleryList = ({
         ym,
         likes: i.likes ? Object.keys(i.likes).length : 0,
         liked: Boolean(i.likes?.[getCurrentUserId()]),
-        commentCount: (() => {
-          if (!i.comments) return 0;
-          const all = Object.values(i.comments);
-          const rootIds = new Set(all.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
-          return all.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
-        })(),
+        commentCount: i.comments
+          ? countVisibleComments(Object.values(i.comments))
+          : 0,
       })),
     );
   }, [sorted, open, setImages, ym, loading]);

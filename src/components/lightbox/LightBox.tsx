@@ -37,9 +37,10 @@ import {
 
 import { useLightBoxStore } from '../../stores/lightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
+import { countVisibleComments } from '../../utils/comments';
 import CommentSheet from '../lightbox/CommentSheet';
 
-export const LightBox = () => {
+const LightBox = () => {
   const {
     open,
     images,
@@ -51,8 +52,6 @@ export const LightBox = () => {
     uploadIndex,
     prevUpload,
     nextUpload,
-    showIcon,
-    showCaption,
     closeLightBox,
     closeUploadLightBox,
     toggleLike,
@@ -236,12 +235,11 @@ export const LightBox = () => {
 
   const img = list[current];
   const name = img.empId ? getCachedUserName(img.empId) : '';
-  const hasDesc = showCaption && !!img.description?.trim();
+  const hasDesc = !!img.description?.trim();
 
   const id = img.id;
   const comments = id ? (commentsState[id] ?? []) : [];
-  const rootIds = new Set(comments.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
-  const commentCount = comments.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
+  const commentCount = countVisibleComments(comments);
   const likeCount = img.likes ?? 0;
 
   const overlayClick = () => {
@@ -274,7 +272,6 @@ export const LightBox = () => {
 
           <ImageBox
             ref={imageBoxRef}
-            showIcon={showIcon}
             onClick={(e) => e.stopPropagation()}
           >
             <motion.div
@@ -374,7 +371,6 @@ export const LightBox = () => {
 
           {(name || hasDesc) && (
             <DescriptionWrap
-              showIcon={showIcon}
               onClick={(e) => e.stopPropagation()}
             >
               {!isUpload && name && <NameBox>{name} 님의 사진</NameBox>}
@@ -388,7 +384,7 @@ export const LightBox = () => {
           )}
 
           {!isUpload && (
-            <Footer showIcon={showIcon} onClick={(e) => e.stopPropagation()}>
+            <Footer onClick={(e) => e.stopPropagation()}>
               <FooterIcons>
                 <IconRow
                   whileTap={{ scale: 0.80 }}

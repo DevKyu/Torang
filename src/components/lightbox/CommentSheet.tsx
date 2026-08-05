@@ -61,7 +61,7 @@ const formatTimeAgo = (ts: number) => {
   ).padStart(2, '0')}`;
 };
 
-export const CommentSheet = () => {
+const CommentSheet = () => {
   const {
     commentOpen,
     closeComment,

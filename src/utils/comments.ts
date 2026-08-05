@@ -14,6 +14,11 @@ type Raw = {
   likes?: Record<string, true>;
 };
 
+export const countVisibleComments = (list: LightboxComment[]) => {
+  const rootIds = new Set(list.filter((c) => !c.deleted && !c.parentId).map((c) => c.id));
+  return list.filter((c) => !c.deleted && (!c.parentId || rootIds.has(c.parentId))).length;
+};
+
 const createCommentId = (empId: string) => {
   const fmt = useUiStore.getState().formatServerDate;
   return `${empId}_${fmt('ymdhmsms')}`;
