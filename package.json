@@ -23,6 +23,7 @@
     "@vercel/node": "^5.5.0",
     "browser-image-compression": "^2.0.2",
     "canvas-confetti": "^1.9.3",
+    "dompurify": "^3.4.13",
     "firebase": "^11.9.1",
     "firebase-admin": "^13.5.0",
     "framer-motion": "^12.18.1",

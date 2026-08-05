@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import type { HiddenContent } from '../../hooks/useMission';
-import { HtmlBody, PlainBody } from '../../styles/mission/MissionStyle';
+import { renderMissionBody } from './missionBody';
 import {
   Backdrop,
   Card,
@@ -54,10 +54,7 @@ const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
             <MissionTitle>{hidden.revealTitle || '이달의 빌런 미션 공개 🎭'}</MissionTitle>
             <Divider />
             <ContentArea color={VILLAIN_COLOR}>
-              {hidden.description.includes('<')
-                ? <HtmlBody dangerouslySetInnerHTML={{ __html: hidden.description }} />
-                : <PlainBody>{hidden.description}</PlainBody>
-              }
+              {renderMissionBody(hidden.description)}
             </ContentArea>
             <CloseBtn onClick={onClose}>
               닫기

@@ -12,6 +12,7 @@ import {
   type MessageReactionKey,
 } from '../../hooks/useMessages';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 import { HtmlBody, PlainBody } from '../../styles/mission/MissionStyle';
 import {
   Backdrop,
@@ -152,7 +153,7 @@ const MessageModal = ({
                 <ContentArea color={accent}>
                   {displayMessage.content.includes('<') ? (
                     <HtmlBody
-                      dangerouslySetInnerHTML={{ __html: displayMessage.content }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(displayMessage.content) }}
                     />
                   ) : (
                     <PlainBody>{displayMessage.content}</PlainBody>

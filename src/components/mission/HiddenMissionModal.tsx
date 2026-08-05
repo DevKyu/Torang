@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
 import type { HiddenContent } from '../../hooks/useMission';
-import { HtmlBody, PlainBody } from '../../styles/mission/MissionStyle';
+import { renderMissionBody } from './missionBody';
 import {
   Backdrop,
   Card,
@@ -95,10 +95,7 @@ const HiddenMissionModal = ({ isOpen, onClose, role, hidden }: Props) => {
             <MissionTitle>{hidden.title}</MissionTitle>
             <Divider />
             <ContentArea color={color}>
-              {hidden.description.includes('<')
-                ? <HtmlBody dangerouslySetInnerHTML={{ __html: hidden.description }} />
-                : <PlainBody>{hidden.description}</PlainBody>
-              }
+              {renderMissionBody(hidden.description)}
             </ContentArea>
 
             <ConfirmBtn color={color} onClick={onClose}>
