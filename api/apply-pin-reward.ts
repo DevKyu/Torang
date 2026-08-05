@@ -32,7 +32,11 @@ const applyReferralReward = async (empId: string) => {
   const pinRateSnap = await db.ref('eventConfig/referralPin').get();
   const pinRate =
     typeof pinRateSnap.val() === 'number' ? (pinRateSnap.val() as number) : 0;
-  if (pinRate <= 0) return { rewarded: false as const };
+  console.log('[REFERRAL DEBUG] empId=%s pinRateRaw=%o pinRate=%o', empId, pinRateSnap.val(), pinRate);
+  if (pinRate <= 0) {
+    console.log('[REFERRAL DEBUG] bail: pinRate<=0');
+    return { rewarded: false as const };
+  }
 
   const { y, mo, day, h, mi, s, ms } = kstParts();
   const rewardedAt = `${y}${mo}${day}${h}${mi}`;
@@ -41,16 +45,31 @@ const applyReferralReward = async (empId: string) => {
 
   const referralRef = db.ref(`referrals/${empId}`);
 
+  const preSnap = await referralRef.get();
+  console.log('[REFERRAL DEBUG] preTransaction referrals/%s = %o', empId, preSnap.val());
+
   const tx = await referralRef.transaction((cur: ReferralData | null) => {
+    console.log('[REFERRAL DEBUG] tx callback cur=%o', cur);
     if (!cur || cur.rewarded || !cur.refEmpId) return;
     return { ...cur, rewarded: true, rewardedAt, pin: pinRate };
   });
 
-  if (!tx.committed) return { rewarded: false as const };
+  console.log('[REFERRAL DEBUG] tx.committed=%o tx.snapshot=%o', tx.committed, tx.snapshot.val());
+
+  if (!tx.committed) {
+    console.log('[REFERRAL DEBUG] bail: !tx.committed');
+    return { rewarded: false as const };
+  }
 
   const committed = tx.snapshot.val() as ReferralData | null;
   const refEmpId = committed?.refEmpId;
   if (!refEmpId || committed?.rewardedAt !== rewardedAt) {
+    console.log(
+      '[REFERRAL DEBUG] bail: refEmpId=%o committed.rewardedAt=%o rewardedAt=%o',
+      refEmpId,
+      committed?.rewardedAt,
+      rewardedAt,
+    );
     return { rewarded: false as const };
   }
 
@@ -114,9 +133,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: '권한이 없습니다.' });
   }
 
+  console.log('[REFERRAL DEBUG] handler type=%o resolvedEmpId=%o', type, empId);
+
   try {
     if (type === 'referral') {
       const result = await applyReferralReward(empId);
+      console.log('[REFERRAL DEBUG] result=%o', result);
       return res.status(200).json({ success: true, ...result });
     }
 
