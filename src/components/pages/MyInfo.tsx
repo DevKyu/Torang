@@ -68,8 +68,14 @@ const MyInfo = () => {
   const [quarter, setQuarter] = useState(monthToQuarter(serverMonth));
   const [optimisticTargets, setOptimisticTargets] = useState<UserTargets>({});
 
-  const scores = useMemo<UserScores>(() => userInfo?.scores ?? {}, [userInfo?.scores]);
-  const targets = useMemo<UserTargets>(() => userInfo?.targets ?? {}, [userInfo?.targets]);
+  const scores = useMemo<UserScores>(
+    () => userInfo?.scores ?? {},
+    [userInfo?.scores],
+  );
+  const targets = useMemo<UserTargets>(
+    () => userInfo?.targets ?? {},
+    [userInfo?.targets],
+  );
   const typeLabel = getTypeLabel(type);
 
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
@@ -87,7 +93,11 @@ const MyInfo = () => {
 
   const yearNum = Number(serverYear);
   const monthNum = serverMonth;
-  const activityYmdStr = resolveActivityYmd(activityAll, String(yearNum), monthNum);
+  const activityYmdStr = resolveActivityYmd(
+    activityAll,
+    String(yearNum),
+    monthNum,
+  );
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
   const targetResult = useTargetResult(userInfo, activityYmdStr);
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
@@ -120,19 +130,17 @@ const MyInfo = () => {
     serverMonth,
   ]);
 
-  const trend = useMemo(() => {
-    const hasCur = avgCur !== null && validCount >= 2;
-    const hasPrev = avgPrev !== null;
-    const diff = hasPrev ? avgCur! - avgPrev! : 0;
-    const color = !hasPrev
-      ? '#666'
-      : diff > 0
-        ? '#dc2626'
-        : diff < 0
-          ? '#2563eb'
-          : '#666';
-    return { show: hasCur, diff, color };
-  }, [validCount, avgCur, avgPrev]);
+  const trendHasCur = avgCur !== null && validCount >= 2;
+  const trendHasPrev = avgPrev !== null;
+  const trendDiff = trendHasPrev ? avgCur! - avgPrev! : 0;
+  const trendColor = !trendHasPrev
+    ? '#666'
+    : trendDiff > 0
+      ? '#dc2626'
+      : trendDiff < 0
+        ? '#2563eb'
+        : '#666';
+  const trend = { show: trendHasCur, diff: trendDiff, color: trendColor };
 
   const rollbackTarget = useCallback(
     (key: Month) => {
@@ -272,7 +280,9 @@ const MyInfo = () => {
 
           {!isReady ? (
             <SkeletonScoreGrid>
-              {[0, 1, 2].map((i) => <SkeletonScoreItem key={i} />)}
+              {[0, 1, 2].map((i) => (
+                <SkeletonScoreItem key={i} />
+              ))}
             </SkeletonScoreGrid>
           ) : (
             <>
