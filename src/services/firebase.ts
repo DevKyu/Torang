@@ -27,7 +27,7 @@ import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
 import type { ProductBundle } from '../types/Product';
 import type { MissionData } from '../hooks/useMission';
-import { getYearMonth } from '../utils/date';
+import { getYearMonth, resolveActivityYmd } from '../utils/date';
 import { useUiStore } from '../stores/useUiStore';
 
 // 2. Firebase App 설정
@@ -271,37 +271,52 @@ export const resetAllUserPins = async (value: number = 0) => {
   await update(ref(db), updates);
 };
 
-export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
+export const resolveCurrentActivityYmd = async (): Promise<string | null> => {
+  const serverNow = useUiStore.getState().getServerNow();
+  const activityAll = await getAllActivityDates();
+  const activityYmd = resolveActivityYmd(
+    activityAll,
+    String(serverNow.getFullYear()),
+    serverNow.getMonth() + 1,
+  );
+  return activityYmd ? String(activityYmd) : null;
+};
+
+export const adjustPinsForCurrentMonth = async (
+  activityYmdOverride?: string,
+): Promise<{ granted: number; failed: number } | null> => {
   try {
-    const { getServerNow, getServerTimestamp } = useUiStore.getState();
-    const serverNow = getServerNow();
-    const year = String(serverNow.getFullYear()) as Year;
-    const month = String(serverNow.getMonth() + 1);
-    const ym = `${year}${month.padStart(2, '0')}`;
+    const activityYmdStr = activityYmdOverride ?? (await resolveCurrentActivityYmd());
+    if (!activityYmdStr) return null;
+
+    const year = activityYmdStr.slice(0, 4) as Year;
+    const month = String(Number(activityYmdStr.slice(4, 6)));
+    const day = activityYmdStr.slice(6, 8);
+    const ym = activityYmdStr.slice(0, 6);
 
     const [participantsSnap, usersSnap] = await Promise.all([
       get(ref(db, `activityParticipants/${year}/${month}`)),
       get(ref(db, 'users')),
     ]);
-    if (!participantsSnap.exists() || !usersSnap.exists()) return false;
+    if (!participantsSnap.exists() || !usersSnap.exists()) return null;
 
     const participants = participantsSnap.val();
-    const nowMs = serverNow.getTime();
-    const readableTime = getServerTimestamp();
+    const nowMs = new Date(Number(year), Number(month) - 1, Number(day), 18, 30, 0, 0).getTime();
+    const readableTime = `${activityYmdStr}1830`;
 
-    await Promise.all(
-      Object.keys(participants).map(async (empId) => {
+    const settled = await Promise.allSettled(
+      Object.keys(participants).map(async (empId): Promise<boolean> => {
         const user = usersSnap.child(empId).val();
-        if (!user) return;
+        if (!user) return false;
 
         const inc =
           user.type === 'Member' ? 1 : user.type === 'Associate' ? 0.5 : 0;
-        if (inc === 0) return;
+        if (inc === 0) return false;
 
         const rewardBaseRef = ref(db, `users/${empId}/rewards/${ym}/activity`);
         const rewardBaseSnap = await get(rewardBaseRef);
 
-        if (rewardBaseSnap.exists()) return;
+        if (rewardBaseSnap.exists()) return false;
 
         const claim = await runTransaction(rewardBaseRef, (cur) =>
           cur === null
@@ -317,12 +332,13 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
               }
             : undefined,
         );
-        if (!claim.committed) return;
+        if (!claim.committed) return false;
 
         try {
           await runTransaction(ref(db, `users/${empId}/pin`), (cur) =>
             typeof cur === 'number' ? cur + inc : inc,
           );
+          return true;
         } catch (err) {
           await update(ref(db), { [`users/${empId}/rewards/${ym}/activity`]: null }).catch(
             () => {},
@@ -332,9 +348,12 @@ export const adjustPinsForCurrentMonth = async (): Promise<boolean> => {
       }),
     );
 
-    return true;
+    return {
+      granted: settled.filter((r) => r.status === 'fulfilled' && r.value).length,
+      failed: settled.filter((r) => r.status === 'rejected').length,
+    };
   } catch {
-    return false;
+    return null;
   }
 };
 

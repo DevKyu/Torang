@@ -14,7 +14,6 @@ import {
   removeUserScore,
   addUser,
   deleteUser,
-  adjustPinsForCurrentMonth,
 } from '../../services/firebase';
 import type { UserInfo, Year, Month } from '../../types/UserInfo';
 import { useUiStore } from '../../stores/useUiStore';
@@ -299,32 +298,6 @@ const AdminUserManagement = () => {
         err instanceof Error ? err.message : '비밀번호 초기화 중 오류가 발생했습니다.',
       );
     }
-  };
-
-  const handleCurrentMonthPinAdjustment = async () => {
-    const { formatServerDate } = useUiStore.getState();
-    const curYear = formatServerDate('year');
-    const curMonth = formatServerDate('month');
-
-    if (
-      !window.confirm(
-        `${curYear}년 ${curMonth}월 활동자에게 핀을 지급하시겠습니까?\n(정회원 +1, 준회원 +0.5)`,
-      )
-    )
-      return;
-
-    setLoading(true);
-    const ok = await adjustPinsForCurrentMonth();
-
-    if (ok) {
-      const data = await fetchAllUsers();
-      setUsers(data);
-      toast.success(`${curYear}년 ${curMonth}월 활동자 핀 지급 완료`);
-    } else {
-      toast.error('대상자 없음 또는 오류 발생');
-    }
-
-    setLoading(false);
   };
 
   return (
@@ -613,12 +586,6 @@ const AdminUserManagement = () => {
                 <BulkSection>
                   <button onClick={handleBulkReset} disabled={loading}>
                     전체 핀 0으로 초기화
-                  </button>
-                  <button
-                    onClick={handleCurrentMonthPinAdjustment}
-                    disabled={loading}
-                  >
-                    이번 달 활동자 핀 조정 (+1 / +0.5)
                   </button>
                 </BulkSection>
               </AccordionContent>

@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 
 import AdminLayout from './AdminLayout';
 
-import { db, fetchAllUsers } from '../../services/firebase';
+import { db, fetchAllUsers, adjustPinsForCurrentMonth, resolveCurrentActivityYmd } from '../../services/firebase';
 import { createAdminMonthOptions } from '../../utils/date';
+import { useUiStore } from '../../stores/useUiStore';
 
 import type { UserInfo } from '../../types/UserInfo';
 
@@ -96,6 +97,7 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
   const [activityDate, setActivityDate] = useState('');
   const [savedActivityDate, setSavedActivityDate] = useState('');
   const [savingDate, setSavingDate] = useState(false);
+  const [pinAdjusting, setPinAdjusting] = useState(false);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -227,6 +229,49 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
     }
   };
 
+  const handlePinAdjustment = async () => {
+    if (dirty) {
+      toast.error('참여자 명단에 저장하지 않은 변경사항이 있습니다. 먼저 저장해주세요.', {
+        position: 'top-center',
+      });
+      return;
+    }
+
+    const activityYmd = await resolveCurrentActivityYmd();
+    if (!activityYmd) {
+      toast.error('등록된 활동일이 없습니다.', { position: 'top-center' });
+      return;
+    }
+    if (useUiStore.getState().isBeforeCutoff(activityYmd, '18:30')) {
+      toast.error('아직 활동이 진행되지 않았습니다 (활동일 18:30 이후 지급 가능).', {
+        position: 'top-center',
+      });
+      return;
+    }
+
+    const label = `${activityYmd.slice(0, 4)}년 ${Number(activityYmd.slice(4, 6))}월 ${Number(activityYmd.slice(6, 8))}일`;
+    if (!window.confirm(`${label} 활동 참여자에게 핀을 지급하시겠습니까?\n(정회원 +1, 준회원 +0.5)`)) return;
+
+    setPinAdjusting(true);
+    try {
+      const result = await adjustPinsForCurrentMonth(activityYmd);
+      if (!result) {
+        toast.error('대상자 없음 또는 오류 발생', { position: 'top-center' });
+      } else if (result.failed > 0) {
+        toast.error(
+          `${result.granted}명 지급, ${result.failed}명 실패 — 다시 눌러 재시도해주세요.`,
+          { position: 'top-center' },
+        );
+      } else if (result.granted > 0) {
+        toast.success(`${label} 활동자 ${result.granted}명 핀 지급 완료`, { position: 'top-center' });
+      } else {
+        toast.success(`${label} 활동자는 이미 모두 지급된 상태입니다.`, { position: 'top-center' });
+      }
+    } finally {
+      setPinAdjusting(false);
+    }
+  };
+
   const handleSave = async () => {
     const year = selectedYm.slice(0, 4);
     const month = String(Number(selectedYm.slice(4)));
@@ -290,6 +335,15 @@ const AdminActivityParticipants = ({ mode = 'activity' }: Props) => {
                 onClick={handleSaveDate}
               >
                 {savingDate ? '저장 중...' : activityDate === savedActivityDate && savedActivityDate ? '저장됨' : '저장'}
+              </ActivityDateBtn>
+            </ActivityDateRow>
+          )}
+
+          {mode === 'activity' && (
+            <ActivityDateRow>
+              <ActivityDateLabel>활동자 핀</ActivityDateLabel>
+              <ActivityDateBtn disabled={pinAdjusting || dirty} onClick={handlePinAdjustment}>
+                {pinAdjusting ? '지급 중...' : dirty ? '참여자 저장 필요' : '이번 활동 핀 지급 (+1 / +0.5)'}
               </ActivityDateBtn>
             </ActivityDateRow>
           )}
