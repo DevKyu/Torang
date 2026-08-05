@@ -1,16 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { auth, empIdFromEmail } from '../../services/firebase';
 import Layout from '../layouts/Layout';
+import ScreenLoadingState from '../shared/ScreenLoadingState';
 import { SmallText } from '../../styles/global/commonStyle';
 import MonthNavigator from '../activity/MonthNavigator';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { calcGroupDiff, diffLevel } from '../../utils/teamFormation';
-import { getYearMonth, resolveDisplayYm, EARLIEST_ACTIVITY_YM } from '../../utils/date';
+import {
+  getYearMonth,
+  resolveDisplayYm,
+  EARLIEST_ACTIVITY_YM,
+} from '../../utils/date';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   ContentArea,
@@ -45,6 +50,12 @@ const PENDING_MIN_HEIGHT = 220;
 
 const scoreAvg = (s: [number, number]) =>
   s[0] > 0 && s[1] > 0 ? (s[0] + s[1]) / 2 : s[1] || s[0];
+
+const RESULT_TYPE = {
+  team1: 'team1Win',
+  team2: 'team2Win',
+  draw: 'draw',
+} as const;
 
 const TeamFormation = () => {
   const goBack = useNavigateBack();
@@ -93,21 +104,21 @@ const TeamFormation = () => {
   const [activeIdx, setActiveIdx] = useState(0);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
-  const handleYmChange = useCallback((next: string) => {
+  const handleYmChange = (next: string) => {
     setYmPending(true);
     setYm(next);
     setActiveIdx(0);
     setOpenKey(null);
-  }, []);
+  };
 
-  const toggleScore = useCallback((key: string) => {
+  const toggleScore = (key: string) => {
     setOpenKey((prev) => (prev === key ? null : key));
-  }, []);
+  };
 
-  const handleTabClick = useCallback((idx: number) => {
+  const handleTabClick = (idx: number) => {
     setActiveIdx(idx);
     setOpenKey(null);
-  }, []);
+  };
 
   const stableMinHeightRef = useRef<number | undefined>(undefined);
   const confirmedMinHeight =
@@ -129,14 +140,7 @@ const TeamFormation = () => {
   const winner = winnerMap[activeGroupId];
   const groupDiff = activeGroup ? calcGroupDiff(activeGroup) : 0;
 
-  const resultType =
-    winner === 'team1'
-      ? 'team1Win'
-      : winner === 'team2'
-        ? 'team2Win'
-        : winner === 'draw'
-          ? 'draw'
-          : 'none';
+  const resultType = winner ? RESULT_TYPE[winner] : 'none';
 
   const getTeamState = (teamNum: '1' | '2') => {
     if (!winner) return 'pending';
@@ -156,18 +160,11 @@ const TeamFormation = () => {
       <ContentArea style={{ minHeight: contentMinHeight }}>
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              style={{ flex: 1 }}
-            >
+            <ScreenLoadingState key="loading" style={{ flex: 1 }}>
               <LoadingBox>
                 <ClipLoader size={24} color="#9ca3af" />
               </LoadingBox>
-            </motion.div>
+            </ScreenLoadingState>
           ) : !isConfirmed ? (
             <motion.div
               key={`pending-${ym}`}
@@ -300,7 +297,8 @@ const TeamFormation = () => {
                                         isMe={isMe}
                                         detail
                                       >
-                                        {scores[0] || '–'}&thinsp;·&thinsp;{scores[1] || '–'}
+                                        {scores[0] || '–'}&thinsp;·&thinsp;
+                                        {scores[1] || '–'}
                                       </PlayerAvg>
                                     </FadeSpan>
                                   ) : scores && hasScores ? (

@@ -5,6 +5,7 @@ import { ClipLoader } from 'react-spinners';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 
+import ScreenLoadingState from '../shared/ScreenLoadingState';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   DrawGridContainer,
@@ -207,17 +208,11 @@ const Draw = () => {
       <ContentArea>
         <AnimatePresence mode="wait" initial={false}>
           {screenKey === 'loading' && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
+            <ScreenLoadingState key="loading">
               <DrawLoadingBox>
                 <ClipLoader size={24} color="#9ca3af" />
               </DrawLoadingBox>
-            </motion.div>
+            </ScreenLoadingState>
           )}
 
           {screenKey === 'empty' && (

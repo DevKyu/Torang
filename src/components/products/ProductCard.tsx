@@ -40,12 +40,8 @@ export const ProductCard = ({
 }: Props) => {
   const raffleCount = raffle.length;
 
-  const isIOS = useMemo(
-    () =>
-      typeof document !== 'undefined' &&
-      document.body.classList.contains('ios'),
-    [],
-  );
+  const isIOS =
+    typeof document !== 'undefined' && document.body.classList.contains('ios');
 
   const isSelfWinner = Boolean(
     flipped && (isWinner || supplement.includes(currentEmpId)),
@@ -148,7 +144,10 @@ export const ProductCard = ({
             <MoreText
               role="button"
               tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); handleShowHiddenNames(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowHiddenNames();
+              }}
               onKeyDown={handleKeyDown}
             >
               신청자 보기

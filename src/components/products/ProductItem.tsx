@@ -11,7 +11,7 @@ import {
   InfoButton,
 } from '../../styles/pages/rewardStyle';
 
-type Product = {
+export type Product = {
   name: string;
   requiredPins: number;
   index: string;

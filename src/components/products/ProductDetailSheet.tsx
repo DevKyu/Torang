@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useBackClose } from '../../hooks/useBackClose';
-import { getRatioLabel } from './ProductItem';
+import { getRatioLabel, type Product } from './ProductItem';
 import { AnimatePresence, animate, useMotionValue, useDragControls } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 
@@ -25,15 +25,6 @@ import {
   ImageViewer,
   ImageViewerImg,
 } from '../../styles/shared/productDetailSheetStyle';
-
-type Product = {
-  name: string;
-  requiredPins: number;
-  description?: string;
-  imageUrl?: string;
-  raffleCount: number;
-  winnersCount: number;
-};
 
 type Props = {
   open: boolean;

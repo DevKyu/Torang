@@ -23,6 +23,7 @@ import {
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useUiStore } from '../../stores/useUiStore';
+import ScreenLoadingState from '../shared/ScreenLoadingState';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   Section,
@@ -40,21 +41,11 @@ import {
   ContentArea,
 } from '../../styles/pages/rewardStyle';
 import Layout from '../layouts/Layout';
-import { ProductItem } from '../products/ProductItem';
+import { ProductItem, type Product } from '../products/ProductItem';
 import { RewardHistory } from '../shared/RewardHistory';
 import { ProductDetailSheet } from '../products/ProductDetailSheet';
 import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../../utils/date';
 import type { AppliedProduct } from '../../types/UserInfo';
-
-type Product = {
-  name: string;
-  requiredPins: number;
-  index: string;
-  description?: string;
-  imageUrl?: string;
-  raffleCount: number;
-  winnersCount: number;
-};
 
 const Reward = () => {
   const [pinCount, setPinCount] = useState(0);
@@ -342,17 +333,11 @@ const Reward = () => {
       <ContentArea>
         <AnimatePresence mode="wait" initial={false}>
           {screenKey === 'loading' && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
+            <ScreenLoadingState key="loading">
               <LoadingBox>
                 <ClipLoader size={24} color="#9ca3af" />
               </LoadingBox>
-            </motion.div>
+            </ScreenLoadingState>
           )}
 
           {screenKey === 'closed' && (
