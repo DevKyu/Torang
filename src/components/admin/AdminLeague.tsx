@@ -2,6 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { ref, set, remove, get, update } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions';
+import { useAllNames } from '../../hooks/useAllNames';
+import {
+  ADMIN_TOAST_SUCCESS_STYLE,
+  ADMIN_TOAST_ERROR_STYLE,
+} from '../../styles/admin/adminToastStyle';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import { db } from '../../services/firebase';
@@ -39,6 +44,12 @@ import {
   PlayerRowSub,
 } from '../../styles/admin/AdminLeagueStyle';
 import type { RawGroup } from '../../hooks/useActivityLeague';
+
+const WINNER_LABEL: Record<'team1' | 'team2' | 'draw', string> = {
+  team1: '1팀 승',
+  team2: '2팀 승',
+  draw: '무승부',
+};
 
 type PlayerEntry = {
   empId: string;
@@ -109,7 +120,7 @@ const AdminLeague = () => {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [applying, setApplying] = useState(false);
-  const [allNames, setAllNames] = useState<Record<string, string>>({});
+  const { allNames } = useAllNames();
   const [playerDropdowns, setPlayerDropdowns] = useState<
     Record<string, [string, string][]>
   >({});
@@ -127,15 +138,6 @@ const AdminLeague = () => {
     loadGroups(ym);
     setEditing(null);
   }, [ym, loadGroups]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await get(ref(db, 'names'));
-        if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch { /* ignore */ }
-    })();
-  }, []);
 
   useEffect(() => {
     if (!editing) return;
@@ -324,12 +326,7 @@ const AdminLeague = () => {
       toast(`✅ ${groupId}조 저장되었습니다.`, {
         position: 'top-center',
         duration: 2000,
-        style: {
-          backgroundColor: '#f0fdf4',
-          color: '#065f46',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-        },
+        style: ADMIN_TOAST_SUCCESS_STYLE,
       });
     } catch {
       toast.error('저장 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -350,12 +347,7 @@ const AdminLeague = () => {
       toast(`🗑️ ${groupId}조 삭제되었습니다.`, {
         position: 'top-center',
         duration: 2000,
-        style: {
-          backgroundColor: '#fef2f2',
-          color: '#b91c1c',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-        },
+        style: ADMIN_TOAST_ERROR_STYLE,
       });
     } catch {
       toast.error('삭제 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -399,12 +391,7 @@ const AdminLeague = () => {
       toast(`✅ ${Object.keys(allUpdates).length}명의 점수가 반영되었습니다.`, {
         position: 'top-center',
         duration: 2500,
-        style: {
-          backgroundColor: '#f0fdf4',
-          color: '#065f46',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-        },
+        style: ADMIN_TOAST_SUCCESS_STYLE,
       });
     } catch {
       toast.error('점수 반영 중 오류가 발생했습니다.', { position: 'top-center' });
@@ -513,13 +500,7 @@ const AdminLeague = () => {
                     <GroupBadge>{groupId}조</GroupBadge>
 
                     <span>
-                      {g.winner === 'team1'
-                        ? '1팀 승'
-                        : g.winner === 'team2'
-                          ? '2팀 승'
-                          : g.winner === 'draw'
-                            ? '무승부'
-                            : '결과 없음'}
+                      {g.winner ? WINNER_LABEL[g.winner] : '결과 없음'}
                     </span>
 
                     <GroupDate>
@@ -581,7 +562,7 @@ const AdminLeague = () => {
                   setEditing((prev) => prev && { ...prev, winner: w })
                 }
               >
-                {w === 'team1' ? '1팀 승' : w === 'team2' ? '2팀 승' : '무승부'}
+                {WINNER_LABEL[w]}
               </WinnerBtn>
             ))}
           </WinnerRow>

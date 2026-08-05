@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ref, get } from 'firebase/database';
+import { useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
+import { useAllNames } from '../../hooks/useAllNames';
+import { ADMIN_TOAST_SUCCESS_STYLE } from '../../styles/admin/adminToastStyle';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import MessageReadStatusModal from './MessageReadStatusModal';
 import MessageModal from '../shared/MessageModal';
-import { db, getCurrentUserOrThrow, empIdFromEmail } from '../../services/firebase';
+import { getCurrentUserOrThrow, empIdFromEmail } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
@@ -64,12 +65,7 @@ const STATUS_LABEL = {
   cancelled: '취소됨',
 } as const;
 
-const toSuccessStyle = {
-  backgroundColor: '#f0fdf4',
-  color: '#065f46',
-  borderRadius: '10px',
-  fontSize: '0.875rem',
-};
+const toSuccessStyle = ADMIN_TOAST_SUCCESS_STYLE;
 
 type TargetUser = { empId: string; name: string };
 
@@ -93,8 +89,7 @@ const AdminMessages = () => {
   const goBack = useNavigateBack('/admin');
   const { messages } = useAdminMessages();
 
-  const [allNames, setAllNames] = useState<Record<string, string>>({});
-  const [namesLoaded, setNamesLoaded] = useState(false);
+  const { allNames, loaded: namesLoaded } = useAllNames();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [targetMode, setTargetMode] = useState<MessageType>('all');
@@ -107,17 +102,6 @@ const AdminMessages = () => {
   const [readStatusMessage, setReadStatusMessage] =
     useState<AdminMessage | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await get(ref(db, 'names'));
-        if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch { /* ignore */ } finally {
-        setNamesLoaded(true);
-      }
-    })();
-  }, []);
 
   const lookupTarget = () => {
     const query = targetSearch.trim().toLowerCase();

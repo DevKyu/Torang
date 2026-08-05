@@ -11,13 +11,19 @@ import VillainMissionModal from '../mission/VillainMissionModal';
 import { ref, get } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions';
+import { useAllNames } from '../../hooks/useAllNames';
 import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 import MissionRichEditor from './MissionRichEditor';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
-import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
+import {
+  getQuarterStartYm,
+  getQuarterEndYm,
+  getPrevYm,
+} from '../../utils/date';
 import { SmallText } from '../../styles/global/commonStyle';
+import { ADMIN_TOAST_SUCCESS_STYLE } from '../../styles/admin/adminToastStyle';
 import {
   MonthSelect,
   EmptyMsg,
@@ -139,12 +145,7 @@ const STATUS_LABEL: Record<MissionStatus, string> = {
   revealed: '결과공개',
 };
 
-const toSuccessStyle = {
-  backgroundColor: '#f0fdf4',
-  color: '#065f46',
-  borderRadius: '10px',
-  fontSize: '0.875rem',
-};
+const toSuccessStyle = ADMIN_TOAST_SUCCESS_STYLE;
 
 const DEFAULT_CONFIG_DRAFT: ConfigDraft = {
   type: 'villain',
@@ -188,14 +189,17 @@ const AdminMission = () => {
 
   const [ym, setYm] = useState(currentYm);
   const { data, loading } = useMission(ym);
-  const { status: teamFormationStatus, groups: teamFormationGroups } = useTeamFormation(ym);
+  const { status: teamFormationStatus, groups: teamFormationGroups } =
+    useTeamFormation(ym);
 
   const [missionType, setMissionType] = useState<MissionType>('villain');
 
-  const [configDraft, setConfigDraft] = useState<ConfigDraft>(DEFAULT_CONFIG_DRAFT);
+  const [configDraft, setConfigDraft] =
+    useState<ConfigDraft>(DEFAULT_CONFIG_DRAFT);
   const [rewardPinRaw, setRewardPinRaw] = useState('1');
   const [villainRewardPinRaw, setVillainRewardPinRaw] = useState('1');
-  const [hiddenDraft, setHiddenDraft] = useState<VillainMissionHidden>(DEFAULT_HIDDEN_DRAFT);
+  const [hiddenDraft, setHiddenDraft] =
+    useState<VillainMissionHidden>(DEFAULT_HIDDEN_DRAFT);
   const [roleDraft, setRoleDraft] = useState<RoleDraft>({
     villainName: '',
     villainId: '',
@@ -203,21 +207,21 @@ const AdminMission = () => {
     helperId: '',
   });
 
-  const [scoreGuessConfigDraft, setScoreGuessConfigDraft] = useState<ScoreGuessConfigDraft>(
-    DEFAULT_SCORE_GUESS_CONFIG_DRAFT,
-  );
+  const [scoreGuessConfigDraft, setScoreGuessConfigDraft] =
+    useState<ScoreGuessConfigDraft>(DEFAULT_SCORE_GUESS_CONFIG_DRAFT);
   const [sgRewardPinRaw, setSgRewardPinRaw] = useState('0.5');
   const [targetRewardPinRaw, setTargetRewardPinRaw] = useState('0.5');
 
-  const [teamGuessConfigDraft, setTeamGuessConfigDraft] = useState<TeamGuessConfigDraft>(
-    DEFAULT_TEAM_GUESS_CONFIG_DRAFT,
-  );
+  const [teamGuessConfigDraft, setTeamGuessConfigDraft] =
+    useState<TeamGuessConfigDraft>(DEFAULT_TEAM_GUESS_CONFIG_DRAFT);
   const [tgRewardPinRaw, setTgRewardPinRaw] = useState('1');
   const [tgBonusRewardPinRaw, setTgBonusRewardPinRaw] = useState('1');
 
   const [candidates, setCandidates] = useState<[string, string][]>([]);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
-  const [candidateChecked, setCandidateChecked] = useState<Record<string, true>>({});
+  const [candidateChecked, setCandidateChecked] = useState<
+    Record<string, true>
+  >({});
   const [confirmTargetChange, setConfirmTargetChange] = useState(false);
   const [confirmRoleChange, setConfirmRoleChange] = useState(false);
 
@@ -225,7 +229,7 @@ const AdminMission = () => {
     setConfirmRoleChange(false);
   }, [roleDraft.villainId, roleDraft.helperId]);
 
-  const [allNames, setAllNames] = useState<Record<string, string>>({});
+  const { allNames } = useAllNames();
   const [villainDropdown, setVillainDropdown] = useState<[string, string][]>(
     [],
   );
@@ -234,15 +238,6 @@ const AdminMission = () => {
   const [revealing, setRevealing] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [villainPreviewOpen, setVillainPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await get(ref(db, 'names'));
-        if (snap.exists()) setAllNames(snap.val() as Record<string, string>);
-      } catch { /* ignore */ }
-    })();
-  }, []);
 
   useEffect(() => {
     if (data && isScoreGuessMission(data)) {
@@ -254,7 +249,8 @@ const AdminMission = () => {
         description: data.config?.description ?? '',
         revealDays: data.config?.revealDays ?? 7,
         rewardPin: rp,
-        scoreDiffThreshold: data.config?.scoreDiffThreshold ?? DEFAULT_SCORE_DIFF_THRESHOLD,
+        scoreDiffThreshold:
+          data.config?.scoreDiffThreshold ?? DEFAULT_SCORE_DIFF_THRESHOLD,
         targetRewardPin: data.config?.targetRewardPin ?? 0.5,
       });
       setSgRewardPinRaw(String(rp));
@@ -284,8 +280,10 @@ const AdminMission = () => {
         revealDays: data.config?.revealDays ?? 7,
         rewardPin: rp,
         villainRewardPin: vp,
-        helperVoteThreshold: data.config?.helperVoteThreshold ?? DEFAULT_HELPER_VOTE_THRESHOLD,
-        villainCatchThreshold: data.config?.villainCatchThreshold ?? DEFAULT_VILLAIN_CATCH_THRESHOLD,
+        helperVoteThreshold:
+          data.config?.helperVoteThreshold ?? DEFAULT_HELPER_VOTE_THRESHOLD,
+        villainCatchThreshold:
+          data.config?.villainCatchThreshold ?? DEFAULT_VILLAIN_CATCH_THRESHOLD,
       });
       setRewardPinRaw(String(rp));
       setVillainRewardPinRaw(String(vp));
@@ -330,7 +328,11 @@ const AdminMission = () => {
   }, [data, loading, allNames]);
 
   const [candidateStartYm, quarterEndYm] = useMemo(() => {
-    const refDate = new Date(Number(ym.slice(0, 4)), Number(ym.slice(4)) - 1, 1);
+    const refDate = new Date(
+      Number(ym.slice(0, 4)),
+      Number(ym.slice(4)) - 1,
+      1,
+    );
     return [getPrevYm(getQuarterStartYm(refDate)), getQuarterEndYm(refDate)];
   }, [ym]);
 
@@ -353,7 +355,9 @@ const AdminMission = () => {
           const join = users[empId]?.join;
           return !!join && join >= candidateStartYm && join <= quarterEndYm;
         });
-        setCandidates(detected.map((empId) => [empId, users[empId]?.name ?? empId]));
+        setCandidates(
+          detected.map((empId) => [empId, users[empId]?.name ?? empId]),
+        );
       } catch {
         setCandidates([]);
       } finally {
@@ -371,7 +375,9 @@ const AdminMission = () => {
         Object.fromEntries(data.targets.empIds.map((id) => [id, true])),
       );
     } else if (candidates.length > 0) {
-      setCandidateChecked(Object.fromEntries(candidates.map(([id]) => [id, true])));
+      setCandidateChecked(
+        Object.fromEntries(candidates.map(([id]) => [id, true])),
+      );
     } else {
       setCandidateChecked({});
     }
@@ -503,10 +509,13 @@ const AdminMission = () => {
       Object.keys(data?.votes ?? {}).length > 0;
     if (hasExistingVotes && !confirmRoleChange) {
       setConfirmRoleChange(true);
-      toast('이미 투표가 진행 중입니다. 다시 누르면 기존 투표가 초기화됩니다.', {
-        position: 'top-center',
-        duration: 2500,
-      });
+      toast(
+        '이미 투표가 진행 중입니다. 다시 누르면 기존 투표가 초기화됩니다.',
+        {
+          position: 'top-center',
+          duration: 2500,
+        },
+      );
       return;
     }
     setSaving(true);
@@ -529,24 +538,32 @@ const AdminMission = () => {
   const handleConfirmTargets = async () => {
     const empIds = Object.keys(candidateChecked);
     if (empIds.length === 0) {
-      toast('신규회원 후보를 1명 이상 선택해주세요.', { position: 'top-center' });
+      toast('신규회원 후보를 1명 이상 선택해주세요.', {
+        position: 'top-center',
+      });
       return;
     }
     if (isScoreGuessMission(data) && data.result?.revealed === true) {
-      toast('이미 결과가 공개된 미션입니다. 후보를 바꾸려면 먼저 "미션 초기화"를 눌러주세요.', {
-        position: 'top-center',
-        duration: 3000,
-      });
+      toast(
+        '이미 결과가 공개된 미션입니다. 후보를 바꾸려면 먼저 "미션 초기화"를 눌러주세요.',
+        {
+          position: 'top-center',
+          duration: 3000,
+        },
+      );
       return;
     }
     const hasExistingVotes =
       isScoreGuessMission(data) && Object.keys(data.votes ?? {}).length > 0;
     if (hasExistingVotes && !confirmTargetChange) {
       setConfirmTargetChange(true);
-      toast('이미 예측이 진행 중입니다. 다시 누르면 기존 예측이 초기화됩니다.', {
-        position: 'top-center',
-        duration: 2500,
-      });
+      toast(
+        '이미 예측이 진행 중입니다. 다시 누르면 기존 예측이 초기화됩니다.',
+        {
+          position: 'top-center',
+          duration: 2500,
+        },
+      );
       return;
     }
     setSaving(true);
@@ -659,11 +676,14 @@ const AdminMission = () => {
 
   const status = data?.config?.status ?? 'draft';
   const canChangeType = !data?.config || status === 'draft';
-  const skipsVotingState = isScoreGuessMission(data) || isTeamGuessMission(data);
+  const skipsVotingState =
+    isScoreGuessMission(data) || isTeamGuessMission(data);
 
   const villainVotes = useMemo(
     () =>
-      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.votes ?? {} : {},
+      !isScoreGuessMission(data) && !isTeamGuessMission(data)
+        ? (data?.votes ?? {})
+        : {},
     [data],
   );
   const totalVillainVotes = Object.keys(villainVotes).length;
@@ -676,7 +696,7 @@ const AdminMission = () => {
   }, [villainVotes]);
 
   const scoreGuessVotes = useMemo(
-    () => (isScoreGuessMission(data) ? data.votes ?? {} : {}),
+    () => (isScoreGuessMission(data) ? (data.votes ?? {}) : {}),
     [data],
   );
   const totalScoreGuessVotes = Object.keys(scoreGuessVotes).length;
@@ -688,27 +708,41 @@ const AdminMission = () => {
     return counts;
   }, [scoreGuessVotes]);
 
-  const teamGuessVotes = useMemo(
-    () => (isTeamGuessMission(data) ? data.votes ?? {} : {}),
-    [data],
-  );
+  const teamGuessVotes = isTeamGuessMission(data) ? (data.votes ?? {}) : {};
   const totalTeamGuessVotes = Object.keys(teamGuessVotes).length;
 
   const renderVillainVoteStats = () => {
-    if (totalVillainVotes === 0) return <EmptyMsg>아직 투표가 없습니다.</EmptyMsg>;
+    if (totalVillainVotes === 0)
+      return <EmptyMsg>아직 투표가 없습니다.</EmptyMsg>;
     const villainId =
-      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.roles?.villain : undefined;
+      !isScoreGuessMission(data) && !isTeamGuessMission(data)
+        ? data?.roles?.villain
+        : undefined;
     const helperId =
-      !isScoreGuessMission(data) && !isTeamGuessMission(data) ? data?.roles?.helper : undefined;
-    const sorted = Object.entries(villainVoteCounts).sort(([, a], [, b]) => b - a);
+      !isScoreGuessMission(data) && !isTeamGuessMission(data)
+        ? data?.roles?.helper
+        : undefined;
+    const sorted = Object.entries(villainVoteCounts).sort(
+      ([, a], [, b]) => b - a,
+    );
     return (
       <VoteStatList>
         {sorted.map(([empId, count]) => (
           <VoteStatRow key={empId}>
             <VoteStatLabel>{allNames[empId] ?? empId}</VoteStatLabel>
             <VoteBar
-              pct={totalVillainVotes > 0 ? Math.round((count / totalVillainVotes) * 100) : 0}
-              color={empId === villainId ? '#ef4444' : empId === helperId ? '#3b82f6' : '#9ca3af'}
+              pct={
+                totalVillainVotes > 0
+                  ? Math.round((count / totalVillainVotes) * 100)
+                  : 0
+              }
+              color={
+                empId === villainId
+                  ? '#ef4444'
+                  : empId === helperId
+                    ? '#3b82f6'
+                    : '#9ca3af'
+              }
             />
             <VoteStatCount>{count}표</VoteStatCount>
           </VoteStatRow>
@@ -724,7 +758,8 @@ const AdminMission = () => {
   };
 
   const renderTeamGuessVoteStats = () => {
-    if (totalTeamGuessVotes === 0) return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
+    if (totalTeamGuessVotes === 0)
+      return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
     return (
       <VoteStatList>
         <VoteStatRow>
@@ -738,15 +773,22 @@ const AdminMission = () => {
   };
 
   const renderScoreGuessVoteStats = () => {
-    if (totalScoreGuessVotes === 0) return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
-    const sorted = Object.entries(scoreGuessVoteCounts).sort(([, a], [, b]) => b - a);
+    if (totalScoreGuessVotes === 0)
+      return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
+    const sorted = Object.entries(scoreGuessVoteCounts).sort(
+      ([, a], [, b]) => b - a,
+    );
     return (
       <VoteStatList>
         {sorted.map(([empId, count]) => (
           <VoteStatRow key={empId}>
             <VoteStatLabel>{allNames[empId] ?? empId}</VoteStatLabel>
             <VoteBar
-              pct={totalScoreGuessVotes > 0 ? Math.round((count / totalScoreGuessVotes) * 100) : 0}
+              pct={
+                totalScoreGuessVotes > 0
+                  ? Math.round((count / totalScoreGuessVotes) * 100)
+                  : 0
+              }
               color="#10b981"
             />
             <VoteStatCount>{count}표</VoteStatCount>
@@ -898,7 +940,10 @@ const AdminMission = () => {
             <MissionInput
               value={scoreGuessConfigDraft.title}
               onChange={(e) =>
-                setScoreGuessConfigDraft((p) => ({ ...p, title: e.target.value }))
+                setScoreGuessConfigDraft((p) => ({
+                  ...p,
+                  title: e.target.value,
+                }))
               }
               placeholder="예: 신규회원과 함께하는 7월"
             />
@@ -925,7 +970,10 @@ const AdminMission = () => {
                   inputMode="numeric"
                   autoComplete="off"
                   value={scoreGuessConfigDraft.revealDays}
-                  onChange={createIntFieldHandler(setScoreGuessConfigDraft, 'revealDays')}
+                  onChange={createIntFieldHandler(
+                    setScoreGuessConfigDraft,
+                    'revealDays',
+                  )}
                 />
                 일 전부터 공개
               </NumberRow>
@@ -946,7 +994,11 @@ const AdminMission = () => {
                       value={sgRewardPinRaw}
                       {...createPinInputHandlers(
                         setSgRewardPinRaw,
-                        (n) => setScoreGuessConfigDraft((p) => ({ ...p, rewardPin: n })),
+                        (n) =>
+                          setScoreGuessConfigDraft((p) => ({
+                            ...p,
+                            rewardPin: n,
+                          })),
                         scoreGuessConfigDraft.rewardPin,
                       )}
                     />
@@ -961,13 +1013,18 @@ const AdminMission = () => {
                       inputMode="numeric"
                       autoComplete="off"
                       value={scoreGuessConfigDraft.scoreDiffThreshold}
-                      onChange={createIntFieldHandler(setScoreGuessConfigDraft, 'scoreDiffThreshold')}
+                      onChange={createIntFieldHandler(
+                        setScoreGuessConfigDraft,
+                        'scoreDiffThreshold',
+                      )}
                     />
                     점 이내
                   </NumberRow>
                 </SettingCell>
                 <SettingCell>
-                  <SettingCellLabel>순위 보상 PIN (상위 점수자)</SettingCellLabel>
+                  <SettingCellLabel>
+                    순위 보상 PIN (상위 점수자)
+                  </SettingCellLabel>
                   <NumberRow>
                     <MissionInput
                       type="text"
@@ -976,7 +1033,11 @@ const AdminMission = () => {
                       value={targetRewardPinRaw}
                       {...createPinInputHandlers(
                         setTargetRewardPinRaw,
-                        (n) => setScoreGuessConfigDraft((p) => ({ ...p, targetRewardPin: n })),
+                        (n) =>
+                          setScoreGuessConfigDraft((p) => ({
+                            ...p,
+                            targetRewardPin: n,
+                          })),
                         scoreGuessConfigDraft.targetRewardPin,
                       )}
                     />
@@ -1007,7 +1068,9 @@ const AdminMission = () => {
             {candidatesLoading ? (
               <EmptyMsg>후보를 불러오는 중...</EmptyMsg>
             ) : candidates.length === 0 ? (
-              <EmptyMsg>최근 가입 신규회원 중 이번 달 활동 참여자가 없습니다.</EmptyMsg>
+              <EmptyMsg>
+                최근 가입 신규회원 중 이번 달 활동 참여자가 없습니다.
+              </EmptyMsg>
             ) : (
               <CandidateList>
                 {candidates.map(([empId, name]) => {
@@ -1030,11 +1093,15 @@ const AdminMission = () => {
               </CandidateList>
             )}
 
-            {isScoreGuessMission(data) && (data.targets?.empIds?.length ?? 0) > 0 && (
-              <ConfirmedBadgeRow>
-                확정됨: {data.targets!.empIds.map((id) => allNames[id] ?? id).join(', ')}
-              </ConfirmedBadgeRow>
-            )}
+            {isScoreGuessMission(data) &&
+              (data.targets?.empIds?.length ?? 0) > 0 && (
+                <ConfirmedBadgeRow>
+                  확정됨:{' '}
+                  {data
+                    .targets!.empIds.map((id) => allNames[id] ?? id)
+                    .join(', ')}
+                </ConfirmedBadgeRow>
+              )}
 
             <SaveRow>
               <SaveBtn
@@ -1057,7 +1124,10 @@ const AdminMission = () => {
             <MissionInput
               value={teamGuessConfigDraft.title}
               onChange={(e) =>
-                setTeamGuessConfigDraft((p) => ({ ...p, title: e.target.value }))
+                setTeamGuessConfigDraft((p) => ({
+                  ...p,
+                  title: e.target.value,
+                }))
               }
               placeholder="예: 8월 정기전 팀 승부 예측"
             />
@@ -1084,7 +1154,10 @@ const AdminMission = () => {
                   inputMode="numeric"
                   autoComplete="off"
                   value={teamGuessConfigDraft.revealDays}
-                  onChange={createIntFieldHandler(setTeamGuessConfigDraft, 'revealDays')}
+                  onChange={createIntFieldHandler(
+                    setTeamGuessConfigDraft,
+                    'revealDays',
+                  )}
                 />
                 일 전부터 공개
               </NumberRow>
@@ -1105,7 +1178,11 @@ const AdminMission = () => {
                       value={tgRewardPinRaw}
                       {...createPinInputHandlers(
                         setTgRewardPinRaw,
-                        (n) => setTeamGuessConfigDraft((p) => ({ ...p, rewardPin: n })),
+                        (n) =>
+                          setTeamGuessConfigDraft((p) => ({
+                            ...p,
+                            rewardPin: n,
+                          })),
                         teamGuessConfigDraft.rewardPin,
                       )}
                     />
@@ -1122,7 +1199,11 @@ const AdminMission = () => {
                       value={tgBonusRewardPinRaw}
                       {...createPinInputHandlers(
                         setTgBonusRewardPinRaw,
-                        (n) => setTeamGuessConfigDraft((p) => ({ ...p, bonusRewardPin: n })),
+                        (n) =>
+                          setTeamGuessConfigDraft((p) => ({
+                            ...p,
+                            bonusRewardPin: n,
+                          })),
                         teamGuessConfigDraft.bonusRewardPin,
                       )}
                     />
@@ -1153,7 +1234,10 @@ const AdminMission = () => {
               확정됨 — {teamFormationGroups.length}개 조
             </ConfirmedBadgeRow>
           ) : (
-            <EmptyMsg>아직 팀 편성이 확정되지 않았습니다. /admin/team-formation에서 먼저 확정하세요.</EmptyMsg>
+            <EmptyMsg>
+              아직 팀 편성이 확정되지 않았습니다. /admin/team-formation에서 먼저
+              확정하세요.
+            </EmptyMsg>
           )}
         </>
       ) : (
@@ -1228,7 +1312,11 @@ const AdminMission = () => {
                       value={villainRewardPinRaw}
                       {...createPinInputHandlers(
                         setVillainRewardPinRaw,
-                        (n) => setConfigDraft((p) => ({ ...p, villainRewardPin: n })),
+                        (n) =>
+                          setConfigDraft((p) => ({
+                            ...p,
+                            villainRewardPin: n,
+                          })),
                         configDraft.villainRewardPin,
                       )}
                     />
@@ -1251,7 +1339,10 @@ const AdminMission = () => {
                       inputMode="numeric"
                       autoComplete="off"
                       value={configDraft.villainCatchThreshold}
-                      onChange={createIntFieldHandler(setConfigDraft, 'villainCatchThreshold')}
+                      onChange={createIntFieldHandler(
+                        setConfigDraft,
+                        'villainCatchThreshold',
+                      )}
                     />
                     표 이상
                   </NumberRow>
@@ -1264,7 +1355,10 @@ const AdminMission = () => {
                       inputMode="numeric"
                       autoComplete="off"
                       value={configDraft.helperVoteThreshold}
-                      onChange={createIntFieldHandler(setConfigDraft, 'helperVoteThreshold')}
+                      onChange={createIntFieldHandler(
+                        setConfigDraft,
+                        'helperVoteThreshold',
+                      )}
                     />
                     표 이상
                   </NumberRow>
@@ -1450,7 +1544,11 @@ const AdminMission = () => {
                   <NameDropdownItem
                     key={eid}
                     onClick={() => {
-                      setRoleDraft((p) => ({ ...p, helperId: eid, helperName: n }));
+                      setRoleDraft((p) => ({
+                        ...p,
+                        helperId: eid,
+                        helperName: n,
+                      }));
                       setHelperDropdown([]);
                     }}
                   >
@@ -1486,7 +1584,12 @@ const AdminMission = () => {
               color="#6b7280"
               disabled={saving}
               onClick={async () => {
-                if (!confirm('투표를 초기화하시겠습니까? 지금까지의 투표/예측 기록이 모두 삭제됩니다.')) return;
+                if (
+                  !confirm(
+                    '투표를 초기화하시겠습니까? 지금까지의 투표/예측 기록이 모두 삭제됩니다.',
+                  )
+                )
+                  return;
                 setSaving(true);
                 try {
                   await resetVotes(ym);
@@ -1543,32 +1646,34 @@ const AdminMission = () => {
             : isTeamGuessMission(data)
               ? renderTeamGuessVoteStats()
               : renderVillainVoteStats()}
-          {data?.result && !isScoreGuessMission(data) && !isTeamGuessMission(data) && (
-            <ResultArea>
-              <div>
-                <strong>빌런:</strong>{' '}
-                {allNames[data.roles?.villain ?? ''] ??
-                  data.roles?.villain ??
-                  '-'}
-                {data.result.villainWon ? ' 🎉 생존' : ' 검거됨'}
-              </div>
-              <div>
-                <strong>조력자:</strong>{' '}
-                {allNames[data.roles?.helper ?? ''] ??
-                  data.roles?.helper ??
-                  '-'}
-                {data.result.helperWon ? ' 🎉 공동 수상' : ''}
-              </div>
-              {!data.result.villainWon && (
+          {data?.result &&
+            !isScoreGuessMission(data) &&
+            !isTeamGuessMission(data) && (
+              <ResultArea>
                 <div>
-                  <strong>정답자:</strong>{' '}
-                  {(data.result.correctVoters ?? [])
-                    .map((id) => allNames[id] ?? id)
-                    .join(', ') || '없음'}
+                  <strong>빌런:</strong>{' '}
+                  {allNames[data.roles?.villain ?? ''] ??
+                    data.roles?.villain ??
+                    '-'}
+                  {data.result.villainWon ? ' 🎉 생존' : ' 검거됨'}
                 </div>
-              )}
-            </ResultArea>
-          )}
+                <div>
+                  <strong>조력자:</strong>{' '}
+                  {allNames[data.roles?.helper ?? ''] ??
+                    data.roles?.helper ??
+                    '-'}
+                  {data.result.helperWon ? ' 🎉 공동 수상' : ''}
+                </div>
+                {!data.result.villainWon && (
+                  <div>
+                    <strong>정답자:</strong>{' '}
+                    {(data.result.correctVoters ?? [])
+                      .map((id) => allNames[id] ?? id)
+                      .join(', ') || '없음'}
+                  </div>
+                )}
+              </ResultArea>
+            )}
           {data?.result && isScoreGuessMission(data) && (
             <ResultArea>
               {(data.targets?.empIds ?? []).map((id) => (
@@ -1604,10 +1709,7 @@ const AdminMission = () => {
         </>
       )}
 
-      <SmallText
-        top="middle"
-        onClick={goBack}
-      >
+      <SmallText top="middle" onClick={goBack}>
         돌아가기
       </SmallText>
 

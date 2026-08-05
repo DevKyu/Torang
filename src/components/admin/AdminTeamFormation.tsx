@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ref, get, update, remove, push, set } from 'firebase/database'
 import { useNavigateBack } from '../../hooks/useNavigateBack'
 import { useAdminMonthOptions } from '../../hooks/useAdminMonthOptions'
+import { ADMIN_TOAST_SUCCESS_STYLE } from '../../styles/admin/adminToastStyle'
 import { toast } from 'sonner'
 import AdminLayout from './AdminLayout'
 import { db, fetchAllUsers } from '../../services/firebase'
@@ -441,12 +442,7 @@ const AdminTeamFormation = () => {
       toast(`✅ ${Number(ym.slice(4))}월 팀 편성이 확정되었습니다.`, {
         position: 'top-center',
         duration: 2500,
-        style: {
-          backgroundColor: '#f0fdf4',
-          color: '#065f46',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-        },
+        style: ADMIN_TOAST_SUCCESS_STYLE,
       })
     } catch {
       toast.error('확정 중 오류가 발생했습니다.', { position: 'top-center' })
