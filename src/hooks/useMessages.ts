@@ -228,7 +228,7 @@ export type MessageReactionCount = {
   count: number;
 };
 
-export function tallyReactionCounts(
+function tallyReactionCounts(
   reactions: Record<string, MessageReactionKey> | null,
 ): MessageReactionCount[] {
   if (!reactions) return [];

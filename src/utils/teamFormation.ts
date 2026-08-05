@@ -32,7 +32,7 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a
 }
 
-export function autoPattern(n: number): number[] | null {
+function autoPattern(n: number): number[] | null {
   const table: Record<number, number[]> = {
     6: [3, 3],
     7: [2, 2, 2, 1],

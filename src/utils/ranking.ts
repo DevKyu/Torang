@@ -12,7 +12,7 @@ const QUARTER_MONTHS_MAP: Record<number, Month[]> = {
   4: ['10', '11', '12'],
 };
 
-export const calculateScoreStats = (
+const calculateScoreStats = (
   scores: UserScores | undefined,
   type: RankingType,
 ): { average: number; games: number; max: number } => {

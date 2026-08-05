@@ -2,7 +2,7 @@ import { useUiStore } from '../stores/useUiStore';
 import type { TwoDigitMonth, YearMonth } from '../types/match';
 import type { ActivityDateAll } from '../services/firebase';
 
-export const getTodayYmd = (d = new Date()): number => {
+const getTodayYmd = (d = new Date()): number => {
   return Number(
     `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(
       d.getDate(),

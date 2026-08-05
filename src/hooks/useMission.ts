@@ -324,7 +324,7 @@ export async function resetMissionState(
   await update(ref(db), updates);
 }
 
-export function buildMissionRewardKey(
+function buildMissionRewardKey(
   timestamp: number,
   empId: string,
   keySuffix = '',

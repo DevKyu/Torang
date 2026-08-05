@@ -91,12 +91,12 @@ export const checkAdminId = async (): Promise<boolean> => {
 
 export const getCurrentUserId = () => {
   const user = getCurrentUserOrThrow();
-  return user.email?.replace('@torang.com', '') ?? '';
+  return empIdFromEmail(user.email);
 };
 
 export const getCurrentUserData = async () => {
   const user = getCurrentUserOrThrow();
-  const empId = user.email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(user.email);
   const snapshot = await get(ref(db, `users/${empId}`));
   return snapshot.exists() ? snapshot.val() : null;
 };
@@ -157,18 +157,18 @@ export const findEmpIdByName = async (name: string): Promise<string | null> => {
 };
 
 export const getAppliedProducts = async (ym: string): Promise<Record<string, AppliedProduct>> => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const snap = await get(ref(db, `users/${empId}/products/${ym}`));
   return snap.exists() ? snap.val() : {};
 };
 
 export const applyProduct = async (ym: string, index: string, data: AppliedProduct): Promise<void> => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   await set(ref(db, `users/${empId}/products/${ym}/${index}`), data);
 };
 
 export const cancelAppliedProduct = async (ym: string, index: string): Promise<boolean> => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const result = await runTransaction(
     ref(db, `users/${empId}/products/${ym}/${index}`),
     (current) => (current === null ? undefined : null),
@@ -217,7 +217,7 @@ export const parseProductBundle = (snapshot: DataSnapshot): ProductBundle => {
 };
 
 export const setProductData = async (ym: string, items: Set<string>) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   await Promise.all(
     [...items].map((item) =>
       runTransaction(
@@ -232,7 +232,7 @@ export const setProductData = async (ym: string, items: Set<string>) => {
 };
 
 export const removeProductData = async (ym: string, items: Set<string>) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   await Promise.all(
     [...items].map((item) =>
       runTransaction(
@@ -248,7 +248,7 @@ export const removeProductData = async (ym: string, items: Set<string>) => {
 
 // 7. 핀 관련
 export const setUserPinData = async (pin: number) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const result = await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
     const next = (current ?? 0) + pin;
     if (next < 0) return;
@@ -260,7 +260,7 @@ export const setUserPinData = async (pin: number) => {
 };
 
 export const getUserPins = async (): Promise<number> => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const snap = await get(ref(db, `users/${empId}/pin`));
   return snap.exists() ? (snap.val() as number) : 0;
 };
@@ -390,24 +390,18 @@ export const getCachedUserName = (empId: string): string => {
 };
 
 // 10. 목표 점수 관련
-export const getTargetScore = async (year: string, month: string) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const snap = await get(ref(db, `users/${empId}/targets/${year}/${month}`));
-  return snap.exists() ? (snap.val() as number) : undefined;
-};
-
 export const setTargetScore = async (
   year: string,
   month: string,
   target: number,
 ) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const targetRef = ref(db, `users/${empId}/targets/${year}/${month}`);
 
   await runTransaction(targetRef, () => target);
 };
 
-export type ActivityDateMap = Record<string, string | number>;
+type ActivityDateMap = Record<string, string | number>;
 export type ActivityDateAll = Record<string, ActivityDateMap>;
 
 export const getAllActivityDates = async (): Promise<ActivityDateAll> => {
@@ -472,24 +466,6 @@ export const saveMatchResult = async (
 };
 
 // 12. 업적 관련
-export const getUserMatchResults = async (
-  ym: string,
-): Promise<Record<MatchType, Record<string, unknown>>> => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
-  const types: MatchType[] = ['rival', 'pin'];
-
-  const result = {} as Record<MatchType, Record<string, unknown>>;
-
-  for (const type of types) {
-    const snap = await get(ref(db, `matchResults/${ym}/${type}/${empId}`));
-    if (snap.exists()) {
-      result[type] = snap.val();
-    }
-  }
-
-  return result;
-};
-
 export const getAllUserMatchResults = async (): Promise<
   Record<string, Record<MatchType, Record<string, Record<string, unknown>>>>
 > => {
@@ -502,7 +478,7 @@ export const saveAchievements = async (
   today: string,
   updateLast = true,
 ) => {
-  const empId = getCurrentUserOrThrow().email?.replace('@torang.com', '');
+  const empId = empIdFromEmail(getCurrentUserOrThrow().email);
 
   const updates: Record<string, unknown> = {
     [`users/${empId}/achievements`]: achievements,
