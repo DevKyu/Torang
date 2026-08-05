@@ -15,7 +15,7 @@ import {
 import { overlayV, cardV, fadeUp, itemV } from '../../styles/variants/matchVariants';
 import type { MatchType } from '../../types/match';
 
-export type MatchOverlayProps = {
+type MatchOverlayProps = {
   open: boolean;
   me: string;
   opponent: string;

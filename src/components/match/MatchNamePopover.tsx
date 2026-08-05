@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { motion } from 'framer-motion';
 import { useMatch } from '../../hooks/useMatch';
+import { useClosePopoverOnScroll } from '../../hooks/useClosePopoverOnScroll';
 import type { YearMonth } from '../../types/match';
 import { showToast } from '../../utils/toast';
 import LetterOverlay from '../letters/LetterOverlay';
@@ -17,7 +18,7 @@ import {
 } from '../../styles/shared/matchPopoverStyle';
 import { popContentV } from '../../styles/variants/matchVariants';
 
-export type MatchNamePopoverProps = {
+type MatchNamePopoverProps = {
   ym: YearMonth;
   myId: string | null;
   targetId: string;
@@ -48,28 +49,10 @@ const MatchNamePopover = ({
 
   const { choices, select, clear } = useMatch(ym, myId, type, maxChoices);
 
-  const isSelected = useMemo(() => !!choices[targetId], [choices, targetId]);
-  const reachedLimit = useMemo(
-    () => Object.keys(choices).length >= maxChoices,
-    [choices, maxChoices],
-  );
+  const isSelected = !!choices[targetId];
+  const reachedLimit = Object.keys(choices).length >= maxChoices;
 
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    const opts = { passive: true } as const;
-    window.addEventListener('scroll', close, opts);
-    window.addEventListener('resize', close, opts);
-    window.addEventListener('orientationchange', close, opts);
-    const tbodyEl = document.querySelector('tbody');
-    tbodyEl?.addEventListener('scroll', close, opts);
-    return () => {
-      window.removeEventListener('scroll', close);
-      window.removeEventListener('resize', close);
-      window.removeEventListener('orientationchange', close);
-      tbodyEl?.removeEventListener('scroll', close);
-    };
-  }, [open]);
+  useClosePopoverOnScroll(open, setOpen);
 
   const handleSendLetter = async (message: string, anonymous: boolean) => {
     if (busy) return;

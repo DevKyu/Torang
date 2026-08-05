@@ -1,19 +1,10 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { POPOVER_BASE_STYLE } from './popoverBaseStyle';
 
 export const popoverStyle = {
-  backgroundColor: '#f9fafb',
+  ...POPOVER_BASE_STYLE,
   padding: '6px 12px',
-  borderRadius: '12px',
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.06)',
-  fontSize: '0.85rem',
-  color: '#333',
-  whiteSpace: 'nowrap' as const,
-  border: '1px solid #e5e7eb',
-  zIndex: 100,
-  letterSpacing: '-0.01em',
-  maxWidth: '220px',
-  lineHeight: 1.5,
 };
 
 export const TriggerButton = styled.button`

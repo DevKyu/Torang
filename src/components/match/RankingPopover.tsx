@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { motion } from 'framer-motion';
 
 import { useRecentScores } from '../../hooks/useRecentScores';
+import { useClosePopoverOnScroll } from '../../hooks/useClosePopoverOnScroll';
 import type { RankingEntry } from '../../types/Ranking';
 
 import {
@@ -18,25 +19,7 @@ const RankingPopover = ({ user }: { user: RankingEntry }) => {
   const [open, setOpen] = useState(false);
   const recent = useRecentScores(user.scores, open);
 
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    const opts = { passive: true } as const;
-
-    window.addEventListener('scroll', close, opts);
-    window.addEventListener('resize', close, opts);
-    window.addEventListener('orientationchange', close, opts);
-
-    const tbodyEl = document.querySelector('tbody');
-    tbodyEl?.addEventListener('scroll', close, opts);
-
-    return () => {
-      window.removeEventListener('scroll', close);
-      window.removeEventListener('resize', close);
-      window.removeEventListener('orientationchange', close);
-      tbodyEl?.removeEventListener('scroll', close);
-    };
-  }, [open]);
+  useClosePopoverOnScroll(open, setOpen);
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
