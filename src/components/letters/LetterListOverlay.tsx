@@ -11,14 +11,13 @@ type Letter = {
 };
 
 type Props = {
+  open: boolean;
   letters: Letter[];
   users: Record<string, UserInfo>;
   onClose: () => void;
 };
 
-const LetterListOverlay = ({ letters, users, onClose }: Props) => {
-  if (letters.length === 0) return null;
-
+const LetterListOverlay = ({ open, letters, users, onClose }: Props) => {
   const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -27,41 +26,43 @@ const LetterListOverlay = ({ letters, users, onClose }: Props) => {
 
   return (
     <AnimatePresence>
-      <Overlay
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={handleBackdropClick}
-      >
-        <Modal
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.25 }}
+      {open && (
+        <Overlay
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleBackdropClick}
         >
-          <Title>📬 받은 도전장</Title>
+          <Modal
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Title>📬 받은 도전장</Title>
 
-          <List>
-            {letters.map((letter, i) => {
-              const senderKey = String(letter.fromId);
-              const senderName = letter.anonymous
-                ? '익명의 도전자'
-                : (users[senderKey]?.name ?? senderKey);
+            <List>
+              {letters.map((letter, i) => {
+                const senderKey = String(letter.fromId);
+                const senderName = letter.anonymous
+                  ? '익명의 도전자'
+                  : (users[senderKey]?.name ?? senderKey);
 
-              return (
-                <Item key={`${senderKey}-${i}`}>
-                  <Sender>{senderName}</Sender>
-                  <Message>
-                    {letter.message?.trim() ? letter.message : '메시지 없음'}
-                  </Message>
-                </Item>
-              );
-            })}
-          </List>
+                return (
+                  <Item key={`${senderKey}-${i}`}>
+                    <Sender>{senderName}</Sender>
+                    <Message>
+                      {letter.message?.trim() ? letter.message : '메시지 없음'}
+                    </Message>
+                  </Item>
+                );
+              })}
+            </List>
 
-          <CloseButton onClick={onClose}>닫기</CloseButton>
-        </Modal>
-      </Overlay>
+            <CloseButton onClick={onClose}>닫기</CloseButton>
+          </Modal>
+        </Overlay>
+      )}
     </AnimatePresence>
   );
 };

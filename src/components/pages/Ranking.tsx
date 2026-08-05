@@ -10,7 +10,11 @@ import {
   waitForAuthUser,
 } from '../../services/firebase';
 import { ref, set } from 'firebase/database';
-import { mapUsersToRankingEntries, MEDALS, type Result } from '../../utils/ranking';
+import {
+  mapUsersToRankingEntries,
+  MEDALS,
+  type Result,
+} from '../../utils/ranking';
 import { showToast } from '../../utils/toast';
 import { resolveActivityYmd } from '../../utils/date';
 
@@ -141,7 +145,9 @@ const Ranking = () => {
         if (!cancelled) navigate('/', { replace: true });
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -195,7 +201,14 @@ const Ranking = () => {
     return mapUsersToRankingEntries(users, rankingType, participants).filter(
       (entry) => !EXCLUDED_EMP_IDS.includes(entry.empId),
     );
-  }, [usersLoaded, rankingType, participants, quarterEntries, yearEntries, users]);
+  }, [
+    usersLoaded,
+    rankingType,
+    participants,
+    quarterEntries,
+    yearEntries,
+    users,
+  ]);
 
   useEffect(() => {
     if (!ranking.length) return;
@@ -237,7 +250,13 @@ const Ranking = () => {
     activityYmd,
   });
 
-  const { incoming, letters: receivedLetters } = useMatchIncomingAndLetters(ym, myId, MATCH_TYPE, users, activityYmd);
+  const { incoming, letters: receivedLetters } = useMatchIncomingAndLetters(
+    ym,
+    myId,
+    MATCH_TYPE,
+    users,
+    activityYmd,
+  );
 
   const hasMatchResults =
     matchResults?.some((r) => r.result !== 'none') ?? false;
@@ -285,16 +304,14 @@ const Ranking = () => {
 
   const resultMessages = useMemo(() => {
     if (!matchResults?.length) return [];
+    const MATCH_RESULT_MESSAGE: Record<Result, (name: string) => string> = {
+      win: (name) => `${name}님을 이겼습니다!`,
+      lose: (name) => `${name}님에게 졌습니다.`,
+      draw: (name) => `${name}님과 무승부!`,
+      none: () => '',
+    };
     return matchResults
-      .map((res) =>
-        res.result === 'win'
-          ? `${res.opponentName}님을 이겼습니다!`
-          : res.result === 'lose'
-            ? `${res.opponentName}님에게 졌습니다.`
-            : res.result === 'draw'
-              ? `${res.opponentName}님과 무승부!`
-              : '',
-      )
+      .map((res) => MATCH_RESULT_MESSAGE[res.result](res.opponentName))
       .filter(Boolean);
   }, [matchResults]);
 
@@ -339,7 +356,7 @@ const Ranking = () => {
     );
   }, [handleHeaderClick, rankingType]);
 
-  const handleSendLetter = useCallback(async (
+  const handleSendLetter = async (
     targetId: string,
     message: string,
     anonymous: boolean,
@@ -350,69 +367,64 @@ const Ranking = () => {
       message,
       anonymous,
     });
-  }, [myId, ym, MATCH_TYPE]);
+  };
 
-  const renderRow = useCallback(
-    (user: RankingEntry, idx: number) => {
-      const isMe = user.empId === myId;
-      const medal = MEDALS[idx] ?? String(idx + 1);
-      const disabledBase =
-        isMe || EXCLUDED_EMP_IDS.includes(user.empId) || !myId;
-      const sameLeague = myLeague && user.league === myLeague;
-      const isParticipant =
-        rankingType === 'monthly' && participants?.includes(user.empId);
-      const matchUIEnabled =
-        rankingType === 'monthly' &&
-        timeAllowed &&
-        !disabledBase &&
-        sameLeague &&
-        isParticipant;
+  const renderRow = (user: RankingEntry, idx: number) => {
+    const isMe = user.empId === myId;
+    const medal = MEDALS[idx] ?? String(idx + 1);
+    const disabledBase = isMe || EXCLUDED_EMP_IDS.includes(user.empId) || !myId;
+    const sameLeague = myLeague && user.league === myLeague;
+    const isParticipant =
+      rankingType === 'monthly' && participants?.includes(user.empId);
+    const matchUIEnabled =
+      rankingType === 'monthly' &&
+      timeAllowed &&
+      !disabledBase &&
+      sameLeague &&
+      isParticipant;
 
-      const isLeagueEnd =
-        rankingType === 'monthly' &&
-        idx < ranking.length - 1 &&
-        ranking[idx + 1].league !== user.league;
+    const isLeagueEnd =
+      rankingType === 'monthly' &&
+      idx < ranking.length - 1 &&
+      ranking[idx + 1].league !== user.league;
 
-      return (
-        <MotionTableRow
-          key={user.empId}
-          variants={itemVariants}
-          highlight={isMe}
-          ref={isMe ? myRowRef : undefined}
-          isLeagueEnd={isLeagueEnd}
-        >
-          <td>{medal}</td>
-          <td>
-            {matchUIEnabled ? (
-              <MatchNamePopover
-                ym={ym}
-                myId={myId}
-                targetId={user.empId}
-                targetName={user.name}
-                type={MATCH_TYPE}
-                disabled={!matchUIEnabled}
-                maxChoices={2}
-                onSendLetter={handleSendLetter}
-              />
-            ) : (
-              user.name
-            )}
-          </td>
-          <td>
-            {rankingType === 'monthly' ? (
-              <RankingPopover user={user} />
-            ) : (
-              user.average
-            )}
-          </td>
-          <td>{rankingType === 'monthly' ? user.league : user.max}</td>
-          <td>{rankingType === 'monthly' ? user.pin : user.games}</td>
-        </MotionTableRow>
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rankingType, ym, myId, timeAllowed, myLeague, participants, handleSendLetter, ranking],
-  );
+    return (
+      <MotionTableRow
+        key={user.empId}
+        variants={itemVariants}
+        highlight={isMe}
+        ref={isMe ? myRowRef : undefined}
+        isLeagueEnd={isLeagueEnd}
+      >
+        <td>{medal}</td>
+        <td>
+          {matchUIEnabled ? (
+            <MatchNamePopover
+              ym={ym}
+              myId={myId}
+              targetId={user.empId}
+              targetName={user.name}
+              type={MATCH_TYPE}
+              disabled={!matchUIEnabled}
+              maxChoices={2}
+              onSendLetter={handleSendLetter}
+            />
+          ) : (
+            user.name
+          )}
+        </td>
+        <td>
+          {rankingType === 'monthly' ? (
+            <RankingPopover user={user} />
+          ) : (
+            user.average
+          )}
+        </td>
+        <td>{rankingType === 'monthly' ? user.league : user.max}</td>
+        <td>{rankingType === 'monthly' ? user.pin : user.games}</td>
+      </MotionTableRow>
+    );
+  };
 
   return (
     <Container>
@@ -442,8 +454,7 @@ const Ranking = () => {
                   >
                     {RANKING_TYPE_LABELS[type]}
                   </MotionRankingTab>
-                ))
-            }
+                ))}
           </FilterTabs>
 
           <TableContainer>
@@ -465,7 +476,9 @@ const Ranking = () => {
                     {SKELETON_ROWS.map((cols, i) => (
                       <tr key={i}>
                         {cols.map((w, j) => (
-                          <td key={j}><SkeletonLine width={w} /></td>
+                          <td key={j}>
+                            <SkeletonLine width={w} />
+                          </td>
                         ))}
                       </tr>
                     ))}
@@ -487,8 +500,21 @@ const Ranking = () => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <tr style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                      <td style={{ border: 'none', color: '#bbb', fontSize: '13px' }}>
+                    <tr
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '40vh',
+                      }}
+                    >
+                      <td
+                        style={{
+                          border: 'none',
+                          color: '#bbb',
+                          fontSize: '13px',
+                        }}
+                      >
                         등록된 데이터가 없어요
                       </td>
                     </tr>
@@ -532,13 +558,12 @@ const Ranking = () => {
         }}
       />
 
-      {timeAllowed && showLetters && receivedLetters.length > 0 && (
-        <LetterListOverlay
-          letters={receivedLetters}
-          users={users}
-          onClose={() => setShowLetters(false)}
-        />
-      )}
+      <LetterListOverlay
+        open={timeAllowed && showLetters && receivedLetters.length > 0}
+        letters={receivedLetters}
+        users={users}
+        onClose={() => setShowLetters(false)}
+      />
     </Container>
   );
 };
