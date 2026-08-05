@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { submitVote } from '../../hooks/useMission';
 import type { VillainMissionData } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
+import StatusCard from './StatusCard';
 import VoterCardItem from './VoterCardItem';
 import HiddenMissionModal from './HiddenMissionModal';
 import VoteResultModal from './VoteResultModal';
@@ -19,7 +20,6 @@ import {
   VotedStateArea,
   VotedEmoji,
   VotedName,
-  VotedHeadline,
   VotedSub,
   ResultRevealRow,
   ResultRevealCard,
@@ -148,13 +148,11 @@ const VillainMissionView = ({
 
           {viewState === 'voting' &&
             (!isParticipant ? (
-              <VotedStateArea>
-                <AlreadyVotedBox>
-                  <VotedEmoji>🚫</VotedEmoji>
-                  <VotedHeadline>이달의 활동에 참여하지 않았습니다</VotedHeadline>
-                  <VotedSub>투표는 활동 참여자만 할 수 있어요</VotedSub>
-                </AlreadyVotedBox>
-              </VotedStateArea>
+              <StatusCard
+                emoji="🚫"
+                headline="이달의 활동에 참여하지 않았습니다"
+                sub="투표는 활동 참여자만 할 수 있어요"
+              />
             ) : myVote ? (
               <VotedStateArea>
                 <AlreadyVotedBox>

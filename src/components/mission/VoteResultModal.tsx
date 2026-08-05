@@ -22,6 +22,7 @@ import {
   Empty,
   CloseBtn,
 } from '../../styles/mission/VoteResultModalStyle';
+import { MISSION_ROLE_COLOR } from '../../styles/mission/HiddenMissionModalStyle';
 
 type Props = {
   isOpen: boolean;
@@ -33,8 +34,7 @@ type Props = {
 };
 
 const BAR_COLOR = {
-  villain: '#ef4444',
-  helper: '#3b82f6',
+  ...MISSION_ROLE_COLOR,
   default: '#9ca3af',
 } as const;
 
@@ -81,9 +81,9 @@ const VoteResultModal = ({
           onClick={onClose}
         >
           <Card
-            initial={{ opacity: 0, scale: 0.9, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -109,10 +109,10 @@ const VoteResultModal = ({
                       <Name role={role ?? undefined}>
                         {allNames[empId] ?? empId}
                         {role === 'villain' && (
-                          <RoleTag color="#ef4444">빌런</RoleTag>
+                          <RoleTag color={BAR_COLOR.villain}>빌런</RoleTag>
                         )}
                         {role === 'helper' && (
-                          <RoleTag color="#3b82f6">조력자</RoleTag>
+                          <RoleTag color={BAR_COLOR.helper}>조력자</RoleTag>
                         )}
                       </Name>
                       <BarWrap>

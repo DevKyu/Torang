@@ -13,6 +13,7 @@ import TeamGuessResultModal, {
   type TeamGuessResultSection,
 } from './TeamGuessResultModal';
 import { renderMissionBody } from './missionBody';
+import StatusCard from './StatusCard';
 import {
   PreviewInfoArea,
   VoteTriggerBtn,
@@ -32,7 +33,6 @@ import {
   VotedStateArea,
   AlreadyVotedBox,
   VotedEmoji,
-  VotedHeadline,
   VotedName,
   VotedSub,
   VoteActionRow,
@@ -216,33 +216,27 @@ const TeamGuessMissionView = ({
           )}
 
           {contentKey === 'pending' && (
-            <VotedStateArea>
-              <AlreadyVotedBox>
-                <VotedEmoji>⏳</VotedEmoji>
-                <VotedHeadline>팀 편성 확정 전이에요</VotedHeadline>
-                <VotedSub>팀 편성이 끝나면 예측할 수 있어요</VotedSub>
-              </AlreadyVotedBox>
-            </VotedStateArea>
+            <StatusCard
+              emoji="⏳"
+              headline="팀 편성 확정 전이에요"
+              sub="팀 편성이 끝나면 예측할 수 있어요"
+            />
           )}
 
           {contentKey === 'no-access' && (
-            <VotedStateArea>
-              <AlreadyVotedBox>
-                <VotedEmoji>🚫</VotedEmoji>
-                <VotedHeadline>이번 달 조 편성 대상이 아니에요</VotedHeadline>
-                <VotedSub>정기전 참여자만 예측할 수 있어요</VotedSub>
-              </AlreadyVotedBox>
-            </VotedStateArea>
+            <StatusCard
+              emoji="🚫"
+              headline="이번 달 조 편성 대상이 아니에요"
+              sub="정기전 참여자만 예측할 수 있어요"
+            />
           )}
 
           {contentKey === 'closed' && (
-            <VotedStateArea>
-              <AlreadyVotedBox>
-                <VotedEmoji>⏰</VotedEmoji>
-                <VotedHeadline>예측이 마감되었어요</VotedHeadline>
-                <VotedSub>결과는 활동 후 확인할 수 있어요</VotedSub>
-              </AlreadyVotedBox>
-            </VotedStateArea>
+            <StatusCard
+              emoji="⏰"
+              headline="예측이 마감되었어요"
+              sub="결과는 활동 후 확인할 수 있어요"
+            />
           )}
 
           {contentKey === 'voted' && myVote && (

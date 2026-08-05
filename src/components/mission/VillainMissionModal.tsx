@@ -13,6 +13,7 @@ import {
   Divider,
   ContentArea,
   CloseBtn,
+  MISSION_ROLE_COLOR,
 } from '../../styles/mission/HiddenMissionModalStyle';
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
   hidden: HiddenContent;
 };
 
-const VILLAIN_COLOR = '#ef4444';
+const VILLAIN_COLOR = MISSION_ROLE_COLOR.villain;
 
 const VillainMissionModal = ({ isOpen, onClose, hidden }: Props) => {
   useEffect(() => {

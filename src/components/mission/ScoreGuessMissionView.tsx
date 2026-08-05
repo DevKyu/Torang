@@ -11,6 +11,7 @@ import { useUiStore } from '../../stores/useUiStore';
 import { MEDALS } from '../../utils/ranking';
 import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
+import StatusCard from './StatusCard';
 import VoterCardItem from './VoterCardItem';
 import PredictScoreModal from './PredictScoreModal';
 import ScoreGuessResultModal, {
@@ -282,23 +283,19 @@ const ScoreGuessMissionView = ({
           )}
 
           {contentKey === 'no-access' && (
-            <VotedStateArea>
-              <AlreadyVotedBox>
-                <VotedEmoji>🚫</VotedEmoji>
-                <VotedHeadline>이달의 활동에 참여하지 않았습니다</VotedHeadline>
-                <VotedSub>미션은 활동 참여자만 할 수 있어요</VotedSub>
-              </AlreadyVotedBox>
-            </VotedStateArea>
+            <StatusCard
+              emoji="🚫"
+              headline="이달의 활동에 참여하지 않았습니다"
+              sub="미션은 활동 참여자만 할 수 있어요"
+            />
           )}
 
           {contentKey === 'closed' && (
-            <VotedStateArea>
-              <AlreadyVotedBox>
-                <VotedEmoji>⏰</VotedEmoji>
-                <VotedHeadline>예측이 마감되었어요</VotedHeadline>
-                <VotedSub>결과는 활동 후 확인할 수 있어요</VotedSub>
-              </AlreadyVotedBox>
-            </VotedStateArea>
+            <StatusCard
+              emoji="⏰"
+              headline="예측이 마감되었어요"
+              sub="결과는 활동 후 확인할 수 있어요"
+            />
           )}
 
           {contentKey === 'target-detail' && (

@@ -2,6 +2,8 @@ import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import { SYS_FONT } from '../global/commonStyle';
 
+export const MISSION_ROLE_COLOR = { villain: '#ef4444', helper: '#3b82f6' };
+
 export const Backdrop = styled(motion.div)`
   position: fixed;
   top: 0;

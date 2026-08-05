@@ -15,6 +15,7 @@ import {
   Divider,
   ContentArea,
   ConfirmBtn,
+  MISSION_ROLE_COLOR,
 } from '../../styles/mission/HiddenMissionModalStyle';
 
 type Props = {
@@ -25,14 +26,13 @@ type Props = {
 };
 
 const ROLE_LABEL = { villain: '또랑 빌런', helper: '빌런 조력자' };
-const ROLE_COLOR = { villain: '#ef4444', helper: '#3b82f6' };
 const COUNTDOWN_SEC = 5;
 
 const HiddenMissionModal = ({ isOpen, onClose, role, hidden }: Props) => {
   const [progress, setProgress] = useState(100);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onCloseRef = useRef(onClose);
-  const color = ROLE_COLOR[role];
+  const color = MISSION_ROLE_COLOR[role];
 
   useEffect(() => { onCloseRef.current = onClose; });
 
