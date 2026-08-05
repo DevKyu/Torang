@@ -6,6 +6,16 @@ export default defineConfig({
   build: {
     target: 'es2015',
     minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('firebase')) return 'vendor-firebase';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('@emotion')) return 'vendor-emotion';
+        },
+      },
+    },
   },
   server: {
     port: 5173,

@@ -5,6 +5,8 @@ import {
   useMemo,
   useRef,
   useCallback,
+  lazy,
+  Suspense,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
@@ -28,9 +30,6 @@ import {
 } from '../../services/firebase';
 
 import Layout from '../layouts/Layout';
-import MessageModal from '../shared/MessageModal';
-import NotificationHistorySheet from '../shared/NotificationHistorySheet';
-import ChecklistPopupModal from '../shared/ChecklistPopupModal';
 import { SmallText } from '../../styles/global/commonStyle';
 import {
   MenuGrid,
@@ -75,6 +74,12 @@ import { useMatch } from '../../hooks/useMatch';
 import { resolveActivityYmd } from '../../utils/date';
 import type { YearMonth } from '../../types/match';
 import { useLatestRef } from '../../hooks/useLatestRef';
+
+const MessageModal = lazy(() => import('../shared/MessageModal'));
+const NotificationHistorySheet = lazy(
+  () => import('../shared/NotificationHistorySheet'),
+);
+const ChecklistPopupModal = lazy(() => import('../shared/ChecklistPopupModal'));
 
 type MenuItemBase = {
   id: string;
@@ -485,48 +490,54 @@ const MainMenu = () => {
         나가기
       </SmallText>
 
-      <MessageModal
-        isOpen={autoShowQueue.length > 0}
-        message={autoShowQueue[0] ?? null}
-        empId={myEmpId}
-        queuePosition={queueTotalRef.current - autoShowQueue.length + 1}
-        queueLength={queueTotalRef.current}
-        onClose={handleMessagePopupClose}
-        onDismiss={handleMessagePopupClose}
-      />
+      <Suspense fallback={null}>
+        <MessageModal
+          isOpen={autoShowQueue.length > 0}
+          message={autoShowQueue[0] ?? null}
+          empId={myEmpId}
+          queuePosition={queueTotalRef.current - autoShowQueue.length + 1}
+          queueLength={queueTotalRef.current}
+          onClose={handleMessagePopupClose}
+          onDismiss={handleMessagePopupClose}
+        />
 
-      <NotificationHistorySheet
-        open={historySheetOpen}
-        history={history}
-        onClose={() => setHistorySheetOpen(false)}
-        onSelectMessage={setHistoryDetail}
-      />
+        <MessageModal
+          isOpen={!!historyDetail}
+          message={historyDetail}
+          empId={myEmpId}
+          alreadyRead={historyDetail?.read}
+          queuePosition={1}
+          queueLength={1}
+          onClose={handleHistoryDetailClose}
+          onDismiss={handleHistoryDetailClose}
+        />
+      </Suspense>
 
-      <MessageModal
-        isOpen={!!historyDetail}
-        message={historyDetail}
-        empId={myEmpId}
-        alreadyRead={historyDetail?.read}
-        queuePosition={1}
-        queueLength={1}
-        onClose={handleHistoryDetailClose}
-        onDismiss={handleHistoryDetailClose}
-      />
+      <Suspense fallback={null}>
+        <NotificationHistorySheet
+          open={historySheetOpen}
+          history={history}
+          onClose={() => setHistorySheetOpen(false)}
+          onSelectMessage={setHistoryDetail}
+        />
+      </Suspense>
 
-      <ChecklistPopupModal
-        isOpen={checklistOpen}
-        items={checklistItems}
-        onClose={() => setChecklistOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <ChecklistPopupModal
+          isOpen={checklistOpen}
+          items={checklistItems}
+          onClose={() => setChecklistOpen(false)}
+        />
 
-      <ChecklistPopupModal
-        isOpen={postActivityChecklistOpen}
-        items={postActivityChecklistItems}
-        onClose={() => setPostActivityChecklistOpen(false)}
-        title="활동 후 체크리스트"
-        subtitle="이번 달 활동 마무리가 아직 안됐어요"
-        doneSubtitle="이번 달 활동을 깔끔하게 마무리했어요"
-      />
+        <ChecklistPopupModal
+          isOpen={postActivityChecklistOpen}
+          items={postActivityChecklistItems}
+          onClose={() => setPostActivityChecklistOpen(false)}
+          title="활동 후 체크리스트"
+          subtitle="이번 달 활동 마무리가 아직 안됐어요"
+          doneSubtitle="이번 달 활동을 깔끔하게 마무리했어요"
+        />
+      </Suspense>
     </Layout>
   );
 };
