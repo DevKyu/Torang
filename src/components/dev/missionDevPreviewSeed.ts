@@ -1,4 +1,4 @@
-import { ref, set, remove, get } from 'firebase/database';
+import { ref, set, remove, get, update } from 'firebase/database';
 import { db } from '../../services/firebase';
 import {
   saveVillainMissionContent,
@@ -96,14 +96,18 @@ async function seedActivityMeta(activityYmd: number) {
 }
 
 export async function resetDevPreviewData(): Promise<void> {
-  await Promise.all([
-    remove(ref(db, `missions/${DEV_PREVIEW_YM}`)),
-    remove(ref(db, `teamFormation/${DEV_PREVIEW_YM}`)),
-    remove(ref(db, `team/${DEV_PREVIEW_YM}`)),
-    remove(ref(db, `match/${DEV_PREVIEW_YM}`)),
-    remove(ref(db, `activityDate/${DEV_YEAR}/${DEV_MONTH}`)),
-    remove(ref(db, `activityParticipants/${DEV_YEAR}/${DEV_MONTH}`)),
-  ]);
+  const updates: Record<string, null> = {
+    [`missions/${DEV_PREVIEW_YM}`]: null,
+    [`teamFormation/${DEV_PREVIEW_YM}`]: null,
+    [`team/${DEV_PREVIEW_YM}`]: null,
+    [`match/${DEV_PREVIEW_YM}`]: null,
+    [`activityDate/${DEV_YEAR}/${DEV_MONTH}`]: null,
+    [`activityParticipants/${DEV_YEAR}/${DEV_MONTH}`]: null,
+  };
+  DEV_PARTICIPANTS.forEach((empId) => {
+    updates[`users/${empId}`] = null;
+  });
+  await update(ref(db), updates);
 }
 
 /* -------------------------------------------------------------------------- */

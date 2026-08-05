@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import AdminLayout from '../admin/AdminLayout';
+import { useNavigateBack } from '../../hooks/useNavigateBack';
 import {
   DEV_PREVIEW_YM,
   seedVillainScenario,
@@ -14,6 +15,7 @@ import {
 } from './missionDevPreviewSeed';
 import { TypeSelectRow, TypeSelectBtn } from '../../styles/admin/AdminScoreGuessMissionStyle';
 import { FormTitle, SectionBlock, Divider, SaveRow, SaveBtn, StatusBtn } from '../../styles/admin/AdminMissionStyle';
+import { SmallText } from '../../styles/global/commonStyle';
 import { DevNotice } from '../../styles/dev/MissionDevPreviewStyle';
 
 type Kind = 'villain' | 'scoreGuess' | 'teamGuess';
@@ -50,6 +52,7 @@ const TEAM_GUESS_SCENARIOS: { key: TeamGuessScenario; label: string }[] = [
 
 const MissionDevPreview = () => {
   const navigate = useNavigate();
+  const goBack = useNavigateBack('/admin');
   const [kind, setKind] = useState<Kind>('villain');
   const [seeding, setSeeding] = useState<string | null>(null);
   const [lastApplied, setLastApplied] = useState<string | null>(null);
@@ -80,9 +83,9 @@ const MissionDevPreview = () => {
   return (
     <AdminLayout title="미션 프리뷰 설정">
       <DevNotice>
-        이 화면은 가짜 월(<strong>{DEV_PREVIEW_YM}</strong>)에만 데이터를 씁니다. 실제 운영 데이터에는 영향이
-        없습니다. 시나리오를 적용한 뒤 &quot;미리보기 열기&quot;를 누르면 실제 유저가 보는 것과 동일한 화면으로
-        확인할 수 있습니다.
+        미션 데이터는 가짜 월(<strong>{DEV_PREVIEW_YM}</strong>)에만 씁니다. 단, 결과공개 시나리오는 실제 보상
+        지급 로직이 그대로 실행되어 devpreview_ 테스트 계정에 PIN·점수가 실제로 쌓이니, 테스트 후에는 아래
+        &quot;전체 초기화&quot;로 함께 지워주세요.
       </DevNotice>
 
       <FormTitle>미션 타입</FormTitle>
@@ -134,6 +137,10 @@ const MissionDevPreview = () => {
       <SaveRow>
         <SaveBtn onClick={() => navigate('/admin/mission-preview-screen')}>미리보기 열기 →</SaveBtn>
       </SaveRow>
+
+      <SmallText top="middle" onClick={goBack}>
+        돌아가기
+      </SmallText>
     </AdminLayout>
   );
 };
