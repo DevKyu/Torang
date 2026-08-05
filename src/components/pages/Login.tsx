@@ -12,7 +12,7 @@ import { deleteUser, updatePassword } from 'firebase/auth';
 import {
   auth,
   anonLogin,
-  checkEmpId,
+  checkEmpIdRegistration,
   loginUser,
   registerUid,
   linkAnonymousAccount,
@@ -159,7 +159,7 @@ const Login = () => {
       ) {
         try {
           await anonLogin();
-          const userData = await checkEmpId(employeeId);
+          const userData = await checkEmpIdRegistration(employeeId);
 
           if (userData?.uid) {
             toast.info(

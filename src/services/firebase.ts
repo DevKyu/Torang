@@ -107,6 +107,21 @@ export const checkEmpId = async (empId: string) => {
   return snapshot.exists() ? snapshot.val() : null;
 };
 
+export const checkEmpIdRegistration = async (
+  empId: string,
+): Promise<{ uid: string | null; join: string | null } | null> => {
+  getCurrentUserOrThrow();
+  const [uidSnap, joinSnap] = await Promise.all([
+    get(ref(db, `users/${empId}/uid`)),
+    get(ref(db, `users/${empId}/join`)),
+  ]);
+  if (!uidSnap.exists() && !joinSnap.exists()) return null;
+  return {
+    uid: uidSnap.exists() ? (uidSnap.val() as string) : null,
+    join: joinSnap.exists() ? (joinSnap.val() as string) : null,
+  };
+};
+
 export const registerUid = async (empId: string, referrerName?: string) => {
   const uid = getCurrentUserOrThrow().uid;
   const join = getYearMonth();
