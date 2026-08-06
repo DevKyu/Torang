@@ -1,7 +1,8 @@
 import { type MouseEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import styled from '@emotion/styled';
-import type { UserInfo } from '../../types/UserInfo';
+import { useBackClose } from '../../hooks/useBackClose';
+import type { UserInfo } from '../../types/userInfo';
 
 type Letter = {
   fromId: string | number;
@@ -18,6 +19,8 @@ type Props = {
 };
 
 const LetterListOverlay = ({ open, letters, users, onClose }: Props) => {
+  useBackClose(open, onClose);
+
   const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();

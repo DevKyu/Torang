@@ -1,6 +1,7 @@
 import { type ChangeEvent, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import styled from '@emotion/styled';
+import { useBackClose } from '../../hooks/useBackClose';
 
 type Props = {
   targetName: string;
@@ -25,6 +26,8 @@ const LetterOverlay = ({ targetName, open, onSubmit, onClose }: Props) => {
       setAnonymous(false);
     }
   }, [open, targetName]);
+
+  useBackClose(open, onClose);
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;

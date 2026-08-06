@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ref, get, onValue } from 'firebase/database';
 import { ClipLoader } from 'react-spinners';
 import Layout from '../layouts/Layout';
+import ScreenLoadingState from '../shared/ScreenLoadingState';
 import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
@@ -128,19 +129,13 @@ const MissionPage = () => {
 
   return (
     <Layout title={pageTitle} maxWidth="480px">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {!isReady ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <ScreenLoadingState key="loading">
             <MissionLoadingBox>
               <ClipLoader size={24} color="#9ca3af" />
             </MissionLoadingBox>
-          </motion.div>
+          </ScreenLoadingState>
         ) : (
           <motion.div
             key={viewState}

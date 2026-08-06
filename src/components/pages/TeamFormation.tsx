@@ -158,7 +158,7 @@ const TeamFormation = () => {
       />
 
       <ContentArea style={{ minHeight: contentMinHeight }}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           {loading ? (
             <ScreenLoadingState key="loading" style={{ flex: 1 }}>
               <LoadingBox>
