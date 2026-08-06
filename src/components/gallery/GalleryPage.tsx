@@ -25,7 +25,7 @@ import {
 import { useLoading } from '../../contexts/LoadingContext';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useUiStore } from '../../stores/useUiStore';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore } from '../../stores/useEventStore';
 import { resolveDisplayYm } from '../../utils/date';
 import type { LightboxComment } from '../../types/lightbox';
 import { applyGalleryBoost } from '../../utils/galleryBoost';
@@ -51,11 +51,12 @@ const GalleryPage = () => {
   const navigate = useNavigate();
   const goBack = useNavigateBack();
   const { showLoading, hideLoading } = useLoading();
-  const { maps: activityMaps, loading: activityLoading } = useActivityDates();
+  const { maps: activityMaps, loading: activityLoading, error: activityError } = useActivityDates();
   const formatServerDate = useUiStore((s) => s.formatServerDate);
 
   const [mode, setMode] = useState<'list' | 'upload'>('list');
   const [galleryList, setGalleryList] = useState<GalleryItem[] | null>(null);
+  const [galleryListError, setGalleryListError] = useState(false);
   const [uploadCount, setUploadCount] = useState(GALLERY_POLICY.BASE_UPLOAD);
 
   const [empId, setEmpId] = useState<string | null>(null);
@@ -113,28 +114,36 @@ const GalleryPage = () => {
     if (!empId) return;
 
     setGalleryList(null);
+    setGalleryListError(false);
     fetchUploadCount();
 
     const r = ref(db, `gallery/${ym}`);
-    const unsub = onValue(r, (snap) => {
-      if (!snap.exists()) {
+    const unsub = onValue(
+      r,
+      (snap) => {
+        if (!snap.exists()) {
+          setGalleryList([]);
+          return;
+        }
+
+        const list = Object.entries(snap.val() as Record<string, GalleryItem>).map(([id, v]) => ({
+          id,
+          url: v.url,
+          caption: v.caption ?? '',
+          empId: v.empId,
+          uploadedAt: Number(v.uploadedAt ?? 0),
+          order: v.order ?? 0,
+          likes: v.likes ?? {},
+          comments: v.comments ?? {},
+        }));
+
+        setGalleryList(list);
+      },
+      () => {
         setGalleryList([]);
-        return;
-      }
-
-      const list = Object.entries(snap.val() as Record<string, GalleryItem>).map(([id, v]) => ({
-        id,
-        url: v.url,
-        caption: v.caption ?? '',
-        empId: v.empId,
-        uploadedAt: Number(v.uploadedAt ?? 0),
-        order: v.order ?? 0,
-        likes: v.likes ?? {},
-        comments: v.comments ?? {},
-      }));
-
-      setGalleryList(list);
-    });
+        setGalleryListError(true);
+      },
+    );
 
     return () => unsub();
   }, [empId, ym, fetchUploadCount]);
@@ -159,13 +168,15 @@ const GalleryPage = () => {
     return checkGalleryUploadAvailability(activityMaps, y, m);
   }, [activityLoading, activityMaps, ym]);
 
-  const gallerySkipState: 'checking' | 'known-empty' | undefined =
-    uploadPolicy.reason === 'loading' || uploadPolicy.reason === 'no_data'
-      ? 'checking'
-      : uploadPolicy.reason === 'no_activity' ||
-          uploadPolicy.reason === 'before_activity'
-        ? 'known-empty'
-        : undefined;
+  const gallerySkipState: 'checking' | 'known-empty' | 'error' | undefined =
+    activityError || galleryListError
+      ? 'error'
+      : uploadPolicy.reason === 'loading' || uploadPolicy.reason === 'no_data'
+        ? 'checking'
+        : uploadPolicy.reason === 'no_activity' ||
+            uploadPolicy.reason === 'before_activity'
+          ? 'known-empty'
+          : undefined;
 
   const handleUpload = useCallback(
     async (files: File[], captions: string[]) => {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion, cubicBezier } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
-import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
+import { MyInfoContainer, MyInfoBox } from '../../styles/pages/MyInfoStyle';
 import { Title as PageTitle } from '../../styles/global/commonStyle';
 import MonthNavigator from './MonthNavigator';
 import { useUiStore } from '../../stores/useUiStore';
@@ -88,7 +88,7 @@ const ActivityHistory = () => {
     () => getYearMonth(useUiStore.getState().getServerNow()),
     [],
   );
-  const { maps: activityMaps, loading: activityLoading } = useActivityDates();
+  const { maps: activityMaps, loading: activityLoading, error: activityError } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
   const [ymPending, setYmPending] = useState(false);
   const [category, setCategory] = useState<Category>('all');
@@ -106,16 +106,24 @@ const ActivityHistory = () => {
     setYm(resolved);
   }, [activityLoading, activityMaps, currentYm]);
 
-  const { items: rewardItems, loading: rewardLoading } =
+  const { items: rewardItems, loading: rewardLoading, error: rewardError } =
     useActivityRewards(ym);
-  const { items: matchItems, loading: matchLoading } =
+  const { items: matchItems, loading: matchLoading, error: matchError } =
     useActivityMatches(ym);
-  const { item: summaryItem, loading: summaryLoading } =
+  const { item: summaryItem, loading: summaryLoading, error: summaryError } =
     useActivitySummary(ym);
-  const { items: leagueItems, loading: leagueLoading } =
+  const { items: leagueItems, loading: leagueLoading, error: leagueError } =
     useActivityLeague(ym);
-  const { items: drawItems, loading: drawLoading } =
+  const { items: drawItems, loading: drawLoading, error: drawError } =
     useActivityDraw(ym);
+
+  const hasDataError =
+    activityError ||
+    rewardError ||
+    matchError ||
+    summaryError ||
+    leagueError ||
+    drawError;
 
   useEffect(() => {
     setYmPending(false);
@@ -224,7 +232,9 @@ const ActivityHistory = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15, ease: 'easeOut' }}
                 >
-                  {month}월의 활동 기록이 없습니다.
+                  {hasDataError
+                    ? '데이터를 불러오지 못했어요'
+                    : `${month}월의 활동 기록이 없습니다.`}
                 </EmptyState>
               ) : (
                 <motion.div

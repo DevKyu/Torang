@@ -11,7 +11,7 @@ import {
   GalleryBox,
   GalleryTitle,
   AddButton,
-} from '../../styles/gallery/galleryListStyle';
+} from '../../styles/gallery/GalleryListStyle';
 
 import {
   HeaderRow,
@@ -33,7 +33,7 @@ import {
 } from '../../styles/gallery/galleryGridStyle';
 
 import { SmallText } from '../../styles/global/commonStyle';
-import { useLightBoxStore } from '../../stores/lightBoxStore';
+import { useLightBoxStore } from '../../stores/useLightBoxStore';
 import { preloadOpenLightBox } from '../../utils/gallery';
 import LightBox from '../lightbox/LightBox';
 import { getCurrentUserId } from '../../services/firebase';
@@ -48,7 +48,7 @@ type Props = {
   onChangeMonth: (ym: string) => void;
   ym: string;
   loading?: boolean;
-  emptyState?: 'checking' | 'known-empty';
+  emptyState?: 'checking' | 'known-empty' | 'error';
 };
 
 const SKELETON_PAGE: null[] = Array(9).fill(null);
@@ -178,6 +178,7 @@ const GalleryList = ({
 
   const dataLoading = Boolean(loading) || monthLoading;
   const isChecking = emptyState === 'checking';
+  const isError = emptyState === 'error';
   const knownEmpty = emptyState === 'known-empty';
   const isPlaceholder = dataLoading && !isChecking && !knownEmpty;
   const isEmpty = !isChecking && (dataLoading ? knownEmpty : sorted.length === 0);
@@ -270,7 +271,11 @@ const GalleryList = ({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
               >
-                <EmptyBox>{month}월 활동 사진이 없습니다.</EmptyBox>
+                <EmptyBox>
+                  {isError
+                    ? '데이터를 불러오지 못했어요'
+                    : `${month}월 활동 사진이 없습니다.`}
+                </EmptyBox>
               </motion.div>
             ) : (
               <motion.div

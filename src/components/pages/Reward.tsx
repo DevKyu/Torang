@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import type { ProductItem as ProductItemType } from '../../types/Product';
+import type { ProductItem as ProductItemType } from '../../types/product';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -39,13 +39,13 @@ import {
   GuideButton,
   LoadingBox,
   ContentArea,
-} from '../../styles/pages/rewardStyle';
+} from '../../styles/pages/RewardStyle';
 import Layout from '../layouts/Layout';
 import { ProductItem, type Product } from '../products/ProductItem';
 import { RewardHistory } from '../shared/RewardHistory';
 import { ProductDetailSheet } from '../products/ProductDetailSheet';
 import { getQuarterEndYm, isBeforeOrOnActivityDate } from '../../utils/date';
-import type { AppliedProduct } from '../../types/UserInfo';
+import type { AppliedProduct } from '../../types/userInfo';
 
 const Reward = () => {
   const [pinCount, setPinCount] = useState(0);
@@ -63,7 +63,8 @@ const Reward = () => {
   const noPinWarnedRef = useRef(false);
 
   const { showLoading, hideLoading } = useLoading();
-  const { maps: activityMaps } = useActivityDates();
+  const { maps: activityMaps, error: activityError } = useActivityDates();
+  const [productsError, setProductsError] = useState(false);
   const navigate = useNavigate();
   const goBack = useNavigateBack();
   const quarterYm = useMemo(() => getQuarterEndYm(), []);
@@ -93,6 +94,7 @@ const Reward = () => {
     let cancelled = false;
     resolvedRef.current = { products: false, profile: false, pin: false };
     noPinWarnedRef.current = false;
+    setProductsError(false);
 
     let unsubPin: (() => void) | null = null;
 
@@ -133,6 +135,7 @@ const Reward = () => {
       () => {
         if (cancelled) return;
         toast.error('데이터를 불러오지 못했어요.', { id: 'no-data' });
+        setProductsError(true);
         resolvedRef.current.products = true;
         tryFinish();
       },
@@ -320,6 +323,8 @@ const Reward = () => {
     }
   };
 
+  const hasProductsError = activityError || productsError;
+
   const screenKey = !isReady
     ? 'loading'
     : drawDone
@@ -368,9 +373,17 @@ const Reward = () => {
               transition={{ duration: 0.2 }}
             >
               <GuideSection>
-                <GuideIcon>🎁</GuideIcon>
-                <GuideTitle>상품을 준비하고 있어요</GuideTitle>
-                <GuideDesc>신청 가능한 상품이 곧 등록될 예정이에요 ✨</GuideDesc>
+                <GuideIcon>{hasProductsError ? '⚠️' : '🎁'}</GuideIcon>
+                <GuideTitle>
+                  {hasProductsError
+                    ? '데이터를 불러오지 못했어요'
+                    : '상품을 준비하고 있어요'}
+                </GuideTitle>
+                <GuideDesc>
+                  {hasProductsError
+                    ? '잠시 후 다시 시도해 주세요'
+                    : '신청 가능한 상품이 곧 등록될 예정이에요 ✨'}
+                </GuideDesc>
               </GuideSection>
             </motion.div>
           )}
