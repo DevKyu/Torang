@@ -1,10 +1,10 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import styled from '@emotion/styled';
 import { checkAdminId, waitForAuthUser } from '../../services/firebase';
-import { Container, ContentBox, Title } from '../../styles/global/commonStyle';
+import { Container, Title } from '../../styles/global/commonStyle';
 import { useRouteLoading } from '../../routes/RouteSpinner';
+import { OuterWrapper, AdminBox } from '../../styles/admin/AdminLayoutStyle';
 
 type AdminLayoutProps = {
   title?: string;
@@ -55,24 +55,5 @@ const AdminLayout = ({ title, children }: AdminLayoutProps) => {
     </OuterWrapper>
   );
 };
-
-const OuterWrapper = styled.div`
-  height: 100vh;
-  height: 100dvh;
-  overflow-y: scroll;
-  touch-action: pan-y;
-`;
-
-const AdminBox = styled(ContentBox)`
-  max-width: 720px;
-  padding: 28px 32px 20px;
-  text-align: left;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
-`;
 
 export default AdminLayout;
