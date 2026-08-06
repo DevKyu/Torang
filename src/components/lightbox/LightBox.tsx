@@ -244,6 +244,7 @@ const LightBox = () => {
         if (commentOpen) closeComment();
         else runClose();
       }
+      if (commentOpen) return;
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
     };
@@ -411,6 +412,7 @@ const LightBox = () => {
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
                   onPointerUp={(e) => {
+                    e.preventDefault();
                     if (!e.isPrimary) return;
                     toggleLike();
                   }}
@@ -437,6 +439,7 @@ const LightBox = () => {
                   whileTap={{ scale: 0.80 }}
                   transition={{ duration: 0.1 }}
                   onPointerUp={(e) => {
+                    e.preventDefault();
                     if (!e.isPrimary) return;
                     openComment(current);
                   }}

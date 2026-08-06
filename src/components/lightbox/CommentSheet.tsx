@@ -336,6 +336,7 @@ const CommentSheet = () => {
           <Dim
             style={{ opacity: dimOpacity }}
             onPointerUp={(e) => {
+              e.preventDefault();
               if (!e.isPrimary) return;
               runClose();
             }}
