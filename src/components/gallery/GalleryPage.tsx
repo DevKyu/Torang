@@ -52,7 +52,7 @@ const GalleryPage = () => {
   const goBack = useNavigateBack();
   const { showLoading, hideLoading } = useLoading();
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
-  const { formatServerDate } = useUiStore();
+  const formatServerDate = useUiStore((s) => s.formatServerDate);
 
   const [mode, setMode] = useState<'list' | 'upload'>('list');
   const [galleryList, setGalleryList] = useState<GalleryItem[] | null>(null);

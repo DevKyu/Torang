@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import type { GalleryImage, LightboxComment } from '../types/lightbox';
 import { toggleGalleryLike, subscribeGalleryLikes } from '../utils/galleryLike';
-import {
-  fetchGalleryComments,
-  subscribeGalleryComments,
-  countVisibleComments,
-} from '../utils/comments';
+import { subscribeGalleryComments, countVisibleComments } from '../utils/comments';
 
 type LightBoxState = {
   images: GalleryImage[];
@@ -44,7 +40,7 @@ type LightBoxState = {
   swipePrevUpload: () => void;
   swipeNextUpload: () => void;
 
-  openComment: (index: number) => Promise<void>;
+  openComment: (index: number) => void;
   closeComment: () => void;
 
   setComments: (imageId: string, list: LightboxComment[]) => void;
@@ -116,7 +112,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     set({ likeUnsub: unsub });
   },
 
-  bindCommentSubscription: async (idx) => {
+  bindCommentSubscription: (idx) => {
     const s = get();
     const img = s.images[idx];
     if (!img?.ym) return;
@@ -126,31 +122,9 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
 
     const unsub = subscribeGalleryComments(img.ym, img.id, (list) => {
       get().setComments(img.id, list);
-
-      set((st) => {
-        const arr = [...st.images];
-        const t = arr[idx];
-        if (!t) return {};
-        arr[idx] = {
-          ...t,
-          commentCount: countVisibleComments(list),
-        };
-        return { images: arr };
-      });
     });
 
     set({ commentUnsub: unsub });
-
-    const list = await fetchGalleryComments(img.ym, img.id);
-    get().setComments(img.id, list);
-
-    set((st) => {
-      const arr = [...st.images];
-      const t = arr[idx];
-      if (!t) return {};
-      arr[idx] = { ...t, commentCount: countVisibleComments(list) };
-      return { images: arr };
-    });
   },
 
   openLightBox: (index) => {
@@ -257,7 +231,7 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
       return { comments: next, images: arr };
     }),
 
-  openComment: async (index) => {
+  openComment: (index) => {
     const s = get();
     const img = s.images[index];
     set({ commentOpen: true, commentIndex: index });
@@ -272,9 +246,6 @@ export const useLightBoxStore = create<LightBoxState>((set, get) => ({
     );
 
     set({ commentUnsub: unsub });
-
-    const list = await fetchGalleryComments(img.ym, img.id);
-    get().setComments(img.id, list);
   },
 
   closeComment: () => {

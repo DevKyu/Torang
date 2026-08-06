@@ -152,14 +152,3 @@ export const subscribeGalleryComments = (
   onValue(commentsRef, handler);
   return () => off(commentsRef, 'value', handler);
 };
-
-export const fetchGalleryComments = async (ym: string, imageId: string) => {
-  if (!ym || !imageId) return [];
-
-  const snap = await get(ref(db, `gallery/${ym}/${imageId}/comments`));
-
-  if (!snap.exists()) return [];
-
-  const raw = snap.val() as Record<string, Raw>;
-  return convertRaw(raw, getCurrentUserId());
-};

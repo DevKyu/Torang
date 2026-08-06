@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import useUserInfo from './useUserInfo';
 import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
 import { useTeamFormation } from './useTeamFormation';
@@ -11,7 +10,7 @@ import {
   isCheerSatisfied,
 } from '../utils/scoreGuessCheer';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
-import type { Year, Month } from '../types/UserInfo';
+import type { Year, Month, UserInfo } from '../types/UserInfo';
 import type { MatchChoices } from './useMatch';
 import type { ActivityDateAll } from '../services/firebase';
 
@@ -23,6 +22,7 @@ export type SharedChecklistData = {
   participantsLoading: boolean;
   matchChoices: MatchChoices;
   matchChoicesLoading: boolean;
+  userInfo: UserInfo | null;
 };
 
 export type ChecklistItemKey =
@@ -62,9 +62,9 @@ export const useMonthlyChecklist = (
     participantsLoading,
     matchChoices,
     matchChoicesLoading,
+    userInfo,
   }: SharedChecklistData,
 ): MonthlyChecklistResult => {
-  const userInfo = useUserInfo();
   const matchType = useEventStore((s) => s.matchType);
   const reminderDays = useEventStore((s) => s.checklistReminderDays);
   const lastSync = useUiStore((s) => s.lastSync);

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { ref, set } from 'firebase/database';
 import { toast } from 'sonner';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
@@ -168,11 +169,22 @@ export default function AdminEvent() {
     checklistReminderDays: storedChecklistReminderDays,
     postActivityChecklistDays: storedPostActivityChecklistDays,
     loadEventConfig,
-  } = useEventStore();
-  const ui = useUiStore();
+  } = useEventStore(
+    useShallow((s) => ({
+      menu: s.menu,
+      pinReward: s.pinReward,
+      galleryReward: s.galleryReward,
+      matchType: s.matchType,
+      referralPin: s.referralPin,
+      checklistReminderDays: s.checklistReminderDays,
+      postActivityChecklistDays: s.postActivityChecklistDays,
+      loadEventConfig: s.loadEventConfig,
+    })),
+  );
+  const formatServerDate = useUiStore((s) => s.formatServerDate);
   const goBack = useNavigateBack('/admin');
 
-  const currentYm = String(ui.formatServerDate('ym'));
+  const currentYm = String(formatServerDate('ym'));
   const ymOptions = useMemo(() => getYmList(currentYm, 4), [currentYm]);
 
   const [selectedYm, setSelectedYm] = useState(currentYm);

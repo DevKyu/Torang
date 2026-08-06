@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
@@ -62,7 +63,13 @@ const GalleryList = ({
   emptyState,
 }: Props) => {
   const monthLoading = list === null;
-  const { images: storeImages, setImages, open } = useLightBoxStore();
+  const { images: storeImages, setImages, open } = useLightBoxStore(
+    useShallow((s) => ({
+      images: s.images,
+      setImages: s.setImages,
+      open: s.open,
+    })),
+  );
 
   useEffect(() => {
     return () => {

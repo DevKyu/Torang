@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -62,7 +63,13 @@ const Achievements = () => {
   const [achievementsLoaded, setAchievementsLoaded] = useState(false);
   const refs = useRef(new Map<AchievementCategory, HTMLDivElement | null>());
 
-  const { formatServerDate, isBeforeCutoff, getServerNow } = useUiStore();
+  const { formatServerDate, isBeforeCutoff, getServerNow } = useUiStore(
+    useShallow((s) => ({
+      formatServerDate: s.formatServerDate,
+      isBeforeCutoff: s.isBeforeCutoff,
+      getServerNow: s.getServerNow,
+    })),
+  );
 
   useEffect(() => {
     if (activityLoading) return;
@@ -72,9 +79,10 @@ const Achievements = () => {
     const init = async () => {
       try {
         const eventStore = useEventStore.getState();
+        const uiStore = useUiStore.getState();
         await Promise.all([
           waitForAuthUser(),
-          useUiStore.getState().syncServerTime(),
+          uiStore.lastSync === null ? uiStore.syncServerTime() : Promise.resolve(),
           eventStore.loaded ? Promise.resolve() : eventStore.loadEventConfig(),
         ]);
         if (cancelled) return;

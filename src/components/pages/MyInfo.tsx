@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
@@ -82,7 +83,12 @@ const MyInfo = () => {
   const activityMap = activityAll[String(year)] ?? {};
   const isReady = isUserReady && !activityLoading;
 
-  const { hasShownCongrats, setShownCongrats } = useUiStore();
+  const { hasShownCongrats, setShownCongrats } = useUiStore(
+    useShallow((s) => ({
+      hasShownCongrats: s.hasShownCongrats,
+      setShownCongrats: s.setShownCongrats,
+    })),
+  );
   const hasMyInfoCongrats = hasShownCongrats.myInfo;
 
   const { months, avgCur, avgPrev, validCount } = useQuarterStats(

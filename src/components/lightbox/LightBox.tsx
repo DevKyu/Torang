@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useBackClose } from '../../hooks/useBackClose';
 import { createPortal } from 'react-dom';
 import {
@@ -59,7 +60,27 @@ const LightBox = () => {
     comments: commentsState,
     commentOpen,
     closeComment,
-  } = useLightBoxStore();
+  } = useLightBoxStore(
+    useShallow((s) => ({
+      open: s.open,
+      images: s.images,
+      index: s.index,
+      goPrev: s.goPrev,
+      goNext: s.goNext,
+      uploadOpen: s.uploadOpen,
+      uploadImages: s.uploadImages,
+      uploadIndex: s.uploadIndex,
+      prevUpload: s.prevUpload,
+      nextUpload: s.nextUpload,
+      closeLightBox: s.closeLightBox,
+      closeUploadLightBox: s.closeUploadLightBox,
+      toggleLike: s.toggleLike,
+      openComment: s.openComment,
+      comments: s.comments,
+      commentOpen: s.commentOpen,
+      closeComment: s.closeComment,
+    })),
+  );
 
   const isUpload = uploadOpen;
   const isOpen = isUpload ? uploadOpen : open;

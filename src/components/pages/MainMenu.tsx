@@ -71,6 +71,7 @@ import { usePostActivityChecklist } from '../../hooks/usePostActivityChecklist';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useMonthParticipants } from '../../hooks/useMonthParticipants';
 import { useMatch } from '../../hooks/useMatch';
+import useUserInfo from '../../hooks/useUserInfo';
 import { resolveActivityYmd } from '../../utils/date';
 import type { YearMonth } from '../../types/match';
 import { useLatestRef } from '../../hooks/useLatestRef';
@@ -236,6 +237,7 @@ const MainMenu = () => {
     myEmpId || null,
     checklistMatchType,
   );
+  const checklistUserInfo = useUserInfo();
   const sharedChecklistData = {
     activityAll,
     activityLoading,
@@ -244,6 +246,7 @@ const MainMenu = () => {
     participantsLoading,
     matchChoices,
     matchChoicesLoading,
+    userInfo: checklistUserInfo,
   };
 
   const hasShownChecklistPopup = useUiStore((s) => s.hasShownChecklistPopup);
@@ -276,7 +279,14 @@ const MainMenu = () => {
 
   useEffect(() => {
     const run = async () => {
-      await Promise.all([syncServerTime(), loadEventConfig()]);
+      await Promise.all([
+        useUiStore.getState().lastSync === null
+          ? syncServerTime()
+          : Promise.resolve(),
+        useEventStore.getState().loaded
+          ? Promise.resolve()
+          : loadEventConfig(),
+      ]);
       const user = await waitForAuthUser();
       setMyEmpId(empIdFromEmail(user?.email));
       const [isAdminResult] = await Promise.all([

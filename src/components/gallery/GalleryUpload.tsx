@@ -69,7 +69,7 @@ const GalleryUpload = ({
   const [uploading, setUploading] = useState(false);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const { setUploadImages } = useLightBoxStore();
+  const setUploadImages = useLightBoxStore((s) => s.setUploadImages);
 
   const maxSelectable = Math.min(MAX_FILES, availableCount);
   const empId = getCurrentUserId();

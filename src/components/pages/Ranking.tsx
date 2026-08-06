@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -90,7 +91,14 @@ const Ranking = () => {
   const { maps: activityAll } = useActivityDates();
 
   const { hasShownCongrats, setShownCongrats, formatServerDate, getServerNow } =
-    useUiStore();
+    useUiStore(
+      useShallow((s) => ({
+        hasShownCongrats: s.hasShownCongrats,
+        setShownCongrats: s.setShownCongrats,
+        formatServerDate: s.formatServerDate,
+        getServerNow: s.getServerNow,
+      })),
+    );
 
   const ym = formatServerDate('ym') as YearMonth;
   const serverNow = getServerNow();

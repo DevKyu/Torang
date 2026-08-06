@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { get, ref } from 'firebase/database';
 import { db } from '../services/firebase';
-import useUserInfo from './useUserInfo';
 import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/eventStore';
@@ -27,9 +26,9 @@ export const usePostActivityChecklist = (
     participantsLoading,
     matchChoices,
     matchChoicesLoading,
+    userInfo,
   }: SharedChecklistData,
 ): PostActivityChecklistResult => {
-  const userInfo = useUserInfo();
   const postActivityWindowDays = useEventStore(
     (s) => s.postActivityChecklistDays,
   );

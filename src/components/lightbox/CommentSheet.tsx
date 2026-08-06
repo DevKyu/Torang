@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useBackClose } from '../../hooks/useBackClose';
 import {
   AnimatePresence,
@@ -71,7 +72,18 @@ const CommentSheet = () => {
     addComment,
     updateComment,
     deleteComment: storeDelete,
-  } = useLightBoxStore();
+  } = useLightBoxStore(
+    useShallow((s) => ({
+      commentOpen: s.commentOpen,
+      closeComment: s.closeComment,
+      commentIndex: s.commentIndex,
+      images: s.images,
+      comments: s.comments,
+      addComment: s.addComment,
+      updateComment: s.updateComment,
+      deleteComment: s.deleteComment,
+    })),
+  );
 
   const image = images[commentIndex];
   const imageId = image?.id;
