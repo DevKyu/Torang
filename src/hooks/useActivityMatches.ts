@@ -65,10 +65,12 @@ const toMatchItem = (
 export const useActivityMatches = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(false);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       unsubscribe();
@@ -110,6 +112,7 @@ export const useActivityMatches = (ym: string) => {
         if (!cancelled) {
           setItems([]);
           setLoading(false);
+          setError(true);
         }
       }
     });
@@ -120,5 +123,5 @@ export const useActivityMatches = (ym: string) => {
     };
   }, [ym]);
 
-  return { items, loading };
+  return { items, loading, error };
 };

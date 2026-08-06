@@ -27,10 +27,17 @@ export function useRivalEmpIds(ym: string): Set<string> {
 
       ;(['rival', 'pin'] as const).forEach((type, i) => {
         unsubs.push(
-          onValue(ref(db, `match/${ym}/${type}/${myEmpId}`), (snap) => {
-            snaps[i] = snap.exists() ? snap.val() : {}
-            merge()
-          }),
+          onValue(
+            ref(db, `match/${ym}/${type}/${myEmpId}`),
+            (snap) => {
+              snaps[i] = snap.exists() ? snap.val() : {}
+              merge()
+            },
+            () => {
+              snaps[i] = {}
+              merge()
+            },
+          ),
         )
       })
     })

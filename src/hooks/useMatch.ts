@@ -20,10 +20,17 @@ export const useMatch = (
     if (!ym || !myId) return;
     setLoading(true);
     const r = ref(db, `match/${ym}/${type}/${myId}`);
-    const off = onValue(r, (snap) => {
-      setChoices(snap.exists() ? (snap.val() as MatchChoices) : {});
-      setLoading(false);
-    });
+    const off = onValue(
+      r,
+      (snap) => {
+        setChoices(snap.exists() ? (snap.val() as MatchChoices) : {});
+        setLoading(false);
+      },
+      () => {
+        setChoices({});
+        setLoading(false);
+      },
+    );
     return () => off();
   }, [ym, myId, type]);
 

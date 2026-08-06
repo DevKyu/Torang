@@ -75,16 +75,23 @@ export const useAdminMessages = () => {
 
   useEffect(() => {
     const r = ref(db, 'messages');
-    const unsub = onValue(r, (snap) => {
-      const val = snap.exists()
-        ? (snap.val() as Record<string, Omit<AdminMessage, 'id'>>)
-        : {};
-      const list = Object.entries(val)
-        .map(([id, m]) => ({ id, ...m }))
-        .sort((a, b) => (b.createdAtMs ?? 0) - (a.createdAtMs ?? 0));
-      setMessages(list);
-      setLoading(false);
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        const val = snap.exists()
+          ? (snap.val() as Record<string, Omit<AdminMessage, 'id'>>)
+          : {};
+        const list = Object.entries(val)
+          .map(([id, m]) => ({ id, ...m }))
+          .sort((a, b) => (b.createdAtMs ?? 0) - (a.createdAtMs ?? 0));
+        setMessages(list);
+        setLoading(false);
+      },
+      () => {
+        setMessages([]);
+        setLoading(false);
+      },
+    );
     return unsub;
   }, []);
 
@@ -98,22 +105,35 @@ const useMessagesData = (myEmpId: string) => {
 
   useEffect(() => {
     const r = ref(db, 'messages');
-    const unsub = onValue(r, (snap) => {
-      const val = snap.exists()
-        ? (snap.val() as Record<string, Omit<AdminMessage, 'id'>>)
-        : {};
-      setAllMessages(Object.entries(val).map(([id, m]) => ({ id, ...m })));
-      setMessagesLoaded(true);
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        const val = snap.exists()
+          ? (snap.val() as Record<string, Omit<AdminMessage, 'id'>>)
+          : {};
+        setAllMessages(Object.entries(val).map(([id, m]) => ({ id, ...m })));
+        setMessagesLoaded(true);
+      },
+      () => {
+        setAllMessages([]);
+        setMessagesLoaded(true);
+      },
+    );
     return unsub;
   }, []);
 
   useEffect(() => {
     if (!myEmpId) return;
     const r = ref(db, `messageReads/${myEmpId}`);
-    const unsub = onValue(r, (snap) => {
-      setReadIds(snap.exists() ? (snap.val() as Record<string, true>) : {});
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        setReadIds(snap.exists() ? (snap.val() as Record<string, true>) : {});
+      },
+      () => {
+        setReadIds({});
+      },
+    );
     return unsub;
   }, [myEmpId]);
 
@@ -255,11 +275,17 @@ export const useMessageReactions = (
     setReactions(null);
     if (!isOpen || !messageId) return;
     const r = ref(db, `messageReactions/${messageId}`);
-    const unsub = onValue(r, (snap) => {
-      setReactions(
-        snap.exists() ? (snap.val() as Record<string, MessageReactionKey>) : {},
-      );
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        setReactions(
+          snap.exists() ? (snap.val() as Record<string, MessageReactionKey>) : {},
+        );
+      },
+      () => {
+        setReactions({});
+      },
+    );
     return unsub;
   }, [isOpen, messageId]);
 
@@ -311,13 +337,19 @@ export const useMessageReadStatus = (
       setReactions(null);
       return;
     }
-    const readsUnsub = onValue(ref(db, 'messageReads'), (snap) => {
-      setAllReads(
-        snap.exists()
-          ? (snap.val() as Record<string, Record<string, true>>)
-          : {},
-      );
-    });
+    const readsUnsub = onValue(
+      ref(db, 'messageReads'),
+      (snap) => {
+        setAllReads(
+          snap.exists()
+            ? (snap.val() as Record<string, Record<string, true>>)
+            : {},
+        );
+      },
+      () => {
+        setAllReads({});
+      },
+    );
     const reactionsUnsub = onValue(
       ref(db, `messageReactions/${message.id}`),
       (snap) => {
@@ -326,6 +358,9 @@ export const useMessageReadStatus = (
             ? (snap.val() as Record<string, MessageReactionKey>)
             : {},
         );
+      },
+      () => {
+        setReactions({});
       },
     );
     return () => {

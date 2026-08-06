@@ -149,6 +149,6 @@ export const subscribeGalleryComments = (
     cb(convertRaw(raw, empId));
   };
 
-  onValue(commentsRef, handler);
+  onValue(commentsRef, handler, () => cb([]));
   return () => off(commentsRef, 'value', handler);
 };

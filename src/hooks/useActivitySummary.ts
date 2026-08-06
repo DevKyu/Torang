@@ -7,10 +7,12 @@ import type { ActivityItem } from '../types/activity';
 export const useActivitySummary = (ym: string) => {
   const [item, setItem] = useState<ActivityItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(false);
 
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
@@ -95,6 +97,7 @@ export const useActivitySummary = (ym: string) => {
         if (!cancelled) {
           setItem(null);
           setLoading(false);
+          setError(true);
         }
       }
     });
@@ -105,5 +108,5 @@ export const useActivitySummary = (ym: string) => {
     };
   }, [ym]);
 
-  return { item, loading };
+  return { item, loading, error };
 };

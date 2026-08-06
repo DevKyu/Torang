@@ -36,12 +36,16 @@ export const subscribeGalleryLikes = (
   const empId = getCurrentUserId();
   const likeRef = ref(db, `gallery/${ym}/${imageId}/likes`);
 
-  return onValue(likeRef, (snap) => {
-    const data = snap.val() || {};
+  return onValue(
+    likeRef,
+    (snap) => {
+      const data = snap.val() || {};
 
-    const userIds = Object.keys(data);
-    const count = Object.keys(data).length;
-    const liked = empId ? Boolean(data[empId]) : false;
-    callback(liked, count, userIds);
-  });
+      const userIds = Object.keys(data);
+      const count = Object.keys(data).length;
+      const liked = empId ? Boolean(data[empId]) : false;
+      callback(liked, count, userIds);
+    },
+    () => callback(false, 0, []),
+  );
 };

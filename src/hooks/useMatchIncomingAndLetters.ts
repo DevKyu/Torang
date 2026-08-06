@@ -3,7 +3,7 @@ import { ref, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import { asYear, asMonth } from '../utils/score';
 import { getResultType, type Result } from '../utils/ranking';
-import type { UserInfo } from '../types/UserInfo';
+import type { UserInfo } from '../types/userInfo';
 import type { YearMonth, MatchType } from '../types/match';
 import type { ReceivedLetter } from './useReceivedLetters';
 
@@ -34,9 +34,15 @@ export const useMatchIncomingAndLetters = (
     }
     const activityYm = activityYmd?.slice(0, 6) ?? ym;
     const r = ref(db, `match/${activityYm}/${type}`);
-    const unsub = onValue(r, (snap) => {
-      setMatchData(snap.exists() ? (snap.val() as RawMatchData) : null);
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        setMatchData(snap.exists() ? (snap.val() as RawMatchData) : null);
+      },
+      () => {
+        setMatchData(null);
+      },
+    );
     return () => unsub();
   }, [ym, myId, type, activityYmd]);
 

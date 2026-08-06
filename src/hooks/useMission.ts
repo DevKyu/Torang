@@ -168,10 +168,17 @@ export const useMission = (ym: string) => {
   useEffect(() => {
     setDataReady(false);
     const r = ref(db, `missions/${ym}`);
-    const unsub = onValue(r, (snap) => {
-      setData(snap.exists() ? (snap.val() as MissionData) : null);
-      setDataReady(true);
-    });
+    const unsub = onValue(
+      r,
+      (snap) => {
+        setData(snap.exists() ? (snap.val() as MissionData) : null);
+        setDataReady(true);
+      },
+      () => {
+        setData(null);
+        setDataReady(true);
+      },
+    );
     return unsub;
   }, [ym]);
 

@@ -21,10 +21,12 @@ const toPlayers = (raw?: Record<string, { name: string; score1: number; score2: 
 export const useActivityLeague = (ym: string) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(false);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       unsubscribe();
@@ -104,6 +106,7 @@ export const useActivityLeague = (ym: string) => {
         if (!cancelled) {
           setItems([]);
           setLoading(false);
+          setError(true);
         }
       }
     });
@@ -114,5 +117,5 @@ export const useActivityLeague = (ym: string) => {
     };
   }, [ym]);
 
-  return { items, loading };
+  return { items, loading, error };
 };
