@@ -1,4 +1,11 @@
-import { type CSSProperties, memo, useState, useEffect, useMemo } from 'react';
+import {
+  type CSSProperties,
+  memo,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useLatestRef } from '../../hooks/useLatestRef';
 
@@ -14,7 +21,13 @@ const AIM_W = 7;
 const AIM_H = 10;
 const SYS_FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
-const LANE_LINES = ['calc(50% - 100px)', 'calc(50% + 100px)'];
+const LANE_HALF_WIDTH = 100;
+const LANE_LINES = [
+  `calc(50% - ${LANE_HALF_WIDTH}px)`,
+  `calc(50% + ${LANE_HALF_WIDTH}px)`,
+];
+const ROLL_DURATION = 0.9;
+const FADEOUT_MS = 900;
 
 const GPU: CSSProperties = {
   transform: 'translate3d(0,0,0)',
@@ -111,11 +124,15 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   const [animArmed, setAnimArmed] = useState(false);
   const phaseRef = useLatestRef(phase);
   const animDoneRef = useLatestRef(animDone);
+  const skippedRef = useRef(false);
+  const wasHiddenRef = useRef(false);
 
   useEffect(() => {
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => setAnimArmed(true));
+      raf2 = requestAnimationFrame(() => {
+        if (!skippedRef.current) setAnimArmed(true);
+      });
     });
     return () => {
       cancelAnimationFrame(raf1);
@@ -125,12 +142,26 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
 
   useEffect(() => {
     const measure = () => {
+      if (document.hidden) {
+        wasHiddenRef.current = true;
+        return;
+      }
+      if (!wasHiddenRef.current) return;
+      wasHiddenRef.current = false;
+
       const inFlight =
         phaseRef.current === 'pins' ||
         phaseRef.current === 'rolling' ||
         ((phaseRef.current === 'impact' || phaseRef.current === 'gutter') &&
           !animDoneRef.current);
-      if (inFlight) return;
+
+      if (inFlight) {
+        skippedRef.current = true;
+        setAnimArmed(false);
+        setAnimDone(true);
+        return;
+      }
+
       const h = measureScreenH();
       setScreenH((prev) => (prev !== h ? h : prev));
     };
@@ -174,7 +205,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
   useEffect(() => {
     if (!animDone || !readyToComplete) return;
     setPhase('fadeout');
-    const t = setTimeout(() => onCompleteRef.current(), 900);
+    const t = setTimeout(() => onCompleteRef.current(), FADEOUT_MS);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animDone, readyToComplete]);
@@ -183,7 +214,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
     if (phase === 'rolling') {
       rotateControls.start({
         rotate: 1080,
-        transition: { duration: 0.9, ease: 'linear' },
+        transition: { duration: ROLL_DURATION, ease: 'linear' },
       });
     } else {
       rotateControls.stop();
@@ -215,8 +246,16 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
         WebkitTransform: 'translate3d(0,0,0)',
       }}
       animate={{ opacity: phase === 'fadeout' ? 0 : 1 }}
-      transition={{ duration: 0.9 }}
-      onClick={readyToComplete ? onComplete : undefined}
+      transition={{ duration: FADEOUT_MS / 1000 }}
+      onPointerUp={
+        readyToComplete
+          ? (e) => {
+              e.preventDefault();
+              if (!e.isPrimary) return;
+              onComplete();
+            }
+          : undefined
+      }
     >
       <div
         style={{
@@ -225,8 +264,7 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
           right: 0,
           bottom: 0,
           left: 0,
-          background:
-            'linear-gradient(to right, transparent calc(50% - 100px), rgba(255,220,130,0.02) calc(50% - 100px), rgba(255,220,130,0.02) calc(50% + 100px), transparent calc(50% + 100px))',
+          background: `linear-gradient(to right, transparent ${LANE_LINES[0]}, rgba(255,220,130,0.02) ${LANE_LINES[0]}, rgba(255,220,130,0.02) ${LANE_LINES[1]}, transparent ${LANE_LINES[1]})`,
         }}
       />
 
@@ -348,10 +386,10 @@ const BowlingSplash = ({ onComplete, readyToComplete = true }: BowlingSplashProp
           transition={
             phase === 'rolling'
               ? trajectory === 'center'
-                ? { y: { duration: 0.9, ease: 'easeIn' } }
+                ? { y: { duration: ROLL_DURATION, ease: 'easeIn' } }
                 : {
-                    x: { duration: 0.9, ease: 'easeIn' },
-                    y: { duration: 0.9, ease: 'easeIn' },
+                    x: { duration: ROLL_DURATION, ease: 'easeIn' },
+                    y: { duration: ROLL_DURATION, ease: 'easeIn' },
                   }
               : { duration: 0.3 }
           }
