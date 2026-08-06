@@ -1,5 +1,5 @@
-import type { ProductItem } from '../types/Product';
-import type { UserInfo } from '../types/UserInfo';
+import type { ProductItem } from '../types/product';
+import type { UserInfo } from '../types/userInfo';
 
 type LosersMap = Record<number, { ids: string[]; requiredPins: number }>;
 

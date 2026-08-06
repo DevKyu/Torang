@@ -3,7 +3,7 @@ import { ref, get } from 'firebase/database';
 import { db } from '../services/firebase';
 import { calcMatchMonthResult } from '../utils/matchResult';
 import { getResultType, type Result } from '../utils/ranking';
-import type { UserInfo, Year, Month } from '../types/UserInfo';
+import type { UserInfo, Year, Month } from '../types/userInfo';
 import type { YearMonth, MatchType } from '../types/match';
 import { getDiffDaysServer, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 

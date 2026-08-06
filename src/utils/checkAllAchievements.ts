@@ -1,4 +1,4 @@
-import type { UserInfo } from '../types/UserInfo';
+import type { UserInfo } from '../types/userInfo';
 import type { AchievementResult } from '../types/achievement';
 import { checkBaseAchievements } from './checkBaseAchievements';
 import { checkMissionAchievements } from './checkMissionAchievements';

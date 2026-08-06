@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { UserScores, Month, Year } from '../types/UserInfo';
+import type { UserScores, Month, Year } from '../types/userInfo';
 
 export function useRecentScores(scores?: UserScores, open?: boolean) {
   const [recent, setRecent] = useState<[string, number][] | null>(null);

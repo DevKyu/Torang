@@ -1,4 +1,4 @@
-import type { UserInfo } from '../types/UserInfo';
+import type { UserInfo } from '../types/userInfo';
 import { fetchAllUsers } from '../services/firebase';
 
 export const getTypeLabel = (type: string) => {

@@ -24,7 +24,7 @@ import {
   NoDescription,
   ImageViewer,
   ImageViewerImg,
-} from '../../styles/shared/productDetailSheetStyle';
+} from '../../styles/shared/ProductDetailSheetStyle';
 
 type Props = {
   open: boolean;

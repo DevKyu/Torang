@@ -9,7 +9,7 @@ import { db, fetchAllUsers } from '../../services/firebase'
 import { useUiStore } from '../../stores/useUiStore'
 import { SmallText } from '../../styles/global/commonStyle'
 import { getRecent3Scores, calcAvg } from '../../utils/score'
-import type { UserInfo } from '../../types/UserInfo'
+import type { UserInfo } from '../../types/userInfo'
 import {
   generateTeams,
   formationGroupsToFirebase,

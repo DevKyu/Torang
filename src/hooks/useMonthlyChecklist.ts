@@ -3,14 +3,14 @@ import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMissio
 import { useMissionViewState } from './useMissionViewState';
 import { useTeamFormation } from './useTeamFormation';
 import { findGroupIndexForEmpId } from '../utils/teamFormation';
-import { useEventStore } from '../stores/eventStore';
+import { useEventStore } from '../stores/useEventStore';
 import { useUiStore } from '../stores/useUiStore';
 import {
   countCheerMessagesByCandidate,
   isCheerSatisfied,
 } from '../utils/scoreGuessCheer';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
-import type { Year, Month, UserInfo } from '../types/UserInfo';
+import type { Year, Month, UserInfo } from '../types/userInfo';
 import type { MatchChoices } from './useMatch';
 import type { ActivityDateAll } from '../services/firebase';
 

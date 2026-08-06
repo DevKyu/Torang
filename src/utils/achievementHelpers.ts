@@ -1,4 +1,4 @@
-import type { Month, UserScores } from '../types/UserInfo';
+import type { Month, UserScores } from '../types/userInfo';
 import { useUiStore } from '../stores/useUiStore';
 import { asYear, normalizeMonth } from './score';
 

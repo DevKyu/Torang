@@ -15,7 +15,7 @@ import {
   PrimaryButton,
   SubtleButton,
   POPOVER_STYLE,
-} from '../../styles/shared/matchPopoverStyle';
+} from '../../styles/shared/MatchNamePopoverStyle';
 import { popContentV } from '../../styles/variants/matchVariants';
 
 type MatchNamePopoverProps = {

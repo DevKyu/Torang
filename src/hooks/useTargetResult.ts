@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCurrentUserId } from '../services/firebase';
-import type { UserInfo, Year, Month } from '../types/UserInfo';
+import type { UserInfo, Year, Month } from '../types/userInfo';
 import { getDiffDaysServer, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 
 export type TargetResult = {

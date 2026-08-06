@@ -17,12 +17,12 @@ import {
   confirmScoreGuessTargets,
   submitScoreGuessVote,
   revealScoreGuessMissionResult,
-} from '../../hooks/useScoreGuessMission';
+} from '../../services/scoreGuessMission';
 import {
   saveTeamGuessMissionContent,
   submitTeamGuessVote,
   revealTeamGuessMissionResult,
-} from '../../hooks/useTeamGuessMission';
+} from '../../services/teamGuessMission';
 import type { TeamGuessMissionConfig, TeamGuessMissionData } from '../../hooks/useMission';
 import { formationGroupsToFirebase, type FormationGroup } from '../../utils/teamFormation';
 

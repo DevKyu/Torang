@@ -4,7 +4,7 @@ import {
   Score,
   ScoreItem,
   TargetBadge,
-} from '../../styles/pages/myInfoStyle';
+} from '../../styles/pages/MyInfoStyle';
 import type { HTMLMotionProps } from 'framer-motion';
 
 type MonthCardProps = {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { submitTeamGuessVote, deleteTeamGuessVote } from '../../hooks/useTeamGuessMission';
+import { submitTeamGuessVote, deleteTeamGuessVote } from '../../services/teamGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';

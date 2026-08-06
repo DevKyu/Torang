@@ -12,7 +12,7 @@ import {
 import { X, Send, CornerDownRight, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { useLightBoxStore } from '../../stores/lightBoxStore';
+import { useLightBoxStore } from '../../stores/useLightBoxStore';
 import type { LightboxComment } from '../../types/lightbox';
 
 import {
@@ -41,7 +41,7 @@ import {
   MetaBar,
   LikeUsers,
   LikeCount,
-} from '../../styles/lightbox/commentSheetStyle';
+} from '../../styles/lightbox/CommentSheetStyle';
 import { LikeSheet } from './LikeSheet';
 
 const MY_COMMENT_LIMIT = 5;

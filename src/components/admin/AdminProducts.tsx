@@ -11,7 +11,7 @@ import {
 import { SmallText } from '../../styles/global/commonStyle';
 import { getQuarterEndYm } from '../../utils/date';
 import { computeAndSaveWinners } from '../../utils/computeAndSaveWinners';
-import type { ProductItem } from '../../types/Product';
+import type { ProductItem } from '../../types/product';
 import {
   Section,
   SectionTitle,

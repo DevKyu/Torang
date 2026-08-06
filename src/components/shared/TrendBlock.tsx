@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { DiffBadge, TrendChartWrapper } from '../../styles/pages/myInfoStyle';
+import { DiffBadge, TrendChartWrapper } from '../../styles/pages/MyInfoStyle';
 import MiniTrendChart from './MiniTrendChart';
 import { asMonth } from '../../utils/score';
-import type { Year, UserScores } from '../../types/UserInfo';
+import type { Year, UserScores } from '../../types/userInfo';
 
 type TrendBlockProps = {
   avgCur: number;

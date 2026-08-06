@@ -34,9 +34,9 @@ import {
   Count,
   CountBox,
   NameBox,
-} from '../../styles/lightbox/lightBoxStyle';
+} from '../../styles/lightbox/LightBoxStyle';
 
-import { useLightBoxStore } from '../../stores/lightBoxStore';
+import { useLightBoxStore } from '../../stores/useLightBoxStore';
 import { getCachedUserName } from '../../services/firebase';
 import { countVisibleComments } from '../../utils/comments';
 import CommentSheet from '../lightbox/CommentSheet';

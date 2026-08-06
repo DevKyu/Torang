@@ -1,16 +1,16 @@
 import { ref, set, get, remove } from 'firebase/database';
-import { db } from '../services/firebase';
+import { db } from './firebase';
 import { useUiStore } from '../stores/useUiStore';
 import {
   buildMissionPinReward,
   claimMissionReveal,
   commitMissionReveal,
   DEFAULT_SCORE_DIFF_THRESHOLD,
-} from './useMission';
+} from '../hooks/useMission';
 import type {
   ScoreGuessMissionData,
   ScoreGuessVote,
-} from './useMission';
+} from '../hooks/useMission';
 
 export async function markCheerRead(
   ym: string,

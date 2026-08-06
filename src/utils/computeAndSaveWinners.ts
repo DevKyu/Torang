@@ -2,8 +2,8 @@ import { ref, update, serverTimestamp } from 'firebase/database';
 import { db, getProductData } from '../services/firebase';
 import { getAllUserInfo } from '../utils/user';
 import { batchComputeWinners } from '../utils/batchComputeWinners';
-import type { ProductItem } from '../types/Product';
-import type { UserInfo } from '../types/UserInfo';
+import type { ProductItem } from '../types/product';
+import type { UserInfo } from '../types/userInfo';
 
 export const computeAndSaveWinners = async (ym: string): Promise<void> => {
   const products: ProductItem[] = await getProductData(ym);

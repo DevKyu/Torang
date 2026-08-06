@@ -1,4 +1,4 @@
-import type { Month, UserScores, Year } from '../types/UserInfo';
+import type { Month, UserScores, Year } from '../types/userInfo';
 
 export const quarters = {
   '1분기': ['1', '2', '3'],

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useEventStore } from '../stores/eventStore';
+import { useEventStore } from '../stores/useEventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { useRouteLoading } from './RouteSpinner';
 

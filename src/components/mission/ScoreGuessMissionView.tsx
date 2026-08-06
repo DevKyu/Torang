@@ -6,7 +6,7 @@ import {
   submitScoreGuessVote,
   deleteScoreGuessVote,
   markCheerRead,
-} from '../../hooks/useScoreGuessMission';
+} from '../../services/scoreGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
 import { MEDALS } from '../../utils/ranking';
 import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';

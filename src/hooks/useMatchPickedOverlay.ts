@@ -5,7 +5,7 @@ import {
   EVENT_MATCH_PICKED,
   type MatchPickedDetail,
 } from '../constants/events';
-import type { RankingEntry, RankingType } from '../types/Ranking';
+import type { RankingEntry, RankingType } from '../types/ranking';
 import { calcRankingResult } from '../utils/matchResult';
 
 type Params = {

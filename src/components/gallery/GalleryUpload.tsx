@@ -22,10 +22,10 @@ import {
   ClearText,
   NoticeBox,
   BoostButton,
-} from '../../styles/gallery/galleryStyle';
+} from '../../styles/gallery/GalleryUploadStyle';
 
 import { SmallText } from '../../styles/global/commonStyle';
-import { useLightBoxStore } from '../../stores/lightBoxStore';
+import { useLightBoxStore } from '../../stores/useLightBoxStore';
 import LightBox from '../lightbox/LightBox';
 import { preloadOpenUploadLightBox } from '../../utils/gallery';
 import { getCurrentUserId } from '../../services/firebase';

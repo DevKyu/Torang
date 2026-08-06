@@ -1,4 +1,4 @@
-import type { RankingType } from '../types/Ranking';
+import type { RankingType } from '../types/ranking';
 
 export const RANKING_TYPE_LABELS: Record<RankingType, string> = {
   total: '전체',

@@ -21,7 +21,7 @@ import {
 import { useUiStore } from '../../stores/useUiStore';
 import { useLoading } from '../../contexts/LoadingContext';
 import { Button, SmallText } from '../../styles/global/commonStyle';
-import { Input, ErrorText } from '../../styles/pages/loginStyle';
+import { Input, ErrorText } from '../../styles/pages/LoginStyle';
 import Layout from '../layouts/Layout';
 
 const Login = () => {

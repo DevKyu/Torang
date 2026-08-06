@@ -15,7 +15,7 @@ import {
   addUser,
   deleteUser,
 } from '../../services/firebase';
-import type { UserInfo, Year, Month } from '../../types/UserInfo';
+import type { UserInfo, Year, Month } from '../../types/userInfo';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   SearchRow,

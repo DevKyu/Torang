@@ -40,7 +40,7 @@ import {
   SkeletonBadge,
   SkeletonScoreGrid,
   SkeletonScoreItem,
-} from '../../styles/pages/myInfoStyle';
+} from '../../styles/pages/MyInfoStyle';
 import { SmallText, Title } from '../../styles/global/commonStyle';
 import { ChevronRight } from 'lucide-react';
 import type {
@@ -48,10 +48,10 @@ import type {
   Year,
   UserScores,
   UserTargets,
-} from '../../types/UserInfo';
+} from '../../types/userInfo';
 import { grantTargetPinReward } from '../../utils/pin';
 import { resolveActivityYmd } from '../../utils/date';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore } from '../../stores/useEventStore';
 
 const MyInfo = () => {
   const navigate = useNavigate();

@@ -96,11 +96,11 @@ import {
 import {
   confirmScoreGuessTargets,
   revealScoreGuessMissionResult,
-} from '../../hooks/useScoreGuessMission';
+} from '../../services/scoreGuessMission';
 import {
   saveTeamGuessMissionContent,
   revealTeamGuessMissionResult,
-} from '../../hooks/useTeamGuessMission';
+} from '../../services/teamGuessMission';
 
 type RoleDraft = {
   villainName: string;

@@ -21,7 +21,7 @@ import {
   PrepareTitle,
   PrepareDesc,
   ContentArea,
-} from '../../styles/pages/drawStyle';
+} from '../../styles/pages/DrawStyle';
 
 import {
   db,
@@ -33,7 +33,7 @@ import {
 import { ProductCard } from '../products/ProductCard';
 import Layout from '../layouts/Layout';
 import { getQuarterEndYm } from '../../utils/date';
-import type { ProductItem } from '../../types/Product';
+import type { ProductItem } from '../../types/product';
 
 const orderProducts = (items: ProductItem[], drawOrder?: number[]): ProductItem[] => {
   if (drawOrder?.length) {

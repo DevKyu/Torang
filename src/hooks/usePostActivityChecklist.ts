@@ -3,13 +3,13 @@ import { get, ref } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
-import { useEventStore } from '../stores/eventStore';
+import { useEventStore } from '../stores/useEventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { checkGalleryUploadAvailability } from '../utils/galleryUpload';
 import { getDiffDaysServer, resolveDisplayYm, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
 import type { ChecklistItem, SharedChecklistData } from './useMonthlyChecklist';
-import type { Year, Month } from '../types/UserInfo';
+import type { Year, Month } from '../types/userInfo';
 
 export type PostActivityChecklistResult = {
   items: ChecklistItem[];

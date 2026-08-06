@@ -1,5 +1,5 @@
-import type { Month, Year, UserScores, UserInfo } from '../types/UserInfo';
-import type { RankingEntry, RankingType } from '../types/Ranking';
+import type { Month, Year, UserScores, UserInfo } from '../types/userInfo';
+import type { RankingEntry, RankingType } from '../types/ranking';
 import { useUiStore } from '../stores/useUiStore';
 import { getRecent3Scores } from './score';
 

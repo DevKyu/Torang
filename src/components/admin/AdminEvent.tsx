@@ -9,7 +9,7 @@ import {
   DEFAULT_BADGE_COLOR,
   normalizeMenuConfig,
   type MenuBadgeConfig,
-} from '../../stores/eventStore';
+} from '../../stores/useEventStore';
 import type { MatchType } from '../../types/match';
 import {
   db,

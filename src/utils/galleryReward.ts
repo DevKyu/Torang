@@ -1,7 +1,7 @@
 import { ref, update, runTransaction, increment } from 'firebase/database';
 import { db, getCurrentUserId } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
-import { useEventStore } from '../stores/eventStore';
+import { useEventStore } from '../stores/useEventStore';
 import { showGalleryRewardToast, showGalleryPopularityRewardToast } from './toast';
 import type { LightboxComment } from '../types/lightbox';
 

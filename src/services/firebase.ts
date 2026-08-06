@@ -21,11 +21,11 @@ import {
   type DataSnapshot,
 } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
-import type { Month, UserInfo, Year, AppliedProduct } from '../types/UserInfo';
+import type { Month, UserInfo, Year, AppliedProduct } from '../types/userInfo';
 import type { AchievementResult } from '../types/achievement';
 import type { Result } from '../utils/ranking';
 import type { MatchType, YearMonth } from '../types/match';
-import type { ProductBundle } from '../types/Product';
+import type { ProductBundle } from '../types/product';
 import type { MissionData } from '../hooks/useMission';
 import { getYearMonth, resolveActivityYmd } from '../utils/date';
 import { useUiStore } from '../stores/useUiStore';

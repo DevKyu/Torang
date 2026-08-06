@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 import { useRecentScores } from '../../hooks/useRecentScores';
 import { useClosePopoverOnScroll } from '../../hooks/useClosePopoverOnScroll';
-import type { RankingEntry } from '../../types/Ranking';
+import type { RankingEntry } from '../../types/ranking';
 
 import {
   popoverStyle,
@@ -13,7 +13,7 @@ import {
   DateText,
   ScoreText,
   EmptyText,
-} from '../../styles/shared/rankingPopoverStyle';
+} from '../../styles/shared/RankingPopoverStyle';
 
 const RankingPopover = ({ user }: { user: RankingEntry }) => {
   const [open, setOpen] = useState(false);

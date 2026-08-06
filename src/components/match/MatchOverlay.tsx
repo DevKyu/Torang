@@ -11,7 +11,7 @@ import {
   DeltaRow,
   DeltaLabel,
   DeltaValue,
-} from '../../styles/shared/matchOverlayStyle';
+} from '../../styles/shared/MatchOverlayStyle';
 import { overlayV, cardV, fadeUp, itemV } from '../../styles/variants/matchVariants';
 import type { MatchType } from '../../types/match';
 

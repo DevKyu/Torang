@@ -9,7 +9,7 @@ import { db, fetchAllUsers, adjustPinsForCurrentMonth, resolveCurrentActivityYmd
 import { createAdminMonthOptions } from '../../utils/date';
 import { useUiStore } from '../../stores/useUiStore';
 
-import type { UserInfo } from '../../types/UserInfo';
+import type { UserInfo } from '../../types/userInfo';
 
 import { SmallText } from '../../styles/global/commonStyle';
 

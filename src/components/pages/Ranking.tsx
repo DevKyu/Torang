@@ -25,8 +25,8 @@ import CongratulationOverlay from '../match/CongratulationOverlay';
 import MatchNamePopover from '../match/MatchNamePopover';
 import LetterListOverlay from '../letters/LetterListOverlay';
 
-import type { RankingEntry, RankingType } from '../../types/Ranking';
-import type { UserInfo, Year, Month } from '../../types/UserInfo';
+import type { RankingEntry, RankingType } from '../../types/ranking';
+import type { UserInfo, Year, Month } from '../../types/userInfo';
 import type { YearMonth } from '../../types/match';
 
 import { Container, Title, SmallText } from '../../styles/global/commonStyle';
@@ -41,7 +41,7 @@ import {
   RankingBody,
   MotionRankingTab,
   SkeletonLine,
-} from '../../styles/pages/rankingStyle';
+} from '../../styles/pages/RankingStyle';
 import {
   RANKING_TYPE_LABELS,
   HEADER_TOAST_MAP,
@@ -56,7 +56,7 @@ import { useActivityParticipants } from '../../hooks/useActivityParticipants';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { canEditTarget } from '../../utils/policy';
 import { useUiStore } from '../../stores/useUiStore';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore } from '../../stores/useEventStore';
 import { applyPinChangeBatch } from '../../utils/pin';
 
 const SKELETON_ROWS = [

@@ -1,4 +1,4 @@
-import { useLightBoxStore } from '../stores/lightBoxStore';
+import { useLightBoxStore } from '../stores/useLightBoxStore';
 
 const preloadImage = (src: string): Promise<void> => {
   if (!src) return Promise.resolve();

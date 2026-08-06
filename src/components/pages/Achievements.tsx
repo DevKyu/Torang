@@ -19,7 +19,7 @@ import {
   type AchievementResult,
 } from '../../types/achievement';
 
-import { MyInfoContainer, MyInfoBox } from '../../styles/pages/myInfoStyle';
+import { MyInfoContainer, MyInfoBox } from '../../styles/pages/MyInfoStyle';
 import { SmallText, Title } from '../../styles/global/commonStyle';
 import {
   GridScrollContainer,
@@ -34,11 +34,11 @@ import {
   TabBar,
   TabButton,
   SkeletonCard,
-} from '../../styles/pages/achievementStyle';
+} from '../../styles/pages/AchievementsStyle';
 import { containerVariants, cardVariants } from '../../styles/variants/achievementVariants';
 import { Check } from 'lucide-react';
 import { useUiStore } from '../../stores/useUiStore';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore } from '../../stores/useEventStore';
 import { grantAchievementPinReward } from '../../utils/pin';
 import { showAchievementToast } from '../../utils/toast';
 

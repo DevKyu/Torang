@@ -1,7 +1,7 @@
 import React from 'react';
 import ScoreDialog from './ScoreDialog';
 import MonthCard from './MonthCard';
-import type { Month } from '../../types/UserInfo';
+import type { Month } from '../../types/userInfo';
 
 type MonthCellProps = {
   meta: {

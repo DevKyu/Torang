@@ -22,7 +22,7 @@ import {
   DoneTag,
   GoBtn,
   ConfirmBtn,
-} from '../../styles/shared/checklistPopupStyle';
+} from '../../styles/shared/ChecklistPopupModalStyle';
 
 const ACCENT = '#f97316';
 

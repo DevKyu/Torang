@@ -6,7 +6,7 @@ import {
   asYear,
   asMonth,
 } from '../utils/score';
-import type { Year, Month, UserScores } from '../types/UserInfo';
+import type { Year, Month, UserScores } from '../types/userInfo';
 
 type Return = {
   months: readonly Month[];

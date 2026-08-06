@@ -1,5 +1,5 @@
-import type { RankingEntry } from '../types/Ranking';
-import type { UserInfo, Year, Month } from '../types/UserInfo';
+import type { RankingEntry } from '../types/ranking';
+import type { UserInfo, Year, Month } from '../types/userInfo';
 
 export const calcRankingResult = (
   myId: string | null,

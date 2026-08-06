@@ -9,8 +9,8 @@ import {
   ItemLeft,
   Badge,
   RemoveBadge,
-} from '../../styles/pages/rewardStyle';
-import type { AppliedProduct } from '../../types/UserInfo';
+} from '../../styles/pages/RewardStyle';
+import type { AppliedProduct } from '../../types/userInfo';
 
 type RewardHistoryProps = {
   appliedProducts: Record<string, AppliedProduct>;

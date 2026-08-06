@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { motion } from 'framer-motion';
-import { DEFAULT_BADGE_COLOR } from '../../stores/eventStore';
+import { DEFAULT_BADGE_COLOR } from '../../stores/useEventStore';
 
 export const MenuGrid = styled.div`
   display: grid;

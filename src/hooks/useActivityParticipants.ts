@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getActivityParticipants } from '../services/firebase';
-import type { Year, Month } from '../types/UserInfo';
+import type { Year, Month } from '../types/userInfo';
 
 export const useActivityParticipants = (year: Year, month: Month) => {
   const [participants, setParticipants] = useState<string[]>([]);

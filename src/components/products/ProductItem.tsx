@@ -9,7 +9,7 @@ import {
   BadgeGroup,
   RatioBadge,
   InfoButton,
-} from '../../styles/pages/rewardStyle';
+} from '../../styles/pages/RewardStyle';
 
 export type Product = {
   name: string;

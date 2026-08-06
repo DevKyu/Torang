@@ -4,7 +4,7 @@ import {
   getUserGalleryUploadCount,
   getUserGalleryCommentCount,
 } from '../services/firebase';
-import type { UserInfo, UserScores } from '../types/UserInfo';
+import type { UserInfo, UserScores } from '../types/userInfo';
 import type { AchievementResult } from '../types/achievement';
 import {
   findFirstParticipationYm,

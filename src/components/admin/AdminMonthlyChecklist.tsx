@@ -7,7 +7,7 @@ import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
 import { createAdminMonthOptions } from '../../utils/date';
-import { useEventStore } from '../../stores/eventStore';
+import { useEventStore } from '../../stores/useEventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import { isScoreGuessMission } from '../../hooks/useMission';
 import {
@@ -19,7 +19,7 @@ import {
   getMissionViewState,
 } from '../../utils/missionViewState';
 
-import type { Month, Year, UserInfo } from '../../types/UserInfo';
+import type { Month, Year, UserInfo } from '../../types/userInfo';
 import type { MatchType } from '../../types/match';
 import type { MissionData } from '../../hooks/useMission';
 

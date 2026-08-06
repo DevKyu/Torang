@@ -3,7 +3,7 @@ import { getAuthHeader, db, getCurrentUserId } from '../services/firebase';
 import type { MatchResult } from '../hooks/useMatchResult';
 import type { YearMonth, MatchType } from '../types/match';
 import { getResultType } from './ranking';
-import type { UserInfo, Year, Month } from '../types/UserInfo';
+import type { UserInfo, Year, Month } from '../types/userInfo';
 import { calcMatchMonthResult } from './matchResult';
 import {
   showMatchWithPinToast,
@@ -13,7 +13,7 @@ import {
 } from './toast';
 import { isWithinActivityDays } from './date';
 import { useUiStore } from '../stores/useUiStore';
-import { useEventStore } from '../stores/eventStore';
+import { useEventStore } from '../stores/useEventStore';
 
 type TargetRewardPayload = {
   myScore: number;

@@ -1,4 +1,4 @@
-import type { UserScores } from './UserInfo';
+import type { UserScores } from './userInfo';
 
 export type RankingEntry = {
   empId: string;

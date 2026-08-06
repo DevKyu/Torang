@@ -12,7 +12,7 @@ import {
   SupporterList,
   MoreText,
   WinnerNameItem,
-} from '../../styles/pages/drawStyle';
+} from '../../styles/pages/DrawStyle';
 
 import { getCachedUserName } from '../../services/firebase';
 import { showHiddenNamesToast } from '../../utils/toast';

@@ -43,12 +43,12 @@ import {
   BellSpacer,
   BellBtn,
   BellCountBadge,
-} from '../../styles/pages/menuStyle';
+} from '../../styles/pages/MainMenuStyle';
 import {
   useEventStore,
   DEFAULT_MENU_DISABLED,
   type MenuBadgeConfig,
-} from '../../stores/eventStore';
+} from '../../stores/useEventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import {
   preloadMyInfo,
