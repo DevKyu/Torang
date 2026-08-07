@@ -13,6 +13,7 @@ export const Dim = styled(motion.div)`
   z-index: 20000;
   pointer-events: auto;
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
 
@@ -28,7 +29,6 @@ export const Sheet = styled(motion.div)`
   bottom: 0;
   width: 100%;
   min-height: 320px;
-  max-height: 420px;
   background: #fff;
   border-radius: 20px 20px 0 0;
   z-index: 20001;
@@ -38,6 +38,7 @@ export const Sheet = styled(motion.div)`
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.16);
 
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
 
   ${gpu}
@@ -49,7 +50,9 @@ export const Sheet = styled(motion.div)`
 
 export const DragZone = styled(motion.div)`
   width: 100%;
+  flex-shrink: 0;
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
   ${gpu}
 `;
@@ -86,10 +89,27 @@ export const Title = styled.div`
   color: #222;
 `;
 
+export const SheetBodyOuter = styled.div`
+  position: relative;
+`;
+
+export const BottomFade = styled.div<{ faded?: boolean }>`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, #fff);
+  opacity: ${({ faded }) => (faded ? 1 : 0)};
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+`;
+
 export const SheetBody = styled.div`
   position: relative;
-  flex: 1;
-  padding: 6px 18px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  min-height: 160px;
+  max-height: 300px;
+  padding: 14px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
 
   overflow-y: auto;
   display: flex;
@@ -226,6 +246,8 @@ export const ReplyItem = styled(motion.div)`
 `;
 
 export const InputWrap = styled.div`
+  flex-shrink: 0;
+  margin-top: auto;
   padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
   background: #fff;
   border-top: 1px solid #eee;
@@ -307,6 +329,7 @@ export const MetaBar = styled.div`
   color: #888;
 
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 

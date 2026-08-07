@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useBackClose } from '../../hooks/useBackClose';
+import { useScrollFade } from '../../hooks/useScrollFade';
 import {
   AnimatePresence,
   motion,
@@ -30,7 +31,9 @@ import {
   HandleBar,
   SheetHeader,
   Title,
+  SheetBodyOuter,
   SheetBody,
+  BottomFade,
   CommentItem,
   ReplyItem,
   InputWrap,
@@ -160,6 +163,7 @@ const CommentSheet = () => {
     grouped.top.length +
     Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
   const isScrollable = total > 3;
+  const bodyFaded = useScrollFade(bodyRef, commentOpen, [total]);
 
   const myVisibleCount = useMemo(
     () => list.filter((c) => !c.deleted && c.empId === empId).length,
@@ -376,10 +380,10 @@ const CommentSheet = () => {
               )}
             </DragZone>
 
+            <SheetBodyOuter>
             <SheetBody
               ref={bodyRef}
               style={{
-                overflowY: isScrollable ? 'auto' : 'hidden',
                 touchAction: isScrollable ? 'pan-y' : 'none',
               }}
             >
@@ -495,6 +499,8 @@ const CommentSheet = () => {
                 ))}
               </AnimatePresence>
             </SheetBody>
+            <BottomFade faded={bodyFaded} />
+            </SheetBodyOuter>
 
             <InputWrap>
               {replyTo && (
