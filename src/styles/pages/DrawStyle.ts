@@ -211,6 +211,7 @@ export const MoreText = styled.button`
   border: none;
 
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -254,7 +255,7 @@ export const CompletionMessage = styled(motion.div)`
   align-items: center;
   justify-content: center;
   font-size: ${font.lg};
-  color: #16a34a;
+  color: #059669;
   font-weight: 700;
 `;
 

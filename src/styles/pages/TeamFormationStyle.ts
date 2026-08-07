@@ -67,6 +67,7 @@ export const GroupTab = styled.button<{ active: boolean }>`
   border: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  -webkit-user-select: none;
   user-select: none;
   transition: background 0.18s, color 0.18s, transform 0.1s;
   background: ${({ active }) => (active ? '#fef9c3' : '#f1f5f9')};
@@ -99,6 +100,7 @@ export const GroupHeader = styled.div`
   padding: 11px 14px;
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
+  -webkit-user-select: none;
   user-select: none;
 `
 
@@ -123,7 +125,7 @@ export const ResultBadge = styled.span<{ result: ResultType }>`
   font-weight: 700;
   line-height: 1;
   padding: 4px 10px;
-  border-radius: 99px;
+  border-radius: 999px;
   background: ${({ result }) => RESULT_STYLE[result].bg};
   color: ${({ result }) => RESULT_STYLE[result].color};
   visibility: ${({ result }) => (result === 'none' ? 'hidden' : 'visible')};
@@ -134,7 +136,7 @@ export const DiffChip = styled.span<{ level: 'low' | 'mid' | 'high' }>`
   font-weight: 700;
   line-height: 1;
   padding: 4px 10px;
-  border-radius: 99px;
+  border-radius: 999px;
   ${({ level }) =>
     level === 'low'
       ? 'background: #dcfce7; color: #166534;'
@@ -187,6 +189,7 @@ export const TeamLabel = styled.div<{ team: '1' | '2'; state: TeamState }>`
   display: flex;
   align-items: center;
   gap: 4px;
+  -webkit-user-select: none;
   user-select: none;
   transition: color 0.25s ease;
 `

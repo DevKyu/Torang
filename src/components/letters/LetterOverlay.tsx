@@ -197,6 +197,7 @@ const CheckboxLabel = styled.label`
   font-size: 0.8rem;
   color: #5a4c3e;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
 
   input {

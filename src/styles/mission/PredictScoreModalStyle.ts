@@ -57,9 +57,10 @@ export const InputUnit = styled.span`
 
 export const MessageArea = styled.textarea`
   width: 100%;
-  height: 64px;
+  height: 94px;
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 500;
   color: #374151;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
@@ -100,6 +101,7 @@ export const CheckboxLabel = styled.label`
   font-size: 12px;
   color: #6b7280;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
 
   input {

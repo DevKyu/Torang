@@ -71,6 +71,7 @@ const Item = styled(Select.Item)`
   font-size: 14px;
   color: ${COLOR.text};
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   &[data-highlighted] {
     background: ${COLOR.hover};

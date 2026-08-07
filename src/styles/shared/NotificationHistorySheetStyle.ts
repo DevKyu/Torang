@@ -43,6 +43,7 @@ export const DragZone = styled.div`
   padding: 12px 0 8px;
   cursor: grab;
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
 `;
 

@@ -70,17 +70,30 @@ const MissionPreviewScreen = () => {
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
 
   useEffect(() => {
-    const unsub = onValue(ref(db, `missions/${DEV_PREVIEW_YM}`), (snap) => {
-      setData(snap.exists() ? (snap.val() as MissionData) : null);
-      setMissionLoading(false);
-    });
+    const unsub = onValue(
+      ref(db, `missions/${DEV_PREVIEW_YM}`),
+      (snap) => {
+        setData(snap.exists() ? (snap.val() as MissionData) : null);
+        setMissionLoading(false);
+      },
+      () => {
+        setData(null);
+        setMissionLoading(false);
+      },
+    );
     return unsub;
   }, []);
 
   useEffect(() => {
-    const unsub = onValue(ref(db, `activityDate/${DEV_YEAR}/${DEV_MONTH}`), (snap) => {
-      setActivityDateNum(snap.exists() ? (snap.val() as number) : null);
-    });
+    const unsub = onValue(
+      ref(db, `activityDate/${DEV_YEAR}/${DEV_MONTH}`),
+      (snap) => {
+        setActivityDateNum(snap.exists() ? (snap.val() as number) : null);
+      },
+      () => {
+        setActivityDateNum(null);
+      },
+    );
     return unsub;
   }, []);
 

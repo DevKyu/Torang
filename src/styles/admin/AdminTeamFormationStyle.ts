@@ -393,7 +393,7 @@ export const DiffChip = styled.span<{ level: 'low' | 'mid' | 'high' }>`
   font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 99px;
+  border-radius: 999px;
   ${({ level }) =>
     level === 'low'
       ? 'background: #dcfce7; color: #166534;'

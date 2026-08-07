@@ -131,6 +131,7 @@ const RankingTab = styled.button<{ active: boolean }>`
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   border: 1px solid
     ${({ active }) => (active ? colors.activeBorder : colors.inactiveBorder)};

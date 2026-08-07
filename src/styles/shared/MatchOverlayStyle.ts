@@ -71,7 +71,7 @@ export const VS = styled(motion.div)`
   font-weight: 900;
   font-size: 13px;
   padding: 4px 8px;
-  border-radius: 9999px;
+  border-radius: 999px;
   color: #7a4f12;
   background: ${TONE_GOLD_SOFT};
   border: 1px solid #f1d58d;

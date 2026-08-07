@@ -62,7 +62,7 @@ export const BellCountBadge = styled(motion.span)`
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: #ef4444;
   color: #fff;
   font-size: 10px;
@@ -85,6 +85,7 @@ export const MotionMenuCard = styled(motion.button)<MenuCardProps>`
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   touch-action: manipulation;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -163,7 +164,8 @@ export const MenuBadge = styled(motion.span)<MenuBadgeProps>`
   font-size: 10px;
   font-weight: 700;
   line-height: 1.3;
-  border-radius: 9999px;
+  border-radius: 999px;
+  -webkit-user-select: none;
   user-select: none;
   pointer-events: none;
   white-space: nowrap;

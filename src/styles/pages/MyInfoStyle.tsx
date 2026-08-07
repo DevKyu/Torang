@@ -248,7 +248,7 @@ export const DiffBadge = styled.span<{ color?: string }>`
   font-size: 12px;
   font-weight: 500;
   padding: 2px 8px;
-  border-radius: 9999px;
+  border-radius: 999px;
 
   ${({ color }) => {
     if (color === '#dc2626') {

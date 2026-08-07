@@ -120,7 +120,7 @@ const statusPill = `
 export const DoneTag = styled.div`
   ${statusPill}
   background: #f0fdf4;
-  color: #16a34a;
+  color: #059669;
 `;
 
 export const GoBtn = styled.button`

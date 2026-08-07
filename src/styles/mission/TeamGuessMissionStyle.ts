@@ -175,7 +175,7 @@ export const RosterResultBadge = styled.span`
   font-weight: 700;
   line-height: 1;
   padding: 4px 10px;
-  border-radius: 99px;
+  border-radius: 999px;
   background: #dcfce7;
   color: #166534;
 `;
@@ -187,7 +187,7 @@ export const DiffChip = styled.span<{ level: 'low' | 'mid' | 'high' }>`
   padding: 4px 10px;
   min-width: 72px;
   text-align: center;
-  border-radius: 99px;
+  border-radius: 999px;
   white-space: nowrap;
   ${({ level }) =>
     level === 'low'
