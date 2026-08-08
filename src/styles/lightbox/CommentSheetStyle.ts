@@ -108,15 +108,15 @@ export const BottomFade = styled.div<{ faded?: boolean }>`
 export const SheetBody = styled.div`
   position: relative;
   min-height: 160px;
-  max-height: 300px;
-  padding: 14px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  max-height: 280px;
+  padding: 10px 18px calc(env(safe-area-inset-bottom, 0px) + 10px);
 
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
 
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
   touch-action: pan-y;
 
   &::-webkit-scrollbar {

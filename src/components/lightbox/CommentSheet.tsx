@@ -8,6 +8,7 @@ import {
   useMotionValue,
   animate,
   useTransform,
+  useDragControls,
   type PanInfo,
 } from 'framer-motion';
 import { X, Send, CornerDownRight, Heart } from 'lucide-react';
@@ -120,6 +121,7 @@ const CommentSheet = () => {
 
   const y = useMotionValue(0);
   const dimOpacity = useTransform(y, [0, 440], [1, 0]);
+  const dragControls = useDragControls();
 
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
@@ -162,8 +164,14 @@ const CommentSheet = () => {
   const total =
     grouped.top.length +
     Object.values(grouped.replyMap).reduce((a, v) => a + v.length, 0);
-  const isScrollable = total > 3;
   const bodyFaded = useScrollFade(bodyRef, commentOpen, [total]);
+
+  const [isScrollable, setIsScrollable] = useState(false);
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    setIsScrollable(el.scrollHeight > el.clientHeight + 1);
+  }, [list]);
 
   const myVisibleCount = useMemo(
     () => list.filter((c) => !c.deleted && c.empId === empId).length,
@@ -350,13 +358,15 @@ const CommentSheet = () => {
             key={imageId}
             style={{ y }}
             drag="y"
+            dragControls={dragControls}
+            dragListener={!isScrollable}
             dragElastic={0.1}
             dragConstraints={{ top: 0 }}
             dragMomentum={false}
             dragPropagation={false}
             onDragEnd={onDragEnd}
           >
-            <DragZone>
+            <DragZone onPointerDown={(e) => dragControls.start(e)}>
               <HandleBar />
               <SheetHeader>
                 <Title>댓글 {total}</Title>

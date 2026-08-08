@@ -1,14 +1,29 @@
 import { useEffect, useRef } from 'react';
 
-const handlers: Array<() => void> = [];
-let backInFlight = 0;
+const handlers = new Map<number, () => void>();
+let depthSeq = 0;
+
+function currentDepth(): number {
+  return (window.history.state as { backCloseDepth?: number } | null)?.backCloseDepth ?? 0;
+}
+
+function teardownIfEmpty() {
+  if (handlers.size === 0) {
+    window.removeEventListener('popstate', onPopstate);
+    depthSeq = 0;
+  }
+}
 
 function onPopstate() {
-  if (backInFlight > 0) {
-    backInFlight--;
-    return;
+  const target = currentDepth();
+  const depths = [...handlers.keys()].reverse();
+  for (const d of depths) {
+    if (d <= target) break;
+    const fn = handlers.get(d);
+    handlers.delete(d);
+    fn?.();
   }
-  handlers.pop()?.();
+  teardownIfEmpty();
 }
 
 export function useBackClose(isOpen: boolean, onClose: () => void) {
@@ -18,25 +33,23 @@ export function useBackClose(isOpen: boolean, onClose: () => void) {
   useEffect(() => {
     if (!isOpen) return;
 
-    const fn = () => onCloseRef.current();
-    handlers.push(fn);
-    window.history.pushState({ backClose: true }, '');
+    depthSeq += 1;
+    const myDepth = depthSeq;
+    handlers.set(myDepth, () => onCloseRef.current());
+    window.history.pushState({ backCloseDepth: myDepth }, '');
 
-    if (handlers.length === 1) {
+    if (handlers.size === 1) {
       window.addEventListener('popstate', onPopstate);
     }
 
     return () => {
-      const idx = handlers.lastIndexOf(fn);
-      if (idx !== -1) {
-        handlers.splice(idx, 1);
-        backInFlight++;
-        window.history.back();
+      if (handlers.has(myDepth)) {
+        handlers.delete(myDepth);
+        if (currentDepth() >= myDepth) {
+          window.history.back();
+        }
       }
-      if (handlers.length === 0) {
-        window.removeEventListener('popstate', onPopstate);
-        backInFlight = 0;
-      }
+      teardownIfEmpty();
     };
   }, [isOpen]);
 }
