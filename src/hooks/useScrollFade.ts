@@ -19,9 +19,12 @@ export function useScrollFade(
     check();
     el.addEventListener('scroll', check, { passive: true });
     window.addEventListener('resize', check);
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
     return () => {
       el.removeEventListener('scroll', check);
       window.removeEventListener('resize', check);
+      observer.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, ...deps]);

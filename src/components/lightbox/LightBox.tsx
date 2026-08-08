@@ -260,8 +260,10 @@ const LightBox = () => {
   const hasDesc = !!img.description?.trim();
 
   const id = img.id;
-  const comments = id ? (commentsState[id] ?? []) : [];
-  const commentCount = countVisibleComments(comments);
+  const comments = id ? commentsState[id] : undefined;
+  const commentCount = comments
+    ? countVisibleComments(comments)
+    : (img.commentCount ?? 0);
   const likeCount = img.likes ?? 0;
 
   const overlayClick = () => {
