@@ -170,7 +170,11 @@ const CommentSheet = () => {
   useLayoutEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
-    setIsScrollable(el.scrollHeight > el.clientHeight + 1);
+    const check = () => setIsScrollable(el.scrollHeight > el.clientHeight + 1);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [list]);
 
   const myVisibleCount = useMemo(
