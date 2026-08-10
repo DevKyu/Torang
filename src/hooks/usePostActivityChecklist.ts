@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { get, ref } from 'firebase/database';
 import { db } from '../services/firebase';
-import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
+import { useMission } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/useEventStore';
 import { useUiStore } from '../stores/useUiStore';
@@ -197,14 +197,14 @@ export const usePostActivityChecklist = (
   }, [myEmpId, activityYm, matchType]);
 
   const {
-    data: missionData,
-    myVote: missionMyVote,
+    villain: missionVillain,
+    myVillainVote: missionMyVote,
     loading: missionLoading,
   } = useMission(activityYm);
 
   const { viewState: missionViewState } = useMissionViewState(
     activityYmdStr,
-    missionData,
+    missionVillain,
   );
 
   const items = useMemo<ChecklistItem[]>(() => {
@@ -267,10 +267,7 @@ export const usePostActivityChecklist = (
       });
     }
 
-    const isVillainMission =
-      !!missionData?.config &&
-      !isScoreGuessMission(missionData) &&
-      !isTeamGuessMission(missionData);
+    const isVillainMission = !!missionVillain?.config;
 
     if (isVillainMission && missionViewState === 'voting') {
       result.push({
@@ -331,7 +328,7 @@ export const usePostActivityChecklist = (
     matchType,
     matchPinEnabled,
     matchResultReady,
-    missionData,
+    missionVillain,
     missionViewState,
     missionMyVote,
   ]);
