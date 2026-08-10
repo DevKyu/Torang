@@ -63,7 +63,7 @@ export type MissionRoles = {
   assignedAt: number;
 };
 
-type ScoreGuessTargets = {
+export type ScoreGuessTargets = {
   empIds: string[];
   confirmedAt: number;
 };
@@ -81,7 +81,7 @@ export type TeamGuessVote = {
   bonusGroupPick?: 'team1' | 'team2' | 'draw';
 };
 
-type MissionResult = {
+export type MissionResult = {
   revealed: boolean;
   revealedAt: number;
   villainWon: boolean;
@@ -91,7 +91,7 @@ type MissionResult = {
   correctVoters: string[];
 };
 
-type ScoreGuessMissionResult = {
+export type ScoreGuessMissionResult = {
   revealed: boolean;
   revealedAt: number;
   actualScores: Record<string, number>;
@@ -130,22 +130,129 @@ export type TeamGuessMissionData = {
 
 export type MissionData = VillainMissionData | ScoreGuessMissionData | TeamGuessMissionData;
 
-export const isScoreGuessMission = (
-  data: MissionData | null,
-): data is ScoreGuessMissionData => data?.config?.type === 'scoreGuess';
-
-export const isTeamGuessMission = (
-  data: MissionData | null,
-): data is TeamGuessMissionData => data?.config?.type === 'teamGuess';
-
 export const isScoreGuessVote = (v: unknown): v is ScoreGuessVote =>
   typeof v === 'object' && v !== null && 'targetEmpId' in v;
 
 export const isTeamGuessVote = (v: unknown): v is TeamGuessVote =>
   typeof v === 'object' && v !== null && 'myGroupPick' in v;
 
+export type RawMissionSnapshot = {
+  config?: VillainMissionConfig | ScoreGuessMissionConfig | TeamGuessMissionConfig;
+  hidden?: VillainMissionHidden;
+  roles?: MissionRoles;
+  targets?: ScoreGuessTargets;
+  result?: MissionResult | ScoreGuessMissionResult | TeamGuessMissionResult;
+  villain?: VillainMissionData;
+  scoreGuess?: ScoreGuessMissionData;
+  teamGuess?: TeamGuessMissionData;
+  votes?: Record<string, unknown>;
+  cheerReads?: Record<string, number>;
+};
+
+export type ParsedMissionSnapshot = {
+  villain: VillainMissionData | null;
+  predict: ScoreGuessMissionData | TeamGuessMissionData | null;
+  predictType: 'scoreGuess' | 'teamGuess' | null;
+};
+
+export function parseMissionSnapshot(
+  raw: RawMissionSnapshot | null,
+): ParsedMissionSnapshot {
+  if (!raw) return { villain: null, predict: null, predictType: null };
+
+  if (raw.villain || raw.scoreGuess || raw.teamGuess) {
+    const votes = raw.votes as
+      | {
+          villain?: Record<string, string>;
+          scoreGuess?: Record<string, ScoreGuessVote>;
+          teamGuess?: Record<string, TeamGuessVote>;
+        }
+      | undefined;
+    const villain = raw.villain ? { ...raw.villain, votes: votes?.villain } : null;
+    const predictType: ParsedMissionSnapshot['predictType'] = raw.scoreGuess
+      ? 'scoreGuess'
+      : raw.teamGuess
+        ? 'teamGuess'
+        : null;
+    const predict =
+      predictType === 'scoreGuess'
+        ? { ...raw.scoreGuess!, votes: votes?.scoreGuess, cheerReads: raw.cheerReads }
+        : predictType === 'teamGuess'
+          ? { ...raw.teamGuess!, votes: votes?.teamGuess }
+          : null;
+    return { villain, predict, predictType };
+  }
+
+  if (!raw.config) return { villain: null, predict: null, predictType: null };
+
+  const type = raw.config.type;
+  if (type === 'scoreGuess') {
+    return {
+      villain: null,
+      predictType: 'scoreGuess',
+      predict: {
+        config: raw.config as ScoreGuessMissionConfig,
+        targets: raw.targets,
+        votes: raw.votes as Record<string, ScoreGuessVote> | undefined,
+        result: raw.result as ScoreGuessMissionResult | undefined,
+        cheerReads: raw.cheerReads,
+      },
+    };
+  }
+  if (type === 'teamGuess') {
+    return {
+      villain: null,
+      predictType: 'teamGuess',
+      predict: {
+        config: raw.config as TeamGuessMissionConfig,
+        votes: raw.votes as Record<string, TeamGuessVote> | undefined,
+        result: raw.result as TeamGuessMissionResult | undefined,
+      },
+    };
+  }
+  return {
+    predict: null,
+    predictType: null,
+    villain: {
+      config: raw.config as VillainMissionConfig,
+      hidden: raw.hidden,
+      roles: raw.roles,
+      votes: raw.votes as Record<string, string> | undefined,
+      result: raw.result as MissionResult | undefined,
+    },
+  };
+}
+
+export async function migrateLegacyIfNeeded(ym: string): Promise<void> {
+  const snap = await get(ref(db, `missions/${ym}`));
+  if (!snap.exists()) return;
+  const raw = snap.val() as RawMissionSnapshot;
+  if (!raw.config || raw.villain || raw.scoreGuess || raw.teamGuess) return;
+
+  const type: MissionType = raw.config.type ?? 'villain';
+  const slot: Record<string, unknown> = { config: raw.config };
+  if (raw.hidden) slot.hidden = raw.hidden;
+  if (raw.roles) slot.roles = raw.roles;
+  if (raw.targets) slot.targets = raw.targets;
+  if (raw.result) slot.result = raw.result;
+
+  await update(ref(db), {
+    [`missions/${ym}/${type}`]: slot,
+    [`missions/${ym}/config`]: null,
+    [`missions/${ym}/hidden`]: null,
+    [`missions/${ym}/roles`]: null,
+    [`missions/${ym}/targets`]: null,
+    [`missions/${ym}/result`]: null,
+    [`missions/${ym}/votes`]: raw.votes ? { [type]: raw.votes } : null,
+  });
+}
+
 export const useMission = (ym: string) => {
-  const [data, setData] = useState<MissionData | null>(null);
+  const [snapshot, setSnapshot] = useState<ParsedMissionSnapshot>({
+    villain: null,
+    predict: null,
+    predictType: null,
+  });
   const [myEmpId, setMyEmpId] = useState<string>('');
   const [authReady, setAuthReady] = useState(false);
   const [dataReady, setDataReady] = useState(false);
@@ -171,20 +278,30 @@ export const useMission = (ym: string) => {
     const unsub = onValue(
       r,
       (snap) => {
-        setData(snap.exists() ? (snap.val() as MissionData) : null);
+        setSnapshot(parseMissionSnapshot(snap.exists() ? (snap.val() as RawMissionSnapshot) : null));
         setDataReady(true);
       },
       () => {
-        setData(null);
+        setSnapshot({ villain: null, predict: null, predictType: null });
         setDataReady(true);
       },
     );
     return unsub;
   }, [ym]);
 
-  const myVote = myEmpId && data?.votes ? data.votes[myEmpId] : undefined;
+  const { villain, predict, predictType } = snapshot;
+  const myVillainVote = myEmpId && villain?.votes ? villain.votes[myEmpId] : undefined;
+  const myPredictVote = myEmpId && predict?.votes ? predict.votes[myEmpId] : undefined;
 
-  return { data, myEmpId, myVote, loading: !authReady || !dataReady };
+  return {
+    villain,
+    predict,
+    predictType,
+    myEmpId,
+    myVillainVote,
+    myPredictVote,
+    loading: !authReady || !dataReady,
+  };
 };
 
 export async function saveVillainMissionContent(
@@ -193,19 +310,10 @@ export async function saveVillainMissionContent(
   hidden: VillainMissionHidden,
   currentStatus: MissionStatus | null = null,
 ): Promise<void> {
-  await update(ref(db, `missions/${ym}`), {
+  await migrateLegacyIfNeeded(ym);
+  await update(ref(db, `missions/${ym}/villain`), {
     config: { ...config, status: currentStatus ?? 'draft' },
     hidden,
-  });
-}
-
-export async function saveScoreGuessMissionContent(
-  ym: string,
-  config: Omit<ScoreGuessMissionConfig, 'status'>,
-  currentStatus: MissionStatus | null = null,
-): Promise<void> {
-  await update(ref(db, `missions/${ym}`), {
-    config: { ...config, status: currentStatus ?? 'draft' },
   });
 }
 
@@ -214,18 +322,12 @@ export async function assignRoles(
   villainId: string,
   helperId: string,
 ): Promise<void> {
-  await set(ref(db, `missions/${ym}/roles`), {
+  await migrateLegacyIfNeeded(ym);
+  await set(ref(db, `missions/${ym}/villain/roles`), {
     villain: villainId,
     helper: helperId,
     assignedAt: useUiStore.getState().getServerNow().getTime(),
   });
-}
-
-export async function setMissionStatus(
-  ym: string,
-  status: MissionStatus,
-): Promise<void> {
-  await set(ref(db, `missions/${ym}/config/status`), status);
 }
 
 export async function submitVote(
@@ -233,62 +335,76 @@ export async function submitVote(
   voterEmpId: string,
   targetEmpId: string,
 ): Promise<void> {
-  await set(ref(db, `missions/${ym}/votes/${voterEmpId}`), targetEmpId);
+  await set(ref(db, `missions/${ym}/votes/villain/${voterEmpId}`), targetEmpId);
 }
 
-export async function resetVotes(ym: string): Promise<void> {
-  await remove(ref(db, `missions/${ym}/votes`));
+export async function saveScoreGuessMissionContent(
+  ym: string,
+  config: Omit<ScoreGuessMissionConfig, 'status'>,
+  currentStatus: MissionStatus | null = null,
+): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
+  await update(ref(db, `missions/${ym}/scoreGuess`), {
+    config: { ...config, status: currentStatus ?? 'draft' },
+  });
+}
+
+export async function setMissionStatus(
+  ym: string,
+  type: MissionType,
+  status: MissionStatus,
+): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
+  await set(ref(db, `missions/${ym}/${type}/config/status`), status);
+}
+
+export async function resetVotes(ym: string, type: MissionType): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
+  await remove(ref(db, `missions/${ym}/votes/${type}`));
 }
 
 export async function resetMissionState(
   ym: string,
-  data: MissionData | null,
+  type: MissionType,
+  data: VillainMissionData | ScoreGuessMissionData | TeamGuessMissionData | null,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   const updates: Record<string, unknown> = {
-    [`missions/${ym}/votes`]: null,
-    [`missions/${ym}/result`]: null,
-    [`missions/${ym}/config/status`]: 'active',
+    [`missions/${ym}/votes/${type}`]: null,
+    [`missions/${ym}/${type}/result`]: null,
+    [`missions/${ym}/${type}/config/status`]: 'active',
   };
 
   if (data?.result?.revealed) {
     const { revealedAt } = data.result;
     const recipientKeys: { empId: string; key: string }[] = [];
 
-    if (isScoreGuessMission(data)) {
-      (data.result.correctVoters ?? []).forEach((empId) =>
+    if (type === 'scoreGuess') {
+      const result = data.result as ScoreGuessMissionResult;
+      (result.correctVoters ?? []).forEach((empId) =>
         recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
       );
-      (data.result.topTargets ?? []).forEach((empId) =>
-        recipientKeys.push({
-          empId,
-          key: buildMissionRewardKey(revealedAt, empId, '_rank'),
-        }),
+      (result.topTargets ?? []).forEach((empId) =>
+        recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId, '_rank') }),
       );
-    } else if (isTeamGuessMission(data)) {
-      (data.result.myGroupCorrectVoters ?? []).forEach((empId) =>
+    } else if (type === 'teamGuess') {
+      const result = data.result as TeamGuessMissionResult;
+      (result.myGroupCorrectVoters ?? []).forEach((empId) =>
         recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
       );
-      (data.result.bonusCorrectVoters ?? []).forEach((empId) =>
-        recipientKeys.push({
-          empId,
-          key: buildMissionRewardKey(revealedAt, empId, '_bonus'),
-        }),
+      (result.bonusCorrectVoters ?? []).forEach((empId) =>
+        recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId, '_bonus') }),
       );
     } else {
-      const { villainWon, helperWon, villainId, helperId, correctVoters } = data.result;
+      const { villainWon, helperWon, villainId, helperId, correctVoters } =
+        data.result as MissionResult;
       (correctVoters ?? []).forEach((empId) =>
         recipientKeys.push({ empId, key: buildMissionRewardKey(revealedAt, empId) }),
       );
       if (villainWon && villainId) {
-        recipientKeys.push({
-          empId: villainId,
-          key: buildMissionRewardKey(revealedAt, villainId),
-        });
+        recipientKeys.push({ empId: villainId, key: buildMissionRewardKey(revealedAt, villainId) });
         if (helperWon && helperId) {
-          recipientKeys.push({
-            empId: helperId,
-            key: buildMissionRewardKey(revealedAt, helperId),
-          });
+          recipientKeys.push({ empId: helperId, key: buildMissionRewardKey(revealedAt, helperId) });
         }
       }
     }
@@ -299,9 +415,7 @@ export async function resetMissionState(
           get(ref(db, `users/${empId}/rewards/${ym}/mission/${key}`)),
         ),
       ),
-      Promise.all(
-        recipientKeys.map(({ empId }) => get(ref(db, `users/${empId}/pin`))),
-      ),
+      Promise.all(recipientKeys.map(({ empId }) => get(ref(db, `users/${empId}/pin`)))),
     ]);
 
     const pinDeltas: Record<string, number> = {};
@@ -316,8 +430,7 @@ export async function resetMissionState(
       pinDeltas[empId] = (pinDeltas[empId] ?? 0) + pin;
       if (!(empId in currentPinByEmpId)) {
         const currentPinVal = currentPinSnaps[i].val();
-        currentPinByEmpId[empId] =
-          typeof currentPinVal === 'number' ? currentPinVal : 0;
+        currentPinByEmpId[empId] = typeof currentPinVal === 'number' ? currentPinVal : 0;
       }
       updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
     });
@@ -364,8 +477,8 @@ export function buildMissionPinReward(
   };
 }
 
-export async function claimMissionReveal(ym: string): Promise<string | null> {
-  const statusRef = ref(db, `missions/${ym}/config/status`);
+export async function claimMissionReveal(ym: string, type: MissionType): Promise<string | null> {
+  const statusRef = ref(db, `missions/${ym}/${type}/config/status`);
   let previousStatus: string | null = null;
   const tx = await runTransaction(statusRef, (cur) => {
     if (cur === 'revealed') return undefined;
@@ -373,24 +486,21 @@ export async function claimMissionReveal(ym: string): Promise<string | null> {
     return 'revealed';
   });
   if (!tx.committed) {
-    throw new Error(
-      '이미 다른 곳에서 결과 공개가 진행 중이거나 완료되었습니다. 새로고침 후 확인해주세요.',
-    );
+    throw new Error('이미 다른 곳에서 결과 공개가 진행 중이거나 완료되었습니다. 새로고침 후 확인해주세요.');
   }
   return previousStatus;
 }
 
 export async function commitMissionReveal(
   ym: string,
+  type: MissionType,
   previousStatus: string | null,
   allWrites: Record<string, unknown>,
 ): Promise<void> {
   try {
     await update(ref(db), allWrites);
   } catch (err) {
-    await set(ref(db, `missions/${ym}/config/status`), previousStatus ?? 'voting').catch(
-      () => {},
-    );
+    await set(ref(db, `missions/${ym}/${type}/config/status`), previousStatus ?? 'voting').catch(() => {});
     throw err;
   }
 }
@@ -400,7 +510,7 @@ export async function revealMissionResult(
   data: VillainMissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
   if (data.result?.revealed === true) {
-    await set(ref(db, `missions/${ym}/config/status`), 'revealed');
+    await set(ref(db, `missions/${ym}/villain/config/status`), 'revealed');
     return {
       villainWon: data.result.villainWon,
       helperWon: data.result.helperWon,
@@ -411,7 +521,8 @@ export async function revealMissionResult(
   const { config, roles, votes } = data;
   if (!config || !roles) throw new Error('미션 데이터가 없습니다.');
 
-  const previousStatus = await claimMissionReveal(ym);
+  await migrateLegacyIfNeeded(ym);
+  const previousStatus = await claimMissionReveal(ym, 'villain');
 
   const villainId = roles.villain;
   const helperId = roles.helper;
@@ -451,7 +562,7 @@ export async function revealMissionResult(
   const now = getServerNow().getTime();
   const createdAt = getServerTimestamp();
   const allWrites: Record<string, unknown> = {
-    [`missions/${ym}/result`]: {
+    [`missions/${ym}/villain/result`]: {
       revealed: true,
       revealedAt: now,
       villainWon,
@@ -460,7 +571,7 @@ export async function revealMissionResult(
       helperId,
       correctVoters,
     },
-    [`missions/${ym}/config/status`]: 'revealed',
+    [`missions/${ym}/villain/config/status`]: 'revealed',
   };
 
   recipients.forEach((empId) => {
@@ -472,7 +583,7 @@ export async function revealMissionResult(
     );
   });
 
-  await commitMissionReveal(ym, previousStatus, allWrites);
+  await commitMissionReveal(ym, 'villain', previousStatus, allWrites);
 
   return { villainWon, helperWon, correctVoters };
 }
