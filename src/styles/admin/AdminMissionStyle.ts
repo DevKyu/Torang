@@ -6,6 +6,14 @@ export const SectionBlock = styled.div`
   margin-bottom: 20px;
 `;
 
+export const MissionTypeCard = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #fff;
+`;
+
 export const MissionInput = styled.input`
   width: 100%;
   padding: 8px 10px;
