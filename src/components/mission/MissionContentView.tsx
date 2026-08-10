@@ -242,12 +242,10 @@ const MissionContentView = ({
       ) : predictViewState === 'empty' || predictViewState === 'upcoming' ? (
         renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
       ) : (
-        <>
-          {renderPredictTab()}
-          {hasVillain && villainViewState === 'preview' && (
-            <HiddenMissionTrigger data={villain!} myEmpId={myEmpId} />
-          )}
-        </>
+        renderPredictTab()
+      )}
+      {hasPredict && hasVillain && villainViewState === 'preview' && (
+        <HiddenMissionTrigger data={villain!} myEmpId={myEmpId} />
       )}
     </motion.div>
   );
