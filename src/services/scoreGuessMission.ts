@@ -5,6 +5,7 @@ import {
   buildMissionPinReward,
   claimMissionReveal,
   commitMissionReveal,
+  migrateLegacyIfNeeded,
   DEFAULT_SCORE_DIFF_THRESHOLD,
 } from '../hooks/useMission';
 import type {
@@ -24,7 +25,8 @@ export async function confirmScoreGuessTargets(
   ym: string,
   empIds: string[],
 ): Promise<void> {
-  await set(ref(db, `missions/${ym}/targets`), {
+  await migrateLegacyIfNeeded(ym);
+  await set(ref(db, `missions/${ym}/scoreGuess/targets`), {
     empIds,
     confirmedAt: useUiStore.getState().getServerNow().getTime(),
   });
@@ -41,14 +43,14 @@ export async function submitScoreGuessVote(
   const vote: ScoreGuessVote = { targetEmpId, predictedScore };
   if (message) vote.message = message;
   if (anonymous) vote.anonymous = true;
-  await set(ref(db, `missions/${ym}/votes/${voterEmpId}`), vote);
+  await set(ref(db, `missions/${ym}/votes/scoreGuess/${voterEmpId}`), vote);
 }
 
 export async function deleteScoreGuessVote(
   ym: string,
   voterEmpId: string,
 ): Promise<void> {
-  await remove(ref(db, `missions/${ym}/votes/${voterEmpId}`));
+  await remove(ref(db, `missions/${ym}/votes/scoreGuess/${voterEmpId}`));
 }
 
 export async function revealScoreGuessMissionResult(
@@ -60,7 +62,7 @@ export async function revealScoreGuessMissionResult(
   topTargets: string[];
 }> {
   if (data.result?.revealed === true) {
-    await set(ref(db, `missions/${ym}/config/status`), 'revealed');
+    await set(ref(db, `missions/${ym}/scoreGuess/config/status`), 'revealed');
     return {
       actualScores: data.result.actualScores ?? {},
       correctVoters: data.result.correctVoters ?? [],
@@ -90,7 +92,8 @@ export async function revealScoreGuessMissionResult(
   if (missingEmpIds.length > 0)
     throw new Error(`점수가 입력되지 않은 후보가 있습니다: ${missingEmpIds.join(', ')}`);
 
-  const previousStatus = await claimMissionReveal(ym);
+  await migrateLegacyIfNeeded(ym);
+  const previousStatus = await claimMissionReveal(ym, 'scoreGuess');
 
   const threshold = config.scoreDiffThreshold ?? DEFAULT_SCORE_DIFF_THRESHOLD;
   const rewardPin = config.rewardPin ?? 0.5;
@@ -145,16 +148,16 @@ export async function revealScoreGuessMissionResult(
     );
   });
 
-  allWrites[`missions/${ym}/result`] = {
+  allWrites[`missions/${ym}/scoreGuess/result`] = {
     revealed: true,
     revealedAt: now,
     actualScores,
     correctVoters,
     topTargets,
   };
-  allWrites[`missions/${ym}/config/status`] = 'revealed';
+  allWrites[`missions/${ym}/scoreGuess/config/status`] = 'revealed';
 
-  await commitMissionReveal(ym, previousStatus, allWrites);
+  await commitMissionReveal(ym, 'scoreGuess', previousStatus, allWrites);
 
   return { actualScores, correctVoters, topTargets };
 }
