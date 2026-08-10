@@ -9,7 +9,7 @@ import { db, fetchAllUsers } from '../../services/firebase';
 import { createAdminMonthOptions } from '../../utils/date';
 import { useEventStore } from '../../stores/useEventStore';
 import { useUiStore } from '../../stores/useUiStore';
-import { isScoreGuessMission } from '../../hooks/useMission';
+import { parseMissionSnapshot } from '../../hooks/useMission';
 import {
   countCheerMessagesByCandidate,
   isCheerSatisfied,
@@ -21,7 +21,7 @@ import {
 
 import type { Month, Year, UserInfo } from '../../types/userInfo';
 import type { MatchType } from '../../types/match';
-import type { MissionData } from '../../hooks/useMission';
+import type { RawMissionSnapshot, ScoreGuessMissionData } from '../../hooks/useMission';
 
 import { SmallText } from '../../styles/global/commonStyle';
 
@@ -202,36 +202,39 @@ const AdminMonthlyChecklist = () => {
         ? String(activityDateSnap.val())
         : null;
 
-      const missionVal = missionSnap.exists()
-        ? (missionSnap.val() as {
-            config?: { type?: string; status?: string; revealDays?: number };
-            targets?: { empIds?: string[] };
-            votes?: Record<string, { targetEmpId?: string; message?: string }>;
-            cheerReads?: Record<string, number>;
-          })
-        : null;
-      const missionDaysUntilReveal = getDaysUntilMissionReveal(
+      const parsed = parseMissionSnapshot(
+        missionSnap.exists() ? (missionSnap.val() as RawMissionSnapshot) : null,
+      );
+      const now = useUiStore.getState().getServerNow();
+
+      const villainDaysUntilReveal = getDaysUntilMissionReveal(
         activityYmdVal,
-        missionVal?.config,
-        useUiStore.getState().getServerNow(),
+        parsed.villain?.config,
+        now,
       );
-      const missionViewState = getMissionViewState(
-        missionVal?.config,
-        missionDaysUntilReveal,
+      const villainViewState = getMissionViewState(parsed.villain?.config, villainDaysUntilReveal);
+      const villainActive = villainViewState !== 'empty' && villainViewState !== 'upcoming';
+
+      const predictDaysUntilReveal = getDaysUntilMissionReveal(
+        activityYmdVal,
+        parsed.predict?.config,
+        now,
       );
-      const missionActive =
-        missionViewState !== 'empty' && missionViewState !== 'upcoming';
-      const isScoreGuess =
-        missionActive && isScoreGuessMission(missionVal as MissionData | null);
-      const votes = missionVal?.votes ?? {};
-      const cheerMessageCount = countCheerMessagesByCandidate(votes);
+      const predictViewState = getMissionViewState(parsed.predict?.config, predictDaysUntilReveal);
+      const predictActive = predictViewState !== 'empty' && predictViewState !== 'upcoming';
+      const isScoreGuess = predictActive && parsed.predictType === 'scoreGuess';
+
+      const predictVotes = parsed.predict?.votes ?? {};
+      const cheerMessageCount = countCheerMessagesByCandidate(
+        predictVotes as Record<string, { targetEmpId?: string; message?: string }>,
+      );
 
       setPredictMission({
         active: isScoreGuess,
-        candidates: isScoreGuess ? (missionVal?.targets?.empIds ?? []) : [],
-        doneMap: isScoreGuess ? toDoneMapFromKeys(votes) : {},
+        candidates: isScoreGuess ? ((parsed.predict as ScoreGuessMissionData)?.targets?.empIds ?? []) : [],
+        doneMap: isScoreGuess ? toDoneMapFromKeys(predictVotes) : {},
         cheerMessageCount: isScoreGuess ? cheerMessageCount : {},
-        cheerReadCount: isScoreGuess ? (missionVal?.cheerReads ?? {}) : {},
+        cheerReadCount: isScoreGuess ? ((parsed.predict as ScoreGuessMissionData)?.cheerReads ?? {}) : {},
       });
 
       const matchResultsRaw = matchResultsSnap.exists()
@@ -248,14 +251,14 @@ const AdminMonthlyChecklist = () => {
         galleryCountMap[img.empId] = (galleryCountMap[img.empId] ?? 0) + 1;
       });
 
-      const isVillain = missionActive && !isScoreGuess;
+      const villainVotes = parsed.villain?.votes ?? {};
 
       setPostStatus({
         activityYmd: activityYmdVal,
         matchDoneMap,
         galleryCountMap,
-        villainActive: isVillain,
-        villainVoteDoneMap: isVillain ? toDoneMapFromKeys(votes) : {},
+        villainActive,
+        villainVoteDoneMap: villainActive ? toDoneMapFromKeys(villainVotes) : {},
       });
     } catch {
       setRivalDoneMap({});
