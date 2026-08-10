@@ -8,17 +8,19 @@ import {
   seedVillainScenario,
   seedScoreGuessScenario,
   seedTeamGuessScenario,
+  seedCombinedScenario,
   resetDevPreviewData,
   type VillainScenario,
   type ScoreGuessScenario,
   type TeamGuessScenario,
+  type CombinedScenario,
 } from './missionDevPreviewSeed';
 import { TypeSelectRow, TypeSelectBtn } from '../../styles/admin/AdminScoreGuessMissionStyle';
 import { FormTitle, SectionBlock, Divider, SaveRow, SaveBtn, StatusBtn } from '../../styles/admin/AdminMissionStyle';
 import { SmallText } from '../../styles/global/commonStyle';
 import { DevNotice } from '../../styles/dev/MissionDevPreviewStyle';
 
-type Kind = 'villain' | 'scoreGuess' | 'teamGuess';
+type Kind = 'villain' | 'scoreGuess' | 'teamGuess' | 'combined';
 
 const VILLAIN_SCENARIOS: { key: VillainScenario; label: string }[] = [
   { key: 'empty', label: '준비중' },
@@ -50,6 +52,12 @@ const TEAM_GUESS_SCENARIOS: { key: TeamGuessScenario; label: string }[] = [
   { key: 'revealed_myGroupOnly', label: '결과공개 - 내조만 적중' },
 ];
 
+const COMBINED_SCENARIOS: { key: CombinedScenario; label: string }[] = [
+  { key: 'preActivity', label: '활동 전(팀예측 카드+빌런 히든버튼)' },
+  { key: 'postActivity_bothOpen', label: '활동 후(빌런 투표중 + 팀예측 결과공개, 탭)' },
+  { key: 'postActivity_predictRevealedFirst', label: '활동 후(빌런 미시작 + 팀예측 결과공개, 탭)' },
+];
+
 const MissionDevPreview = () => {
   const navigate = useNavigate();
   const goBack = useNavigateBack('/admin');
@@ -78,7 +86,13 @@ const MissionDevPreview = () => {
   };
 
   const scenarios =
-    kind === 'villain' ? VILLAIN_SCENARIOS : kind === 'scoreGuess' ? SCORE_GUESS_SCENARIOS : TEAM_GUESS_SCENARIOS;
+    kind === 'villain'
+      ? VILLAIN_SCENARIOS
+      : kind === 'scoreGuess'
+        ? SCORE_GUESS_SCENARIOS
+        : kind === 'teamGuess'
+          ? TEAM_GUESS_SCENARIOS
+          : COMBINED_SCENARIOS;
 
   return (
     <AdminLayout title="미션 프리뷰 설정">
@@ -99,6 +113,9 @@ const MissionDevPreview = () => {
         <TypeSelectBtn active={kind === 'teamGuess'} onClick={() => setKind('teamGuess')}>
           팀 승부 예측
         </TypeSelectBtn>
+        <TypeSelectBtn active={kind === 'combined'} onClick={() => setKind('combined')}>
+          빌런+팀예측 조합
+        </TypeSelectBtn>
       </TypeSelectRow>
 
       <FormTitle>시나리오</FormTitle>
@@ -116,7 +133,9 @@ const MissionDevPreview = () => {
                     ? seedVillainScenario(key as VillainScenario)
                     : kind === 'scoreGuess'
                       ? seedScoreGuessScenario(key as ScoreGuessScenario)
-                      : seedTeamGuessScenario(key as TeamGuessScenario),
+                      : kind === 'teamGuess'
+                        ? seedTeamGuessScenario(key as TeamGuessScenario)
+                        : seedCombinedScenario(key as CombinedScenario),
                 label,
               )
             }
