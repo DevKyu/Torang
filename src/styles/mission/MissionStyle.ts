@@ -396,3 +396,24 @@ export const MissionEmptyDesc = styled.p`
   color: #9ca3af;
   margin: 6px 0 0;
 `;
+
+export const TabBar = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+`;
+
+export const TabBtn = styled.button<{ active: boolean }>`
+  flex: 1;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid ${({ active }) => (active ? '#111827' : 'transparent')};
+  color: ${({ active }) => (active ? '#111827' : '#9ca3af')};
+  font-size: 14px;
+  font-weight: ${({ active }) => (active ? 700 : 600)};
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 0.15s ease, border-color 0.15s ease;
+`;
