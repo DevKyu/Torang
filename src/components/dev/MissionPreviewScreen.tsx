@@ -1,38 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ref, onValue } from 'firebase/database';
-import { ClipLoader } from 'react-spinners';
 import { db, checkAdminId, waitForAuthUser } from '../../services/firebase';
 import Layout from '../layouts/Layout';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { SmallText } from '../../styles/global/commonStyle';
-import {
-  isScoreGuessMission,
-  isTeamGuessMission,
-  isScoreGuessVote,
-  isTeamGuessVote,
-  type MissionData,
-} from '../../hooks/useMission';
-import { useMissionViewState } from '../../hooks/useMissionViewState';
-import VillainMissionView from '../mission/VillainMissionView';
-import ScoreGuessMissionView from '../mission/ScoreGuessMissionView';
-import TeamGuessMissionView from '../mission/TeamGuessMissionView';
-import { renderMissionBody } from '../mission/missionBody';
-import {
-  MissionCard,
-  CardTitle,
-  SectionLabel,
-  UpcomingCard,
-  UpcomingDays,
-  UpcomingLabel,
-  MissionLoadingBox,
-  MissionEmptyBox,
-  MissionEmptyIcon,
-  MissionEmptyTitle,
-  MissionEmptyDesc,
-  MISSION_INFO_MIN_HEIGHT,
-} from '../../styles/mission/MissionStyle';
+import { parseMissionSnapshot, isScoreGuessVote, isTeamGuessVote } from '../../hooks/useMission';
+import type { RawMissionSnapshot } from '../../hooks/useMission';
+import MissionContentView from '../mission/MissionContentView';
 import {
   DEV_PREVIEW_YM,
   DEV_YEAR,
@@ -65,7 +40,7 @@ const MissionPreviewScreen = () => {
     };
   }, [navigate]);
 
-  const [data, setData] = useState<MissionData | null>(null);
+  const [parsed, setParsed] = useState(parseMissionSnapshot(null));
   const [missionLoading, setMissionLoading] = useState(true);
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
 
@@ -73,11 +48,11 @@ const MissionPreviewScreen = () => {
     const unsub = onValue(
       ref(db, `missions/${DEV_PREVIEW_YM}`),
       (snap) => {
-        setData(snap.exists() ? (snap.val() as MissionData) : null);
+        setParsed(parseMissionSnapshot(snap.exists() ? (snap.val() as RawMissionSnapshot) : null));
         setMissionLoading(false);
       },
       () => {
-        setData(null);
+        setParsed(parseMissionSnapshot(null));
         setMissionLoading(false);
       },
     );
@@ -97,9 +72,13 @@ const MissionPreviewScreen = () => {
     return unsub;
   }, []);
 
-  const { daysUntilReveal, viewState } = useMissionViewState(activityDateNum, data);
-  const myVote = data?.votes?.[DEV_ME];
-  const isReady = !missionLoading;
+  const myVillainVote =
+    parsed.villain?.votes && typeof parsed.villain.votes[DEV_ME] === 'string'
+      ? parsed.villain.votes[DEV_ME]
+      : undefined;
+  const rawPredictVote = parsed.predict?.votes?.[DEV_ME];
+  const myPredictVote =
+    isScoreGuessVote(rawPredictVote) || isTeamGuessVote(rawPredictVote) ? rawPredictVote : undefined;
 
   if (!adminChecked) return null;
 
@@ -111,105 +90,24 @@ const MissionPreviewScreen = () => {
       </DevFloatingBar>
 
       <Layout title="활동 미션" maxWidth="480px">
-        <AnimatePresence mode="wait">
-          {!isReady ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <MissionLoadingBox>
-                <ClipLoader size={24} color="#9ca3af" />
-              </MissionLoadingBox>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={viewState}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                minHeight: MISSION_INFO_MIN_HEIGHT,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
-            >
-              {viewState === 'empty' && (
-                <MissionEmptyBox>
-                  <MissionEmptyIcon>🤫</MissionEmptyIcon>
-                  <MissionEmptyTitle>활동 미션 준비중</MissionEmptyTitle>
-                  <MissionEmptyDesc>완료되면 바로 공개될 예정이에요</MissionEmptyDesc>
-                </MissionEmptyBox>
-              )}
-
-              {viewState === 'upcoming' &&
-                (daysUntilReveal !== null ? (
-                  <UpcomingCard>
-                    <UpcomingDays>D-{daysUntilReveal}</UpcomingDays>
-                    <UpcomingLabel>이달의 미션이 {daysUntilReveal}일 후 공개됩니다.</UpcomingLabel>
-                  </UpcomingCard>
-                ) : (
-                  <MissionEmptyBox>
-                    <MissionEmptyIcon>⏳</MissionEmptyIcon>
-                    <MissionEmptyTitle>이달의 미션 준비중</MissionEmptyTitle>
-                    <MissionEmptyDesc>공개 시점이 정해지면 곧 알려드릴게요</MissionEmptyDesc>
-                  </MissionEmptyBox>
-                ))}
-
-              {viewState === 'preview' && !isScoreGuessMission(data) && !isTeamGuessMission(data) && (
-                <>
-                  <SectionLabel>이달의 미션</SectionLabel>
-                  <MissionCard>
-                    {data?.config?.title && <CardTitle>{data.config.title}</CardTitle>}
-                    {data?.config?.description && renderMissionBody(data.config.description)}
-                  </MissionCard>
-                </>
-              )}
-
-              {(viewState === 'preview' || viewState === 'voting' || viewState === 'revealed') &&
-                (isScoreGuessMission(data) ? (
-                  <ScoreGuessMissionView
-                    ym={DEV_PREVIEW_YM}
-                    viewState={viewState}
-                    data={data}
-                    myEmpId={DEV_ME}
-                    myVote={isScoreGuessVote(myVote) ? myVote : undefined}
-                    allNames={MOCK_NAMES}
-                    participants={DEV_PARTICIPANTS}
-                    activityYmd={activityDateNum ? String(activityDateNum) : undefined}
-                  />
-                ) : isTeamGuessMission(data) ? (
-                  <TeamGuessMissionView
-                    ym={DEV_PREVIEW_YM}
-                    viewState={viewState}
-                    data={data}
-                    myEmpId={DEV_ME}
-                    myVote={isTeamGuessVote(myVote) ? myVote : undefined}
-                    activityYmd={activityDateNum ? String(activityDateNum) : undefined}
-                  />
-                ) : data ? (
-                  <VillainMissionView
-                    ym={DEV_PREVIEW_YM}
-                    viewState={viewState}
-                    data={data}
-                    myEmpId={DEV_ME}
-                    myVote={typeof myVote === 'string' ? myVote : undefined}
-                    allNames={MOCK_NAMES}
-                    participants={DEV_PARTICIPANTS}
-                  />
-                ) : null)}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <MissionContentView
+          ym={DEV_PREVIEW_YM}
+          villain={parsed.villain}
+          predict={parsed.predict}
+          predictType={parsed.predictType}
+          myEmpId={DEV_ME}
+          myVillainVote={myVillainVote}
+          myPredictVote={myPredictVote}
+          allNames={MOCK_NAMES}
+          participants={DEV_PARTICIPANTS}
+          activityYmd={activityDateNum ? String(activityDateNum) : undefined}
+          isReady={!missionLoading}
+        />
 
         <SmallText
           top="middle"
           onClick={() => {
-            if (!isReady) return;
+            if (missionLoading) return;
             goBack();
           }}
         >
