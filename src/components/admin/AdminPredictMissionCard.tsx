@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ref, get } from 'firebase/database';
+import { ref, get, remove } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
 import { db, fetchAllUsers } from '../../services/firebase';
@@ -83,6 +83,13 @@ const DEFAULT_TEAM_GUESS_CONFIG_DRAFT: TeamGuessConfigDraft = {
 };
 
 type PredictType = 'scoreGuess' | 'teamGuess';
+
+const removeIfDraft = async (ym: string, type: PredictType) => {
+  const statusSnap = await get(ref(db, `missions/${ym}/${type}/config/status`));
+  if (!statusSnap.exists() || statusSnap.val() !== 'draft') return;
+  await remove(ref(db, `missions/${ym}/${type}`));
+  await remove(ref(db, `missions/${ym}/votes/${type}`));
+};
 
 type Props = {
   ym: string;
@@ -223,6 +230,7 @@ const AdminPredictMissionCard = ({
   const handleSaveContent = async () => {
     setSaving(true);
     try {
+      await removeIfDraft(ym, missionType === 'scoreGuess' ? 'teamGuess' : 'scoreGuess');
       if (missionType === 'scoreGuess') {
         await saveScoreGuessMissionContent(ym, scoreGuessConfigDraft, data?.config?.status ?? null);
       } else {
