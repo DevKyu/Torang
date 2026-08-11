@@ -95,8 +95,8 @@ const TeamFormation = () => {
     setYmPending(false);
   }, [ym]);
 
-  const loading = activityLoading || ymPending || teamLoading;
-  const rivalIds = useRivalEmpIds(ym);
+  const { rivalIds, loading: rivalsLoading } = useRivalEmpIds(ym);
+  const loading = activityLoading || ymPending || teamLoading || rivalsLoading;
 
   const myEmpId = empIdFromEmail(auth.currentUser?.email);
   const isConfirmed = status === 'confirmed';

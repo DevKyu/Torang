@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import ScreenLoadingState from '../shared/ScreenLoadingState';
 import { useMissionViewState } from '../../hooks/useMissionViewState';
-import HiddenMissionTrigger from './HiddenMissionTrigger';
+import { useTeamFormation } from '../../hooks/useTeamFormation';
+import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import TeamGuessMissionView from './TeamGuessMissionView';
@@ -66,6 +67,18 @@ const MissionContentView = ({
     useMissionViewState(activityYmd, villain);
   const { daysUntilReveal: predictDaysUntilReveal, viewState: predictViewState } =
     useMissionViewState(activityYmd, predict);
+
+  // 팀예측 조편성/라이벌 데이터는 탭 클릭과 무관하게 미리 구독해둔다 —
+  // TeamGuessMissionView가 탭 전환마다 리마운트되며 매번 다시 로딩하던 것 방지
+  const teamFormationYm = predictType === 'teamGuess' ? ym : '';
+  const {
+    status: formationStatus,
+    groups: formationGroups,
+    winnerMap: formationWinnerMap,
+    scoreMap: formationScoreMap,
+    loading: formationLoading,
+  } = useTeamFormation(teamFormationYm);
+  const { rivalIds, loading: rivalsLoading } = useRivalEmpIds(teamFormationYm);
 
   const hasVillain = !!villain;
   const hasPredict = !!predict;
@@ -130,10 +143,12 @@ const MissionContentView = ({
     );
   };
 
-  const renderPredictTab = () => {
+  const renderPredictTab = (allowHiddenTrigger: boolean) => {
     if (predictViewState === 'empty' || predictViewState === 'upcoming') {
       return renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal);
     }
+    const hiddenMissionData =
+      allowHiddenTrigger && hasVillain && villainViewState === 'preview' ? villain! : undefined;
     if (predictType === 'scoreGuess') {
       return (
         <ScoreGuessMissionView
@@ -145,6 +160,7 @@ const MissionContentView = ({
           allNames={allNames}
           participants={participants}
           activityYmd={activityYmd}
+          hiddenMissionData={hiddenMissionData}
         />
       );
     }
@@ -156,6 +172,14 @@ const MissionContentView = ({
         myEmpId={myEmpId}
         myVote={isTeamGuessVote(myPredictVote) ? myPredictVote : undefined}
         activityYmd={activityYmd}
+        hiddenMissionData={hiddenMissionData}
+        status={formationStatus}
+        groups={formationGroups}
+        winnerMap={formationWinnerMap}
+        scoreMap={formationScoreMap}
+        formationLoading={formationLoading}
+        rivalIds={rivalIds}
+        rivalsLoading={rivalsLoading}
       />
     );
   };
@@ -206,7 +230,7 @@ const MissionContentView = ({
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'villain' ? renderVillainTab() : renderPredictTab()}
+            {activeTab === 'villain' ? renderVillainTab() : renderPredictTab(false)}
           </motion.div>
         </AnimatePresence>
       </motion.div>
@@ -223,7 +247,7 @@ const MissionContentView = ({
         transition={{ duration: 0.25 }}
         style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
       >
-        {hasVillain ? renderVillainTab() : renderPredictTab()}
+        {hasVillain ? renderVillainTab() : renderPredictTab(false)}
       </motion.div>
     );
   }
@@ -242,10 +266,7 @@ const MissionContentView = ({
       ) : predictViewState === 'empty' || predictViewState === 'upcoming' ? (
         renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
       ) : (
-        renderPredictTab()
-      )}
-      {hasPredict && hasVillain && villainViewState === 'preview' && (
-        <HiddenMissionTrigger data={villain!} myEmpId={myEmpId} />
+        renderPredictTab(true)
       )}
     </motion.div>
   );

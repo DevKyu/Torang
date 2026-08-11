@@ -2,20 +2,37 @@ import { useEffect, useState } from 'react'
 import { ref, onValue } from 'firebase/database'
 import { db, waitForAuthUser, auth, empIdFromEmail } from '../services/firebase'
 
-export function useRivalEmpIds(ym: string): Set<string> {
+export type UseRivalEmpIdsResult = {
+  rivalIds: Set<string>
+  loading: boolean
+}
+
+export function useRivalEmpIds(ym: string): UseRivalEmpIdsResult {
   const [rivalIds, setRivalIds] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setRivalIds(new Set())
-    if (!ym) return
+    setLoading(true)
+    if (!ym) {
+      setLoading(false)
+      return
+    }
 
     const unsubs: (() => void)[] = []
     let cancelled = false
+    const resolved: Record<'rival' | 'pin', boolean> = { rival: false, pin: false }
+    const tryFinish = () => {
+      if (resolved.rival && resolved.pin) setLoading(false)
+    }
 
     waitForAuthUser().then(() => {
       if (cancelled) return
       const myEmpId = empIdFromEmail(auth.currentUser?.email)
-      if (!myEmpId) return
+      if (!myEmpId) {
+        setLoading(false)
+        return
+      }
 
       const snaps: [Record<string, unknown>, Record<string, unknown>] = [{}, {}]
 
@@ -32,10 +49,14 @@ export function useRivalEmpIds(ym: string): Set<string> {
             (snap) => {
               snaps[i] = snap.exists() ? snap.val() : {}
               merge()
+              resolved[type] = true
+              tryFinish()
             },
             () => {
               snaps[i] = {}
               merge()
+              resolved[type] = true
+              tryFinish()
             },
           ),
         )
@@ -48,5 +69,5 @@ export function useRivalEmpIds(ym: string): Set<string> {
     }
   }, [ym])
 
-  return rivalIds
+  return { rivalIds, loading }
 }

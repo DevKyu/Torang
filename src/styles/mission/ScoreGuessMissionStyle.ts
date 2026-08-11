@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { CHEER_COLOR } from './CheerMessagesModalStyle';
 import { MISSION_INFO_MIN_HEIGHT } from './MissionStyle';
 
-const NEW_MEMBER_COLOR = '#3b82f6';
+const NEW_MEMBER_COLOR = '#0d9488';
 
 export const PreviewInfoArea = styled.div`
   display: flex;
@@ -15,8 +15,8 @@ export const VoteTriggerBtn = styled.button`
   width: 100%;
   padding: 12px;
   border-radius: 10px;
-  border: 1.5px solid #93c5fd;
-  background: #eff6ff;
+  border: 1.5px solid #5eead4;
+  background: #f0fdfa;
   color: ${NEW_MEMBER_COLOR};
   font-size: 14px;
   font-weight: 600;
@@ -28,13 +28,13 @@ export const VoteTriggerBtn = styled.button`
     border-color 0.15s ease;
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: #dbeafe;
-      border-color: #60a5fa;
+      background: #ccfbf1;
+      border-color: #2dd4bf;
     }
   }
   &:active {
-    background: #dbeafe;
-    border-color: #60a5fa;
+    background: #ccfbf1;
+    border-color: #2dd4bf;
   }
 `;
 
