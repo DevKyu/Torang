@@ -91,20 +91,6 @@ const MissionContentView = ({
     missionCheckedRef.current = { villain: false, predict: false };
   }, [ym]);
 
-  useEffect(() => {
-    if (villainViewState === 'revealed' && !missionCheckedRef.current.villain) {
-      missionCheckedRef.current.villain = true;
-      markMissionResultChecked(myEmpId, 'villain');
-    }
-  }, [villainViewState, myEmpId]);
-
-  useEffect(() => {
-    if (predictViewState === 'revealed' && !missionCheckedRef.current.predict) {
-      missionCheckedRef.current.predict = true;
-      markMissionResultChecked(myEmpId, 'predict');
-    }
-  }, [predictViewState, myEmpId]);
-
   const teamFormationYm =
     predictType === 'teamGuess' && predictViewState !== 'empty' && predictViewState !== 'upcoming' ? ym : '';
   const {
@@ -121,6 +107,26 @@ const MissionContentView = ({
   const postMode =
     (hasVillain && villainViewState !== 'empty' && villainViewState !== 'upcoming' && villainViewState !== 'preview') ||
     (hasPredict && predictViewState !== 'empty' && predictViewState !== 'upcoming' && predictViewState !== 'preview');
+
+  const tabMode = postMode && hasVillain && hasPredict;
+
+  useEffect(() => {
+    if (!isReady || !myEmpId) return;
+    if (tabMode && activeTab !== 'villain') return;
+    if (villainViewState === 'revealed' && !missionCheckedRef.current.villain) {
+      missionCheckedRef.current.villain = true;
+      markMissionResultChecked(myEmpId, 'villain').catch(() => {});
+    }
+  }, [villainViewState, myEmpId, isReady, tabMode, activeTab]);
+
+  useEffect(() => {
+    if (!isReady || !myEmpId) return;
+    if (tabMode && activeTab !== 'predict') return;
+    if (predictViewState === 'revealed' && !missionCheckedRef.current.predict) {
+      missionCheckedRef.current.predict = true;
+      markMissionResultChecked(myEmpId, 'predict').catch(() => {});
+    }
+  }, [predictViewState, myEmpId, isReady, tabMode, activeTab]);
 
   const renderEmptyOrUpcoming = (viewState: 'empty' | 'upcoming', daysUntilReveal: number | null) =>
     viewState === 'empty' ? (

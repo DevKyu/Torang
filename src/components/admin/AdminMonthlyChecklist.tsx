@@ -165,7 +165,8 @@ const AdminMonthlyChecklist = () => {
         rivalResultsSnap,
         pinResultsSnap,
         gallerySnap,
-        teamFormationSnap,
+        formationStatusSnap,
+        formationGroupsSnap,
       ] = await Promise.all([
         get(ref(db, `match/${ym}/rival`)),
         get(ref(db, `match/${ym}/pin`)),
@@ -175,7 +176,8 @@ const AdminMonthlyChecklist = () => {
         get(ref(db, `matchResults/${ym}/rival`)),
         get(ref(db, `matchResults/${ym}/pin`)),
         get(ref(db, `gallery/${ym}`)),
-        get(ref(db, `teamFormation/${ym}`)),
+        get(ref(db, `teamFormation/${ym}/status`)),
+        get(ref(db, `teamFormation/${ym}/groups`)),
       ]);
 
       const hasChoices = (snap: typeof rivalMatchSnap): boolean => {
@@ -241,12 +243,12 @@ const AdminMonthlyChecklist = () => {
         predictVotes as Record<string, { targetEmpId?: string; message?: string }>,
       );
 
-      const teamFormationRaw = teamFormationSnap.exists()
-        ? (teamFormationSnap.val() as { groups?: RawFormationGroups })
-        : null;
-      const formationGroups = teamFormationRaw?.groups
-        ? firebaseToFormationGroups(teamFormationRaw.groups)
-        : [];
+      const formationConfirmed = formationStatusSnap.val() === 'confirmed';
+      const formationGroupsRaw = formationGroupsSnap.val() as RawFormationGroups | null;
+      const formationGroups =
+        formationConfirmed && formationGroupsRaw
+          ? firebaseToFormationGroups(formationGroupsRaw)
+          : [];
 
       setPredictMission({
         active: isScoreGuess || isTeamGuess,
@@ -386,7 +388,7 @@ const AdminMonthlyChecklist = () => {
           !!postStatus.activityYmd &&
           Number(user.lastMissionCheck?.villain ?? 0) >= Number(postStatus.activityYmd);
 
-        const predictResultApplicable = postStatus.predictRevealed;
+        const predictResultApplicable = postStatus.predictRevealed && inFormationGroup;
         const predictResultDone =
           predictResultApplicable &&
           !!postStatus.activityYmd &&
