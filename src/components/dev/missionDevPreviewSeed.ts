@@ -125,6 +125,8 @@ export type VillainScenario =
   | 'upcoming'
   | 'preview'
   | 'votingOpen'
+  | 'votingOpen_asVillain'
+  | 'votingOpen_asHelper'
   | 'revealed_caught'
   | 'revealed_survived_solo'
   | 'revealed_survived_withHelper';
@@ -158,10 +160,14 @@ export async function seedVillainScenario(scenario: VillainScenario): Promise<vo
   await saveVillainMissionContent(DEV_PREVIEW_YM, DEFAULT_VILLAIN_CONFIG, DEFAULT_VILLAIN_HIDDEN, 'active');
   if (scenario === 'upcoming') return;
 
-  await assignRoles(DEV_PREVIEW_YM, 'devpreview_p1', 'devpreview_p2');
+  await assignRoles(
+    DEV_PREVIEW_YM,
+    scenario === 'votingOpen_asVillain' ? DEV_ME : 'devpreview_p1',
+    scenario === 'votingOpen_asHelper' ? DEV_ME : 'devpreview_p2',
+  );
   if (scenario === 'preview') return;
 
-  if (scenario === 'votingOpen') {
+  if (scenario === 'votingOpen' || scenario === 'votingOpen_asVillain' || scenario === 'votingOpen_asHelper') {
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p4');
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p6', 'devpreview_p7');
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p8', 'devpreview_p9');

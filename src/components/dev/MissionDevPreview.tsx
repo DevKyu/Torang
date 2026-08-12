@@ -27,6 +27,8 @@ const VILLAIN_SCENARIOS: { key: VillainScenario; label: string }[] = [
   { key: 'upcoming', label: '공개 예정(D-day)' },
   { key: 'preview', label: '공개됨' },
   { key: 'votingOpen', label: '투표 진행중' },
+  { key: 'votingOpen_asVillain', label: '투표 진행중(내가 빌런, 미투표)' },
+  { key: 'votingOpen_asHelper', label: '투표 진행중(내가 조력자, 미투표)' },
   { key: 'revealed_caught', label: '결과공개 - 빌런 검거' },
   { key: 'revealed_survived_solo', label: '결과공개 - 빌런 단독 생존' },
   { key: 'revealed_survived_withHelper', label: '결과공개 - 빌런+조력자 공동수상' },
