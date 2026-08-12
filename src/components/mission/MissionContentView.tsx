@@ -110,23 +110,32 @@ const MissionContentView = ({
 
   const tabMode = postMode && hasVillain && hasPredict;
 
+  const predictAccessible =
+    predictType === 'scoreGuess'
+      ? participants.includes(myEmpId)
+      : predictType === 'teamGuess'
+        ? formationStatus === 'confirmed' && findGroupIndexForEmpId(formationGroups, myEmpId) !== -1
+        : true;
+
+  const canMarkChecked = isReady && !!myEmpId;
+
   useEffect(() => {
-    if (!isReady || !myEmpId) return;
+    if (!canMarkChecked) return;
     if (tabMode && activeTab !== 'villain') return;
     if (villainViewState === 'revealed' && !missionCheckedRef.current.villain) {
       missionCheckedRef.current.villain = true;
       markMissionResultChecked(myEmpId, 'villain').catch(() => {});
     }
-  }, [villainViewState, myEmpId, isReady, tabMode, activeTab]);
+  }, [villainViewState, myEmpId, canMarkChecked, tabMode, activeTab]);
 
   useEffect(() => {
-    if (!isReady || !myEmpId) return;
+    if (!canMarkChecked || !predictAccessible) return;
     if (tabMode && activeTab !== 'predict') return;
     if (predictViewState === 'revealed' && !missionCheckedRef.current.predict) {
       missionCheckedRef.current.predict = true;
       markMissionResultChecked(myEmpId, 'predict').catch(() => {});
     }
-  }, [predictViewState, myEmpId, isReady, tabMode, activeTab]);
+  }, [predictViewState, myEmpId, canMarkChecked, tabMode, activeTab, predictAccessible]);
 
   const renderEmptyOrUpcoming = (viewState: 'empty' | 'upcoming', daysUntilReveal: number | null) =>
     viewState === 'empty' ? (
@@ -232,13 +241,6 @@ const MissionContentView = ({
   const isVillainEmpty = !hasVillain || villainViewState === 'empty';
   const isPredictEmpty = !hasPredict || predictViewState === 'empty';
 
-  const predictAccessible =
-    predictType === 'scoreGuess'
-      ? participants.includes(myEmpId)
-      : predictType === 'teamGuess'
-        ? formationStatus === 'confirmed' && findGroupIndexForEmpId(formationGroups, myEmpId) !== -1
-        : true;
-
   const villainMergedIntoPredict =
     hasVillain &&
     villainViewState === 'preview' &&
@@ -259,7 +261,7 @@ const MissionContentView = ({
         </ScreenLoadingState>
       ) : isVillainEmpty && isPredictEmpty ? (
         <MissionPanel key="empty">{renderEmptyOrUpcoming('empty', null)}</MissionPanel>
-      ) : postMode && hasVillain && hasPredict ? (
+      ) : tabMode ? (
         <MissionPanel key="post-tabs">
           <TabBar>
             <TabBtn active={activeTab === 'villain'} onClick={() => setActiveTab('villain')}>

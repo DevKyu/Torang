@@ -6,7 +6,7 @@ import { useMissionViewState } from './useMissionViewState';
 import { useEventStore } from '../stores/useEventStore';
 import { useUiStore } from '../stores/useUiStore';
 import { checkGalleryUploadAvailability } from '../utils/galleryUpload';
-import { getDiffDaysServer, resolveDisplayYm, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
+import { getDiffDaysServer, isCheckedSince, resolveDisplayYm, REWARD_CLAIM_WINDOW_DAYS } from '../utils/date';
 import { getMatchTypeNouns } from '../utils/matchTypeLabel';
 import type { ChecklistItem, SharedChecklistData } from './useMonthlyChecklist';
 import type { Year, Month } from '../types/userInfo';
@@ -257,8 +257,7 @@ export const usePostActivityChecklist = (
     }
 
     if (achievementPinEnabled) {
-      const lastCheck = Number(userInfo?.lastAchievementCheck ?? 0);
-      const achievementDone = lastCheck >= Number(activityYmdStr);
+      const achievementDone = isCheckedSince(userInfo?.lastAchievementCheck, activityYmdStr);
 
       result.push({
         key: 'achievementCheck',
@@ -312,8 +311,7 @@ export const usePostActivityChecklist = (
     }
 
     if (isVillainMission && villainViewState === 'revealed') {
-      const villainChecked =
-        Number(userInfo?.lastMissionCheck?.villain ?? 0) >= Number(activityYmdStr);
+      const villainChecked = isCheckedSince(userInfo?.lastMissionCheck?.villain, activityYmdStr);
       result.push({
         key: 'villainResult',
         emoji: '🕵️',
@@ -330,8 +328,7 @@ export const usePostActivityChecklist = (
     const isPredictMission = !!missionPredict?.config;
     if (isPredictMission && predictViewState === 'revealed') {
       const isTeamGuess = predictType === 'teamGuess';
-      const predictChecked =
-        Number(userInfo?.lastMissionCheck?.predict ?? 0) >= Number(activityYmdStr);
+      const predictChecked = isCheckedSince(userInfo?.lastMissionCheck?.predict, activityYmdStr);
       result.push({
         key: 'predictResult',
         emoji: isTeamGuess ? '⚡' : '🔮',

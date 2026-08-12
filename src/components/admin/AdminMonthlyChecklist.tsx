@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
-import { createAdminMonthOptions } from '../../utils/date';
+import { createAdminMonthOptions, isCheckedSince } from '../../utils/date';
 import { useEventStore } from '../../stores/useEventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import { parseMissionSnapshot } from '../../hooks/useMission';
@@ -371,10 +371,7 @@ const AdminMonthlyChecklist = () => {
         const matchResultApplicable = rivalDone;
         const matchResultDone = !!postStatus.matchDoneMap[empId];
 
-        const achievementDone = postStatus.activityYmd
-          ? Number(user.lastAchievementCheck ?? 0) >=
-            Number(postStatus.activityYmd)
-          : false;
+        const achievementDone = isCheckedSince(user.lastAchievementCheck, postStatus.activityYmd);
 
         const galleryDone =
           (postStatus.galleryCountMap[empId] ?? 0) >= galleryGoal;
@@ -385,14 +382,12 @@ const AdminMonthlyChecklist = () => {
         const villainResultApplicable = postStatus.villainRevealed;
         const villainResultDone =
           villainResultApplicable &&
-          !!postStatus.activityYmd &&
-          Number(user.lastMissionCheck?.villain ?? 0) >= Number(postStatus.activityYmd);
+          isCheckedSince(user.lastMissionCheck?.villain, postStatus.activityYmd);
 
         const predictResultApplicable = postStatus.predictRevealed && inFormationGroup;
         const predictResultDone =
           predictResultApplicable &&
-          !!postStatus.activityYmd &&
-          Number(user.lastMissionCheck?.predict ?? 0) >= Number(postStatus.activityYmd);
+          isCheckedSince(user.lastMissionCheck?.predict, postStatus.activityYmd);
 
         const postSatisfied =
           (!targetRewardEnabled || !targetRewardApplicable || targetRewardDone) &&
