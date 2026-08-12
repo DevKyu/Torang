@@ -322,7 +322,7 @@ const AdminPredictMissionCard = ({
   const canChangeType =
     !data?.config || (status === 'draft' && totalVotes === 0 && data?.result?.revealed !== true);
 
-  const missionTypeLabel = missionType === 'scoreGuess' ? '신규회원 점수 맞추기' : '팀 승부 예측';
+  const missionTypeLabel = currentType === 'scoreGuess' ? '신규회원 점수 맞추기' : '팀 승부 예측';
   const summaryText = [
     missionTypeLabel,
     data?.config?.title ? `『${data.config.title}』` : null,
@@ -693,8 +693,8 @@ const AdminPredictMissionCard = ({
                   </>
                 )}
               </VoteHeaderRow>
-              {missionType === 'scoreGuess' ? renderScoreGuessVoteStats() : renderTeamGuessVoteStats()}
-              {data?.result && missionType === 'scoreGuess' && (
+              {currentType === 'scoreGuess' ? renderScoreGuessVoteStats() : renderTeamGuessVoteStats()}
+              {data?.result && currentType === 'scoreGuess' && (
                 <ResultArea>
                   {((data as ScoreGuessMissionData).targets?.empIds ?? []).map((id) => (
                     <div key={id}>
@@ -707,7 +707,7 @@ const AdminPredictMissionCard = ({
                   </div>
                 </ResultArea>
               )}
-              {data?.result && missionType === 'teamGuess' && (
+              {data?.result && currentType === 'teamGuess' && (
                 <ResultArea>
                   <div>
                     <strong>내 조 적중:</strong>{' '}

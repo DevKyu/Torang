@@ -419,6 +419,7 @@ export async function resetMissionState(
       const snap = rewardSnaps[i];
       if (!snap.exists()) return;
       const pin = (snap.val() as { pin?: number })?.pin ?? 0;
+      updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
       if (pin <= 0) return;
 
       pinDeltas[empId] = (pinDeltas[empId] ?? 0) + pin;
@@ -426,7 +427,6 @@ export async function resetMissionState(
         const currentPinVal = currentPinSnaps[i].val();
         currentPinByEmpId[empId] = typeof currentPinVal === 'number' ? currentPinVal : 0;
       }
-      updates[`users/${empId}/rewards/${ym}/mission/${key}`] = null;
     });
 
     Object.entries(pinDeltas).forEach(([empId, totalPin]) => {

@@ -16,7 +16,9 @@ const AdminMission = () => {
   const [ym, setYm] = useState(currentYm);
   const { villain, predict, predictType, loading } = useMission(ym);
   const { allNames } = useAllNames();
-  const { status: teamFormationStatus, groups: teamFormationGroups } = useTeamFormation(ym);
+  const { status: teamFormationStatus, groups: teamFormationGroups } = useTeamFormation(
+    predictType === 'teamGuess' ? ym : '',
+  );
 
   return (
     <AdminLayout title="활동 미션 관리">
