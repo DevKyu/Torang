@@ -9,10 +9,9 @@ import {
 } from '../../services/scoreGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
 import { MEDALS } from '../../utils/ranking';
-import type { ScoreGuessMissionData, ScoreGuessVote, VillainMissionData } from '../../hooks/useMission';
+import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import StatusCard from './StatusCard';
-import HiddenMissionTrigger from './HiddenMissionTrigger';
 import VoterCardItem from './VoterCardItem';
 import PredictScoreModal from './PredictScoreModal';
 import ScoreGuessResultModal, {
@@ -52,7 +51,6 @@ import {
   MissionCard,
   CardTitle,
   ResultRevealRow,
-  HiddenTriggerGap,
 } from '../../styles/mission/MissionStyle';
 
 const CHEER_DEFAULT_MESSAGE = '점수 예측 완료! 첫 활동 응원할게요 📣';
@@ -66,7 +64,6 @@ type Props = {
   allNames: Record<string, string>;
   participants: string[];
   activityYmd?: string;
-  hiddenMissionData?: VillainMissionData;
 };
 
 const ScoreGuessMissionView = ({
@@ -78,7 +75,6 @@ const ScoreGuessMissionView = ({
   allNames,
   participants,
   activityYmd,
-  hiddenMissionData,
 }: Props) => {
   const [selectedTarget, setSelectedTarget] = useState('');
   const [predictModalOpen, setPredictModalOpen] = useState(false);
@@ -282,11 +278,6 @@ const ScoreGuessMissionView = ({
                 <VoteTriggerBtn onClick={() => setVoteScreenOpen(true)}>
                   🎯 신규회원 점수 예측하기
                 </VoteTriggerBtn>
-              )}
-              {hiddenMissionData && (
-                <HiddenTriggerGap>
-                  <HiddenMissionTrigger data={hiddenMissionData} myEmpId={myEmpId} />
-                </HiddenTriggerGap>
               )}
             </PreviewInfoArea>
           )}

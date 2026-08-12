@@ -6,7 +6,7 @@ import { submitTeamGuessVote, deleteTeamGuessVote } from '../../services/teamGue
 import { useUiStore } from '../../stores/useUiStore';
 import type { TeamFormationStatus, WinnerMap, ScoreMap } from '../../hooks/useTeamFormation';
 import { findGroupIndexForEmpId, getGroupTeamKey, type FormationGroup } from '../../utils/teamFormation';
-import type { TeamGuessMissionData, TeamGuessVote, VillainMissionData } from '../../hooks/useMission';
+import type { TeamGuessMissionData, TeamGuessVote } from '../../hooks/useMission';
 import TeamGuessRosterCard from './TeamGuessRosterCard';
 import TeamGuessBonusSheet from './TeamGuessBonusSheet';
 import TeamGuessResultModal, {
@@ -14,7 +14,6 @@ import TeamGuessResultModal, {
 } from './TeamGuessResultModal';
 import { renderMissionBody } from './missionBody';
 import StatusCard from './StatusCard';
-import HiddenMissionTrigger from './HiddenMissionTrigger';
 import {
   PreviewInfoArea,
   VoteTriggerBtn,
@@ -44,7 +43,6 @@ import {
   ResultRole,
   ResultName,
   MissionLoadingBox,
-  HiddenTriggerGap,
 } from '../../styles/mission/MissionStyle';
 
 type Pick = 'team1' | 'team2' | 'draw';
@@ -67,7 +65,6 @@ type Props = {
   myEmpId: string;
   myVote?: TeamGuessVote;
   activityYmd?: string;
-  hiddenMissionData?: VillainMissionData;
   status: TeamFormationStatus;
   groups: FormationGroup[];
   winnerMap: WinnerMap;
@@ -84,7 +81,6 @@ const TeamGuessMissionView = ({
   myEmpId,
   myVote,
   activityYmd,
-  hiddenMissionData,
   status,
   groups,
   winnerMap,
@@ -237,11 +233,6 @@ const TeamGuessMissionView = ({
               <VoteTriggerBtn onClick={() => setVoteScreenOpen(true)}>
                 ⚡ 팀 승부 예측하기
               </VoteTriggerBtn>
-              {hiddenMissionData && (
-                <HiddenTriggerGap>
-                  <HiddenMissionTrigger data={hiddenMissionData} myEmpId={myEmpId} />
-                </HiddenTriggerGap>
-              )}
             </PreviewInfoArea>
           )}
 

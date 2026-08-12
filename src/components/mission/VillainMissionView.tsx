@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { submitVote } from '../../hooks/useMission';
@@ -39,6 +39,7 @@ type Props = {
   myVote?: string;
   allNames: Record<string, string>;
   participants: string[];
+  autoOpenGuardRef?: RefObject<boolean>;
 };
 
 const VillainMissionView = ({
@@ -49,6 +50,7 @@ const VillainMissionView = ({
   myVote,
   allNames,
   participants,
+  autoOpenGuardRef,
 }: Props) => {
   const [selectedVote, setSelectedVote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -121,7 +123,9 @@ const VillainMissionView = ({
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.25 }}
         >
-          {viewState === 'preview' && <HiddenMissionTrigger data={data} myEmpId={myEmpId} />}
+          {viewState === 'preview' && (
+            <HiddenMissionTrigger data={data} myEmpId={myEmpId} autoOpenGuardRef={autoOpenGuardRef} />
+          )}
 
           {viewState === 'voting' &&
             (!isParticipant ? (

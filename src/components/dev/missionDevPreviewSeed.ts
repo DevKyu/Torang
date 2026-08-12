@@ -531,7 +531,6 @@ export async function seedCombinedScenario(
     return;
   }
 
-  // 활동 후 공통: 예측형은 항상 결과공개까지 진행, 빌런만 케이스별로 갈라진다
   await seedCombinedBase(relativeYmd(-1), 'devpreview_p1', 'devpreview_p2', predictType);
   if (predictType === 'teamGuess') {
     await submitTeamGuessVote(DEV_PREVIEW_YM, DEV_ME, { myGroupPick: 'team1' });
@@ -560,7 +559,6 @@ export async function seedCombinedScenario(
     return;
   }
 
-  // postActivity_bothRevealed
   await submitVote(DEV_PREVIEW_YM, DEV_ME, 'devpreview_p1');
   await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p1');
   await submitVote(DEV_PREVIEW_YM, 'devpreview_p4', 'devpreview_p1');

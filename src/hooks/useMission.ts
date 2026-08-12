@@ -224,26 +224,30 @@ export function parseMissionSnapshot(
 }
 
 export async function migrateLegacyIfNeeded(ym: string): Promise<void> {
-  const snap = await get(ref(db, `missions/${ym}`));
-  if (!snap.exists()) return;
-  const raw = snap.val() as RawMissionSnapshot;
-  if (!raw.config || raw.villain || raw.scoreGuess || raw.teamGuess) return;
+  await runTransaction(ref(db, `missions/${ym}`), (raw: RawMissionSnapshot | null) => {
+    if (!raw) return raw;
+    if (!raw.config || raw.villain || raw.scoreGuess || raw.teamGuess) return raw;
 
-  const type: MissionType = raw.config.type ?? 'villain';
-  const slot: Record<string, unknown> = { config: raw.config };
-  if (raw.hidden) slot.hidden = raw.hidden;
-  if (raw.roles) slot.roles = raw.roles;
-  if (raw.targets) slot.targets = raw.targets;
-  if (raw.result) slot.result = raw.result;
+    const type: MissionType = raw.config.type ?? 'villain';
+    const slot: Record<string, unknown> = { config: raw.config };
+    if (raw.hidden) slot.hidden = raw.hidden;
+    if (raw.roles) slot.roles = raw.roles;
+    if (raw.targets) slot.targets = raw.targets;
+    if (raw.result) slot.result = raw.result;
 
-  await update(ref(db), {
-    [`missions/${ym}/${type}`]: slot,
-    [`missions/${ym}/config`]: null,
-    [`missions/${ym}/hidden`]: null,
-    [`missions/${ym}/roles`]: null,
-    [`missions/${ym}/targets`]: null,
-    [`missions/${ym}/result`]: null,
-    [`missions/${ym}/votes`]: raw.votes ? { [type]: raw.votes } : null,
+    const next: Record<string, unknown> = { ...raw };
+    delete next.config;
+    delete next.hidden;
+    delete next.roles;
+    delete next.targets;
+    delete next.result;
+    if (raw.votes) {
+      next.votes = { [type]: raw.votes };
+    } else {
+      delete next.votes;
+    }
+    next[type] = slot;
+    return next;
   });
 }
 
@@ -335,6 +339,7 @@ export async function submitVote(
   voterEmpId: string,
   targetEmpId: string,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   await set(ref(db, `missions/${ym}/votes/villain/${voterEmpId}`), targetEmpId);
 }
 
@@ -510,6 +515,7 @@ export async function revealMissionResult(
   data: VillainMissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
   if (data.result?.revealed === true) {
+    await migrateLegacyIfNeeded(ym);
     await set(ref(db, `missions/${ym}/villain/config/status`), 'revealed');
     return {
       villainWon: data.result.villainWon,

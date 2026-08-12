@@ -32,6 +32,7 @@ export async function submitTeamGuessVote(
   voterEmpId: string,
   vote: TeamGuessVote,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   await set(ref(db, `missions/${ym}/votes/teamGuess/${voterEmpId}`), vote);
 }
 
@@ -39,6 +40,7 @@ export async function deleteTeamGuessVote(
   ym: string,
   voterEmpId: string,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   await remove(ref(db, `missions/${ym}/votes/teamGuess/${voterEmpId}`));
 }
 
@@ -60,6 +62,7 @@ export async function revealTeamGuessMissionResult(
   data: TeamGuessMissionData,
 ): Promise<{ myGroupCorrectVoters: string[]; bonusCorrectVoters: string[] }> {
   if (data.result?.revealed === true) {
+    await migrateLegacyIfNeeded(ym);
     await set(ref(db, `missions/${ym}/teamGuess/config/status`), 'revealed');
     return {
       myGroupCorrectVoters: data.result.myGroupCorrectVoters ?? [],

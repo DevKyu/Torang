@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import ScreenLoadingState from '../shared/ScreenLoadingState';
@@ -63,13 +63,16 @@ const MissionContentView = ({
 }: Props) => {
   const [activeTab, setActiveTab] = useState<'villain' | 'predict'>('villain');
 
+  const villainAutoOpenGuardRef = useRef(false);
+  useEffect(() => {
+    villainAutoOpenGuardRef.current = false;
+  }, [ym]);
+
   const { daysUntilReveal: villainDaysUntilReveal, viewState: villainViewState } =
     useMissionViewState(activityYmd, villain);
   const { daysUntilReveal: predictDaysUntilReveal, viewState: predictViewState } =
     useMissionViewState(activityYmd, predict);
 
-  // 팀예측 조편성/라이벌 데이터는 탭 클릭과 무관하게 미리 구독해둔다 —
-  // TeamGuessMissionView가 탭 전환마다 리마운트되며 매번 다시 로딩하던 것 방지
   const teamFormationYm = predictType === 'teamGuess' ? ym : '';
   const {
     status: formationStatus,
@@ -126,6 +129,7 @@ const MissionContentView = ({
             myVote={myVillainVote}
             allNames={allNames}
             participants={participants}
+            autoOpenGuardRef={villainAutoOpenGuardRef}
           />
         </>
       );
@@ -143,12 +147,10 @@ const MissionContentView = ({
     );
   };
 
-  const renderPredictTab = (allowHiddenTrigger: boolean) => {
+  const renderPredictTab = () => {
     if (predictViewState === 'empty' || predictViewState === 'upcoming') {
       return renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal);
     }
-    const hiddenMissionData =
-      allowHiddenTrigger && hasVillain && villainViewState === 'preview' ? villain! : undefined;
     if (predictType === 'scoreGuess') {
       return (
         <ScoreGuessMissionView
@@ -160,7 +162,6 @@ const MissionContentView = ({
           allNames={allNames}
           participants={participants}
           activityYmd={activityYmd}
-          hiddenMissionData={hiddenMissionData}
         />
       );
     }
@@ -172,7 +173,6 @@ const MissionContentView = ({
         myEmpId={myEmpId}
         myVote={isTeamGuessVote(myPredictVote) ? myPredictVote : undefined}
         activityYmd={activityYmd}
-        hiddenMissionData={hiddenMissionData}
         status={formationStatus}
         groups={formationGroups}
         winnerMap={formationWinnerMap}
@@ -184,91 +184,82 @@ const MissionContentView = ({
     );
   };
 
-  if (!isReady) {
-    return (
-      <ScreenLoadingState key="loading">
-        <MissionLoadingBox>
-          <ClipLoader size={24} color="#9ca3af" />
-        </MissionLoadingBox>
-      </ScreenLoadingState>
-    );
-  }
-
-  if (!hasVillain && !hasPredict) {
-    return (
-      <MissionEmptyBox>
-        <MissionEmptyIcon>🤫</MissionEmptyIcon>
-        <MissionEmptyTitle>활동 미션 준비중</MissionEmptyTitle>
-        <MissionEmptyDesc>완료되면 바로 공개될 예정이에요</MissionEmptyDesc>
-      </MissionEmptyBox>
-    );
-  }
-
-  if (postMode && hasVillain && hasPredict) {
-    return (
-      <motion.div
-        key="post-tabs"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.25 }}
-        style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-      >
-        <TabBar>
-          <TabBtn active={activeTab === 'villain'} onClick={() => setActiveTab('villain')}>
-            빌런 찾기
-          </TabBtn>
-          <TabBtn active={activeTab === 'predict'} onClick={() => setActiveTab('predict')}>
-            {predictType === 'scoreGuess' ? '신규회원 예측' : '팀 승부 예측'}
-          </TabBtn>
-        </TabBar>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === 'villain' ? renderVillainTab() : renderPredictTab(false)}
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
-    );
-  }
-
-  if (postMode) {
-    return (
-      <motion.div
-        key="post-single"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0, y: -4 }}
-        transition={{ duration: 0.25 }}
-        style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-      >
-        {hasVillain ? renderVillainTab() : renderPredictTab(false)}
-      </motion.div>
-    );
-  }
+  const isVillainEmpty = !hasVillain || villainViewState === 'empty';
+  const isPredictEmpty = !hasPredict || predictViewState === 'empty';
 
   return (
-    <motion.div
-      key="pre"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.25 }}
-      style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-    >
-      {!hasPredict ? (
-        renderVillainTab()
-      ) : predictViewState === 'empty' || predictViewState === 'upcoming' ? (
-        renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
+    <AnimatePresence mode="wait" initial={false}>
+      {!isReady ? (
+        <ScreenLoadingState key="loading">
+          <MissionLoadingBox>
+            <ClipLoader size={24} color="#9ca3af" />
+          </MissionLoadingBox>
+        </ScreenLoadingState>
+      ) : isVillainEmpty && isPredictEmpty ? (
+        <motion.div
+          key="empty"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25 }}
+          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+        >
+          {renderEmptyOrUpcoming('empty', null)}
+        </motion.div>
+      ) : postMode && hasVillain && hasPredict ? (
+        <motion.div
+          key="post-tabs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25 }}
+          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+        >
+          <TabBar>
+            <TabBtn active={activeTab === 'villain'} onClick={() => setActiveTab('villain')}>
+              빌런 찾기
+            </TabBtn>
+            <TabBtn active={activeTab === 'predict'} onClick={() => setActiveTab('predict')}>
+              {predictType === 'scoreGuess' ? '신규회원 예측' : '팀 승부 예측'}
+            </TabBtn>
+          </TabBar>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'villain' ? renderVillainTab() : renderPredictTab()}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      ) : postMode ? (
+        <motion.div
+          key="post-single"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25 }}
+          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+        >
+          {hasVillain ? renderVillainTab() : renderPredictTab()}
+        </motion.div>
       ) : (
-        renderPredictTab(true)
+        <motion.div
+          key="pre"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25 }}
+          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+        >
+          {!isVillainEmpty && renderVillainTab()}
+          {!isPredictEmpty && renderPredictTab()}
+        </motion.div>
       )}
-    </motion.div>
+    </AnimatePresence>
   );
 };
 

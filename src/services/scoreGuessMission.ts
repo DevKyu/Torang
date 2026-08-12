@@ -40,6 +40,7 @@ export async function submitScoreGuessVote(
   message?: string,
   anonymous?: boolean,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   const vote: ScoreGuessVote = { targetEmpId, predictedScore };
   if (message) vote.message = message;
   if (anonymous) vote.anonymous = true;
@@ -50,6 +51,7 @@ export async function deleteScoreGuessVote(
   ym: string,
   voterEmpId: string,
 ): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
   await remove(ref(db, `missions/${ym}/votes/scoreGuess/${voterEmpId}`));
 }
 
@@ -62,6 +64,7 @@ export async function revealScoreGuessMissionResult(
   topTargets: string[];
 }> {
   if (data.result?.revealed === true) {
+    await migrateLegacyIfNeeded(ym);
     await set(ref(db, `missions/${ym}/scoreGuess/config/status`), 'revealed');
     return {
       actualScores: data.result.actualScores ?? {},

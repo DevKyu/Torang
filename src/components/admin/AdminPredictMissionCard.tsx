@@ -4,7 +4,15 @@ import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
-import { STATUS_LABEL, toSuccessStyle, createIntFieldHandler, createPinInputHandlers } from './missionAdminHelpers';
+import {
+  STATUS_LABEL,
+  toSuccessStyle,
+  createIntFieldHandler,
+  createPinInputHandlers,
+  runMissionStatusChange,
+  runMissionReset,
+  runMissionReveal,
+} from './missionAdminHelpers';
 import {
   FormTitle,
   FieldLabel,
@@ -46,9 +54,7 @@ import {
 } from '../../styles/admin/AdminScoreGuessMissionStyle';
 import {
   saveScoreGuessMissionContent,
-  setMissionStatus,
   resetVotes,
-  resetMissionState,
   DEFAULT_SCORE_DIFF_THRESHOLD,
   type ScoreGuessMissionConfig,
   type TeamGuessMissionConfig,
@@ -133,7 +139,7 @@ const AdminPredictMissionCard = ({
   }, [predictType]);
 
   useEffect(() => {
-    if (predictType === 'scoreGuess' && data) {
+    if (predictType === 'scoreGuess' && data?.config) {
       const d = data as ScoreGuessMissionData;
       const rp = d.config?.rewardPin ?? 0.5;
       setScoreGuessConfigDraft({
@@ -147,7 +153,7 @@ const AdminPredictMissionCard = ({
       });
       setSgRewardPinRaw(String(rp));
       setTargetRewardPinRaw(String(d.config?.targetRewardPin ?? 0.5));
-    } else if (predictType === 'teamGuess' && data) {
+    } else if (predictType === 'teamGuess' && data?.config) {
       const d = data as TeamGuessMissionData;
       const rp = d.config?.rewardPin ?? 1;
       const brp = d.config?.bonusRewardPin ?? 1;
@@ -273,63 +279,21 @@ const AdminPredictMissionCard = ({
     }
   };
 
-  const handleStatusChange = async (next: MissionStatus) => {
-    setSaving(true);
-    try {
-      await setMissionStatus(ym, missionType as MissionType, next);
-      toast(`✅ 상태가 '${STATUS_LABEL[next]}'로 변경되었습니다.`, { position: 'top-center', duration: 2000, style: toSuccessStyle });
-    } catch {
-      toast.error('상태 변경 중 오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleStatusChange = (next: MissionStatus) =>
+    runMissionStatusChange(ym, missionType as MissionType, next, setSaving);
 
-  const handleReveal = async () => {
-    if (!data) return;
-    const confirmMsg = data.result?.revealed
-      ? '이미 공개된 결과입니다. 다시 동기화하시겠습니까? (PIN은 재지급되지 않습니다)'
-      : '결과를 공개하시겠습니까? 공개 즉시 PIN이 지급됩니다.';
-    if (!confirm(confirmMsg)) return;
-    setRevealing(true);
-    try {
+  const handleReveal = () =>
+    runMissionReveal(data, setRevealing, async () => {
       if (missionType === 'scoreGuess') {
         const res = await revealScoreGuessMissionResult(ym, data as ScoreGuessMissionData);
-        toast(`✅ 결과 공개 완료 — 예측 성공 ${res.correctVoters.length}명, 순위 보상 ${res.topTargets.length}명 🎉`, {
-          position: 'top-center',
-          duration: 3000,
-          style: toSuccessStyle,
-        });
-      } else {
-        const res = await revealTeamGuessMissionResult(ym, data as TeamGuessMissionData);
-        toast(`✅ 결과 공개 완료 — 내 조 적중 ${res.myGroupCorrectVoters.length}명, 보너스 적중 ${res.bonusCorrectVoters.length}명 🎉`, {
-          position: 'top-center',
-          duration: 3000,
-          style: toSuccessStyle,
-        });
+        return `예측 성공 ${res.correctVoters.length}명, 순위 보상 ${res.topTargets.length}명 🎉`;
       }
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setRevealing(false);
-    }
-  };
+      const res = await revealTeamGuessMissionResult(ym, data as TeamGuessMissionData);
+      return `내 조 적중 ${res.myGroupCorrectVoters.length}명, 보너스 적중 ${res.bonusCorrectVoters.length}명 🎉`;
+    });
 
-  const handleResetMission = async () => {
-    if (data?.result?.revealed && !confirm('이미 결과가 공개된 미션입니다. 초기화하면 이미 지급된 PIN이 전부 환수됩니다. 계속하시겠습니까?')) {
-      return;
-    }
-    setSaving(true);
-    try {
-      await resetMissionState(ym, missionType as MissionType, data);
-      setConfirmReset(false);
-      toast('✅ 미션 상태가 초기화되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
-    } catch {
-      toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleResetMission = () =>
+    runMissionReset(ym, missionType as MissionType, data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
   const canChangeType = !data?.config || status === 'draft';

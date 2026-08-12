@@ -4,7 +4,15 @@ import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
 import { db } from '../../services/firebase';
-import { STATUS_LABEL, toSuccessStyle, createIntFieldHandler, createPinInputHandlers } from './missionAdminHelpers';
+import {
+  STATUS_LABEL,
+  toSuccessStyle,
+  createIntFieldHandler,
+  createPinInputHandlers,
+  runMissionStatusChange,
+  runMissionReset,
+  runMissionReveal,
+} from './missionAdminHelpers';
 import {
   FormTitle,
   FieldLabel,
@@ -47,10 +55,8 @@ import {
 import {
   saveVillainMissionContent,
   assignRoles,
-  setMissionStatus,
   revealMissionResult,
   resetVotes,
-  resetMissionState,
   DEFAULT_HELPER_VOTE_THRESHOLD,
   DEFAULT_VILLAIN_CATCH_THRESHOLD,
   type VillainMissionConfig,
@@ -229,53 +235,17 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
     }
   };
 
-  const handleStatusChange = async (next: MissionStatus) => {
-    setSaving(true);
-    try {
-      await setMissionStatus(ym, 'villain', next);
-      toast(`✅ 상태가 '${STATUS_LABEL[next]}'로 변경되었습니다.`, { position: 'top-center', duration: 2000, style: toSuccessStyle });
-    } catch {
-      toast.error('상태 변경 중 오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleStatusChange = (next: MissionStatus) => runMissionStatusChange(ym, 'villain', next, setSaving);
 
-  const handleReveal = async () => {
-    if (!data) return;
-    const confirmMsg = data.result?.revealed
-      ? '이미 공개된 결과입니다. 다시 동기화하시겠습니까? (PIN은 재지급되지 않습니다)'
-      : '결과를 공개하시겠습니까? 공개 즉시 PIN이 지급됩니다.';
-    if (!confirm(confirmMsg)) return;
-    setRevealing(true);
-    try {
-      const res = await revealMissionResult(ym, data);
-      const msg = res.villainWon
+  const handleReveal = () =>
+    runMissionReveal(data, setRevealing, async () => {
+      const res = await revealMissionResult(ym, data!);
+      return res.villainWon
         ? `빌런 생존! ${res.helperWon ? '조력자 공동 수상 🎉' : '빌런 단독 수상 🎉'}`
         : `정답자 ${res.correctVoters.length}명 수상 🎉`;
-      toast(`✅ 결과 공개 완료 — ${msg}`, { position: 'top-center', duration: 3000, style: toSuccessStyle });
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setRevealing(false);
-    }
-  };
+    });
 
-  const handleResetMission = async () => {
-    if (data?.result?.revealed && !confirm('이미 결과가 공개된 미션입니다. 초기화하면 이미 지급된 PIN이 전부 환수됩니다. 계속하시겠습니까?')) {
-      return;
-    }
-    setSaving(true);
-    try {
-      await resetMissionState(ym, 'villain', data);
-      setConfirmReset(false);
-      toast('✅ 미션 상태가 초기화되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
-    } catch {
-      toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleResetMission = () => runMissionReset(ym, 'villain', data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
   const villainVotes = data?.votes ?? {};
