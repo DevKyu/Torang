@@ -8,6 +8,7 @@ import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import TeamGuessMissionView from './TeamGuessMissionView';
+import HiddenMissionTrigger from './HiddenMissionTrigger';
 import { renderMissionBody } from './missionBody';
 import type {
   VillainMissionData,
@@ -235,8 +236,26 @@ const MissionContentView = ({
         <MissionPanel key="post-single">{hasVillain ? renderVillainTab() : renderPredictTab()}</MissionPanel>
       ) : (
         <MissionPanel key="pre">
-          {!isVillainEmpty && renderVillainTab()}
-          {!isPredictEmpty && renderPredictTab()}
+          {!hasPredict ? (
+            renderVillainTab()
+          ) : predictViewState === 'empty' || predictViewState === 'upcoming' ? (
+            hasVillain && villainViewState === 'preview' ? (
+              renderVillainTab()
+            ) : (
+              renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
+            )
+          ) : (
+            <>
+              {renderPredictTab()}
+              {hasVillain && villainViewState === 'preview' && (
+                <HiddenMissionTrigger
+                  data={villain!}
+                  myEmpId={myEmpId}
+                  autoOpenGuardRef={villainAutoOpenGuardRef}
+                />
+              )}
+            </>
+          )}
         </MissionPanel>
       )}
     </AnimatePresence>
