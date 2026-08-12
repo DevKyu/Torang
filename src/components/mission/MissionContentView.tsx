@@ -85,7 +85,8 @@ const MissionContentView = ({
   const { daysUntilReveal: predictDaysUntilReveal, viewState: predictViewState } =
     useMissionViewState(activityYmd, predict);
 
-  const teamFormationYm = predictType === 'teamGuess' ? ym : '';
+  const teamFormationYm =
+    predictType === 'teamGuess' && predictViewState !== 'empty' && predictViewState !== 'upcoming' ? ym : '';
   const {
     status: formationStatus,
     groups: formationGroups,
