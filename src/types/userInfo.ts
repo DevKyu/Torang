@@ -27,5 +27,6 @@ export type UserInfo = {
   products?: Record<string, Record<string, AppliedProduct>>;
   invitedCount?: number;
   lastAchievementCheck?: string;
+  lastMissionCheck?: { villain?: string; predict?: string };
   rewards?: Record<string, Record<string, unknown>>;
 };

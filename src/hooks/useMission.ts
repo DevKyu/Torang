@@ -343,6 +343,15 @@ export async function submitVote(
   await set(ref(db, `missions/${ym}/votes/villain/${voterEmpId}`), targetEmpId);
 }
 
+export async function markMissionResultChecked(
+  empId: string,
+  kind: 'villain' | 'predict',
+): Promise<void> {
+  await update(ref(db), {
+    [`users/${empId}/lastMissionCheck/${kind}`]: useUiStore.getState().formatServerDate('ymd'),
+  });
+}
+
 export async function setMissionStatus(
   ym: string,
   type: MissionType,
