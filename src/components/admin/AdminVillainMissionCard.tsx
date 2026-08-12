@@ -12,6 +12,7 @@ import {
   runMissionStatusChange,
   runMissionReset,
   runMissionReveal,
+  runVotesReset,
 } from './missionAdminHelpers';
 import {
   FormTitle,
@@ -591,22 +592,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
             <StatusBtn
               color="#6b7280"
               disabled={saving}
-              onClick={async () => {
-                if (!confirm('투표를 초기화하시겠습니까? 지금까지의 투표 기록이 모두 삭제됩니다.')) return;
-                setSaving(true);
-                try {
-                  await resetVotes(ym, 'villain');
-                  toast('🗑️ 투표가 초기화되었습니다.', {
-                    position: 'top-center',
-                    duration: 2000,
-                    style: { backgroundColor: '#fef9c3', color: '#854d0e', borderRadius: '10px', fontSize: '0.875rem' },
-                  });
-                } catch {
-                  toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
-                } finally {
-                  setSaving(false);
-                }
-              }}
+              onClick={() => runVotesReset(ym, 'villain', '투표', setSaving)}
             >
               투표 초기화
             </StatusBtn>

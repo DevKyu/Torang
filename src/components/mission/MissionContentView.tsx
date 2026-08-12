@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import ScreenLoadingState from '../shared/ScreenLoadingState';
@@ -33,6 +33,18 @@ import {
   TabBar,
   TabBtn,
 } from '../../styles/mission/MissionStyle';
+
+const MissionPanel = ({ children }: { children: ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0, y: -4 }}
+    transition={{ duration: 0.25 }}
+    style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
+  >
+    {children}
+  </motion.div>
+);
 
 type Props = {
   ym: string;
@@ -196,25 +208,9 @@ const MissionContentView = ({
           </MissionLoadingBox>
         </ScreenLoadingState>
       ) : isVillainEmpty && isPredictEmpty ? (
-        <motion.div
-          key="empty"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25 }}
-          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-        >
-          {renderEmptyOrUpcoming('empty', null)}
-        </motion.div>
+        <MissionPanel key="empty">{renderEmptyOrUpcoming('empty', null)}</MissionPanel>
       ) : postMode && hasVillain && hasPredict ? (
-        <motion.div
-          key="post-tabs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25 }}
-          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-        >
+        <MissionPanel key="post-tabs">
           <TabBar>
             <TabBtn active={activeTab === 'villain'} onClick={() => setActiveTab('villain')}>
               빌런 찾기
@@ -234,30 +230,14 @@ const MissionContentView = ({
               {activeTab === 'villain' ? renderVillainTab() : renderPredictTab()}
             </motion.div>
           </AnimatePresence>
-        </motion.div>
+        </MissionPanel>
       ) : postMode ? (
-        <motion.div
-          key="post-single"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25 }}
-          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-        >
-          {hasVillain ? renderVillainTab() : renderPredictTab()}
-        </motion.div>
+        <MissionPanel key="post-single">{hasVillain ? renderVillainTab() : renderPredictTab()}</MissionPanel>
       ) : (
-        <motion.div
-          key="pre"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25 }}
-          style={{ minHeight: MISSION_INFO_MIN_HEIGHT }}
-        >
+        <MissionPanel key="pre">
           {!isVillainEmpty && renderVillainTab()}
           {!isPredictEmpty && renderPredictTab()}
-        </motion.div>
+        </MissionPanel>
       )}
     </AnimatePresence>
   );

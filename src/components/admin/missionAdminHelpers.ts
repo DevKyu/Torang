@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import {
   setMissionStatus,
   resetMissionState,
+  resetVotes,
   type MissionStatus,
   type MissionType,
   type VillainMissionData,
@@ -54,6 +55,28 @@ export async function runMissionReset(
     await resetMissionState(ym, type, data);
     setConfirmReset(false);
     toast('✅ 미션 상태가 초기화되었습니다.', { position: 'top-center', duration: 2000, style: toSuccessStyle });
+  } catch {
+    toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
+  } finally {
+    setSaving(false);
+  }
+}
+
+export async function runVotesReset(
+  ym: string,
+  type: MissionType,
+  recordLabel: string,
+  setSaving: (v: boolean) => void,
+): Promise<void> {
+  if (!confirm(`투표를 초기화하시겠습니까? 지금까지의 ${recordLabel} 기록이 모두 삭제됩니다.`)) return;
+  setSaving(true);
+  try {
+    await resetVotes(ym, type);
+    toast('🗑️ 투표가 초기화되었습니다.', {
+      position: 'top-center',
+      duration: 2000,
+      style: { backgroundColor: '#fef9c3', color: '#854d0e', borderRadius: '10px', fontSize: '0.875rem' },
+    });
   } catch {
     toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
   } finally {

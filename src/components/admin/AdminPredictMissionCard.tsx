@@ -12,6 +12,7 @@ import {
   runMissionStatusChange,
   runMissionReset,
   runMissionReveal,
+  runVotesReset,
 } from './missionAdminHelpers';
 import {
   FormTitle,
@@ -279,8 +280,10 @@ const AdminPredictMissionCard = ({
     }
   };
 
+  const currentType: MissionType = missionType;
+
   const handleStatusChange = (next: MissionStatus) =>
-    runMissionStatusChange(ym, missionType as MissionType, next, setSaving);
+    runMissionStatusChange(ym, currentType, next, setSaving);
 
   const handleReveal = () =>
     runMissionReveal(data, setRevealing, async () => {
@@ -293,7 +296,7 @@ const AdminPredictMissionCard = ({
     });
 
   const handleResetMission = () =>
-    runMissionReset(ym, missionType as MissionType, data, setSaving, setConfirmReset);
+    runMissionReset(ym, currentType, data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
   const canChangeType = !data?.config || status === 'draft';
@@ -629,22 +632,7 @@ const AdminPredictMissionCard = ({
             <StatusBtn
               color="#6b7280"
               disabled={saving}
-              onClick={async () => {
-                if (!confirm('투표를 초기화하시겠습니까? 지금까지의 예측 기록이 모두 삭제됩니다.')) return;
-                setSaving(true);
-                try {
-                  await resetVotes(ym, missionType as MissionType);
-                  toast('🗑️ 투표가 초기화되었습니다.', {
-                    position: 'top-center',
-                    duration: 2000,
-                    style: { backgroundColor: '#fef9c3', color: '#854d0e', borderRadius: '10px', fontSize: '0.875rem' },
-                  });
-                } catch {
-                  toast.error('초기화 중 오류가 발생했습니다.', { position: 'top-center' });
-                } finally {
-                  setSaving(false);
-                }
-              }}
+              onClick={() => runVotesReset(ym, currentType, '예측', setSaving)}
             >
               투표 초기화
             </StatusBtn>
