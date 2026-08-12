@@ -156,6 +156,7 @@ const AdminPredictMissionCard = ({
   }, [predictType]);
 
   useEffect(() => {
+    if (loading) return;
     if (predictType === 'scoreGuess' && data?.config) {
       const d = data as ScoreGuessMissionData;
       const rp = d.config?.rewardPin ?? 0.5;
@@ -184,7 +185,7 @@ const AdminPredictMissionCard = ({
       });
       setTgRewardPinRaw(String(rp));
       setTgBonusRewardPinRaw(String(brp));
-    } else if (!loading && !data) {
+    } else if (!data) {
       setScoreGuessConfigDraft(DEFAULT_SCORE_GUESS_CONFIG_DRAFT);
       setSgRewardPinRaw('0.5');
       setTargetRewardPinRaw('0.5');
@@ -229,6 +230,7 @@ const AdminPredictMissionCard = ({
   }, [ym, candidateStartYm, quarterEndYm]);
 
   useEffect(() => {
+    if (loading) return;
     if (predictType === 'scoreGuess' && (data as ScoreGuessMissionData)?.targets?.empIds) {
       setCandidateChecked(
         Object.fromEntries((data as ScoreGuessMissionData).targets!.empIds.map((id) => [id, true])),
@@ -238,7 +240,7 @@ const AdminPredictMissionCard = ({
     } else {
       setCandidateChecked({});
     }
-  }, [data, predictType, candidates]);
+  }, [data, predictType, candidates, loading]);
 
   const toggleCandidate = (empId: string) => {
     setConfirmTargetChange(false);

@@ -122,6 +122,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   }, [roleDraft.villainId, roleDraft.helperId]);
 
   useEffect(() => {
+    if (loading) return;
     if (data) {
       const rp = data.config?.rewardPin ?? 1;
       const vp = data.config?.villainRewardPin ?? rp;
@@ -156,7 +157,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
           helperName: allNames[data.roles.helper] ?? data.roles.helper,
         });
       }
-    } else if (!loading) {
+    } else {
       setConfigDraft(DEFAULT_CONFIG_DRAFT);
       setRewardPinRaw('1');
       setVillainRewardPinRaw('1');
