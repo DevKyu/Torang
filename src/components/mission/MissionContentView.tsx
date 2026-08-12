@@ -178,6 +178,7 @@ const MissionContentView = ({
           participants={participants}
           activityYmd={activityYmd}
           hiddenMissionData={hiddenMissionData}
+          hiddenMissionAutoOpenGuardRef={villainAutoOpenGuardRef}
         />
       );
     }
@@ -190,6 +191,7 @@ const MissionContentView = ({
         myVote={isTeamGuessVote(myPredictVote) ? myPredictVote : undefined}
         activityYmd={activityYmd}
         hiddenMissionData={hiddenMissionData}
+        hiddenMissionAutoOpenGuardRef={villainAutoOpenGuardRef}
         status={formationStatus}
         groups={formationGroups}
         winnerMap={formationWinnerMap}

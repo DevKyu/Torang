@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -67,6 +67,7 @@ type Props = {
   participants: string[];
   activityYmd?: string;
   hiddenMissionData?: VillainMissionData;
+  hiddenMissionAutoOpenGuardRef?: RefObject<boolean>;
 };
 
 const ScoreGuessMissionView = ({
@@ -79,6 +80,7 @@ const ScoreGuessMissionView = ({
   participants,
   activityYmd,
   hiddenMissionData,
+  hiddenMissionAutoOpenGuardRef,
 }: Props) => {
   const [selectedTarget, setSelectedTarget] = useState('');
   const [predictModalOpen, setPredictModalOpen] = useState(false);
@@ -285,7 +287,11 @@ const ScoreGuessMissionView = ({
               )}
               {hiddenMissionData && (
                 <HiddenTriggerGap>
-                  <HiddenMissionTrigger data={hiddenMissionData} myEmpId={myEmpId} />
+                  <HiddenMissionTrigger
+                    data={hiddenMissionData}
+                    myEmpId={myEmpId}
+                    autoOpenGuardRef={hiddenMissionAutoOpenGuardRef}
+                  />
                 </HiddenTriggerGap>
               )}
             </PreviewInfoArea>

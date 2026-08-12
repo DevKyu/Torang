@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
@@ -68,6 +68,7 @@ type Props = {
   myVote?: TeamGuessVote;
   activityYmd?: string;
   hiddenMissionData?: VillainMissionData;
+  hiddenMissionAutoOpenGuardRef?: RefObject<boolean>;
   status: TeamFormationStatus;
   groups: FormationGroup[];
   winnerMap: WinnerMap;
@@ -85,6 +86,7 @@ const TeamGuessMissionView = ({
   myVote,
   activityYmd,
   hiddenMissionData,
+  hiddenMissionAutoOpenGuardRef,
   status,
   groups,
   winnerMap,
@@ -239,7 +241,11 @@ const TeamGuessMissionView = ({
               </VoteTriggerBtn>
               {hiddenMissionData && (
                 <HiddenTriggerGap>
-                  <HiddenMissionTrigger data={hiddenMissionData} myEmpId={myEmpId} />
+                  <HiddenMissionTrigger
+                    data={hiddenMissionData}
+                    myEmpId={myEmpId}
+                    autoOpenGuardRef={hiddenMissionAutoOpenGuardRef}
+                  />
                 </HiddenTriggerGap>
               )}
             </PreviewInfoArea>
