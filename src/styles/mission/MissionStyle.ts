@@ -66,7 +66,7 @@ export const SectionLabel = styled.div`
 `;
 
 export const HiddenTriggerGap = styled.div`
-  margin-top: 8px;
+  margin-top: 4px;
 `;
 
 export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
