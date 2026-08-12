@@ -54,7 +54,6 @@ import {
   ConfirmedBadgeRow,
 } from '../../styles/admin/AdminScoreGuessMissionStyle';
 import {
-  saveScoreGuessMissionContent,
   resetVotes,
   migrateLegacyIfNeeded,
   DEFAULT_SCORE_DIFF_THRESHOLD,
@@ -65,7 +64,11 @@ import {
   type MissionStatus,
   type MissionType,
 } from '../../hooks/useMission';
-import { confirmScoreGuessTargets, revealScoreGuessMissionResult } from '../../services/scoreGuessMission';
+import {
+  saveScoreGuessMissionContent,
+  confirmScoreGuessTargets,
+  revealScoreGuessMissionResult,
+} from '../../services/scoreGuessMission';
 import { saveTeamGuessMissionContent, revealTeamGuessMissionResult } from '../../services/teamGuessMission';
 
 type ScoreGuessConfigDraft = Omit<ScoreGuessMissionConfig, 'status'>;

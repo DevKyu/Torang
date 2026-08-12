@@ -2,7 +2,6 @@ import { ref, set, remove, get, update } from 'firebase/database';
 import { db } from '../../services/firebase';
 import {
   saveVillainMissionContent,
-  saveScoreGuessMissionContent,
   assignRoles,
   setMissionStatus,
   submitVote,
@@ -15,6 +14,7 @@ import {
   type ScoreGuessVote,
 } from '../../hooks/useMission';
 import {
+  saveScoreGuessMissionContent,
   confirmScoreGuessTargets,
   submitScoreGuessVote,
   revealScoreGuessMissionResult,

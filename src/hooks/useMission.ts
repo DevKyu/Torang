@@ -343,17 +343,6 @@ export async function submitVote(
   await set(ref(db, `missions/${ym}/votes/villain/${voterEmpId}`), targetEmpId);
 }
 
-export async function saveScoreGuessMissionContent(
-  ym: string,
-  config: Omit<ScoreGuessMissionConfig, 'status'>,
-  currentStatus: MissionStatus | null = null,
-): Promise<void> {
-  await migrateLegacyIfNeeded(ym);
-  await update(ref(db, `missions/${ym}/scoreGuess`), {
-    config: { ...config, status: currentStatus ?? 'draft' },
-  });
-}
-
 export async function setMissionStatus(
   ym: string,
   type: MissionType,

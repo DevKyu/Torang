@@ -1,4 +1,4 @@
-import { ref, set, get, remove } from 'firebase/database';
+import { ref, set, get, remove, update } from 'firebase/database';
 import { db } from './firebase';
 import { useUiStore } from '../stores/useUiStore';
 import {
@@ -9,9 +9,22 @@ import {
   DEFAULT_SCORE_DIFF_THRESHOLD,
 } from '../hooks/useMission';
 import type {
+  MissionStatus,
+  ScoreGuessMissionConfig,
   ScoreGuessMissionData,
   ScoreGuessVote,
 } from '../hooks/useMission';
+
+export async function saveScoreGuessMissionContent(
+  ym: string,
+  config: Omit<ScoreGuessMissionConfig, 'status'>,
+  currentStatus: MissionStatus | null = null,
+): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
+  await update(ref(db, `missions/${ym}/scoreGuess`), {
+    config: { ...config, status: currentStatus ?? 'draft' },
+  });
+}
 
 export async function markCheerRead(
   ym: string,
