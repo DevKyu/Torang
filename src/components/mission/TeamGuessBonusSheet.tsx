@@ -88,7 +88,7 @@ const TeamGuessBonusSheet = ({
               </CloseBtn>
             </Header>
             <Body>
-              <Hint>다른 조 승부도 하나 골라보세요. 틀려도 감점 없어요.</Hint>
+              <Hint>다른 조의 승부도 맞히면 보너스 핀 ⚡</Hint>
               <CandidateList>
                 {candidates.map(({ groupId, group }) => {
                   const checked = draftGroupId === groupId;
