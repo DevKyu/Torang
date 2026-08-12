@@ -126,11 +126,15 @@ export const useMonthlyChecklist = (
     missionPredict,
   );
 
+  const teamFormationYm =
+    predictType === 'teamGuess' && missionViewState !== 'empty' && missionViewState !== 'upcoming'
+      ? serverYm
+      : '';
   const {
     status: teamFormationStatus,
     groups: teamFormationGroups,
     loading: teamFormationLoading,
-  } = useTeamFormation(serverYm);
+  } = useTeamFormation(teamFormationYm);
 
   const items = useMemo<ChecklistItem[]>(() => {
     const isParticipant = !!myEmpId && monthParticipants.includes(myEmpId);
