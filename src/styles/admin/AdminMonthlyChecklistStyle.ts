@@ -90,12 +90,15 @@ export const ToggleButton = styled.button<{ active?: boolean }>`
 
 export const ChecksWrap = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 
   @media (min-width: 769px) {
     margin-left: 12px;
     flex-shrink: 0;
+    justify-content: flex-end;
   }
 `;
 
