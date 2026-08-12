@@ -198,13 +198,19 @@ export const usePostActivityChecklist = (
 
   const {
     villain: missionVillain,
+    predict: missionPredict,
+    predictType,
     myVillainVote: missionMyVote,
     loading: missionLoading,
   } = useMission(activityYm);
 
-  const { viewState: missionViewState } = useMissionViewState(
+  const { viewState: villainViewState } = useMissionViewState(
     activityYmdStr,
     missionVillain,
+  );
+  const { viewState: predictViewState } = useMissionViewState(
+    activityYmdStr,
+    missionPredict,
   );
 
   const items = useMemo<ChecklistItem[]>(() => {
@@ -269,11 +275,11 @@ export const usePostActivityChecklist = (
 
     const isVillainMission = !!missionVillain?.config;
 
-    if (isVillainMission && missionViewState === 'voting') {
+    if (isVillainMission && villainViewState === 'voting') {
       result.push({
         key: 'villainVote',
         emoji: '🕵️',
-        label: '빌런 투표',
+        label: '빌런 찾기',
         description: missionMyVote
           ? `${activityMonthNum}월 빌런 투표를 완료했어요.`
           : `${activityMonthNum}월 빌런 투표 전이에요.`,
@@ -305,6 +311,40 @@ export const usePostActivityChecklist = (
       });
     }
 
+    if (isVillainMission && villainViewState === 'revealed') {
+      const villainChecked =
+        Number(userInfo?.lastMissionCheck?.villain ?? 0) >= Number(activityYmdStr);
+      result.push({
+        key: 'villainResult',
+        emoji: '🕵️',
+        label: '빌런 찾기',
+        description: villainChecked
+          ? `${activityMonthNum}월 빌런 찾기 결과를 확인했어요.`
+          : `${activityMonthNum}월 빌런 찾기 결과가 공개됐어요.`,
+        actionLabel: '확인하기',
+        done: villainChecked,
+        path: '/mission',
+      });
+    }
+
+    const isPredictMission = !!missionPredict?.config;
+    if (isPredictMission && predictViewState === 'revealed') {
+      const isTeamGuess = predictType === 'teamGuess';
+      const predictChecked =
+        Number(userInfo?.lastMissionCheck?.predict ?? 0) >= Number(activityYmdStr);
+      result.push({
+        key: 'predictResult',
+        emoji: isTeamGuess ? '⚡' : '🔮',
+        label: isTeamGuess ? '팀 승부 예측' : '신규회원 점수 예측',
+        description: predictChecked
+          ? `${activityMonthNum}월 ${isTeamGuess ? '팀 승부' : '신규회원'} 예측 결과를 확인했어요.`
+          : `${activityMonthNum}월 ${isTeamGuess ? '팀 승부' : '신규회원'} 예측 결과가 공개됐어요.`,
+        actionLabel: '확인하기',
+        done: predictChecked,
+        path: '/mission',
+      });
+    }
+
     return result;
   }, [
     hasActivityDate,
@@ -329,8 +369,11 @@ export const usePostActivityChecklist = (
     matchPinEnabled,
     matchResultReady,
     missionVillain,
-    missionViewState,
+    villainViewState,
     missionMyVote,
+    missionPredict,
+    predictType,
+    predictViewState,
   ]);
 
   const loading =
