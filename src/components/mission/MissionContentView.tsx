@@ -95,7 +95,6 @@ const MissionContentView = ({
     loading: formationLoading,
   } = useTeamFormation(teamFormationYm);
   const { rivalIds, loading: rivalsLoading } = useRivalEmpIds(teamFormationYm);
-  const teamFormationReady = predictType !== 'teamGuess' || (!formationLoading && !rivalsLoading);
 
   const hasVillain = !!villain;
   const hasPredict = !!predict;
@@ -212,7 +211,6 @@ const MissionContentView = ({
     villainViewState === 'preview' &&
     predictViewState !== 'empty' &&
     predictViewState !== 'upcoming';
-  const needsTeamFormationGate = villainMergedIntoPredict && predictType === 'teamGuess';
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -255,14 +253,7 @@ const MissionContentView = ({
           ) : (
             <>
               {!isVillainEmpty && !villainMergedIntoPredict && renderVillainTab()}
-              {!isPredictEmpty &&
-                (needsTeamFormationGate && !teamFormationReady ? (
-                  <MissionLoadingBox>
-                    <ClipLoader size={24} color="#9ca3af" />
-                  </MissionLoadingBox>
-                ) : (
-                  renderPredictTab(villainMergedIntoPredict)
-                ))}
+              {!isPredictEmpty && renderPredictTab(villainMergedIntoPredict)}
             </>
           )}
         </MissionPanel>
