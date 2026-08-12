@@ -17,7 +17,7 @@ import type {
   ScoreGuessVote,
   TeamGuessVote,
 } from '../../hooks/useMission';
-import { isScoreGuessVote, isTeamGuessVote } from '../../hooks/useMission';
+import { isScoreGuessVote, isTeamGuessVote, markMissionResultChecked } from '../../hooks/useMission';
 import {
   MissionCard,
   CardTitle,
@@ -85,6 +85,25 @@ const MissionContentView = ({
     useMissionViewState(activityYmd, villain);
   const { daysUntilReveal: predictDaysUntilReveal, viewState: predictViewState } =
     useMissionViewState(activityYmd, predict);
+
+  const missionCheckedRef = useRef({ villain: false, predict: false });
+  useEffect(() => {
+    missionCheckedRef.current = { villain: false, predict: false };
+  }, [ym]);
+
+  useEffect(() => {
+    if (villainViewState === 'revealed' && !missionCheckedRef.current.villain) {
+      missionCheckedRef.current.villain = true;
+      markMissionResultChecked(myEmpId, 'villain');
+    }
+  }, [villainViewState, myEmpId]);
+
+  useEffect(() => {
+    if (predictViewState === 'revealed' && !missionCheckedRef.current.predict) {
+      missionCheckedRef.current.predict = true;
+      markMissionResultChecked(myEmpId, 'predict');
+    }
+  }, [predictViewState, myEmpId]);
 
   const teamFormationYm =
     predictType === 'teamGuess' && predictViewState !== 'empty' && predictViewState !== 'upcoming' ? ym : '';
