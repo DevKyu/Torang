@@ -114,6 +114,7 @@ export const CheckItem = styled.div`
 
 export const CheckLabel = styled.div`
   width: 100%;
+  overflow: hidden;
   text-align: center;
 
   font-size: 0.6rem;
@@ -121,6 +122,7 @@ export const CheckLabel = styled.div`
 
   color: #a0a0a0;
   white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 export const TabRow = styled.div`
