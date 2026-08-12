@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import VillainMissionModal from '../mission/VillainMissionModal';
 import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
@@ -36,6 +37,11 @@ import {
   StatusBadge,
   StatusRow,
   StatusBtn,
+  CardHeaderRow,
+  CardHeaderTitle,
+  CardChevron,
+  CardSummary,
+  CardBody,
   VoteStatList,
   VoteStatRow,
   VoteBar,
@@ -93,6 +99,11 @@ type Props = {
 };
 
 const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    setExpanded(false);
+  }, [ym]);
+
   const [configDraft, setConfigDraft] = useState<ConfigDraft>(DEFAULT_CONFIG_DRAFT);
   const [rewardPinRaw, setRewardPinRaw] = useState('1');
   const [villainRewardPinRaw, setVillainRewardPinRaw] = useState('1');
@@ -253,6 +264,24 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   const handleResetMission = () => runMissionReset(ym, 'villain', data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
+  const summaryText = [
+    data?.config?.title ? `『${data.config.title}』` : null,
+    status === 'draft'
+      ? data?.config?.title
+        ? '초안'
+        : '아직 설정되지 않았어요'
+      : status === 'active'
+        ? '투표 대기중'
+        : status === 'voting'
+          ? `투표 ${Object.keys(data?.votes ?? {}).length}명 진행중`
+          : data?.result
+            ? data.result.villainWon
+              ? '빌런 생존'
+              : '빌런 검거'
+            : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const villainVotes = data?.votes ?? {};
   const totalVillainVotes = Object.keys(villainVotes).length;
   const villainVoteCounts: Record<string, number> = {};
@@ -287,356 +316,365 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
 
   return (
     <MissionTypeCard>
-      <FormTitle>빌런 찾기</FormTitle>
-
-      <StatusRow>
+      <CardHeaderRow onClick={() => setExpanded((v) => !v)}>
+        <CardHeaderTitle>🎭 빌런 찾기</CardHeaderTitle>
         <StatusBadge status={status}>{STATUS_LABEL[status]}</StatusBadge>
-        {status === 'draft' && (
-          <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
-            미션 공개
-          </StatusBtn>
-        )}
-        {status === 'active' && (
-          <>
-            <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
-              투표 시작
-            </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
-              준비중으로
-            </StatusBtn>
-          </>
-        )}
-        {status === 'voting' && (
-          <>
-            <StatusBtn color="#111827" disabled={saving || revealing} onClick={handleReveal}>
-              {revealing ? '처리중...' : '결과 공개'}
-            </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('active')}>
-              미션공개로
-            </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
-              준비중으로
-            </StatusBtn>
-          </>
-        )}
-        {status === 'revealed' && (
-          <>
-            <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
-              투표중으로
-            </StatusBtn>
-            <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
-              미션공개로
-            </StatusBtn>
-            <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
-              준비중으로
-            </StatusBtn>
-          </>
-        )}
-      </StatusRow>
-
-      <SectionBlock>
-        <FieldLabel>미션 제목</FieldLabel>
-        <MissionInput
-          value={configDraft.title}
-          onChange={(e) => setConfigDraft((p) => ({ ...p, title: e.target.value }))}
-          placeholder="예: 5월 활동 미션"
-        />
-      </SectionBlock>
-
-      <SectionBlock>
-        <FieldLabel>미션 내용</FieldLabel>
-        <MissionRichEditor
-          value={configDraft.description}
-          onChange={(html) => setConfigDraft((p) => ({ ...p, description: html }))}
-          placeholder="전체 참여자에게 공개될 미션 내용을 입력하세요."
-        />
-      </SectionBlock>
-
-      <SettingGroup>
-        <SettingSection>
-          <SettingSectionTitle>공개 기준</SettingSectionTitle>
-          <NumberRow>
-            활동일
-            <MissionInput
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              value={configDraft.revealDays}
-              onChange={createIntFieldHandler(setConfigDraft, 'revealDays')}
-            />
-            일 전부터 공개
-          </NumberRow>
-        </SettingSection>
-
-        <SettingDivider />
-
-        <SettingSection>
-          <SettingSectionTitle>보상 핀</SettingSectionTitle>
-          <SettingGrid>
-            <SettingCell>
-              <SettingCellLabel>정답자</SettingCellLabel>
-              <NumberRow>
-                <MissionInput
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={rewardPinRaw}
-                  {...createPinInputHandlers(setRewardPinRaw, (n) => setConfigDraft((p) => ({ ...p, rewardPin: n })), configDraft.rewardPin)}
-                />
-                PIN
-              </NumberRow>
-            </SettingCell>
-            <SettingCell>
-              <SettingCellLabel>빌런 성공</SettingCellLabel>
-              <NumberRow>
-                <MissionInput
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={villainRewardPinRaw}
-                  {...createPinInputHandlers(
-                    setVillainRewardPinRaw,
-                    (n) => setConfigDraft((p) => ({ ...p, villainRewardPin: n })),
-                    configDraft.villainRewardPin,
-                  )}
-                />
-                PIN
-              </NumberRow>
-            </SettingCell>
-          </SettingGrid>
-        </SettingSection>
-
-        <SettingDivider />
-
-        <SettingSection>
-          <SettingSectionTitle>투표 조건</SettingSectionTitle>
-          <SettingGrid>
-            <SettingCell>
-              <SettingCellLabel>빌런 검거 기준</SettingCellLabel>
-              <NumberRow>
-                <MissionInput
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  value={configDraft.villainCatchThreshold}
-                  onChange={createIntFieldHandler(setConfigDraft, 'villainCatchThreshold')}
-                />
-                표 이상
-              </NumberRow>
-            </SettingCell>
-            <SettingCell>
-              <SettingCellLabel>조력자 공동 수상</SettingCellLabel>
-              <NumberRow>
-                <MissionInput
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  value={configDraft.helperVoteThreshold}
-                  onChange={createIntFieldHandler(setConfigDraft, 'helperVoteThreshold')}
-                />
-                표 이상
-              </NumberRow>
-            </SettingCell>
-          </SettingGrid>
-        </SettingSection>
-      </SettingGroup>
-
-      <Divider />
-
-      <FormTitle>히든 미션</FormTitle>
-
-      <HiddenSection role="villain">
-        <HiddenSectionTitle role="villain">또랑 빌런</HiddenSectionTitle>
-        <FieldLabel>미션 제목 (빌런 전용)</FieldLabel>
-        <MissionInput
-          value={hiddenDraft.villain.title}
-          onChange={(e) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, title: e.target.value } }))}
-          placeholder="예: 또랑 빌런 미션"
-        />
-        <FieldLabel style={{ marginTop: 8 }}>결과 공개 제목</FieldLabel>
-        <MissionInput
-          value={hiddenDraft.villain.revealTitle ?? ''}
-          onChange={(e) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, revealTitle: e.target.value } }))}
-          placeholder="예: 🎭 빌런에게 주어진 미션"
-        />
-        <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
-        <MissionRichEditor
-          value={hiddenDraft.villain.description}
-          onChange={(html) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, description: html } }))}
-          placeholder="빌런에게만 공개될 미션 내용을 입력하세요."
-        />
-        <div style={{ textAlign: 'right', marginTop: 8 }}>
-          <LookupBtn
-            type="button"
-            style={{ background: '#ef4444' }}
-            disabled={!hiddenDraft.villain.title && !hiddenDraft.villain.description}
-            onClick={() => setVillainPreviewOpen(true)}
-          >
-            미리보기
-          </LookupBtn>
-        </div>
-      </HiddenSection>
-
-      <HiddenSection role="helper">
-        <HiddenSectionTitle role="helper">빌런 조력자</HiddenSectionTitle>
-        <FieldLabel>미션 제목</FieldLabel>
-        <MissionInput
-          value={hiddenDraft.helper.title}
-          onChange={(e) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, title: e.target.value } }))}
-          placeholder="예: 빌런 조력자 미션"
-        />
-        <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
-        <MissionRichEditor
-          value={hiddenDraft.helper.description}
-          onChange={(html) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, description: html } }))}
-          placeholder="조력자에게만 공개될 미션 내용을 입력하세요."
-        />
-      </HiddenSection>
-
-      <SaveRow style={{ marginBottom: 8 }}>
-        <SaveBtn onClick={handleSaveContent} disabled={saving}>
-          {saving ? '저장 중...' : '미션 내용 저장'}
-        </SaveBtn>
-      </SaveRow>
-
-      <Divider />
-
-      <FormTitle>역할 배정</FormTitle>
-
-      <SectionBlock>
-        <RoleRow>
-          <RoleLabel role="villain">또랑 빌런</RoleLabel>
-          <RoleNameInput
-            value={roleDraft.villainName}
-            onChange={(e) => setRoleDraft((p) => ({ ...p, villainName: e.target.value, villainId: '' }))}
-            placeholder="이름 검색"
-            onKeyDown={(e) => {
-              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                lookupRole('villain');
-              }
-            }}
-          />
-          <LookupBtn type="button" onClick={() => lookupRole('villain')}>
-            조회
-          </LookupBtn>
-          {roleDraft.villainId && <EmpIdBadge style={{ borderColor: '#fca5a5' }}>{roleDraft.villainId}</EmpIdBadge>}
-        </RoleRow>
-        {villainDropdown.length > 0 && (
-          <NameDropdown>
-            {villainDropdown.map(([eid, n]) => (
-              <NameDropdownItem
-                key={eid}
-                onClick={() => {
-                  setRoleDraft((p) => ({ ...p, villainId: eid, villainName: n }));
-                  setVillainDropdown([]);
-                }}
-              >
-                {n}
-                <span>{eid}</span>
-              </NameDropdownItem>
-            ))}
-          </NameDropdown>
-        )}
-      </SectionBlock>
-
-      <SectionBlock>
-        <RoleRow>
-          <RoleLabel role="helper">빌런 조력자</RoleLabel>
-          <RoleNameInput
-            value={roleDraft.helperName}
-            onChange={(e) => setRoleDraft((p) => ({ ...p, helperName: e.target.value, helperId: '' }))}
-            placeholder="이름 검색"
-            onKeyDown={(e) => {
-              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                lookupRole('helper');
-              }
-            }}
-          />
-          <LookupBtn type="button" onClick={() => lookupRole('helper')}>
-            조회
-          </LookupBtn>
-          {roleDraft.helperId && <EmpIdBadge style={{ borderColor: '#bfdbfe' }}>{roleDraft.helperId}</EmpIdBadge>}
-        </RoleRow>
-        {helperDropdown.length > 0 && (
-          <NameDropdown>
-            {helperDropdown.map(([eid, n]) => (
-              <NameDropdownItem
-                key={eid}
-                onClick={() => {
-                  setRoleDraft((p) => ({ ...p, helperId: eid, helperName: n }));
-                  setHelperDropdown([]);
-                }}
-              >
-                {n}
-                <span>{eid}</span>
-              </NameDropdownItem>
-            ))}
-          </NameDropdown>
-        )}
-      </SectionBlock>
-
-      <SaveRow>
-        <RandomBtn onClick={randomAssign} disabled={saving}>
-          랜덤 배정
-        </RandomBtn>
-        <SaveBtn onClick={handleSaveRoles} disabled={saving}>
-          {confirmRoleChange ? '정말 저장 (투표 초기화됨)' : saving ? '저장 중...' : '역할 저장'}
-        </SaveBtn>
-      </SaveRow>
-
-      {(status === 'voting' || status === 'revealed') && (
-        <>
-          <Divider />
-          <VoteHeaderRow>
-            <FormTitle style={{ margin: 0 }}>투표 현황</FormTitle>
-            <StatusBtn
-              color="#6b7280"
-              disabled={saving}
-              onClick={() => runVotesReset(ym, 'villain', '투표', setSaving)}
-            >
-              투표 초기화
-            </StatusBtn>
-            {!confirmReset ? (
-              <StatusBtn color="#dc2626" disabled={saving} onClick={() => setConfirmReset(true)}>
-                미션 초기화
+        <CardChevron expanded={expanded}>
+          <ChevronDown size={18} />
+        </CardChevron>
+      </CardHeaderRow>
+      {summaryText && <CardSummary>{summaryText}</CardSummary>}
+      {expanded && (
+        <CardBody>
+          <StatusRow>
+            {status === 'draft' && (
+              <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
+                미션 공개
               </StatusBtn>
-            ) : (
+            )}
+            {status === 'active' && (
               <>
-                <StatusBtn color="#dc2626" disabled={saving} onClick={handleResetMission}>
-                  정말 초기화
+                <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
+                  투표 시작
                 </StatusBtn>
-                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => setConfirmReset(false)}>
-                  취소
+                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
+                  준비중으로
                 </StatusBtn>
               </>
             )}
-          </VoteHeaderRow>
-          {renderVoteStats()}
-          {data?.result && (
-            <ResultArea>
-              <div>
-                <strong>빌런:</strong> {allNames[data.roles?.villain ?? ''] ?? data.roles?.villain ?? '-'}
-                {data.result.villainWon ? ' 🎉 생존' : ' 검거됨'}
-              </div>
-              <div>
-                <strong>조력자:</strong> {allNames[data.roles?.helper ?? ''] ?? data.roles?.helper ?? '-'}
-                {data.result.helperWon ? ' 🎉 공동 수상' : ''}
-              </div>
-              {!data.result.villainWon && (
-                <div>
-                  <strong>정답자:</strong> {(data.result.correctVoters ?? []).map((id) => allNames[id] ?? id).join(', ') || '없음'}
-                </div>
-              )}
-            </ResultArea>
-          )}
-        </>
-      )}
+            {status === 'voting' && (
+              <>
+                <StatusBtn color="#111827" disabled={saving || revealing} onClick={handleReveal}>
+                  {revealing ? '처리중...' : '결과 공개'}
+                </StatusBtn>
+                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('active')}>
+                  미션공개로
+                </StatusBtn>
+                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
+                  준비중으로
+                </StatusBtn>
+              </>
+            )}
+            {status === 'revealed' && (
+              <>
+                <StatusBtn color="#f59e0b" disabled={saving} onClick={() => handleStatusChange('voting')}>
+                  투표중으로
+                </StatusBtn>
+                <StatusBtn color="#10b981" disabled={saving} onClick={() => handleStatusChange('active')}>
+                  미션공개로
+                </StatusBtn>
+                <StatusBtn color="#9ca3af" disabled={saving} onClick={() => handleStatusChange('draft')}>
+                  준비중으로
+                </StatusBtn>
+              </>
+            )}
+          </StatusRow>
 
-      <VillainMissionModal isOpen={villainPreviewOpen} onClose={() => setVillainPreviewOpen(false)} hidden={hiddenDraft.villain} />
+          <SectionBlock>
+            <FieldLabel>미션 제목</FieldLabel>
+            <MissionInput
+              value={configDraft.title}
+              onChange={(e) => setConfigDraft((p) => ({ ...p, title: e.target.value }))}
+              placeholder="예: 5월 활동 미션"
+            />
+          </SectionBlock>
+
+          <SectionBlock>
+            <FieldLabel>미션 내용</FieldLabel>
+            <MissionRichEditor
+              value={configDraft.description}
+              onChange={(html) => setConfigDraft((p) => ({ ...p, description: html }))}
+              placeholder="전체 참여자에게 공개될 미션 내용을 입력하세요."
+            />
+          </SectionBlock>
+
+          <SettingGroup>
+            <SettingSection>
+              <SettingSectionTitle>공개 기준</SettingSectionTitle>
+              <NumberRow>
+                활동일
+                <MissionInput
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={configDraft.revealDays}
+                  onChange={createIntFieldHandler(setConfigDraft, 'revealDays')}
+                />
+                일 전부터 공개
+              </NumberRow>
+            </SettingSection>
+
+            <SettingDivider />
+
+            <SettingSection>
+              <SettingSectionTitle>보상 핀</SettingSectionTitle>
+              <SettingGrid>
+                <SettingCell>
+                  <SettingCellLabel>정답자</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={rewardPinRaw}
+                      {...createPinInputHandlers(setRewardPinRaw, (n) => setConfigDraft((p) => ({ ...p, rewardPin: n })), configDraft.rewardPin)}
+                    />
+                    PIN
+                  </NumberRow>
+                </SettingCell>
+                <SettingCell>
+                  <SettingCellLabel>빌런 성공</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={villainRewardPinRaw}
+                      {...createPinInputHandlers(
+                        setVillainRewardPinRaw,
+                        (n) => setConfigDraft((p) => ({ ...p, villainRewardPin: n })),
+                        configDraft.villainRewardPin,
+                      )}
+                    />
+                    PIN
+                  </NumberRow>
+                </SettingCell>
+              </SettingGrid>
+            </SettingSection>
+
+            <SettingDivider />
+
+            <SettingSection>
+              <SettingSectionTitle>투표 조건</SettingSectionTitle>
+              <SettingGrid>
+                <SettingCell>
+                  <SettingCellLabel>빌런 검거 기준</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      value={configDraft.villainCatchThreshold}
+                      onChange={createIntFieldHandler(setConfigDraft, 'villainCatchThreshold')}
+                    />
+                    표 이상
+                  </NumberRow>
+                </SettingCell>
+                <SettingCell>
+                  <SettingCellLabel>조력자 공동 수상</SettingCellLabel>
+                  <NumberRow>
+                    <MissionInput
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      value={configDraft.helperVoteThreshold}
+                      onChange={createIntFieldHandler(setConfigDraft, 'helperVoteThreshold')}
+                    />
+                    표 이상
+                  </NumberRow>
+                </SettingCell>
+              </SettingGrid>
+            </SettingSection>
+          </SettingGroup>
+
+          <Divider />
+
+          <FormTitle>히든 미션</FormTitle>
+
+          <HiddenSection role="villain">
+            <HiddenSectionTitle role="villain">또랑 빌런</HiddenSectionTitle>
+            <FieldLabel>미션 제목 (빌런 전용)</FieldLabel>
+            <MissionInput
+              value={hiddenDraft.villain.title}
+              onChange={(e) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, title: e.target.value } }))}
+              placeholder="예: 또랑 빌런 미션"
+            />
+            <FieldLabel style={{ marginTop: 8 }}>결과 공개 제목</FieldLabel>
+            <MissionInput
+              value={hiddenDraft.villain.revealTitle ?? ''}
+              onChange={(e) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, revealTitle: e.target.value } }))}
+              placeholder="예: 🎭 빌런에게 주어진 미션"
+            />
+            <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
+            <MissionRichEditor
+              value={hiddenDraft.villain.description}
+              onChange={(html) => setHiddenDraft((p) => ({ ...p, villain: { ...p.villain, description: html } }))}
+              placeholder="빌런에게만 공개될 미션 내용을 입력하세요."
+            />
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <LookupBtn
+                type="button"
+                style={{ background: '#ef4444' }}
+                disabled={!hiddenDraft.villain.title && !hiddenDraft.villain.description}
+                onClick={() => setVillainPreviewOpen(true)}
+              >
+                미리보기
+              </LookupBtn>
+            </div>
+          </HiddenSection>
+
+          <HiddenSection role="helper">
+            <HiddenSectionTitle role="helper">빌런 조력자</HiddenSectionTitle>
+            <FieldLabel>미션 제목</FieldLabel>
+            <MissionInput
+              value={hiddenDraft.helper.title}
+              onChange={(e) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, title: e.target.value } }))}
+              placeholder="예: 빌런 조력자 미션"
+            />
+            <FieldLabel style={{ marginTop: 8 }}>미션 내용</FieldLabel>
+            <MissionRichEditor
+              value={hiddenDraft.helper.description}
+              onChange={(html) => setHiddenDraft((p) => ({ ...p, helper: { ...p.helper, description: html } }))}
+              placeholder="조력자에게만 공개될 미션 내용을 입력하세요."
+            />
+          </HiddenSection>
+
+          <SaveRow style={{ marginBottom: 8 }}>
+            <SaveBtn onClick={handleSaveContent} disabled={saving}>
+              {saving ? '저장 중...' : '미션 내용 저장'}
+            </SaveBtn>
+          </SaveRow>
+
+          <Divider />
+
+          <FormTitle>역할 배정</FormTitle>
+
+          <SectionBlock>
+            <RoleRow>
+              <RoleLabel role="villain">또랑 빌런</RoleLabel>
+              <RoleNameInput
+                value={roleDraft.villainName}
+                onChange={(e) => setRoleDraft((p) => ({ ...p, villainName: e.target.value, villainId: '' }))}
+                placeholder="이름 검색"
+                onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    lookupRole('villain');
+                  }
+                }}
+              />
+              <LookupBtn type="button" onClick={() => lookupRole('villain')}>
+                조회
+              </LookupBtn>
+              {roleDraft.villainId && <EmpIdBadge style={{ borderColor: '#fca5a5' }}>{roleDraft.villainId}</EmpIdBadge>}
+            </RoleRow>
+            {villainDropdown.length > 0 && (
+              <NameDropdown>
+                {villainDropdown.map(([eid, n]) => (
+                  <NameDropdownItem
+                    key={eid}
+                    onClick={() => {
+                      setRoleDraft((p) => ({ ...p, villainId: eid, villainName: n }));
+                      setVillainDropdown([]);
+                    }}
+                  >
+                    {n}
+                    <span>{eid}</span>
+                  </NameDropdownItem>
+                ))}
+              </NameDropdown>
+            )}
+          </SectionBlock>
+
+          <SectionBlock>
+            <RoleRow>
+              <RoleLabel role="helper">빌런 조력자</RoleLabel>
+              <RoleNameInput
+                value={roleDraft.helperName}
+                onChange={(e) => setRoleDraft((p) => ({ ...p, helperName: e.target.value, helperId: '' }))}
+                placeholder="이름 검색"
+                onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    lookupRole('helper');
+                  }
+                }}
+              />
+              <LookupBtn type="button" onClick={() => lookupRole('helper')}>
+                조회
+              </LookupBtn>
+              {roleDraft.helperId && <EmpIdBadge style={{ borderColor: '#bfdbfe' }}>{roleDraft.helperId}</EmpIdBadge>}
+            </RoleRow>
+            {helperDropdown.length > 0 && (
+              <NameDropdown>
+                {helperDropdown.map(([eid, n]) => (
+                  <NameDropdownItem
+                    key={eid}
+                    onClick={() => {
+                      setRoleDraft((p) => ({ ...p, helperId: eid, helperName: n }));
+                      setHelperDropdown([]);
+                    }}
+                  >
+                    {n}
+                    <span>{eid}</span>
+                  </NameDropdownItem>
+                ))}
+              </NameDropdown>
+            )}
+          </SectionBlock>
+
+          <SaveRow>
+            <RandomBtn onClick={randomAssign} disabled={saving}>
+              랜덤 배정
+            </RandomBtn>
+            <SaveBtn onClick={handleSaveRoles} disabled={saving}>
+              {confirmRoleChange ? '정말 저장 (투표 초기화됨)' : saving ? '저장 중...' : '역할 저장'}
+            </SaveBtn>
+          </SaveRow>
+
+          {(status === 'voting' || status === 'revealed') && (
+            <>
+              <Divider />
+              <VoteHeaderRow>
+                <FormTitle style={{ margin: 0 }}>투표 현황</FormTitle>
+                <StatusBtn
+                  color="#6b7280"
+                  disabled={saving}
+                  onClick={() => runVotesReset(ym, 'villain', '투표', setSaving)}
+                >
+                  투표 초기화
+                </StatusBtn>
+                {!confirmReset ? (
+                  <StatusBtn color="#dc2626" disabled={saving} onClick={() => setConfirmReset(true)}>
+                    미션 초기화
+                  </StatusBtn>
+                ) : (
+                  <>
+                    <StatusBtn color="#dc2626" disabled={saving} onClick={handleResetMission}>
+                      정말 초기화
+                    </StatusBtn>
+                    <StatusBtn color="#9ca3af" disabled={saving} onClick={() => setConfirmReset(false)}>
+                      취소
+                    </StatusBtn>
+                  </>
+                )}
+              </VoteHeaderRow>
+              {renderVoteStats()}
+              {data?.result && (
+                <ResultArea>
+                  <div>
+                    <strong>빌런:</strong> {allNames[data.roles?.villain ?? ''] ?? data.roles?.villain ?? '-'}
+                    {data.result.villainWon ? ' 🎉 생존' : ' 검거됨'}
+                  </div>
+                  <div>
+                    <strong>조력자:</strong> {allNames[data.roles?.helper ?? ''] ?? data.roles?.helper ?? '-'}
+                    {data.result.helperWon ? ' 🎉 공동 수상' : ''}
+                  </div>
+                  {!data.result.villainWon && (
+                    <div>
+                      <strong>정답자:</strong> {(data.result.correctVoters ?? []).map((id) => allNames[id] ?? id).join(', ') || '없음'}
+                    </div>
+                  )}
+                </ResultArea>
+              )}
+            </>
+          )}
+
+          <VillainMissionModal isOpen={villainPreviewOpen} onClose={() => setVillainPreviewOpen(false)} hidden={hiddenDraft.villain} />
+        </CardBody>
+      )}
     </MissionTypeCard>
   );
 };
