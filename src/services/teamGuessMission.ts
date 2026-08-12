@@ -73,7 +73,10 @@ export async function revealTeamGuessMissionResult(
   const { config, votes } = data;
   if (!config) throw new Error('미션 데이터가 없습니다.');
 
-  const formationSnap = await get(ref(db, `teamFormation/${ym}`));
+  const [formationSnap, teamSnap] = await Promise.all([
+    get(ref(db, `teamFormation/${ym}`)),
+    get(ref(db, `team/${ym}`)),
+  ]);
   const formationVal = formationSnap.val() as
     | { status?: string; groups?: RawFormationGroups }
     | null;
@@ -82,7 +85,6 @@ export async function revealTeamGuessMissionResult(
   }
   const groups = firebaseToFormationGroups(formationVal.groups);
 
-  const teamSnap = await get(ref(db, `team/${ym}`));
   const winnerMap = extractWinnerMap(
     teamSnap.val() as Record<string, { winner?: string }> | null,
   );
