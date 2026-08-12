@@ -221,6 +221,9 @@ const MissionContentView = ({
     predictViewState !== 'upcoming' &&
     predictAccessible;
 
+  const villainMergeUndetermined =
+    hasVillain && villainViewState === 'preview' && teamFormationYm !== '' && formationLoading;
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       {!isReady ? (
@@ -259,6 +262,10 @@ const MissionContentView = ({
         <MissionPanel key="pre">
           {!hasPredict ? (
             renderVillainTab()
+          ) : villainMergeUndetermined ? (
+            <MissionLoadingBox>
+              <ClipLoader size={24} color="#9ca3af" />
+            </MissionLoadingBox>
           ) : (
             <>
               {!isVillainEmpty && !villainMergedIntoPredict && renderVillainTab()}
