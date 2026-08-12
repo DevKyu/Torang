@@ -285,14 +285,14 @@ const AdminPredictMissionCard = ({
     }
   };
 
-  const currentType: MissionType = missionType;
+  const currentType: MissionType = predictType ?? missionType;
 
   const handleStatusChange = (next: MissionStatus) =>
     runMissionStatusChange(ym, currentType, next, setSaving);
 
   const handleReveal = () =>
     runMissionReveal(data, setRevealing, async () => {
-      if (missionType === 'scoreGuess') {
+      if (currentType === 'scoreGuess') {
         const res = await revealScoreGuessMissionResult(ym, data as ScoreGuessMissionData);
         return `예측 성공 ${res.correctVoters.length}명, 순위 보상 ${res.topTargets.length}명 🎉`;
       }
@@ -304,10 +304,9 @@ const AdminPredictMissionCard = ({
     runMissionReset(ym, currentType, data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
-  const canChangeType = !data?.config || status === 'draft';
-
   const predictVotes = data?.votes ?? {};
   const totalVotes = Object.keys(predictVotes).length;
+  const canChangeType = !data?.config || (status === 'draft' && totalVotes === 0);
 
   const renderScoreGuessVoteStats = () => {
     if (totalVotes === 0) return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
