@@ -217,6 +217,10 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
       toast('빌런과 조력자는 다른 사람이어야 합니다.', { position: 'top-center' });
       return;
     }
+    if (data?.result?.revealed === true) {
+      toast('이미 결과가 공개된 미션입니다. 역할을 바꾸려면 먼저 "미션 초기화"를 눌러주세요.', { position: 'top-center', duration: 3000 });
+      return;
+    }
     const hasExistingVotes = Object.keys(data?.votes ?? {}).length > 0;
     if (hasExistingVotes && !confirmRoleChange) {
       setConfirmRoleChange(true);
