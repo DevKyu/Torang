@@ -2,7 +2,6 @@ import { ref, set, remove, get, update } from 'firebase/database';
 import { db } from '../../services/firebase';
 import {
   saveVillainMissionContent,
-  saveScoreGuessMissionContent,
   assignRoles,
   setMissionStatus,
   submitVote,
@@ -12,8 +11,10 @@ import {
   type VillainMissionData,
   type ScoreGuessMissionConfig,
   type ScoreGuessMissionData,
+  type ScoreGuessVote,
 } from '../../hooks/useMission';
 import {
+  saveScoreGuessMissionContent,
   confirmScoreGuessTargets,
   submitScoreGuessVote,
   revealScoreGuessMissionResult,
@@ -23,7 +24,7 @@ import {
   submitTeamGuessVote,
   revealTeamGuessMissionResult,
 } from '../../services/teamGuessMission';
-import type { TeamGuessMissionConfig, TeamGuessMissionData } from '../../hooks/useMission';
+import type { TeamGuessMissionConfig, TeamGuessMissionData, TeamGuessVote } from '../../hooks/useMission';
 import { formationGroupsToFirebase, type FormationGroup } from '../../utils/teamFormation';
 
 export const DEV_PREVIEW_YM = '209912';
@@ -78,6 +79,11 @@ async function clearMission() {
   await remove(ref(db, `missions/${DEV_PREVIEW_YM}`));
 }
 
+async function clearMissionSlot(type: 'villain' | 'scoreGuess' | 'teamGuess') {
+  await remove(ref(db, `missions/${DEV_PREVIEW_YM}/${type}`));
+  await remove(ref(db, `missions/${DEV_PREVIEW_YM}/votes/${type}`));
+}
+
 async function clearTeamFormation() {
   await remove(ref(db, `teamFormation/${DEV_PREVIEW_YM}`));
   await remove(ref(db, `team/${DEV_PREVIEW_YM}`));
@@ -119,12 +125,29 @@ export type VillainScenario =
   | 'upcoming'
   | 'preview'
   | 'votingOpen'
+  | 'votingOpen_asVillain'
+  | 'votingOpen_asHelper'
   | 'revealed_caught'
   | 'revealed_survived_solo'
   | 'revealed_survived_withHelper';
 
+const DEFAULT_VILLAIN_CONFIG: Omit<VillainMissionConfig, 'status'> = {
+  type: 'villain',
+  title: '[프리뷰] 이달의 빌런을 찾아라',
+  description: '누군가 수상한 행동을 하고 있습니다... 스트라이크마다 이상하게 행동하는 사람을 지목해주세요!',
+  revealDays: 5,
+  rewardPin: 1,
+  villainRewardPin: 1,
+  helperVoteThreshold: 2,
+  villainCatchThreshold: 1,
+};
+const DEFAULT_VILLAIN_HIDDEN: VillainMissionHidden = {
+  villain: { title: '또랑 빌런', description: '스트라이크마다 엄지 척 하기', revealTitle: '🎭 빌런에게 주어진 미션' },
+  helper: { title: '조력자', description: '빌런이 지목당하지 않도록 다른 사람 지목 유도하기' },
+};
+
 export async function seedVillainScenario(scenario: VillainScenario): Promise<void> {
-  await clearMission();
+  await clearMissionSlot('villain');
   if (scenario === 'empty') {
     await seedActivityMeta(relativeYmd(10));
     return;
@@ -134,31 +157,21 @@ export async function seedVillainScenario(scenario: VillainScenario): Promise<vo
     scenario === 'upcoming' ? relativeYmd(10) : scenario.startsWith('revealed') ? relativeYmd(-1) : relativeYmd(2),
   );
 
-  const config: Omit<VillainMissionConfig, 'status'> = {
-    type: 'villain',
-    title: '[프리뷰] 이달의 빌런을 찾아라',
-    description: '누군가 수상한 행동을 하고 있습니다... 스트라이크마다 이상하게 행동하는 사람을 지목해주세요!',
-    revealDays: 5,
-    rewardPin: 1,
-    villainRewardPin: 1,
-    helperVoteThreshold: 2,
-    villainCatchThreshold: 1,
-  };
-  const hidden: VillainMissionHidden = {
-    villain: { title: '또랑 빌런', description: '스트라이크마다 엄지 척 하기', revealTitle: '🎭 빌런에게 주어진 미션' },
-    helper: { title: '조력자', description: '빌런이 지목당하지 않도록 다른 사람 지목 유도하기' },
-  };
-  await saveVillainMissionContent(DEV_PREVIEW_YM, config, hidden, 'active');
+  await saveVillainMissionContent(DEV_PREVIEW_YM, DEFAULT_VILLAIN_CONFIG, DEFAULT_VILLAIN_HIDDEN, 'active');
   if (scenario === 'upcoming') return;
 
-  await assignRoles(DEV_PREVIEW_YM, 'devpreview_p1', 'devpreview_p2');
+  await assignRoles(
+    DEV_PREVIEW_YM,
+    scenario === 'votingOpen_asVillain' ? DEV_ME : 'devpreview_p1',
+    scenario === 'votingOpen_asHelper' ? DEV_ME : 'devpreview_p2',
+  );
   if (scenario === 'preview') return;
 
-  if (scenario === 'votingOpen') {
+  if (scenario === 'votingOpen' || scenario === 'votingOpen_asVillain' || scenario === 'votingOpen_asHelper') {
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p4');
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p6', 'devpreview_p7');
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p8', 'devpreview_p9');
-    await setMissionStatus(DEV_PREVIEW_YM, 'voting');
+    await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
     return;
   }
 
@@ -181,9 +194,13 @@ export async function seedVillainScenario(scenario: VillainScenario): Promise<vo
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p6', 'devpreview_p3');
     await submitVote(DEV_PREVIEW_YM, 'devpreview_p7', 'devpreview_p9');
   }
-  await setMissionStatus(DEV_PREVIEW_YM, 'voting');
-  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}`));
-  await revealMissionResult(DEV_PREVIEW_YM, snap.val() as VillainMissionData);
+  await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
+  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/villain`));
+  const votesSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/votes/villain`));
+  await revealMissionResult(DEV_PREVIEW_YM, {
+    ...(snap.val() as VillainMissionData),
+    votes: votesSnap.val() as Record<string, string> | undefined,
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -202,8 +219,35 @@ export type ScoreGuessScenario =
 const SG_TARGETS = ['devpreview_p1', 'devpreview_p8', 'devpreview_p9'];
 const SG_TARGETS_WITH_ME = [DEV_ME, 'devpreview_p1', 'devpreview_p8'];
 
+const DEFAULT_SCOREGUESS_CONFIG: Omit<ScoreGuessMissionConfig, 'status'> = {
+  type: 'scoreGuess',
+  title: '[프리뷰] 신규회원과 함께하는 이번 달',
+  description: '이번 달 신규회원의 점수를 예측해보세요! 오차범위 안이면 PIN을 드려요.',
+  revealDays: 5,
+  rewardPin: 0.5,
+  scoreDiffThreshold: 5,
+  targetRewardPin: 0.5,
+};
+
+async function revealScoreGuessAgainstTargets(targets: string[]) {
+  await submitScoreGuessVote(DEV_PREVIEW_YM, DEV_ME, targets[0], 145);
+  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p2', targets[0], 130, '기대돼요', true);
+  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p3', targets[1], 120);
+  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p4', targets[2], 110, '화이팅', false);
+  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p5', targets[2], 95);
+  await set(ref(db, `users/${targets[0]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 148);
+  await set(ref(db, `users/${targets[1]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 125);
+  await set(ref(db, `users/${targets[2]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 98);
+  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/scoreGuess`));
+  const votesSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/votes/scoreGuess`));
+  await revealScoreGuessMissionResult(DEV_PREVIEW_YM, {
+    ...(snap.val() as ScoreGuessMissionData),
+    votes: votesSnap.val() as Record<string, ScoreGuessVote> | undefined,
+  });
+}
+
 export async function seedScoreGuessScenario(scenario: ScoreGuessScenario): Promise<void> {
-  await clearMission();
+  await clearMissionSlot('scoreGuess');
   if (scenario === 'empty') {
     await seedActivityMeta(relativeYmd(10));
     return;
@@ -213,16 +257,7 @@ export async function seedScoreGuessScenario(scenario: ScoreGuessScenario): Prom
     scenario === 'upcoming' ? relativeYmd(10) : scenario === 'revealed' ? relativeYmd(-1) : relativeYmd(2),
   );
 
-  const config: Omit<ScoreGuessMissionConfig, 'status'> = {
-    type: 'scoreGuess',
-    title: '[프리뷰] 신규회원과 함께하는 이번 달',
-    description: '이번 달 신규회원의 점수를 예측해보세요! 오차범위 안이면 PIN을 드려요.',
-    revealDays: 5,
-    rewardPin: 0.5,
-    scoreDiffThreshold: 5,
-    targetRewardPin: 0.5,
-  };
-  await saveScoreGuessMissionContent(DEV_PREVIEW_YM, config, 'active');
+  await saveScoreGuessMissionContent(DEV_PREVIEW_YM, DEFAULT_SCOREGUESS_CONFIG, 'active');
   if (scenario === 'upcoming') return;
 
   const isMeCandidate = scenario === 'asCandidate' || scenario === 'asCandidateWithCheers';
@@ -244,16 +279,7 @@ export async function seedScoreGuessScenario(scenario: ScoreGuessScenario): Prom
     return;
   }
 
-  await submitScoreGuessVote(DEV_PREVIEW_YM, DEV_ME, targets[0], 145);
-  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p2', targets[0], 130, '기대돼요', true);
-  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p3', targets[1], 120);
-  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p4', targets[2], 110, '화이팅', false);
-  await submitScoreGuessVote(DEV_PREVIEW_YM, 'devpreview_p5', targets[2], 95);
-  await set(ref(db, `users/${targets[0]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 148);
-  await set(ref(db, `users/${targets[1]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 125);
-  await set(ref(db, `users/${targets[2]}/scores/${DEV_YEAR}/${Number(DEV_MONTH)}`), 98);
-  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}`));
-  await revealScoreGuessMissionResult(DEV_PREVIEW_YM, snap.val() as ScoreGuessMissionData);
+  await revealScoreGuessAgainstTargets(targets);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -325,6 +351,28 @@ const TEAM_GUESS_GROUPS: FormationGroup[] = [
   },
 ];
 
+const DEFAULT_TEAMGUESS_CONFIG: Omit<TeamGuessMissionConfig, 'status'> = {
+  type: 'teamGuess',
+  title: '[프리뷰] 정기전 팀 승부 예측',
+  description: '우리 조가 이길지 예측해보세요! 다른 조에 보너스로 배팅하면 추가 PIN 기회도 있어요.',
+  revealDays: 5,
+  rewardPin: 1,
+  bonusRewardPin: 1,
+};
+
+const DEFAULT_TEAM_WINNERS: Array<'team1' | 'team2' | 'draw'> = ['team1', 'team1', 'team2', 'team1', 'team2'];
+
+async function revealTeamMatchResults(winners: Array<'team1' | 'team2' | 'draw'> = DEFAULT_TEAM_WINNERS) {
+  await Promise.all(
+    TEAM_GUESS_GROUPS.map((group, idx) =>
+      set(
+        ref(db, `team/${DEV_PREVIEW_YM}/${String.fromCharCode(65 + idx)}`),
+        buildTeamResultPayload(group, winners[idx], idx * 1000),
+      ),
+    ),
+  );
+}
+
 function scoreForAverage(average: number, seed: number): [number, number] {
   const wobble = (n: number) => Math.max(40, Math.round(average + (((seed * 7 + n * 13) % 21) - 10)));
   return [wobble(1), wobble(2)];
@@ -363,7 +411,8 @@ export type TeamGuessScenario =
   | 'notVotedOpen'
   | 'votedOpen'
   | 'revealed_bothCorrect'
-  | 'revealed_myGroupOnly';
+  | 'revealed_myGroupOnly'
+  | 'revealed_withDraw';
 
 async function seedTeamGuessRivals() {
   const chosenAt = Date.now();
@@ -379,7 +428,7 @@ async function seedTeamGuessRivals() {
 }
 
 export async function seedTeamGuessScenario(scenario: TeamGuessScenario): Promise<void> {
-  await clearMission();
+  await clearMissionSlot('teamGuess');
   await clearTeamFormation();
   await clearMatchSignups();
   if (scenario === 'empty') {
@@ -395,15 +444,7 @@ export async function seedTeamGuessScenario(scenario: TeamGuessScenario): Promis
         : relativeYmd(2),
   );
 
-  const config: Omit<TeamGuessMissionConfig, 'status'> = {
-    type: 'teamGuess',
-    title: '[프리뷰] 정기전 팀 승부 예측',
-    description: '우리 조가 이길지 예측해보세요! 다른 조에 보너스로 배팅하면 추가 PIN 기회도 있어요.',
-    revealDays: 5,
-    rewardPin: 1,
-    bonusRewardPin: 1,
-  };
-  await saveTeamGuessMissionContent(DEV_PREVIEW_YM, config, 'active');
+  await saveTeamGuessMissionContent(DEV_PREVIEW_YM, DEFAULT_TEAMGUESS_CONFIG, 'active');
   if (scenario === 'upcoming' || scenario === 'formationPending') return;
 
   await seedTeamFormationGroups();
@@ -420,7 +461,7 @@ export async function seedTeamGuessScenario(scenario: TeamGuessScenario): Promis
   }
 
   await submitTeamGuessVote(DEV_PREVIEW_YM, DEV_ME, {
-    myGroupPick: 'team1',
+    myGroupPick: scenario === 'revealed_withDraw' ? 'draw' : 'team1',
     bonusGroupId: 'B',
     bonusGroupPick: scenario === 'revealed_bothCorrect' ? 'team1' : 'team2',
   });
@@ -433,15 +474,114 @@ export async function seedTeamGuessScenario(scenario: TeamGuessScenario): Promis
   await submitTeamGuessVote(DEV_PREVIEW_YM, 'devpreview_p10', { myGroupPick: 'team1' });
   await submitTeamGuessVote(DEV_PREVIEW_YM, 'devpreview_p14', { myGroupPick: 'team2' });
   await submitTeamGuessVote(DEV_PREVIEW_YM, 'devpreview_p18', { myGroupPick: 'team1' });
-  const winners: Array<'team1' | 'team2' | 'draw'> = ['team1', 'team1', 'team2', 'team1', 'team2'];
-  await Promise.all(
-    TEAM_GUESS_GROUPS.map((group, idx) =>
-      set(
-        ref(db, `team/${DEV_PREVIEW_YM}/${String.fromCharCode(65 + idx)}`),
-        buildTeamResultPayload(group, winners[idx], idx * 1000),
-      ),
-    ),
+  await revealTeamMatchResults(
+    scenario === 'revealed_withDraw' ? ['draw', 'team1', 'team2', 'team1', 'team2'] : undefined,
   );
-  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}`));
-  await revealTeamGuessMissionResult(DEV_PREVIEW_YM, snap.val() as TeamGuessMissionData);
+  const snap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/teamGuess`));
+  const votesSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/votes/teamGuess`));
+  await revealTeamGuessMissionResult(DEV_PREVIEW_YM, {
+    ...(snap.val() as TeamGuessMissionData),
+    votes: votesSnap.val() as Record<string, TeamGuessVote> | undefined,
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* 빌런 + 팀 승부 예측 동시 진행 (조합 시나리오)                                    */
+/* -------------------------------------------------------------------------- */
+
+export type CombinedScenario =
+  | 'preActivity_asVillain'
+  | 'preActivity_asHelper'
+  | 'preActivity_asNormal'
+  | 'postActivity_votingNotVoted_asVillain'
+  | 'postActivity_votingNotVoted_asHelper'
+  | 'postActivity_votingNotVoted_asNormal'
+  | 'postActivity_votingVoted'
+  | 'postActivity_bothRevealed';
+
+async function seedCombinedBase(
+  activityYmd: number,
+  villainId: string,
+  helperId: string,
+  predictType: 'scoreGuess' | 'teamGuess',
+) {
+  await seedActivityMeta(activityYmd);
+  await saveVillainMissionContent(DEV_PREVIEW_YM, DEFAULT_VILLAIN_CONFIG, DEFAULT_VILLAIN_HIDDEN, 'active');
+  await assignRoles(DEV_PREVIEW_YM, villainId, helperId);
+  if (predictType === 'teamGuess') {
+    await saveTeamGuessMissionContent(DEV_PREVIEW_YM, DEFAULT_TEAMGUESS_CONFIG, 'active');
+    await seedTeamFormationGroups();
+    await seedTeamGuessRivals();
+  } else {
+    await saveScoreGuessMissionContent(DEV_PREVIEW_YM, DEFAULT_SCOREGUESS_CONFIG, 'active');
+    await confirmScoreGuessTargets(DEV_PREVIEW_YM, SG_TARGETS);
+  }
+}
+
+export async function seedCombinedScenario(
+  scenario: CombinedScenario,
+  predictType: 'scoreGuess' | 'teamGuess' = 'teamGuess',
+): Promise<void> {
+  await clearMission();
+  await clearTeamFormation();
+  await clearMatchSignups();
+
+  if (scenario === 'preActivity_asVillain') {
+    await seedCombinedBase(relativeYmd(2), DEV_ME, 'devpreview_p2', predictType);
+    return;
+  }
+  if (scenario === 'preActivity_asHelper') {
+    await seedCombinedBase(relativeYmd(2), 'devpreview_p1', DEV_ME, predictType);
+    return;
+  }
+  if (scenario === 'preActivity_asNormal') {
+    await seedCombinedBase(relativeYmd(2), 'devpreview_p1', 'devpreview_p2', predictType);
+    return;
+  }
+
+  const villainId = scenario === 'postActivity_votingNotVoted_asVillain' ? DEV_ME : 'devpreview_p1';
+  const helperId = scenario === 'postActivity_votingNotVoted_asHelper' ? DEV_ME : 'devpreview_p2';
+  await seedCombinedBase(relativeYmd(-1), villainId, helperId, predictType);
+  if (predictType === 'teamGuess') {
+    await submitTeamGuessVote(DEV_PREVIEW_YM, DEV_ME, { myGroupPick: 'team1' });
+    await submitTeamGuessVote(DEV_PREVIEW_YM, 'devpreview_p3', { myGroupPick: 'team1' });
+    await revealTeamMatchResults();
+    const teamGuessSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/teamGuess`));
+    const teamGuessVotesSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/votes/teamGuess`));
+    await revealTeamGuessMissionResult(DEV_PREVIEW_YM, {
+      ...(teamGuessSnap.val() as TeamGuessMissionData),
+      votes: teamGuessVotesSnap.val() as Record<string, TeamGuessVote> | undefined,
+    });
+  } else {
+    await revealScoreGuessAgainstTargets(SG_TARGETS);
+  }
+
+  if (
+    scenario === 'postActivity_votingNotVoted_asVillain' ||
+    scenario === 'postActivity_votingNotVoted_asHelper' ||
+    scenario === 'postActivity_votingNotVoted_asNormal'
+  ) {
+    await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', villainId);
+    await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
+    return;
+  }
+
+  if (scenario === 'postActivity_votingVoted') {
+    await submitVote(DEV_PREVIEW_YM, DEV_ME, 'devpreview_p1');
+    await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p1');
+    await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
+    return;
+  }
+
+  await submitVote(DEV_PREVIEW_YM, DEV_ME, 'devpreview_p1');
+  await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p1');
+  await submitVote(DEV_PREVIEW_YM, 'devpreview_p4', 'devpreview_p1');
+  await submitVote(DEV_PREVIEW_YM, 'devpreview_p6', 'devpreview_p1');
+  await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
+  const villainSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/villain`));
+  const villainVotesSnap = await get(ref(db, `missions/${DEV_PREVIEW_YM}/votes/villain`));
+  await revealMissionResult(DEV_PREVIEW_YM, {
+    ...(villainSnap.val() as VillainMissionData),
+    votes: villainVotesSnap.val() as Record<string, string> | undefined,
+  });
 }

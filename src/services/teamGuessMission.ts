@@ -5,6 +5,8 @@ import {
   buildMissionPinReward,
   claimMissionReveal,
   commitMissionReveal,
+  migrateLegacyIfNeeded,
+  resyncRevealedStatus,
 } from '../hooks/useMission';
 import type {
   MissionStatus,
@@ -20,7 +22,8 @@ export async function saveTeamGuessMissionContent(
   config: Omit<TeamGuessMissionConfig, 'status'>,
   currentStatus: MissionStatus | null = null,
 ): Promise<void> {
-  await update(ref(db, `missions/${ym}`), {
+  await migrateLegacyIfNeeded(ym);
+  await update(ref(db, `missions/${ym}/teamGuess`), {
     config: { ...config, status: currentStatus ?? 'draft' },
   });
 }
@@ -30,14 +33,16 @@ export async function submitTeamGuessVote(
   voterEmpId: string,
   vote: TeamGuessVote,
 ): Promise<void> {
-  await set(ref(db, `missions/${ym}/votes/${voterEmpId}`), vote);
+  await migrateLegacyIfNeeded(ym);
+  await set(ref(db, `missions/${ym}/votes/teamGuess/${voterEmpId}`), vote);
 }
 
 export async function deleteTeamGuessVote(
   ym: string,
   voterEmpId: string,
 ): Promise<void> {
-  await remove(ref(db, `missions/${ym}/votes/${voterEmpId}`));
+  await migrateLegacyIfNeeded(ym);
+  await remove(ref(db, `missions/${ym}/votes/teamGuess/${voterEmpId}`));
 }
 
 function extractWinnerMap(
@@ -58,7 +63,7 @@ export async function revealTeamGuessMissionResult(
   data: TeamGuessMissionData,
 ): Promise<{ myGroupCorrectVoters: string[]; bonusCorrectVoters: string[] }> {
   if (data.result?.revealed === true) {
-    await set(ref(db, `missions/${ym}/config/status`), 'revealed');
+    await resyncRevealedStatus(ym, 'teamGuess');
     return {
       myGroupCorrectVoters: data.result.myGroupCorrectVoters ?? [],
       bonusCorrectVoters: data.result.bonusCorrectVoters ?? [],
@@ -68,7 +73,10 @@ export async function revealTeamGuessMissionResult(
   const { config, votes } = data;
   if (!config) throw new Error('미션 데이터가 없습니다.');
 
-  const formationSnap = await get(ref(db, `teamFormation/${ym}`));
+  const [formationSnap, teamSnap] = await Promise.all([
+    get(ref(db, `teamFormation/${ym}`)),
+    get(ref(db, `team/${ym}`)),
+  ]);
   const formationVal = formationSnap.val() as
     | { status?: string; groups?: RawFormationGroups }
     | null;
@@ -77,7 +85,6 @@ export async function revealTeamGuessMissionResult(
   }
   const groups = firebaseToFormationGroups(formationVal.groups);
 
-  const teamSnap = await get(ref(db, `team/${ym}`));
   const winnerMap = extractWinnerMap(
     teamSnap.val() as Record<string, { winner?: string }> | null,
   );
@@ -96,7 +103,8 @@ export async function revealTeamGuessMissionResult(
     });
   });
 
-  const previousStatus = await claimMissionReveal(ym);
+  await migrateLegacyIfNeeded(ym);
+  const previousStatus = await claimMissionReveal(ym, 'teamGuess');
 
   const rewardPin = config.rewardPin ?? 1;
   const bonusRewardPin = config.bonusRewardPin ?? 1;
@@ -119,14 +127,7 @@ export async function revealTeamGuessMissionResult(
     pinDeltas[voterEmpId] = (pinDeltas[voterEmpId] ?? 0) + rewardPin;
     Object.assign(
       allWrites,
-      buildMissionPinReward(
-        voterEmpId,
-        ym,
-        rewardPin,
-        '정기전 팀 승부 예측 성공 ⚡',
-        now,
-        createdAt,
-      ),
+      buildMissionPinReward(voterEmpId, ym, rewardPin, '정기전 팀 승부 예측 성공 ⚡', now, createdAt),
     );
 
     if (vote.bonusGroupId && vote.bonusGroupPick) {
@@ -154,15 +155,15 @@ export async function revealTeamGuessMissionResult(
     allWrites[`users/${empId}/pin`] = increment(totalPin);
   });
 
-  allWrites[`missions/${ym}/result`] = {
+  allWrites[`missions/${ym}/teamGuess/result`] = {
     revealed: true,
     revealedAt: now,
     myGroupCorrectVoters,
     bonusCorrectVoters,
   };
-  allWrites[`missions/${ym}/config/status`] = 'revealed';
+  allWrites[`missions/${ym}/teamGuess/config/status`] = 'revealed';
 
-  await commitMissionReveal(ym, previousStatus, allWrites);
+  await commitMissionReveal(ym, 'teamGuess', previousStatus, allWrites);
 
   return { myGroupCorrectVoters, bonusCorrectVoters };
 }

@@ -18,9 +18,9 @@ export const VoteTriggerBtn = styled.button`
   width: 100%;
   padding: 12px;
   border-radius: 10px;
-  border: 1.5px solid #93c5fd;
-  background: #eff6ff;
-  color: #2563eb;
+  border: 1.5px solid #5eead4;
+  background: #f0fdfa;
+  color: #0d9488;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -32,13 +32,13 @@ export const VoteTriggerBtn = styled.button`
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: #dbeafe;
-      border-color: #60a5fa;
+      background: #ccfbf1;
+      border-color: #2dd4bf;
     }
   }
   &:active {
-    background: #dbeafe;
-    border-color: #60a5fa;
+    background: #ccfbf1;
+    border-color: #2dd4bf;
   }
 `;
 

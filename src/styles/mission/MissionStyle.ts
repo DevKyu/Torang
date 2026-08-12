@@ -65,6 +65,10 @@ export const SectionLabel = styled.div`
   margin-bottom: 8px;
 `;
 
+export const HiddenTriggerGap = styled.div`
+  margin-top: 4px;
+`;
+
 export const HiddenMissionBtn = styled.button<{ role: 'villain' | 'helper' }>`
   width: 100%;
   padding: 13px;
@@ -395,4 +399,33 @@ export const MissionEmptyDesc = styled.p`
   line-height: 1.4;
   color: #9ca3af;
   margin: 6px 0 0;
+`;
+
+export const TabBar = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+`;
+
+export const TabBtn = styled.button<{ active: boolean }>`
+  flex: 1;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid ${({ active }) => (active ? '#111827' : 'transparent')};
+  color: ${({ active }) => (active ? '#111827' : '#6b7280')};
+  font-size: 14px;
+  font-weight: ${({ active }) => (active ? 700 : 600)};
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: ${({ active }) => (active ? '#111827' : '#4b5563')};
+    }
+  }
+  &:active {
+    color: #111827;
+  }
 `;

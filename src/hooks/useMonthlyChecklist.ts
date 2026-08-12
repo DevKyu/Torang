@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useMission, isScoreGuessMission, isTeamGuessMission } from './useMission';
+import { useMission } from './useMission';
+import type { ScoreGuessMissionData, TeamGuessMissionData } from './useMission';
 import { useMissionViewState } from './useMissionViewState';
 import { useTeamFormation } from './useTeamFormation';
 import { findGroupIndexForEmpId } from '../utils/teamFormation';
@@ -114,21 +115,26 @@ export const useMonthlyChecklist = (
   const currentMonthActivityYmd = activityAll[serverYear]?.[String(serverMonth)];
 
   const {
-    data: missionData,
-    myVote: missionMyVote,
+    predict: missionPredict,
+    predictType,
+    myPredictVote: missionMyVote,
     loading: missionLoading,
   } = useMission(serverYm);
 
   const { viewState: missionViewState } = useMissionViewState(
     currentMonthActivityYmd,
-    missionData,
+    missionPredict,
   );
 
+  const teamFormationYm =
+    predictType === 'teamGuess' && missionViewState !== 'empty' && missionViewState !== 'upcoming'
+      ? serverYm
+      : '';
   const {
     status: teamFormationStatus,
     groups: teamFormationGroups,
     loading: teamFormationLoading,
-  } = useTeamFormation(serverYm);
+  } = useTeamFormation(teamFormationYm);
 
   const items = useMemo<ChecklistItem[]>(() => {
     const isParticipant = !!myEmpId && monthParticipants.includes(myEmpId);
@@ -173,7 +179,7 @@ export const useMonthlyChecklist = (
       }
     }
 
-    const scoreGuessData = isScoreGuessMission(missionData) ? missionData : null;
+    const scoreGuessData = predictType === 'scoreGuess' ? (missionPredict as ScoreGuessMissionData) : null;
     const isCandidate =
       !!myEmpId && !!scoreGuessData?.targets?.empIds?.includes(myEmpId);
 
@@ -215,7 +221,7 @@ export const useMonthlyChecklist = (
       }
     }
 
-    const teamGuessData = isTeamGuessMission(missionData) ? missionData : null;
+    const teamGuessData = predictType === 'teamGuess' ? (missionPredict as TeamGuessMissionData) : null;
     if (
       teamGuessData &&
       missionViewState === 'preview' &&
@@ -250,7 +256,8 @@ export const useMonthlyChecklist = (
     matchPinEnabled,
     matchChoices,
     matchType,
-    missionData,
+    missionPredict,
+    predictType,
     missionViewState,
     missionMyVote,
     monthParticipants,

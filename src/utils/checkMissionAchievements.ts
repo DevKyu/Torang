@@ -1,7 +1,8 @@
 import { getAllUserMatchResults, getAllMissions, getCurrentUserId } from '../services/firebase';
 import type { AchievementResult } from '../types/achievement';
 import type { MatchType } from '../types/match';
-import { isScoreGuessMission, isTeamGuessMission } from '../hooks/useMission';
+import { parseMissionSnapshot } from '../hooks/useMission';
+import type { RawMissionSnapshot } from '../hooks/useMission';
 import { useUiStore } from '../stores/useUiStore';
 
 const START_YYYYMM = 202508;
@@ -96,16 +97,17 @@ export const checkMissionAchievements = async (
 
   if (!existing['mission_villain_success'] || !existing['mission_villain_found']) {
     const allMissions = await getAllMissions();
-    for (const [ym, mission] of Object.entries(allMissions)) {
-      if (isScoreGuessMission(mission) || isTeamGuessMission(mission)) continue;
+    for (const [ym, raw] of Object.entries(allMissions)) {
+      const { villain } = parseMissionSnapshot(raw as RawMissionSnapshot);
+      if (!villain) continue;
       if (!existing['mission_villain_success'] && !results['mission_villain_success'] &&
-          mission?.result?.villainWon === true && mission?.roles?.villain === empId) {
+          villain.result?.villainWon === true && villain.roles?.villain === empId) {
         results['mission_villain_success'] = { achievedAt: ym };
       }
       if (!existing['mission_villain_found'] && !results['mission_villain_found'] &&
-          mission?.result?.villainWon === false &&
-          mission?.roles?.villain &&
-          mission?.votes?.[empId] === mission.roles.villain) {
+          villain.result?.villainWon === false &&
+          villain.roles?.villain &&
+          villain.votes?.[empId] === villain.roles.villain) {
         results['mission_villain_found'] = { achievedAt: ym };
       }
     }

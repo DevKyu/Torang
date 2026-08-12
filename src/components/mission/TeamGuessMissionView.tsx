@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 import { toast } from 'sonner';
 import { submitTeamGuessVote, deleteTeamGuessVote } from '../../services/teamGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
-import { useTeamFormation } from '../../hooks/useTeamFormation';
-import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
-import { findGroupIndexForEmpId, getGroupTeamKey } from '../../utils/teamFormation';
-import type { TeamGuessMissionData, TeamGuessVote } from '../../hooks/useMission';
+import type { TeamFormationStatus, WinnerMap, ScoreMap } from '../../hooks/useTeamFormation';
+import { findGroupIndexForEmpId, getGroupTeamKey, type FormationGroup } from '../../utils/teamFormation';
+import type { TeamGuessMissionData, TeamGuessVote, VillainMissionData } from '../../hooks/useMission';
 import TeamGuessRosterCard from './TeamGuessRosterCard';
 import TeamGuessBonusSheet from './TeamGuessBonusSheet';
 import TeamGuessResultModal, {
@@ -14,6 +14,7 @@ import TeamGuessResultModal, {
 } from './TeamGuessResultModal';
 import { renderMissionBody } from './missionBody';
 import StatusCard from './StatusCard';
+import HiddenMissionTrigger from './HiddenMissionTrigger';
 import {
   PreviewInfoArea,
   VoteTriggerBtn,
@@ -42,6 +43,8 @@ import {
   ResultRevealCard,
   ResultRole,
   ResultName,
+  MissionLoadingBox,
+  HiddenTriggerGap,
 } from '../../styles/mission/MissionStyle';
 
 type Pick = 'team1' | 'team2' | 'draw';
@@ -64,6 +67,15 @@ type Props = {
   myEmpId: string;
   myVote?: TeamGuessVote;
   activityYmd?: string;
+  hiddenMissionData?: VillainMissionData;
+  hiddenMissionAutoOpenGuardRef?: RefObject<boolean>;
+  status: TeamFormationStatus;
+  groups: FormationGroup[];
+  winnerMap: WinnerMap;
+  scoreMap: ScoreMap;
+  formationLoading: boolean;
+  rivalIds: Set<string>;
+  rivalsLoading: boolean;
 };
 
 const TeamGuessMissionView = ({
@@ -73,9 +85,16 @@ const TeamGuessMissionView = ({
   myEmpId,
   myVote,
   activityYmd,
+  hiddenMissionData,
+  hiddenMissionAutoOpenGuardRef,
+  status,
+  groups,
+  winnerMap,
+  scoreMap,
+  formationLoading,
+  rivalIds,
+  rivalsLoading,
 }: Props) => {
-  const { status, groups, winnerMap, scoreMap } = useTeamFormation(ym);
-  const rivalIds = useRivalEmpIds(ym);
   const isConfirmed = status === 'confirmed';
 
   const myGroupIdx = myEmpId ? findGroupIndexForEmpId(groups, myEmpId) : -1;
@@ -178,19 +197,21 @@ const TeamGuessMissionView = ({
     return sections;
   }, [myVote, isInGroup, myGroup, myGroupId, myTeamKey, groups, winnerMap, scoreMap]);
 
-  const contentKey = !isConfirmed
-    ? 'pending'
-    : !isInGroup
-      ? 'no-access'
-      : viewState === 'revealed'
-        ? 'revealed'
-        : !voteScreenOpen
-          ? 'intro'
-          : myVote
-            ? 'voted'
-            : stillActionable
-              ? 'voting'
-              : 'closed';
+  const contentKey = formationLoading || rivalsLoading
+    ? 'loading'
+    : !isConfirmed
+      ? 'pending'
+      : !isInGroup
+        ? 'no-access'
+        : viewState === 'revealed'
+          ? 'revealed'
+          : !voteScreenOpen
+            ? 'intro'
+            : myVote
+              ? 'voted'
+              : stillActionable
+                ? 'voting'
+                : 'closed';
 
   return (
     <>
@@ -202,6 +223,12 @@ const TeamGuessMissionView = ({
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.25 }}
         >
+          {contentKey === 'loading' && (
+            <MissionLoadingBox style={viewState === 'revealed' ? { minHeight: 320 } : undefined}>
+              <ClipLoader size={24} color="#9ca3af" />
+            </MissionLoadingBox>
+          )}
+
           {contentKey === 'intro' && (
             <PreviewInfoArea>
               <SectionLabel>이달의 미션</SectionLabel>
@@ -212,6 +239,15 @@ const TeamGuessMissionView = ({
               <VoteTriggerBtn onClick={() => setVoteScreenOpen(true)}>
                 ⚡ 팀 승부 예측하기
               </VoteTriggerBtn>
+              {hiddenMissionData && (
+                <HiddenTriggerGap>
+                  <HiddenMissionTrigger
+                    data={hiddenMissionData}
+                    myEmpId={myEmpId}
+                    autoOpenGuardRef={hiddenMissionAutoOpenGuardRef}
+                  />
+                </HiddenTriggerGap>
+              )}
             </PreviewInfoArea>
           )}
 

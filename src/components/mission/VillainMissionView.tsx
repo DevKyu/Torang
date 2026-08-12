@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { submitVote } from '../../hooks/useMission';
@@ -6,12 +6,11 @@ import type { VillainMissionData } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import StatusCard from './StatusCard';
 import VoterCardItem from './VoterCardItem';
-import HiddenMissionModal from './HiddenMissionModal';
+import HiddenMissionTrigger from './HiddenMissionTrigger';
 import VoteResultModal from './VoteResultModal';
 import CorrectVotersModal from './CorrectVotersModal';
 import VillainMissionModal from './VillainMissionModal';
 import {
-  HiddenMissionBtn,
   VotingInstruction,
   VoteListWrapper,
   VoteListArea,
@@ -40,6 +39,7 @@ type Props = {
   myVote?: string;
   allNames: Record<string, string>;
   participants: string[];
+  autoOpenGuardRef?: RefObject<boolean>;
 };
 
 const VillainMissionView = ({
@@ -50,33 +50,18 @@ const VillainMissionView = ({
   myVote,
   allNames,
   participants,
+  autoOpenGuardRef,
 }: Props) => {
   const [selectedVote, setSelectedVote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const [voteModalOpen, setVoteModalOpen] = useState(false);
   const [votersModalOpen, setVotersModalOpen] = useState(false);
   const [villainMissionOpen, setVillainMissionOpen] = useState(false);
-  const hasAutoOpenedRef = useRef(false);
   const voteListRef = useRef<HTMLDivElement>(null);
 
   const isParticipant = myEmpId ? participants.includes(myEmpId) : false;
   const isVillain = !!myEmpId && data.roles?.villain === myEmpId;
   const isHelper = !!myEmpId && data.roles?.helper === myEmpId;
-  const myRole: 'villain' | 'helper' | null = isVillain
-    ? 'villain'
-    : isHelper
-      ? 'helper'
-      : null;
-
-  useEffect(() => {
-    if (viewState !== 'preview' || !myRole || hasAutoOpenedRef.current) return;
-    const t = setTimeout(() => {
-      hasAutoOpenedRef.current = true;
-      setModalOpen(true);
-    }, 800);
-    return () => clearTimeout(t);
-  }, [viewState, myRole]);
 
   const sortedParticipants = useMemo(
     () =>
@@ -138,12 +123,8 @@ const VillainMissionView = ({
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.25 }}
         >
-          {viewState === 'preview' && myRole && data.hidden?.[myRole] && (
-            <HiddenMissionBtn role={myRole} onClick={() => setModalOpen(true)}>
-              {myRole === 'villain'
-                ? '🎭 나의 히든 미션 보기'
-                : '🤝 나의 히든 미션 보기'}
-            </HiddenMissionBtn>
+          {viewState === 'preview' && (
+            <HiddenMissionTrigger data={data} myEmpId={myEmpId} autoOpenGuardRef={autoOpenGuardRef} />
           )}
 
           {viewState === 'voting' &&
@@ -293,14 +274,6 @@ const VillainMissionView = ({
           isOpen={villainMissionOpen}
           onClose={() => setVillainMissionOpen(false)}
           hidden={data.hidden.villain}
-        />
-      )}
-      {viewState === 'preview' && myRole && data.hidden?.[myRole] && (
-        <HiddenMissionModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          role={myRole}
-          hidden={data.hidden[myRole]!}
         />
       )}
     </>

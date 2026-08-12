@@ -6,6 +6,54 @@ export const SectionBlock = styled.div`
   margin-bottom: 20px;
 `;
 
+export const MissionTypeCard = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #fff;
+`;
+
+export const CardHeaderRow = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  margin: -8px 0 -6px;
+  cursor: pointer;
+  text-align: left;
+  touch-action: manipulation;
+`;
+
+export const CardHeaderTitle = styled.h4`
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+`;
+
+export const CardChevron = styled.span<{ expanded: boolean }>`
+  margin-left: auto;
+  display: inline-flex;
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+  transform: rotate(${({ expanded }) => (expanded ? '180deg' : '0deg')});
+`;
+
+export const CardSummary = styled.div`
+  font-size: 13px;
+  color: #6b7280;
+  margin: 6px 0 0;
+  padding-left: 2px;
+`;
+
+export const CardBody = styled.div`
+  margin-top: 18px;
+`;
+
 export const MissionInput = styled.input`
   width: 100%;
   padding: 8px 10px;

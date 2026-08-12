@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,9 +9,10 @@ import {
 } from '../../services/scoreGuessMission';
 import { useUiStore } from '../../stores/useUiStore';
 import { MEDALS } from '../../utils/ranking';
-import type { ScoreGuessMissionData, ScoreGuessVote } from '../../hooks/useMission';
+import type { ScoreGuessMissionData, ScoreGuessVote, VillainMissionData } from '../../hooks/useMission';
 import { useScrollFade } from '../../hooks/useScrollFade';
 import StatusCard from './StatusCard';
+import HiddenMissionTrigger from './HiddenMissionTrigger';
 import VoterCardItem from './VoterCardItem';
 import PredictScoreModal from './PredictScoreModal';
 import ScoreGuessResultModal, {
@@ -51,6 +52,7 @@ import {
   MissionCard,
   CardTitle,
   ResultRevealRow,
+  HiddenTriggerGap,
 } from '../../styles/mission/MissionStyle';
 
 const CHEER_DEFAULT_MESSAGE = '점수 예측 완료! 첫 활동 응원할게요 📣';
@@ -64,6 +66,8 @@ type Props = {
   allNames: Record<string, string>;
   participants: string[];
   activityYmd?: string;
+  hiddenMissionData?: VillainMissionData;
+  hiddenMissionAutoOpenGuardRef?: RefObject<boolean>;
 };
 
 const ScoreGuessMissionView = ({
@@ -75,6 +79,8 @@ const ScoreGuessMissionView = ({
   allNames,
   participants,
   activityYmd,
+  hiddenMissionData,
+  hiddenMissionAutoOpenGuardRef,
 }: Props) => {
   const [selectedTarget, setSelectedTarget] = useState('');
   const [predictModalOpen, setPredictModalOpen] = useState(false);
@@ -278,6 +284,15 @@ const ScoreGuessMissionView = ({
                 <VoteTriggerBtn onClick={() => setVoteScreenOpen(true)}>
                   🎯 신규회원 점수 예측하기
                 </VoteTriggerBtn>
+              )}
+              {hiddenMissionData && (
+                <HiddenTriggerGap>
+                  <HiddenMissionTrigger
+                    data={hiddenMissionData}
+                    myEmpId={myEmpId}
+                    autoOpenGuardRef={hiddenMissionAutoOpenGuardRef}
+                  />
+                </HiddenTriggerGap>
               )}
             </PreviewInfoArea>
           )}
