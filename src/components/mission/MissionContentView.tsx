@@ -206,9 +206,11 @@ const MissionContentView = ({
   const isVillainEmpty = !hasVillain || villainViewState === 'empty';
   const isPredictEmpty = !hasPredict || predictViewState === 'empty';
 
+  const needsTeamFormationGate = predictType === 'teamGuess' && hasVillain && villainViewState === 'preview';
+
   return (
     <AnimatePresence mode="wait" initial={false}>
-      {!isReady || !teamFormationReady ? (
+      {!isReady ? (
         <ScreenLoadingState key="loading">
           <MissionLoadingBox>
             <ClipLoader size={24} color="#9ca3af" />
@@ -250,6 +252,10 @@ const MissionContentView = ({
             ) : (
               renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
             )
+          ) : needsTeamFormationGate && !teamFormationReady ? (
+            <MissionLoadingBox>
+              <ClipLoader size={24} color="#9ca3af" />
+            </MissionLoadingBox>
           ) : (
             renderPredictTab(true)
           )}
