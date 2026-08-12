@@ -59,7 +59,9 @@ const COMBINED_SCENARIOS: { key: CombinedScenario; label: string }[] = [
   { key: 'preActivity_asVillain', label: '활동 전(내가 빌런, 히든버튼)' },
   { key: 'preActivity_asHelper', label: '활동 전(내가 조력자, 히든버튼)' },
   { key: 'preActivity_asNormal', label: '활동 전(일반 참여자, 버튼 없음)' },
-  { key: 'postActivity_votingNotVoted', label: '활동 후(빌런 투표중·미투표 + 예측 결과, 탭)' },
+  { key: 'postActivity_votingNotVoted_asNormal', label: '활동 후(빌런 투표중·미투표·일반 + 예측 결과, 탭)' },
+  { key: 'postActivity_votingNotVoted_asVillain', label: '활동 후(빌런 투표중·미투표·내가 빌런 + 예측 결과, 탭)' },
+  { key: 'postActivity_votingNotVoted_asHelper', label: '활동 후(빌런 투표중·미투표·내가 조력자 + 예측 결과, 탭)' },
   { key: 'postActivity_votingVoted', label: '활동 후(빌런 투표중·투표완료 + 예측 결과, 탭)' },
   { key: 'postActivity_bothRevealed', label: '활동 후(빌런 결과공개 + 예측 결과, 탭)' },
 ];

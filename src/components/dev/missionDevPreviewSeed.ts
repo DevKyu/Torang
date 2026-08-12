@@ -493,7 +493,9 @@ export type CombinedScenario =
   | 'preActivity_asVillain'
   | 'preActivity_asHelper'
   | 'preActivity_asNormal'
-  | 'postActivity_votingNotVoted'
+  | 'postActivity_votingNotVoted_asVillain'
+  | 'postActivity_votingNotVoted_asHelper'
+  | 'postActivity_votingNotVoted_asNormal'
   | 'postActivity_votingVoted'
   | 'postActivity_bothRevealed';
 
@@ -537,7 +539,9 @@ export async function seedCombinedScenario(
     return;
   }
 
-  await seedCombinedBase(relativeYmd(-1), 'devpreview_p1', 'devpreview_p2', predictType);
+  const villainId = scenario === 'postActivity_votingNotVoted_asVillain' ? DEV_ME : 'devpreview_p1';
+  const helperId = scenario === 'postActivity_votingNotVoted_asHelper' ? DEV_ME : 'devpreview_p2';
+  await seedCombinedBase(relativeYmd(-1), villainId, helperId, predictType);
   if (predictType === 'teamGuess') {
     await submitTeamGuessVote(DEV_PREVIEW_YM, DEV_ME, { myGroupPick: 'team1' });
     await submitTeamGuessVote(DEV_PREVIEW_YM, 'devpreview_p3', { myGroupPick: 'team1' });
@@ -552,8 +556,12 @@ export async function seedCombinedScenario(
     await revealScoreGuessAgainstTargets(SG_TARGETS);
   }
 
-  if (scenario === 'postActivity_votingNotVoted') {
-    await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', 'devpreview_p1');
+  if (
+    scenario === 'postActivity_votingNotVoted_asVillain' ||
+    scenario === 'postActivity_votingNotVoted_asHelper' ||
+    scenario === 'postActivity_votingNotVoted_asNormal'
+  ) {
+    await submitVote(DEV_PREVIEW_YM, 'devpreview_p3', villainId);
     await setMissionStatus(DEV_PREVIEW_YM, 'villain', 'voting');
     return;
   }
