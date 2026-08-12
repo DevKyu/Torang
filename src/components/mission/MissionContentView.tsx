@@ -8,7 +8,6 @@ import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import TeamGuessMissionView from './TeamGuessMissionView';
-import HiddenMissionTrigger from './HiddenMissionTrigger';
 import { renderMissionBody } from './missionBody';
 import type {
   VillainMissionData,
@@ -161,10 +160,12 @@ const MissionContentView = ({
     );
   };
 
-  const renderPredictTab = () => {
+  const renderPredictTab = (allowHiddenTrigger = false) => {
     if (predictViewState === 'empty' || predictViewState === 'upcoming') {
       return renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal);
     }
+    const hiddenMissionData =
+      allowHiddenTrigger && hasVillain && villainViewState === 'preview' ? villain! : undefined;
     if (predictType === 'scoreGuess') {
       return (
         <ScoreGuessMissionView
@@ -176,6 +177,7 @@ const MissionContentView = ({
           allNames={allNames}
           participants={participants}
           activityYmd={activityYmd}
+          hiddenMissionData={hiddenMissionData}
         />
       );
     }
@@ -187,6 +189,7 @@ const MissionContentView = ({
         myEmpId={myEmpId}
         myVote={isTeamGuessVote(myPredictVote) ? myPredictVote : undefined}
         activityYmd={activityYmd}
+        hiddenMissionData={hiddenMissionData}
         status={formationStatus}
         groups={formationGroups}
         winnerMap={formationWinnerMap}
@@ -246,16 +249,7 @@ const MissionContentView = ({
               renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
             )
           ) : (
-            <>
-              {renderPredictTab()}
-              {hasVillain && villainViewState === 'preview' && (
-                <HiddenMissionTrigger
-                  data={villain!}
-                  myEmpId={myEmpId}
-                  autoOpenGuardRef={villainAutoOpenGuardRef}
-                />
-              )}
-            </>
+            renderPredictTab(true)
           )}
         </MissionPanel>
       )}
