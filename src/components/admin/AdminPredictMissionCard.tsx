@@ -56,6 +56,7 @@ import {
 import {
   saveScoreGuessMissionContent,
   resetVotes,
+  migrateLegacyIfNeeded,
   DEFAULT_SCORE_DIFF_THRESHOLD,
   type ScoreGuessMissionConfig,
   type TeamGuessMissionConfig,
@@ -92,6 +93,7 @@ const DEFAULT_TEAM_GUESS_CONFIG_DRAFT: TeamGuessConfigDraft = {
 type PredictType = 'scoreGuess' | 'teamGuess';
 
 const removeIfDraft = async (ym: string, type: PredictType) => {
+  await migrateLegacyIfNeeded(ym);
   const statusSnap = await get(ref(db, `missions/${ym}/${type}/config/status`));
   if (!statusSnap.exists() || statusSnap.val() !== 'draft') return;
   await remove(ref(db, `missions/${ym}/${type}`));
