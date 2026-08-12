@@ -420,4 +420,12 @@ export const TabBtn = styled.button<{ active: boolean }>`
   cursor: pointer;
   touch-action: manipulation;
   transition: color 0.15s ease, border-color 0.15s ease;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: ${({ active }) => (active ? '#111827' : '#4b5563')};
+    }
+  }
+  &:active {
+    color: #111827;
+  }
 `;
