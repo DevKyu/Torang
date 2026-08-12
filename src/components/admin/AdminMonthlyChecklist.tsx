@@ -383,12 +383,14 @@ const AdminMonthlyChecklist = () => {
         const villainResultApplicable = postStatus.villainRevealed;
         const villainResultDone =
           villainResultApplicable &&
-          Number(user.lastMissionCheck?.villain ?? 0) >= Number(postStatus.activityYmd ?? 0);
+          !!postStatus.activityYmd &&
+          Number(user.lastMissionCheck?.villain ?? 0) >= Number(postStatus.activityYmd);
 
         const predictResultApplicable = postStatus.predictRevealed;
         const predictResultDone =
           predictResultApplicable &&
-          Number(user.lastMissionCheck?.predict ?? 0) >= Number(postStatus.activityYmd ?? 0);
+          !!postStatus.activityYmd &&
+          Number(user.lastMissionCheck?.predict ?? 0) >= Number(postStatus.activityYmd);
 
         const postSatisfied =
           (!targetRewardEnabled || !targetRewardApplicable || targetRewardDone) &&
