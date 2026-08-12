@@ -317,7 +317,8 @@ const AdminPredictMissionCard = ({
   const status = data?.config?.status ?? 'draft';
   const predictVotes = data?.votes ?? {};
   const totalVotes = Object.keys(predictVotes).length;
-  const canChangeType = !data?.config || (status === 'draft' && totalVotes === 0);
+  const canChangeType =
+    !data?.config || (status === 'draft' && totalVotes === 0 && data?.result?.revealed !== true);
 
   const missionTypeLabel = missionType === 'scoreGuess' ? '신규회원 점수 맞추기' : '팀 승부 예측';
   const summaryText = [
