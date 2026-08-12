@@ -414,7 +414,7 @@ export const TabBtn = styled.button<{ active: boolean }>`
   background: none;
   border: none;
   border-bottom: 2px solid ${({ active }) => (active ? '#111827' : 'transparent')};
-  color: ${({ active }) => (active ? '#111827' : '#9ca3af')};
+  color: ${({ active }) => (active ? '#111827' : '#6b7280')};
   font-size: 14px;
   font-weight: ${({ active }) => (active ? 700 : 600)};
   cursor: pointer;

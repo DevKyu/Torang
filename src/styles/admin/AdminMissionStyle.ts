@@ -21,8 +21,8 @@ export const CardHeaderRow = styled.button`
   gap: 8px;
   background: none;
   border: none;
-  padding: 0;
-  margin: 0;
+  padding: 8px 0;
+  margin: -8px 0 -6px;
   cursor: pointer;
   text-align: left;
   touch-action: manipulation;
