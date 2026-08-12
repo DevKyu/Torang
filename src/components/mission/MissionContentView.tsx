@@ -206,7 +206,12 @@ const MissionContentView = ({
   const isVillainEmpty = !hasVillain || villainViewState === 'empty';
   const isPredictEmpty = !hasPredict || predictViewState === 'empty';
 
-  const needsTeamFormationGate = predictType === 'teamGuess' && hasVillain && villainViewState === 'preview';
+  const villainMergedIntoPredict =
+    hasVillain &&
+    villainViewState === 'preview' &&
+    predictViewState !== 'empty' &&
+    predictViewState !== 'upcoming';
+  const needsTeamFormationGate = villainMergedIntoPredict && predictType === 'teamGuess';
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -246,18 +251,18 @@ const MissionContentView = ({
         <MissionPanel key="pre">
           {!hasPredict ? (
             renderVillainTab()
-          ) : predictViewState === 'empty' || predictViewState === 'upcoming' ? (
-            hasVillain && villainViewState === 'preview' ? (
-              renderVillainTab()
-            ) : (
-              renderEmptyOrUpcoming(predictViewState, predictDaysUntilReveal)
-            )
-          ) : needsTeamFormationGate && !teamFormationReady ? (
-            <MissionLoadingBox>
-              <ClipLoader size={24} color="#9ca3af" />
-            </MissionLoadingBox>
           ) : (
-            renderPredictTab(true)
+            <>
+              {!isVillainEmpty && !villainMergedIntoPredict && renderVillainTab()}
+              {!isPredictEmpty &&
+                (needsTeamFormationGate && !teamFormationReady ? (
+                  <MissionLoadingBox>
+                    <ClipLoader size={24} color="#9ca3af" />
+                  </MissionLoadingBox>
+                ) : (
+                  renderPredictTab(villainMergedIntoPredict)
+                ))}
+            </>
           )}
         </MissionPanel>
       )}
