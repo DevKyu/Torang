@@ -6,6 +6,7 @@ import {
   claimMissionReveal,
   commitMissionReveal,
   migrateLegacyIfNeeded,
+  resyncRevealedStatus,
   DEFAULT_SCORE_DIFF_THRESHOLD,
 } from '../hooks/useMission';
 import type {
@@ -77,8 +78,7 @@ export async function revealScoreGuessMissionResult(
   topTargets: string[];
 }> {
   if (data.result?.revealed === true) {
-    await migrateLegacyIfNeeded(ym);
-    await set(ref(db, `missions/${ym}/scoreGuess/config/status`), 'revealed');
+    await resyncRevealedStatus(ym, 'scoreGuess');
     return {
       actualScores: data.result.actualScores ?? {},
       correctVoters: data.result.correctVoters ?? [],

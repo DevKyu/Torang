@@ -499,13 +499,17 @@ export async function commitMissionReveal(
   }
 }
 
+export async function resyncRevealedStatus(ym: string, type: MissionType): Promise<void> {
+  await migrateLegacyIfNeeded(ym);
+  await set(ref(db, `missions/${ym}/${type}/config/status`), 'revealed');
+}
+
 export async function revealMissionResult(
   ym: string,
   data: VillainMissionData,
 ): Promise<{ villainWon: boolean; helperWon: boolean; correctVoters: string[] }> {
   if (data.result?.revealed === true) {
-    await migrateLegacyIfNeeded(ym);
-    await set(ref(db, `missions/${ym}/villain/config/status`), 'revealed');
+    await resyncRevealedStatus(ym, 'villain');
     return {
       villainWon: data.result.villainWon,
       helperWon: data.result.helperWon,

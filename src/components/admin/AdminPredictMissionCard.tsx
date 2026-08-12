@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { ref, get, remove } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
+import VoteBreakdownList from './VoteBreakdownList';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
 import {
@@ -33,11 +34,6 @@ import {
   CardChevron,
   CardSummary,
   CardBody,
-  VoteStatList,
-  VoteStatRow,
-  VoteBar,
-  VoteStatLabel,
-  VoteStatCount,
   VoteHeaderRow,
   ResultArea,
   Divider,
@@ -339,41 +335,15 @@ const AdminPredictMissionCard = ({
     .filter(Boolean)
     .join(' · ');
 
-  const renderScoreGuessVoteStats = () => {
-    if (totalVotes === 0) return <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>;
+  const scoreGuessVoteEntries = (() => {
     const counts: Record<string, number> = {};
     for (const vote of Object.values(predictVotes as Record<string, { targetEmpId: string }>)) {
       counts[vote.targetEmpId] = (counts[vote.targetEmpId] ?? 0) + 1;
     }
-    const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a);
-    return (
-      <VoteStatList>
-        {sorted.map(([empId, count]) => (
-          <VoteStatRow key={empId}>
-            <VoteStatLabel>{allNames[empId] ?? empId}</VoteStatLabel>
-            <VoteBar pct={totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0} color="#10b981" />
-            <VoteStatCount>{count}표</VoteStatCount>
-          </VoteStatRow>
-        ))}
-        <VoteStatRow>
-          <VoteStatLabel style={{ color: '#6b7280' }}>총 예측</VoteStatLabel>
-          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>{totalVotes}명</VoteStatCount>
-        </VoteStatRow>
-      </VoteStatList>
-    );
-  };
-
-  const renderTeamGuessVoteStats = () =>
-    totalVotes === 0 ? (
-      <EmptyMsg>아직 예측이 없습니다.</EmptyMsg>
-    ) : (
-      <VoteStatList>
-        <VoteStatRow>
-          <VoteStatLabel style={{ color: '#6b7280' }}>총 예측</VoteStatLabel>
-          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>{totalVotes}명</VoteStatCount>
-        </VoteStatRow>
-      </VoteStatList>
-    );
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .map(([empId, count]) => ({ empId, label: allNames[empId] ?? empId, count }));
+  })();
 
   return (
     <MissionTypeCard>
@@ -693,7 +663,12 @@ const AdminPredictMissionCard = ({
                   </>
                 )}
               </VoteHeaderRow>
-              {currentType === 'scoreGuess' ? renderScoreGuessVoteStats() : renderTeamGuessVoteStats()}
+              <VoteBreakdownList
+                total={totalVotes}
+                entries={currentType === 'scoreGuess' ? scoreGuessVoteEntries : []}
+                emptyLabel="아직 예측이 없습니다."
+                totalLabel="총 예측"
+              />
               {data?.result && currentType === 'scoreGuess' && (
                 <ResultArea>
                   {((data as ScoreGuessMissionData).targets?.empIds ?? []).map((id) => (

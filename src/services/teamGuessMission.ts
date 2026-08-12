@@ -6,6 +6,7 @@ import {
   claimMissionReveal,
   commitMissionReveal,
   migrateLegacyIfNeeded,
+  resyncRevealedStatus,
 } from '../hooks/useMission';
 import type {
   MissionStatus,
@@ -62,8 +63,7 @@ export async function revealTeamGuessMissionResult(
   data: TeamGuessMissionData,
 ): Promise<{ myGroupCorrectVoters: string[]; bonusCorrectVoters: string[] }> {
   if (data.result?.revealed === true) {
-    await migrateLegacyIfNeeded(ym);
-    await set(ref(db, `missions/${ym}/teamGuess/config/status`), 'revealed');
+    await resyncRevealedStatus(ym, 'teamGuess');
     return {
       myGroupCorrectVoters: data.result.myGroupCorrectVoters ?? [],
       bonusCorrectVoters: data.result.bonusCorrectVoters ?? [],

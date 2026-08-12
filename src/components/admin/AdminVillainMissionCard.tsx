@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import VillainMissionModal from '../mission/VillainMissionModal';
+import VoteBreakdownList from './VoteBreakdownList';
 import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
@@ -42,11 +43,6 @@ import {
   CardChevron,
   CardSummary,
   CardBody,
-  VoteStatList,
-  VoteStatRow,
-  VoteBar,
-  VoteStatLabel,
-  VoteStatCount,
   VoteHeaderRow,
   ResultArea,
   Divider,
@@ -57,7 +53,6 @@ import {
   SettingCell,
   SettingCellLabel,
   SettingDivider,
-  EmptyMsg,
 } from '../../styles/admin/AdminMissionStyle';
 import {
   saveVillainMissionContent,
@@ -290,30 +285,16 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
     villainVoteCounts[target] = (villainVoteCounts[target] ?? 0) + 1;
   }
 
-  const renderVoteStats = () => {
-    if (totalVillainVotes === 0) return <EmptyMsg>아직 투표가 없습니다.</EmptyMsg>;
-    const villainId = data?.roles?.villain;
-    const helperId = data?.roles?.helper;
-    const sorted = Object.entries(villainVoteCounts).sort(([, a], [, b]) => b - a);
-    return (
-      <VoteStatList>
-        {sorted.map(([empId, count]) => (
-          <VoteStatRow key={empId}>
-            <VoteStatLabel>{allNames[empId] ?? empId}</VoteStatLabel>
-            <VoteBar
-              pct={totalVillainVotes > 0 ? Math.round((count / totalVillainVotes) * 100) : 0}
-              color={empId === villainId ? '#ef4444' : empId === helperId ? '#3b82f6' : '#9ca3af'}
-            />
-            <VoteStatCount>{count}표</VoteStatCount>
-          </VoteStatRow>
-        ))}
-        <VoteStatRow>
-          <VoteStatLabel style={{ color: '#6b7280' }}>총 투표</VoteStatLabel>
-          <VoteStatCount style={{ color: '#6b7280', marginLeft: 'auto' }}>{totalVillainVotes}명</VoteStatCount>
-        </VoteStatRow>
-      </VoteStatList>
-    );
-  };
+  const villainId = data?.roles?.villain;
+  const helperId = data?.roles?.helper;
+  const villainVoteEntries = Object.entries(villainVoteCounts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([empId, count]) => ({
+      empId,
+      label: allNames[empId] ?? empId,
+      count,
+      color: empId === villainId ? '#ef4444' : empId === helperId ? '#3b82f6' : '#9ca3af',
+    }));
 
   return (
     <MissionTypeCard>
@@ -652,7 +633,12 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
                   </>
                 )}
               </VoteHeaderRow>
-              {renderVoteStats()}
+              <VoteBreakdownList
+                total={totalVillainVotes}
+                entries={villainVoteEntries}
+                emptyLabel="아직 투표가 없습니다."
+                totalLabel="총 투표"
+              />
               {data?.result && (
                 <ResultArea>
                   <div>
