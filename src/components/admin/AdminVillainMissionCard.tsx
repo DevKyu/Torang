@@ -265,6 +265,8 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   const handleResetMission = () => runMissionReset(ym, 'villain', data, setSaving, setConfirmReset);
 
   const status = data?.config?.status ?? 'draft';
+  const villainVotes = data?.votes ?? {};
+  const totalVillainVotes = Object.keys(villainVotes).length;
   const summaryText = [
     data?.config?.title ? `『${data.config.title}』` : null,
     status === 'draft'
@@ -274,7 +276,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
       : status === 'active'
         ? '투표 대기중'
         : status === 'voting'
-          ? `투표 ${Object.keys(data?.votes ?? {}).length}명 진행중`
+          ? `투표 ${totalVillainVotes}명 진행중`
           : data?.result
             ? data.result.villainWon
               ? '빌런 생존'
@@ -283,8 +285,6 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const villainVotes = data?.votes ?? {};
-  const totalVillainVotes = Object.keys(villainVotes).length;
   const villainVoteCounts: Record<string, number> = {};
   for (const target of Object.values(villainVotes)) {
     villainVoteCounts[target] = (villainVoteCounts[target] ?? 0) + 1;
