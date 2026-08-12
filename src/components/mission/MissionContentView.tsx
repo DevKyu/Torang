@@ -9,6 +9,7 @@ import VillainMissionView from './VillainMissionView';
 import ScoreGuessMissionView from './ScoreGuessMissionView';
 import TeamGuessMissionView from './TeamGuessMissionView';
 import { renderMissionBody } from './missionBody';
+import { findGroupIndexForEmpId } from '../../utils/teamFormation';
 import type {
   VillainMissionData,
   ScoreGuessMissionData,
@@ -206,11 +207,19 @@ const MissionContentView = ({
   const isVillainEmpty = !hasVillain || villainViewState === 'empty';
   const isPredictEmpty = !hasPredict || predictViewState === 'empty';
 
+  const predictAccessible =
+    predictType === 'scoreGuess'
+      ? participants.includes(myEmpId)
+      : predictType === 'teamGuess'
+        ? formationStatus === 'confirmed' && findGroupIndexForEmpId(formationGroups, myEmpId) !== -1
+        : true;
+
   const villainMergedIntoPredict =
     hasVillain &&
     villainViewState === 'preview' &&
     predictViewState !== 'empty' &&
-    predictViewState !== 'upcoming';
+    predictViewState !== 'upcoming' &&
+    predictAccessible;
 
   return (
     <AnimatePresence mode="wait" initial={false}>
