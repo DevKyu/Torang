@@ -95,6 +95,7 @@ const MissionContentView = ({
     loading: formationLoading,
   } = useTeamFormation(teamFormationYm);
   const { rivalIds, loading: rivalsLoading } = useRivalEmpIds(teamFormationYm);
+  const teamFormationReady = predictType !== 'teamGuess' || (!formationLoading && !rivalsLoading);
 
   const hasVillain = !!villain;
   const hasPredict = !!predict;
@@ -202,7 +203,7 @@ const MissionContentView = ({
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      {!isReady ? (
+      {!isReady || !teamFormationReady ? (
         <ScreenLoadingState key="loading">
           <MissionLoadingBox>
             <ClipLoader size={24} color="#9ca3af" />
