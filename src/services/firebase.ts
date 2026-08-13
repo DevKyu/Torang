@@ -425,6 +425,7 @@ export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
         targets: u.targets,
         invitedCount: u.invitedCount,
         lastAchievementCheck: u.lastAchievementCheck,
+        lastMissionCheck: u.lastMissionCheck,
         rewards: u.rewards,
       } as UserInfo,
     ]),

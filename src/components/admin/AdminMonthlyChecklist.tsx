@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import AdminLayout from './AdminLayout';
 
 import { db, fetchAllUsers } from '../../services/firebase';
-import { createAdminMonthOptions } from '../../utils/date';
+import { createAdminMonthOptions, isCheckedSince } from '../../utils/date';
 import { useEventStore } from '../../stores/useEventStore';
 import { useUiStore } from '../../stores/useUiStore';
 import { parseMissionSnapshot } from '../../hooks/useMission';
@@ -18,6 +18,7 @@ import {
   getDaysUntilMissionReveal,
   getMissionViewState,
 } from '../../utils/missionViewState';
+import { findGroupIndexForEmpId, firebaseToFormationGroups, type FormationGroup, type RawFormationGroups } from '../../utils/teamFormation';
 
 import type { Month, Year, UserInfo } from '../../types/userInfo';
 import type { MatchType } from '../../types/match';
@@ -99,16 +100,20 @@ const AdminMonthlyChecklist = () => {
   const [participants, setParticipants] = useState<string[]>([]);
   const [predictMission, setPredictMission] = useState<{
     active: boolean;
+    isTeamGuess: boolean;
     candidates: string[];
     doneMap: Record<string, true>;
     cheerMessageCount: Record<string, number>;
     cheerReadCount: Record<string, number>;
+    formationGroups: FormationGroup[];
   }>({
     active: false,
+    isTeamGuess: false,
     candidates: [],
     doneMap: {},
     cheerMessageCount: {},
     cheerReadCount: {},
+    formationGroups: [],
   });
   const [postStatus, setPostStatus] = useState<{
     activityYmd: string | null;
@@ -116,12 +121,16 @@ const AdminMonthlyChecklist = () => {
     galleryCountMap: Record<string, number>;
     villainActive: boolean;
     villainVoteDoneMap: Record<string, true>;
+    villainRevealed: boolean;
+    predictRevealed: boolean;
   }>({
     activityYmd: null,
     matchDoneMap: {},
     galleryCountMap: {},
     villainActive: false,
     villainVoteDoneMap: {},
+    villainRevealed: false,
+    predictRevealed: false,
   });
   const [search, setSearch] = useState('');
   const [incompleteOnly, setIncompleteOnly] = useState(false);
@@ -156,6 +165,8 @@ const AdminMonthlyChecklist = () => {
         rivalResultsSnap,
         pinResultsSnap,
         gallerySnap,
+        formationStatusSnap,
+        formationGroupsSnap,
       ] = await Promise.all([
         get(ref(db, `match/${ym}/rival`)),
         get(ref(db, `match/${ym}/pin`)),
@@ -165,6 +176,8 @@ const AdminMonthlyChecklist = () => {
         get(ref(db, `matchResults/${ym}/rival`)),
         get(ref(db, `matchResults/${ym}/pin`)),
         get(ref(db, `gallery/${ym}`)),
+        get(ref(db, `teamFormation/${ym}/status`)),
+        get(ref(db, `teamFormation/${ym}/groups`)),
       ]);
 
       const hasChoices = (snap: typeof rivalMatchSnap): boolean => {
@@ -223,18 +236,28 @@ const AdminMonthlyChecklist = () => {
       const predictViewState = getMissionViewState(parsed.predict?.config, predictDaysUntilReveal);
       const predictActive = predictViewState !== 'empty' && predictViewState !== 'upcoming';
       const isScoreGuess = predictActive && parsed.predictType === 'scoreGuess';
+      const isTeamGuess = predictActive && parsed.predictType === 'teamGuess';
 
       const predictVotes = parsed.predict?.votes ?? {};
       const cheerMessageCount = countCheerMessagesByCandidate(
         predictVotes as Record<string, { targetEmpId?: string; message?: string }>,
       );
 
+      const formationConfirmed = formationStatusSnap.val() === 'confirmed';
+      const formationGroupsRaw = formationGroupsSnap.val() as RawFormationGroups | null;
+      const formationGroups =
+        formationConfirmed && formationGroupsRaw
+          ? firebaseToFormationGroups(formationGroupsRaw)
+          : [];
+
       setPredictMission({
-        active: isScoreGuess,
+        active: isScoreGuess || isTeamGuess,
+        isTeamGuess,
         candidates: isScoreGuess ? ((parsed.predict as ScoreGuessMissionData)?.targets?.empIds ?? []) : [],
-        doneMap: isScoreGuess ? toDoneMapFromKeys(predictVotes) : {},
+        doneMap: isScoreGuess || isTeamGuess ? toDoneMapFromKeys(predictVotes) : {},
         cheerMessageCount: isScoreGuess ? cheerMessageCount : {},
         cheerReadCount: isScoreGuess ? ((parsed.predict as ScoreGuessMissionData)?.cheerReads ?? {}) : {},
+        formationGroups: isTeamGuess ? formationGroups : [],
       });
 
       const matchResultsRaw = matchResultsSnap.exists()
@@ -259,16 +282,20 @@ const AdminMonthlyChecklist = () => {
         galleryCountMap,
         villainActive,
         villainVoteDoneMap: villainActive ? toDoneMapFromKeys(villainVotes) : {},
+        villainRevealed: villainViewState === 'revealed',
+        predictRevealed: predictViewState === 'revealed',
       });
     } catch {
       setRivalDoneMap({});
       setParticipants([]);
       setPredictMission({
         active: false,
+        isTeamGuess: false,
         candidates: [],
         doneMap: {},
         cheerMessageCount: {},
         cheerReadCount: {},
+        formationGroups: [],
       });
       setPostStatus({
         activityYmd: null,
@@ -276,6 +303,8 @@ const AdminMonthlyChecklist = () => {
         galleryCountMap: {},
         villainActive: false,
         villainVoteDoneMap: {},
+        villainRevealed: false,
+        predictRevealed: false,
       });
       toast.error('현황 정보를 불러오지 못했습니다.', {
         position: 'top-center',
@@ -314,8 +343,12 @@ const AdminMonthlyChecklist = () => {
     return Object.entries(users)
       .filter(([empId]) => participantSet.has(empId))
       .map(([empId, user]) => {
-        const isPredictCandidate = candidateSet.has(empId);
-        const predictSatisfied = !predictMission.active
+        const isPredictCandidate = !predictMission.isTeamGuess && candidateSet.has(empId);
+        const inFormationGroup = predictMission.isTeamGuess
+          ? findGroupIndexForEmpId(predictMission.formationGroups, empId) !== -1
+          : true;
+        const predictApplicable = predictMission.active && inFormationGroup;
+        const predictSatisfied = !predictApplicable
           ? true
           : isPredictCandidate
             ? isCheerSatisfied(
@@ -338,10 +371,7 @@ const AdminMonthlyChecklist = () => {
         const matchResultApplicable = rivalDone;
         const matchResultDone = !!postStatus.matchDoneMap[empId];
 
-        const achievementDone = postStatus.activityYmd
-          ? Number(user.lastAchievementCheck ?? 0) >=
-            Number(postStatus.activityYmd)
-          : false;
+        const achievementDone = isCheckedSince(user.lastAchievementCheck, postStatus.activityYmd);
 
         const galleryDone =
           (postStatus.galleryCountMap[empId] ?? 0) >= galleryGoal;
@@ -349,12 +379,24 @@ const AdminMonthlyChecklist = () => {
         const villainVoteApplicable = postStatus.villainActive;
         const villainVoteDone = !!postStatus.villainVoteDoneMap[empId];
 
+        const villainResultApplicable = postStatus.villainRevealed;
+        const villainResultDone =
+          villainResultApplicable &&
+          isCheckedSince(user.lastMissionCheck?.villain, postStatus.activityYmd);
+
+        const predictResultApplicable = postStatus.predictRevealed && inFormationGroup;
+        const predictResultDone =
+          predictResultApplicable &&
+          isCheckedSince(user.lastMissionCheck?.predict, postStatus.activityYmd);
+
         const postSatisfied =
           (!targetRewardEnabled || !targetRewardApplicable || targetRewardDone) &&
           (!matchRewardEnabled || !matchResultApplicable || matchResultDone) &&
           (!achievementRewardEnabled || achievementDone) &&
           (!galleryRewardEnabled || galleryDone) &&
-          (!villainVoteApplicable || villainVoteDone);
+          (!villainVoteApplicable || villainVoteDone) &&
+          (!villainResultApplicable || villainResultDone) &&
+          (!predictResultApplicable || predictResultDone);
 
         const targetDone = user.targets?.[year]?.[month as Month] !== undefined;
         const preSatisfied =
@@ -378,6 +420,10 @@ const AdminMonthlyChecklist = () => {
           galleryDone,
           villainVoteApplicable,
           villainVoteDone,
+          villainResultApplicable,
+          villainResultDone,
+          predictResultApplicable,
+          predictResultDone,
           postSatisfied,
         };
       })
@@ -516,6 +562,10 @@ const AdminMonthlyChecklist = () => {
                   galleryDone,
                   villainVoteApplicable,
                   villainVoteDone,
+                  villainResultApplicable,
+                  villainResultDone,
+                  predictResultApplicable,
+                  predictResultDone,
                 } = row;
                 const isMember = user.type === 'Member';
 
@@ -584,6 +634,18 @@ const AdminMonthlyChecklist = () => {
                           <CheckItem>
                             <CheckLabel>사진</CheckLabel>
                             {renderCheckCircle(galleryDone)}
+                          </CheckItem>
+                        )}
+                        {villainResultApplicable && (
+                          <CheckItem>
+                            <CheckLabel>빌런결과</CheckLabel>
+                            {renderCheckCircle(villainResultDone)}
+                          </CheckItem>
+                        )}
+                        {predictResultApplicable && (
+                          <CheckItem>
+                            <CheckLabel>예측결과</CheckLabel>
+                            {renderCheckCircle(predictResultDone)}
                           </CheckItem>
                         )}
                       </ChecksWrap>

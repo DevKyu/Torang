@@ -63,6 +63,11 @@ export const getDiffDaysServer = (activityYmd: string): number => {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 };
 
+export const isCheckedSince = (
+  lastCheck: string | number | undefined,
+  referenceYmd: string | number | null | undefined,
+): boolean => !!referenceYmd && Number(lastCheck ?? 0) >= Number(referenceYmd);
+
 export const resolveActivityYmd = (
   activityAll: ActivityDateAll,
   serverYear: string,

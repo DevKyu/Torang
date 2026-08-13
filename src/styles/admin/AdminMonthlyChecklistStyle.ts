@@ -90,12 +90,15 @@ export const ToggleButton = styled.button<{ active?: boolean }>`
 
 export const ChecksWrap = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 
   @media (min-width: 769px) {
     margin-left: 12px;
     flex-shrink: 0;
+    justify-content: flex-end;
   }
 `;
 
@@ -111,6 +114,7 @@ export const CheckItem = styled.div`
 
 export const CheckLabel = styled.div`
   width: 100%;
+  overflow: hidden;
   text-align: center;
 
   font-size: 0.6rem;
@@ -118,6 +122,7 @@ export const CheckLabel = styled.div`
 
   color: #a0a0a0;
   white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 export const TabRow = styled.div`

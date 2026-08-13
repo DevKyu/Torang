@@ -36,7 +36,9 @@ export type ChecklistItemKey =
   | 'achievementCheck'
   | 'matchResult'
   | 'targetScoreReward'
-  | 'villainVote';
+  | 'villainVote'
+  | 'villainResult'
+  | 'predictResult';
 
 export type ChecklistItem = {
   key: ChecklistItemKey;
