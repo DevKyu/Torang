@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import VillainMissionModal from '../mission/VillainMissionModal';
 import VoteBreakdownList from './VoteBreakdownList';
@@ -116,8 +116,23 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
     setConfirmRoleChange(false);
   }, [roleDraft.villainId, roleDraft.helperId]);
 
+  const syncedSignatureRef = useRef<string>('');
+
   useEffect(() => {
     if (loading) return;
+    const villainName = data?.roles ? allNames[data.roles.villain] ?? '' : '';
+    const helperName = data?.roles ? allNames[data.roles.helper] ?? '' : '';
+    const signature = JSON.stringify({
+      ym,
+      config: data?.config ?? null,
+      hidden: data?.hidden ?? null,
+      roles: data?.roles ?? null,
+      villainName,
+      helperName,
+    });
+    if (signature === syncedSignatureRef.current) return;
+    syncedSignatureRef.current = signature;
+
     if (data) {
       const rp = data.config?.rewardPin ?? 1;
       const vp = data.config?.villainRewardPin ?? rp;
@@ -159,7 +174,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
       setHiddenDraft(DEFAULT_HIDDEN_DRAFT);
       setRoleDraft({ villainName: '', villainId: '', helperName: '', helperId: '' });
     }
-  }, [data, loading, allNames]);
+  }, [data, loading, allNames, ym]);
 
   const lookupRole = (role: 'villain' | 'helper') => {
     const query = (role === 'villain' ? roleDraft.villainName : roleDraft.helperName).trim().toLowerCase();
@@ -194,8 +209,11 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
         toast('참여자가 2명 이상이어야 합니다.', { position: 'top-center' });
         return;
       }
-      const shuffled = [...ids].sort(() => Math.random() - 0.5);
-      const [vId, hId] = shuffled;
+      const i = Math.floor(Math.random() * ids.length);
+      let j = Math.floor(Math.random() * (ids.length - 1));
+      if (j >= i) j += 1;
+      const vId = ids[i];
+      const hId = ids[j];
       setRoleDraft({ villainId: vId, villainName: allNames[vId] ?? vId, helperId: hId, helperName: allNames[hId] ?? hId });
       toast('✅ 랜덤 배정 완료', { position: 'top-center', duration: 1800, style: toSuccessStyle });
     } catch {

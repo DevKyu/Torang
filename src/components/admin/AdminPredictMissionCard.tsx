@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ref, get, remove } from 'firebase/database';
 import { toast } from 'sonner';
@@ -151,8 +151,14 @@ const AdminPredictMissionCard = ({
     if (predictType) setMissionType(predictType);
   }, [predictType]);
 
+  const configSyncRef = useRef<string>('');
+
   useEffect(() => {
     if (loading) return;
+    const configSignature = JSON.stringify({ ym, predictType, config: data?.config ?? null });
+    if (configSignature === configSyncRef.current) return;
+    configSyncRef.current = configSignature;
+
     if (predictType === 'scoreGuess' && data?.config) {
       const d = data as ScoreGuessMissionData;
       const rp = d.config?.rewardPin ?? 0.5;
@@ -189,7 +195,7 @@ const AdminPredictMissionCard = ({
       setTgRewardPinRaw('1');
       setTgBonusRewardPinRaw('1');
     }
-  }, [data, predictType, loading]);
+  }, [data, predictType, loading, ym]);
 
   const [candidateStartYm, quarterEndYm] = useMemo(() => {
     const refDate = new Date(Number(ym.slice(0, 4)), Number(ym.slice(4)) - 1, 1);
@@ -225,18 +231,29 @@ const AdminPredictMissionCard = ({
     };
   }, [ym, candidateStartYm, quarterEndYm]);
 
+  const candidateSyncRef = useRef<string>('');
+
   useEffect(() => {
     if (loading) return;
-    if (predictType === 'scoreGuess' && (data as ScoreGuessMissionData)?.targets?.empIds) {
-      setCandidateChecked(
-        Object.fromEntries((data as ScoreGuessMissionData).targets!.empIds.map((id) => [id, true])),
-      );
+    const empIds =
+      predictType === 'scoreGuess' ? (data as ScoreGuessMissionData)?.targets?.empIds ?? null : null;
+    const candidateSignature = JSON.stringify({
+      ym,
+      predictType,
+      empIds,
+      candidateIds: candidates.map(([id]) => id),
+    });
+    if (candidateSignature === candidateSyncRef.current) return;
+    candidateSyncRef.current = candidateSignature;
+
+    if (empIds) {
+      setCandidateChecked(Object.fromEntries(empIds.map((id) => [id, true])));
     } else if (candidates.length > 0) {
       setCandidateChecked(Object.fromEntries(candidates.map(([id]) => [id, true])));
     } else {
       setCandidateChecked({});
     }
-  }, [data, predictType, candidates, loading]);
+  }, [data, predictType, candidates, loading, ym]);
 
   const toggleCandidate = (empId: string) => {
     setConfirmTargetChange(false);
