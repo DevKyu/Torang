@@ -40,10 +40,7 @@ export async function confirmScoreGuessTargets(
   empIds: string[],
 ): Promise<void> {
   await migrateLegacyIfNeeded(ym);
-  await set(ref(db, `missions/${ym}/scoreGuess/targets`), {
-    empIds,
-    confirmedAt: useUiStore.getState().getServerNow().getTime(),
-  });
+  await set(ref(db, `missions/${ym}/scoreGuess/targets`), { empIds });
 }
 
 export async function submitScoreGuessVote(

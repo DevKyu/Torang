@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
-import { ref, get, onValue } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import Layout from '../layouts/Layout';
 import { SmallText } from '../../styles/global/commonStyle';
 import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useActivityDates } from '../../hooks/useActivityDates';
+import { useAllNames } from '../../hooks/useAllNames';
 import { resolveDisplayYm } from '../../utils/date';
 import { useMission } from '../../hooks/useMission';
 import MissionContentView from './MissionContentView';
@@ -36,7 +37,7 @@ const MissionPage = () => {
   const { villain, predict, predictType, myEmpId, myVillainVote, myPredictVote, loading } =
     useMission(ym);
   const [activityDateNum, setActivityDateNum] = useState<number | null>(null);
-  const [allNames, setAllNames] = useState<Record<string, string>>({});
+  const { allNames } = useAllNames();
   const [participants, setParticipants] = useState<string[]>([]);
   const [participantsLoaded, setParticipantsLoaded] = useState(false);
 
@@ -46,13 +47,6 @@ const MissionPage = () => {
     setParticipants([]);
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
-
-    get(ref(db, 'names'))
-      .then((namesSnap) => {
-        if (namesSnap.exists())
-          setAllNames(namesSnap.val() as Record<string, string>);
-      })
-      .catch(() => {});
 
     const resolved = { date: false, participants: false };
     const tryFinish = () => {

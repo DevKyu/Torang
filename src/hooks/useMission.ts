@@ -60,12 +60,10 @@ export type VillainMissionHidden = {
 export type MissionRoles = {
   villain: string;
   helper: string;
-  assignedAt: number;
 };
 
 export type ScoreGuessTargets = {
   empIds: string[];
-  confirmedAt: number;
 };
 
 export type ScoreGuessVote = {
@@ -330,7 +328,6 @@ export async function assignRoles(
   await set(ref(db, `missions/${ym}/villain/roles`), {
     villain: villainId,
     helper: helperId,
-    assignedAt: useUiStore.getState().getServerNow().getTime(),
   });
 }
 
