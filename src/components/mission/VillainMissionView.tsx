@@ -149,7 +149,7 @@ const VillainMissionView = ({
               <>
                 <VotingInstruction>
                   {isVillain || isHelper
-                    ? '의심받지 않게 투표해주세요'
+                    ? '의심받지 않게 투표해 주세요'
                     : '이번 활동의 또랑 빌런은 누구였을까요?'}
                 </VotingInstruction>
                 <VoteListWrapper faded={voteListFaded}>

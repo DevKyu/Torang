@@ -302,7 +302,7 @@ const TeamGuessMissionView = ({
 
           {contentKey === 'voting' && myGroup && (
             <>
-              <VotingInstruction>우리 조의 승부를 예측해볼까요?</VotingInstruction>
+              <VotingInstruction>우리 조의 승부를 예측해 볼까요?</VotingInstruction>
               <TeamGuessRosterCard
                 groupLabel={`${myGroupId}조`}
                 group={myGroup}
