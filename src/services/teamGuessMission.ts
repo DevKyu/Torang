@@ -141,7 +141,7 @@ export async function revealTeamGuessMissionResult(
             voterEmpId,
             ym,
             bonusRewardPin,
-            '정기전 보너스 픽 적중 🎯',
+            '정기전 보너스 예측 성공 🎯',
             now,
             createdAt,
             '_bonus',

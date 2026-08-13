@@ -302,7 +302,7 @@ const TeamGuessMissionView = ({
 
           {contentKey === 'voting' && myGroup && (
             <>
-              <VotingInstruction>우리 조가 이길까요?</VotingInstruction>
+              <VotingInstruction>우리 조의 승부를 예측해볼까요?</VotingInstruction>
               <TeamGuessRosterCard
                 groupLabel={`${myGroupId}조`}
                 group={myGroup}
@@ -337,7 +337,7 @@ const TeamGuessMissionView = ({
                   </BonusSummaryChip>
                 ) : (
                   <AddBonusBtn onClick={() => setBonusSheetOpen(true)}>
-                    ⚡ 보너스 픽 추가하기 (선택)
+                    ⚡ 보너스 예측하기 (선택)
                   </AddBonusBtn>
                 ))}
 

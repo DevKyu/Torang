@@ -109,7 +109,7 @@ const TeamGuessResultModal = ({ isOpen, onClose, myEmpId, sections, rivalIds }: 
                     tone={section.tone}
                     onClick={() => selectTab(idx)}
                   >
-                    {section.tone === 'mine' ? '내 조' : '보너스 픽'} · {section.groupId}조
+                    {section.tone === 'mine' ? '내 조' : '보너스 예측'} · {section.groupId}조
                   </TabBtn>
                 ))}
               </TabRow>

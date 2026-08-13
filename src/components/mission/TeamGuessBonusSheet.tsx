@@ -82,13 +82,13 @@ const TeamGuessBonusSheet = ({
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
             <Header>
-              <span>보너스 픽 선택</span>
+              <span>보너스 예측 선택</span>
               <CloseBtn onClick={onClose}>
                 <X size={18} />
               </CloseBtn>
             </Header>
             <Body>
-              <Hint>다른 조 승부도 하나 골라보세요. 틀려도 감점 없어요.</Hint>
+              <Hint>다른 조의 승부도 맞히면 보너스 핀 ⚡</Hint>
               <CandidateList>
                 {candidates.map(({ groupId, group }) => {
                   const checked = draftGroupId === groupId;
