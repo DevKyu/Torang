@@ -144,8 +144,6 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
     return { rewarded: false as const };
   }
 
-  // 활동일 18:30 KST(컷오프) 이후 target을 고쳤으면 실제 점수를 보고
-  // 소급 설정했을 가능성이 있어 무효 처리한다.
   const cutoffUtcMs = Date.UTC(Number(year), Number(month) - 1, Number(day), 9, 30, 0, 0);
   const targetUpdatedAtMs = targetMetaSnap.val();
   if (typeof targetUpdatedAtMs === 'number' && targetUpdatedAtMs > cutoffUtcMs) {
