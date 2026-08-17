@@ -38,7 +38,7 @@ export type AchievementId =
   | 'mission_villain_success'
   | 'mission_villain_found';
 
-export type Achievement = {
+type Achievement = {
   id: AchievementId;
   category: AchievementCategory;
   label: string;

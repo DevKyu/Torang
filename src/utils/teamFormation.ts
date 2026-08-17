@@ -9,7 +9,7 @@ export type FormationGroup = {
   team2: FormationPlayer[]
 }
 
-export type FormationMember = {
+type FormationMember = {
   name: string
   average: number
   order: number

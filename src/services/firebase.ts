@@ -143,7 +143,7 @@ export const registerUid = async (empId: string, referrerName?: string) => {
   }
 };
 
-export const findEmpIdByName = async (name: string): Promise<string | null> => {
+const findEmpIdByName = async (name: string): Promise<string | null> => {
   const snap = await get(ref(db, 'names'));
   if (!snap.exists()) return null;
 

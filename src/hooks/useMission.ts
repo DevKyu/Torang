@@ -57,12 +57,12 @@ export type VillainMissionHidden = {
   helper: HiddenContent;
 };
 
-export type MissionRoles = {
+type MissionRoles = {
   villain: string;
   helper: string;
 };
 
-export type ScoreGuessTargets = {
+type ScoreGuessTargets = {
   empIds: string[];
 };
 
@@ -79,7 +79,7 @@ export type TeamGuessVote = {
   bonusGroupPick?: 'team1' | 'team2' | 'draw';
 };
 
-export type MissionResult = {
+type MissionResult = {
   revealed: boolean;
   revealedAt: number;
   villainWon: boolean;
@@ -89,7 +89,7 @@ export type MissionResult = {
   correctVoters: string[];
 };
 
-export type ScoreGuessMissionResult = {
+type ScoreGuessMissionResult = {
   revealed: boolean;
   revealedAt: number;
   actualScores: Record<string, number>;
@@ -97,7 +97,7 @@ export type ScoreGuessMissionResult = {
   topTargets: string[];
 };
 
-export type TeamGuessMissionResult = {
+type TeamGuessMissionResult = {
   revealed: boolean;
   revealedAt: number;
   myGroupCorrectVoters: string[];

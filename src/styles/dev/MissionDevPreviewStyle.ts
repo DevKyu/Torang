@@ -11,13 +11,6 @@ export const DevNotice = styled.div`
   margin-bottom: 20px;
 `;
 
-export const DevPreviewFrame = styled.div`
-  border: 1px dashed #d1d5db;
-  border-radius: 14px;
-  padding: 20px 16px;
-  background: #fff;
-`;
-
 export const DevFloatingBar = styled.div`
   position: fixed;
   top: 10px;

@@ -26,7 +26,7 @@ export type SharedChecklistData = {
   userInfo: UserInfo | null;
 };
 
-export type ChecklistItemKey =
+type ChecklistItemKey =
   | 'targetScore'
   | 'rivalMatch'
   | 'scoreGuessPredict'

@@ -4,8 +4,6 @@ import { db } from '../services/firebase';
 import { useUiStore } from './useUiStore';
 import type { MatchType } from '../types/match';
 
-export type { MatchType };
-
 const getConnectedValue = (path: string) =>
   new Promise<DataSnapshot>((resolve, reject) => {
     const unsub = onValue(
@@ -21,15 +19,15 @@ const getConnectedValue = (path: string) =>
     );
   });
 
-export type PinRewardConfig = {
+type PinRewardConfig = {
   targetScore: number;
   rivalMatch: number;
   pinMatch: number;
   achievement: number;
 };
 
-export type GalleryRewardItem = { pin: number; threshold: number };
-export type GalleryRewardConfig = {
+type GalleryRewardItem = { pin: number; threshold: number };
+type GalleryRewardConfig = {
   upload: GalleryRewardItem;
   likeCreator: GalleryRewardItem;
   commentCreator: GalleryRewardItem;
@@ -42,7 +40,7 @@ export type MenuBadgeConfig = {
 
 export const DEFAULT_BADGE_COLOR = '#f97316';
 
-export type MenuConfigItem = {
+type MenuConfigItem = {
   order?: number;
   badge?: MenuBadgeConfig;
   disabled?: boolean;

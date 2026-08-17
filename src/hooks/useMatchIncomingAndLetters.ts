@@ -5,12 +5,18 @@ import { asYear, asMonth } from '../utils/score';
 import { getResultType, type Result } from '../utils/ranking';
 import type { UserInfo } from '../types/userInfo';
 import type { YearMonth, MatchType } from '../types/match';
-import type { ReceivedLetter } from './useReceivedLetters';
 
 export type Incoming = {
   name: string;
   result: Result;
   delta?: number;
+};
+
+export type ReceivedLetter = {
+  fromId: string;
+  message: string;
+  anonymous?: boolean;
+  chosenAt: number;
 };
 
 type RawMatchData = Record<

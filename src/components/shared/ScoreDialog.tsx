@@ -13,7 +13,7 @@ import {
   CloseBtn,
 } from '../../styles/shared/ScoreDialogStyle';
 
-export type ScoreDialogProps = {
+type ScoreDialogProps = {
   monthLabel: string;
   minScore: number;
   defaultValue?: number | null;

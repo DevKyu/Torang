@@ -4,7 +4,7 @@ import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 
 export type MessageType = 'all' | 'specific';
-export type MessageStatus = 'active' | 'cancelled';
+type MessageStatus = 'active' | 'cancelled';
 
 export const MESSAGE_REACTION_EMOJIS = [
   { key: 'thumbsup', emoji: '👍', label: '좋아요' },

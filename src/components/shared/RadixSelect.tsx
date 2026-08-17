@@ -87,7 +87,7 @@ const CheckIcon = styled(Select.ItemIndicator)`
   color: ${COLOR.brand};
 `;
 
-export type RadixSelectProps = {
+type RadixSelectProps = {
   value: string;
   options: readonly string[];
   onChange: (v: string) => void;

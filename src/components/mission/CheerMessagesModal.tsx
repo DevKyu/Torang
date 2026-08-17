@@ -18,7 +18,7 @@ import {
   CHEER_COLOR,
 } from '../../styles/mission/CheerMessagesModalStyle';
 
-export type CheerMessageEntry = {
+type CheerMessageEntry = {
   senderName: string;
   message: string;
 };

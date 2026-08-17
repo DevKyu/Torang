@@ -158,7 +158,7 @@ export const Emoji = styled.div<{ result: Result }>`
   }
 `;
 
-export const Message = styled.div`
+const Message = styled.div`
   font-size: 18px;
   font-weight: 600;
   color: #333;

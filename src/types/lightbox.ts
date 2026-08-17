@@ -23,7 +23,3 @@ export type LightboxComment = {
   deleted?: boolean;
 };
 
-export type CommentSheetProps = {
-  open: boolean;
-  onClose: () => void;
-};

@@ -16,7 +16,7 @@ import {
   ResultDeltaBadge,
 } from '../../styles/shared/CongratulationOverlayStyle';
 
-export type Result = 'win' | 'lose' | 'draw' | 'none' | 'special';
+type Result = 'win' | 'lose' | 'draw' | 'none' | 'special';
 
 type Incoming = {
   name: string;

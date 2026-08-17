@@ -4,7 +4,7 @@ import { db } from '../services/firebase';
 import { useUiStore } from '../stores/useUiStore';
 import type { YearMonth, MatchType } from '../types/match';
 
-export type MatchChoice = { chosenAt: number, message?: string };
+type MatchChoice = { chosenAt: number, message?: string };
 export type MatchChoices = Record<string, MatchChoice>;
 
 export const useMatch = (

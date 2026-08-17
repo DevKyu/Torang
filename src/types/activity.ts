@@ -1,4 +1,4 @@
-export type MatchTeams = {
+type MatchTeams = {
   my: string[];
   opponent: string[];
 };

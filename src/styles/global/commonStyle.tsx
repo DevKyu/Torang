@@ -5,7 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 export const SYS_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-export const shimmer = keyframes`
+const shimmer = keyframes`
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 `;
