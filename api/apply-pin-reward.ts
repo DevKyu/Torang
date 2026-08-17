@@ -105,6 +105,89 @@ const applyReferralReward = async (empId: string) => {
   return { rewarded: true as const, pin: pinRate };
 };
 
+const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
+  if (!/^\d{8}$/.test(activityYmd)) return { rewarded: false as const };
+
+  const db = getDatabase();
+  const year = activityYmd.slice(0, 4);
+  const paddedMonth = activityYmd.slice(4, 6);
+  const month = String(Number(paddedMonth));
+  const day = activityYmd.slice(6, 8);
+  const ym = `${year}${paddedMonth}`;
+
+  const activityDateSnap = await db.ref(`activityDate/${year}/${month}`).get();
+  if (activityDateSnap.val() !== Number(activityYmd)) {
+    return { rewarded: false as const };
+  }
+
+  const activityMidnightUtcMs =
+    Date.UTC(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0) -
+    9 * 60 * 60 * 1000;
+  const diffDays = Math.floor(
+    (Date.now() - activityMidnightUtcMs) / (24 * 60 * 60 * 1000),
+  );
+  if (diffDays < 0 || diffDays > 7) return { rewarded: false as const };
+
+  const rateSnap = await db.ref(`eventConfig/pinReward/${ym}/targetScore`).get();
+  const rate = typeof rateSnap.val() === 'number' ? (rateSnap.val() as number) : 0;
+  if (rate <= 0) return { rewarded: false as const };
+
+  const [scoreSnap, targetSnap, targetMetaSnap] = await Promise.all([
+    db.ref(`users/${empId}/scores/${year}/${month}`).get(),
+    db.ref(`users/${empId}/targets/${year}/${month}`).get(),
+    db.ref(`users/${empId}/targetMeta/${year}/${month}/updatedAt`).get(),
+  ]);
+
+  const myScore = scoreSnap.val();
+  const target = targetSnap.val();
+  if (typeof myScore !== 'number' || typeof target !== 'number') {
+    return { rewarded: false as const };
+  }
+
+  // 활동일 18:30 KST(컷오프) 이후 target을 고쳤으면 실제 점수를 보고
+  // 소급 설정했을 가능성이 있어 무효 처리한다.
+  const cutoffUtcMs = Date.UTC(Number(year), Number(month) - 1, Number(day), 9, 30, 0, 0);
+  const targetUpdatedAtMs = targetMetaSnap.val();
+  if (typeof targetUpdatedAtMs === 'number' && targetUpdatedAtMs > cutoffUtcMs) {
+    return { rewarded: false as const };
+  }
+
+  if (myScore < target) return { rewarded: false as const };
+  const special = myScore === target;
+
+  const { y, mo, day: kDay, h, mi } = kstParts();
+  const createdAt = `${y}${mo}${kDay}${h}${mi}`;
+  const rewardPath = `users/${empId}/rewards/${ym}/target`;
+  const rewardRef = db.ref(rewardPath);
+
+  const rewardRecord = {
+    type: 'target',
+    myScore,
+    target,
+    achieved: true,
+    special,
+    pin: rate,
+    ym,
+    direction: 'gain',
+    createdAt,
+    createdAtMs: Date.now(),
+  };
+
+  const tx = await rewardRef.transaction((cur: unknown) =>
+    cur === null ? rewardRecord : undefined,
+  );
+  if (!tx.committed) return { rewarded: false as const };
+
+  try {
+    await db.ref().update({ [`users/${empId}/pin`]: ServerValue.increment(rate) });
+  } catch (err) {
+    await rewardRef.remove().catch(() => {});
+    throw err;
+  }
+
+  return { rewarded: true as const, pin: rate, special };
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -120,6 +203,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (type === 'referral') {
       const result = await applyReferralReward(empId);
+      return res.status(200).json({ success: true, ...result });
+    }
+
+    if (type === 'targetScore') {
+      const { activityYmd } = (req.body ?? {}) as { activityYmd?: string };
+      if (typeof activityYmd !== 'string') {
+        return res.status(400).json({ error: 'activityYmd required' });
+      }
+      const result = await applyTargetScoreReward(empId, activityYmd);
       return res.status(200).json({ success: true, ...result });
     }
 
