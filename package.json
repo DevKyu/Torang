@@ -29,6 +29,7 @@
     "framer-motion": "^12.18.1",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.525.0",
+    "nanoid": "^5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
