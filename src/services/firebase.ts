@@ -395,9 +395,11 @@ export const setTargetScore = async (
   target: number,
 ) => {
   const empId = empIdFromEmail(getCurrentUserOrThrow().email);
-  const targetRef = ref(db, `users/${empId}/targets/${year}/${month}`);
 
-  await runTransaction(targetRef, () => target);
+  await update(ref(db), {
+    [`users/${empId}/targets/${year}/${month}`]: target,
+    [`users/${empId}/targetMeta/${year}/${month}/updatedAt`]: serverTimestamp(),
+  });
 };
 
 type ActivityDateMap = Record<string, string | number>;
