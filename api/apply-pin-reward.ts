@@ -4,6 +4,8 @@ import { ensureFirebaseAdmin, getCallerEmpId } from './_lib/firebaseAdmin.js';
 
 ensureFirebaseAdmin();
 
+const REWARD_CLAIM_WINDOW_DAYS = 7;
+
 const kstParts = () => {
   const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const pad = (n: number, len = 2) => String(n).padStart(len, '0');
@@ -126,7 +128,9 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
   const diffDays = Math.floor(
     (Date.now() - activityMidnightUtcMs) / (24 * 60 * 60 * 1000),
   );
-  if (diffDays < 0 || diffDays > 7) return { rewarded: false as const };
+  if (diffDays < 0 || diffDays > REWARD_CLAIM_WINDOW_DAYS) {
+    return { rewarded: false as const };
+  }
 
   const rateSnap = await db.ref(`eventConfig/pinReward/${ym}/targetScore`).get();
   const rate = typeof rateSnap.val() === 'number' ? (rateSnap.val() as number) : 0;
@@ -146,7 +150,7 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
 
   const cutoffUtcMs = Date.UTC(Number(year), Number(month) - 1, Number(day), 9, 30, 0, 0);
   const targetUpdatedAtMs = targetMetaSnap.val();
-  if (typeof targetUpdatedAtMs === 'number' && targetUpdatedAtMs > cutoffUtcMs) {
+  if (typeof targetUpdatedAtMs !== 'number' || targetUpdatedAtMs > cutoffUtcMs) {
     return { rewarded: false as const };
   }
 
