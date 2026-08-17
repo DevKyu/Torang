@@ -17,7 +17,7 @@ import {
 } from '../../utils/score';
 import { getTypeLabel } from '../../utils/user';
 import { canEditTarget } from '../../utils/policy';
-import { getCurrentUserId, setTargetScore } from '../../services/firebase';
+import { setTargetScore } from '../../services/firebase';
 import RadixSelect from '../shared/RadixSelect';
 import MonthCell from '../shared/MonthCell';
 import TrendBlock from '../shared/TrendBlock';
@@ -49,7 +49,7 @@ import type {
   UserScores,
   UserTargets,
 } from '../../types/userInfo';
-import { grantTargetPinReward } from '../../utils/pin';
+import { applyTargetScoreReward } from '../../utils/pin';
 import { resolveActivityYmd } from '../../utils/date';
 import { useEventStore } from '../../stores/useEventStore';
 
@@ -187,30 +187,10 @@ const MyInfo = () => {
     if (!isPinRewardEnabled('targetScore', activityYm)) return;
     if (!activityYmdStr) return;
 
-    const { myScore, target, special } = targetResult;
-    if (myScore == null || target == null) return;
-
-    const empId = getCurrentUserId();
-    if (!empId) return;
-
-    grantTargetPinReward({
-      empId,
-      ym: activityYm,
-      activityYmd: activityYmdStr,
-      payload: {
-        myScore,
-        target,
-        achieved: true,
-        special,
-      },
-    }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    applyTargetScoreReward(activityYmdStr).catch(() => {});
   }, [
     targetResult.show,
     targetResult.achieved,
-    targetResult.myScore,
-    targetResult.target,
-    targetResult.special,
     activityYmdStr,
     isPinRewardEnabled,
     activityYm,

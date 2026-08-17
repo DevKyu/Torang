@@ -11,16 +11,8 @@ import {
   showReferrerRewardToast,
   showTargetWithPinToast,
 } from './toast';
-import { isWithinActivityDays } from './date';
 import { useUiStore } from '../stores/useUiStore';
 import { useEventStore } from '../stores/useEventStore';
-
-type TargetRewardPayload = {
-  myScore: number;
-  target: number;
-  achieved: boolean;
-  special: boolean;
-};
 
 type AchievementRewardPayload = {
   detail: string;
@@ -95,54 +87,6 @@ export const applyPinChangeBatch = async (
   showMatchWithPinToast(gainedPins, type);
 };
 
-
-export const grantTargetPinReward = async ({
-  empId,
-  ym,
-  activityYmd,
-  payload,
-}: {
-  empId: string;
-  ym: string;
-  activityYmd: string;
-  payload: TargetRewardPayload;
-}) => {
-  if (!isWithinActivityDays(activityYmd)) return false;
-
-  const rate = useEventStore.getState().getPinRewardRate('targetScore', ym);
-  if (rate <= 0) return false;
-
-  const rewardPath = `users/${empId}/rewards/${ym}/target`;
-  const { getServerNow, getServerTimestamp } = useUiStore.getState();
-  const now = getServerNow();
-  const readable = getServerTimestamp();
-
-  const rewardRecord = {
-    type: 'target',
-    ...payload,
-    pin: rate,
-    ym,
-    direction: 'gain',
-    createdAt: readable,
-    createdAtMs: now.getTime(),
-  };
-
-  const claim = await runTransaction(ref(db, rewardPath), (cur) =>
-    cur === null ? rewardRecord : undefined,
-  );
-  if (!claim.committed) return false;
-
-  try {
-    await update(ref(db), { [`users/${empId}/pin`]: increment(rate) });
-  } catch (err) {
-    await update(ref(db), { [rewardPath]: null }).catch(() => {});
-    throw err;
-  }
-
-  showTargetWithPinToast(rate);
-
-  return true;
-};
 
 export const grantAchievementPinReward = async ({
   empId,
@@ -223,6 +167,35 @@ export const applyReferralRewardIfNeeded = async (): Promise<boolean> => {
     if (getCurrentUserId() !== empId) return;
     showReferrerRewardToast(result.pin ?? 0);
   });
+  return true;
+};
+
+export const applyTargetScoreReward = async (
+  activityYmd: string,
+): Promise<boolean> => {
+  const empId = getCurrentUserId();
+  if (!empId) return false;
+
+  let result: { rewarded?: boolean; pin?: number; special?: boolean };
+  try {
+    const authHeader = await getAuthHeader();
+    const res = await fetch('/api/apply-pin-reward', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeader,
+      },
+      body: JSON.stringify({ type: 'targetScore', activityYmd }),
+    });
+    if (!res.ok) return false;
+    result = await res.json();
+  } catch {
+    return false;
+  }
+
+  if (!result.rewarded) return false;
+
+  showTargetWithPinToast(result.pin ?? 0);
   return true;
 };
 
