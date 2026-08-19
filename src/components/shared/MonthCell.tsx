@@ -16,6 +16,7 @@ type MonthCellProps = {
   timeAllowed: boolean;
   highlightActivity?: boolean;
   hasActivity: boolean;
+  participantConfirmed: boolean;
 };
 
 const MonthCell = ({
@@ -25,9 +26,14 @@ const MonthCell = ({
   timeAllowed,
   highlightActivity = false,
   hasActivity = false,
+  participantConfirmed,
 }: MonthCellProps) => {
   const { month, key, score, target, edit } = meta;
-  const canEdit = hasActivity && timeAllowed && (target !== undefined || edit);
+  const canEdit =
+    hasActivity &&
+    timeAllowed &&
+    participantConfirmed &&
+    (target !== undefined || edit);
   const defaultValue = target ?? score ?? overallAvg ?? 150;
 
   return (

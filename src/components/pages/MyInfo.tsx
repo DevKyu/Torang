@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import useUserInfo from '../../hooks/useUserInfo';
 import { useActivityDates } from '../../hooks/useActivityDates';
+import { useMonthParticipants } from '../../hooks/useMonthParticipants';
 import { useQuarterStats } from '../../hooks/useQuarterStats';
 import { useTargetResult } from '../../hooks/useTargetResult';
 import {
@@ -17,7 +18,7 @@ import {
 } from '../../utils/score';
 import { getTypeLabel } from '../../utils/user';
 import { canEditTarget } from '../../utils/policy';
-import { setTargetScore } from '../../services/firebase';
+import { setTargetScore, waitForAuthUser, empIdFromEmail } from '../../services/firebase';
 import RadixSelect from '../shared/RadixSelect';
 import MonthCell from '../shared/MonthCell';
 import TrendBlock from '../shared/TrendBlock';
@@ -81,7 +82,11 @@ const MyInfo = () => {
 
   const { maps: activityAll, loading: activityLoading } = useActivityDates();
   const activityMap = activityAll[String(year)] ?? {};
-  const isReady = isUserReady && !activityLoading;
+
+  const [myEmpId, setMyEmpId] = useState('');
+  useEffect(() => {
+    waitForAuthUser().then((user) => setMyEmpId(empIdFromEmail(user?.email)));
+  }, []);
 
   const { hasShownCongrats, setShownCongrats } = useUiStore(
     useShallow((s) => ({
@@ -105,6 +110,11 @@ const MyInfo = () => {
     monthNum,
   );
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
+  const { participants: activityParticipants, loading: participantsLoading } =
+    useMonthParticipants(activityYm.slice(0, 4), Number(activityYm.slice(4, 6)));
+  const isActivityParticipant =
+    !!myEmpId && activityParticipants.includes(myEmpId);
+  const isReady = isUserReady && !activityLoading && !participantsLoading;
   const targetResult = useTargetResult(userInfo, activityYmdStr);
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
 
@@ -288,6 +298,8 @@ const MyInfo = () => {
                     const isCurrentMonth =
                       year === serverYear && +m.key === serverMonth;
                     const highlightActivity = isCurrentMonth && hasActivity;
+                    const participantConfirmed =
+                      actYmd !== activityYmdStr || isActivityParticipant;
 
                     return (
                       <MonthCell
@@ -298,6 +310,7 @@ const MyInfo = () => {
                         timeAllowed={timeAllowed}
                         highlightActivity={highlightActivity}
                         hasActivity={hasActivity}
+                        participantConfirmed={participantConfirmed}
                       />
                     );
                   })}
