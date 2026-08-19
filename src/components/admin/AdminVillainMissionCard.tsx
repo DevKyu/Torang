@@ -95,8 +95,10 @@ type Props = {
 
 const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   const [expanded, setExpanded] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   useEffect(() => {
     setExpanded(false);
+    setConfirmReset(false);
   }, [ym]);
 
   const [configDraft, setConfigDraft] = useState<ConfigDraft>(DEFAULT_CONFIG_DRAFT);
@@ -109,7 +111,6 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   const [helperDropdown, setHelperDropdown] = useState<[string, string][]>([]);
   const [saving, setSaving] = useState(false);
   const [revealing, setRevealing] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
   const [villainPreviewOpen, setVillainPreviewOpen] = useState(false);
 
   useEffect(() => {

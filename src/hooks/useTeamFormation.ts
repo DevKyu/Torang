@@ -95,7 +95,16 @@ export function useTeamFormation(ym: string): UseTeamFormationResult {
   const resolved = useRef({ formation: false, team: false })
 
   useEffect(() => {
-    if (!ym) return
+    if (!ym) {
+      setLoading(false)
+      setGroups([])
+      setStatus('none')
+      setWinnerMap({})
+      setScoreMap({})
+      setIsLegacy(false)
+      setError(false)
+      return
+    }
 
     setLoading(true)
     setGroups([])

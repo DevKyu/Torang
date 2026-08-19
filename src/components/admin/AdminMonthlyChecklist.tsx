@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { get, ref } from 'firebase/database';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { toast } from 'sonner';
@@ -135,6 +135,7 @@ const AdminMonthlyChecklist = () => {
   const [search, setSearch] = useState('');
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const latestRequestYmRef = useRef('');
 
   useEffect(() => {
     if (!eventLoaded) loadEventConfig();
@@ -152,6 +153,7 @@ const AdminMonthlyChecklist = () => {
   }, []);
 
   const loadStatusForMonth = useCallback(async (ym: string, fallbackType: MatchType) => {
+    latestRequestYmRef.current = ym;
     setLoading(true);
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
@@ -179,6 +181,7 @@ const AdminMonthlyChecklist = () => {
         get(ref(db, `teamFormation/${ym}/status`)),
         get(ref(db, `teamFormation/${ym}/groups`)),
       ]);
+      if (latestRequestYmRef.current !== ym) return;
 
       const hasChoices = (snap: typeof rivalMatchSnap): boolean => {
         if (!snap.exists()) return false;
@@ -286,6 +289,7 @@ const AdminMonthlyChecklist = () => {
         predictRevealed: predictViewState === 'revealed',
       });
     } catch {
+      if (latestRequestYmRef.current !== ym) return;
       setRivalDoneMap({});
       setParticipants([]);
       setPredictMission({
@@ -310,7 +314,7 @@ const AdminMonthlyChecklist = () => {
         position: 'top-center',
       });
     } finally {
-      setLoading(false);
+      if (latestRequestYmRef.current === ym) setLoading(false);
     }
   }, []);
 
@@ -410,6 +414,7 @@ const AdminMonthlyChecklist = () => {
           targetDone,
           rivalDone,
           isPredictCandidate,
+          predictApplicable,
           predictSatisfied,
           preSatisfied,
           targetRewardApplicable,
@@ -553,6 +558,7 @@ const AdminMonthlyChecklist = () => {
                   user,
                   targetDone,
                   rivalDone,
+                  predictApplicable,
                   predictSatisfied,
                   targetRewardApplicable,
                   targetRewardDone,
@@ -600,7 +606,7 @@ const AdminMonthlyChecklist = () => {
                         {predictMission.active && (
                           <CheckItem>
                             <CheckLabel>예측</CheckLabel>
-                            {renderCheckCircle(predictSatisfied)}
+                            {renderStatusCircle(predictApplicable, predictSatisfied)}
                           </CheckItem>
                         )}
                       </ChecksWrap>

@@ -185,7 +185,7 @@ export const useMonthlyChecklist = (
     const isCandidate =
       !!myEmpId && !!scoreGuessData?.targets?.empIds?.includes(myEmpId);
 
-    if (scoreGuessData && missionViewState === 'preview' && stillActionable) {
+    if (scoreGuessData && missionViewState === 'preview' && stillActionable && withinReminderWindow) {
       if (isCandidate) {
         const cheerMessageCount =
           countCheerMessagesByCandidate(scoreGuessData.votes)[myEmpId ?? ''] ??
@@ -228,6 +228,7 @@ export const useMonthlyChecklist = (
       teamGuessData &&
       missionViewState === 'preview' &&
       stillActionable &&
+      withinReminderWindow &&
       teamFormationStatus === 'confirmed' &&
       !!myEmpId &&
       findGroupIndexForEmpId(teamFormationGroups, myEmpId) !== -1

@@ -125,8 +125,12 @@ const AdminPredictMissionCard = ({
   teamFormationGroups,
 }: Props) => {
   const [expanded, setExpanded] = useState(false);
+  const [confirmTargetChange, setConfirmTargetChange] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   useEffect(() => {
     setExpanded(false);
+    setConfirmTargetChange(false);
+    setConfirmReset(false);
   }, [ym]);
 
   const [missionType, setMissionType] = useState<PredictType>('scoreGuess');
@@ -142,10 +146,8 @@ const AdminPredictMissionCard = ({
   const [candidates, setCandidates] = useState<[string, string][]>([]);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [candidateChecked, setCandidateChecked] = useState<Record<string, true>>({});
-  const [confirmTargetChange, setConfirmTargetChange] = useState(false);
   const [saving, setSaving] = useState(false);
   const [revealing, setRevealing] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     if (predictType) setMissionType(predictType);
