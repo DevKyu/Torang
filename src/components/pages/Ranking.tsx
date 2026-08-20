@@ -130,11 +130,12 @@ const Ranking = () => {
 
   const timeAllowed = canEditTarget(activityYmd);
   const participants = rankingType === 'monthly' ? participantsAll : undefined;
+  const viewerIsParticipant = myId !== null && participantsAll.includes(myId);
 
   const monthlyEnabled = useMemo(() => {
     if (!activityYmd) return false;
-    return participantsAll.length > 0 && timeAllowed;
-  }, [participantsAll, activityYmd, timeAllowed]);
+    return timeAllowed && viewerIsParticipant;
+  }, [activityYmd, timeAllowed, viewerIsParticipant]);
 
   useEffect(() => {
     let cancelled = false;
