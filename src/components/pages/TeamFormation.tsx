@@ -68,6 +68,10 @@ const TeamFormation = () => {
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
   const [ymPending, setYmPending] = useState(false);
+  const ymRef = useRef(ym);
+  useEffect(() => {
+    ymRef.current = ym;
+  }, [ym]);
 
   useEffect(() => {
     if (activityLoading) return;
@@ -76,7 +80,7 @@ const TeamFormation = () => {
       Number(currentYm.slice(0, 4)),
       Number(currentYm.slice(4)),
     );
-    if (resolved === currentYm) return;
+    if (resolved === ymRef.current) return;
     setYmPending(true);
     setYm(resolved);
   }, [activityLoading, activityMaps, currentYm]);

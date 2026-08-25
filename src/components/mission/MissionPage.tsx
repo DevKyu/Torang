@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { ref, onValue } from 'firebase/database';
 import Layout from '../layouts/Layout';
@@ -21,14 +21,18 @@ const MissionPage = () => {
   const currentYm = useMemo(() => useUiStore.getState().formatServerDate('ym'), []);
   const [ym, setYm] = useState(currentYm);
   const [ymPending, setYmPending] = useState(false);
+  const ymRef = useRef(ym);
+  useEffect(() => {
+    ymRef.current = ym;
+  }, [ym]);
 
   useEffect(() => {
     if (activityLoading) return;
     const resolved = resolveDisplayYm(activityMaps, serverYear, serverMonth);
-    if (resolved === currentYm) return;
+    if (resolved === ymRef.current) return;
     setYmPending(true);
     setYm(resolved);
-  }, [activityLoading, activityMaps, serverYear, serverMonth, currentYm]);
+  }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {
     setYmPending(false);
