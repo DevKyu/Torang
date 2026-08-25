@@ -256,9 +256,10 @@ const Reward = () => {
 
       if (cancelled) {
         await setUserPinData(applied.requiredPins);
+        toast.info(`${applied.name} 신청을 취소했어요.`);
+      } else {
+        toast.info(`${applied.name} 신청은 이미 취소됐어요.`);
       }
-
-      toast.info(`${applied.name} 신청을 취소했어요.`);
     } catch {
       if (dataRemoved) {
         await Promise.allSettled([
