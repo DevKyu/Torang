@@ -223,8 +223,8 @@ export function parseMissionSnapshot(
 
 export async function migrateLegacyIfNeeded(ym: string): Promise<void> {
   await runTransaction(ref(db, `missions/${ym}`), (raw: RawMissionSnapshot | null) => {
-    if (!raw) return raw;
-    if (!raw.config || raw.villain || raw.scoreGuess || raw.teamGuess) return raw;
+    if (!raw) return undefined;
+    if (!raw.config || raw.villain || raw.scoreGuess || raw.teamGuess) return undefined;
 
     const type: MissionType = raw.config.type ?? 'villain';
     const slot: Record<string, unknown> = { config: raw.config };
