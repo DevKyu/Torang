@@ -32,6 +32,7 @@ export const usePostActivityChecklist = (
   const postActivityWindowDays = useEventStore(
     (s) => s.postActivityChecklistDays,
   );
+  const eventConfigLoaded = useEventStore((s) => s.loaded);
   const lastSync = useUiStore((s) => s.lastSync);
 
   const { formatServerDate } = useUiStore.getState();
@@ -65,12 +66,8 @@ export const usePostActivityChecklist = (
     return diffDaysSinceActivity <= postActivityWindowDays;
   }, [diffDaysSinceActivity, postActivityWindowDays]);
 
-  const targetPinEnabled = useEventStore(
-    (s) => (s.pinReward[activityYm]?.targetScore ?? 0) > 0,
-  );
-  const achievementPinEnabled = useEventStore(
-    (s) => (s.pinReward[activityYm]?.achievement ?? 0) > 0,
-  );
+  const targetPinEnabled = useEventStore((s) => s.isPinRewardEnabled('targetScore', activityYm));
+  const achievementPinEnabled = useEventStore((s) => s.isPinRewardEnabled('achievement', activityYm));
   const targetYear = activityYmdStr?.slice(0, 4) as Year | undefined;
   const targetMonth = activityYmdStr
     ? (String(activityMonthNum) as Month)
@@ -162,11 +159,8 @@ export const usePostActivityChecklist = (
   }, [myEmpId, galleryYm]);
 
   const matchType = useEventStore((s) => s.matchType);
-  const matchPinEnabled = useEventStore(
-    (s) =>
-      (s.pinReward[activityYm]?.[
-        matchType === 'pin' ? 'pinMatch' : 'rivalMatch'
-      ] ?? 0) > 0,
+  const matchPinEnabled = useEventStore((s) =>
+    s.isPinRewardEnabled(matchType === 'pin' ? 'pinMatch' : 'rivalMatch', activityYm),
   );
 
   const [matchResultReady, setMatchResultReady] = useState(false);
@@ -375,6 +369,7 @@ export const usePostActivityChecklist = (
 
   const loading =
     userInfo === null ||
+    !eventConfigLoaded ||
     activityLoading ||
     missionLoading ||
     participantsLoading ||

@@ -70,6 +70,7 @@ export const useMonthlyChecklist = (
 ): MonthlyChecklistResult => {
   const matchType = useEventStore((s) => s.matchType);
   const reminderDays = useEventStore((s) => s.checklistReminderDays);
+  const eventConfigLoaded = useEventStore((s) => s.loaded);
   const lastSync = useUiStore((s) => s.lastSync);
 
   const { formatServerDate } = useUiStore.getState();
@@ -77,14 +78,9 @@ export const useMonthlyChecklist = (
   const serverMonth = Number(formatServerDate('month'));
   const serverYm = formatServerDate('ym');
 
-  const targetPinEnabled = useEventStore(
-    (s) => (s.pinReward[serverYm]?.targetScore ?? 0) > 0,
-  );
-  const matchPinEnabled = useEventStore(
-    (s) =>
-      (s.pinReward[serverYm]?.[
-        matchType === 'pin' ? 'pinMatch' : 'rivalMatch'
-      ] ?? 0) > 0,
+  const targetPinEnabled = useEventStore((s) => s.isPinRewardEnabled('targetScore', serverYm));
+  const matchPinEnabled = useEventStore((s) =>
+    s.isPinRewardEnabled(matchType === 'pin' ? 'pinMatch' : 'rivalMatch', serverYm),
   );
 
   const hasActivityDate = !!activityYmdStr;
@@ -271,6 +267,7 @@ export const useMonthlyChecklist = (
 
   const loading =
     userInfo === null ||
+    !eventConfigLoaded ||
     activityLoading ||
     teamFormationLoading ||
     matchChoicesLoading ||
