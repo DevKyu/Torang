@@ -472,6 +472,7 @@ const ScoreGuessMissionView = ({
         isOpen={cheerModalOpen}
         onClose={() => setCheerModalOpen(false)}
         messages={myCheerMessages}
+        count={myCheerCount}
       />
     </>
   );

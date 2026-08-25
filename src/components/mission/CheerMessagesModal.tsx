@@ -27,9 +27,10 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   messages: CheerMessageEntry[];
+  count: number;
 };
 
-const CheerMessagesModal = ({ isOpen, onClose, messages }: Props) => {
+const CheerMessagesModal = ({ isOpen, onClose, messages, count }: Props) => {
   useEffect(() => {
     if (!isOpen) return;
     lockBodyScroll();
@@ -57,7 +58,7 @@ const CheerMessagesModal = ({ isOpen, onClose, messages }: Props) => {
             onClick={(e) => e.stopPropagation()}
           >
             <RoleTag color={CHEER_COLOR}>응원 메시지</RoleTag>
-            <MissionTitle>🎉 받은 응원 메시지 ({messages.length})</MissionTitle>
+            <MissionTitle>🎉 받은 응원 메시지 ({count})</MissionTitle>
             <Divider />
             <MessageScrollArea>
               {messages.length === 0 ? (
