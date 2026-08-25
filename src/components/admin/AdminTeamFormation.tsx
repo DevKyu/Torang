@@ -334,7 +334,7 @@ const AdminTeamFormation = () => {
     setAddingTo(null)
     setTimeout(() => {
       if (ymRef.current !== requestedYm) return
-      const result = generateTeams(currentPlayers, limitScore, iterations, teammatePenaltiesRef.current)
+      const result = generateTeams(currentPlayers, limitScore, iterations, teammatePenaltiesRef.current, false)
       if ('error' in result) {
         toast(result.error, { position: 'top-center' })
         setGenerating(false)

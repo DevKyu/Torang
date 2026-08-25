@@ -231,6 +231,7 @@ export function generateTeams(
   limitScore: number,
   iterations = 20000,
   teammatePenalties: Map<string, number> = new Map(),
+  includeSeed = true,
 ): { candidates: FormationGroup[][] } | { error: string } {
   const pattern = autoPattern(players.length)
   if (!pattern) {
@@ -239,12 +240,14 @@ export function generateTeams(
 
   const results: { groups: FormationPlayer[][]; score: number }[] = []
 
-  const sortedDesc = [...players].sort((a, b) => b.average - a.average)
-  const seed = buildBalancedSeed(sortedDesc, pattern)
-  if (seed) {
-    results.push({ groups: seed, score: totalPairScore(seed, teammatePenalties) })
-    const seedOpt = improveBySwap(seed, teammatePenalties)
-    results.push({ groups: seedOpt, score: totalPairScore(seedOpt, teammatePenalties) })
+  if (includeSeed) {
+    const sortedDesc = [...players].sort((a, b) => b.average - a.average)
+    const seed = buildBalancedSeed(sortedDesc, pattern)
+    if (seed) {
+      results.push({ groups: seed, score: totalPairScore(seed, teammatePenalties) })
+      const seedOpt = improveBySwap(seed, teammatePenalties)
+      results.push({ groups: seedOpt, score: totalPairScore(seedOpt, teammatePenalties) })
+    }
   }
 
   for (let i = 0; i < iterations; i++) {
@@ -386,9 +389,11 @@ export function buildTeammatePenalties(monthsAgoOrderedTeams: TeamPairGroup[][])
 }
 
 export function calcGroupDiff(group: FormationGroup): number {
-  const s1 = group.team1.reduce((a, p) => a + p.average, 0)
-  const s2 = group.team2.reduce((a, p) => a + p.average, 0)
-  return Math.abs(s1 - s2)
+  const n1 = group.team1.length
+  const n2 = group.team2.length
+  const avg1 = group.team1.reduce((a, p) => a + p.average, 0) / n1
+  const avg2 = group.team2.reduce((a, p) => a + p.average, 0) / n2
+  return Math.abs(avg1 - avg2) * ((n1 + n2) / 2)
 }
 
 export function diffLevel(diff: number): 'low' | 'mid' | 'high' {
