@@ -10,6 +10,7 @@ import MonthNavigator from '../activity/MonthNavigator';
 import { useTeamFormation } from '../../hooks/useTeamFormation';
 import { useRivalEmpIds } from '../../hooks/useRivalEmpIds';
 import { useActivityDates } from '../../hooks/useActivityDates';
+import { useLatestRef } from '../../hooks/useLatestRef';
 import { calcGroupDiff, diffLevel } from '../../utils/teamFormation';
 import {
   getYearMonth,
@@ -68,10 +69,7 @@ const TeamFormation = () => {
   const { maps: activityMaps, loading: activityLoading } = useActivityDates();
   const [ym, setYm] = useState<string>(currentYm);
   const [ymPending, setYmPending] = useState(false);
-  const ymRef = useRef(ym);
-  useEffect(() => {
-    ymRef.current = ym;
-  }, [ym]);
+  const ymRef = useLatestRef(ym);
 
   useEffect(() => {
     if (activityLoading) return;
@@ -83,6 +81,7 @@ const TeamFormation = () => {
     if (resolved === ymRef.current) return;
     setYmPending(true);
     setYm(resolved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityLoading, activityMaps, currentYm]);
 
   const {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigateBack } from '../../hooks/useNavigateBack';
 import { ref, onValue } from 'firebase/database';
 import Layout from '../layouts/Layout';
@@ -7,6 +7,7 @@ import { db } from '../../services/firebase';
 import { useUiStore } from '../../stores/useUiStore';
 import { useActivityDates } from '../../hooks/useActivityDates';
 import { useAllNames } from '../../hooks/useAllNames';
+import { useLatestRef } from '../../hooks/useLatestRef';
 import { resolveDisplayYm } from '../../utils/date';
 import { useMission } from '../../hooks/useMission';
 import MissionContentView from './MissionContentView';
@@ -21,10 +22,7 @@ const MissionPage = () => {
   const currentYm = useMemo(() => useUiStore.getState().formatServerDate('ym'), []);
   const [ym, setYm] = useState(currentYm);
   const [ymPending, setYmPending] = useState(false);
-  const ymRef = useRef(ym);
-  useEffect(() => {
-    ymRef.current = ym;
-  }, [ym]);
+  const ymRef = useLatestRef(ym);
 
   useEffect(() => {
     if (activityLoading) return;
@@ -32,6 +30,7 @@ const MissionPage = () => {
     if (resolved === ymRef.current) return;
     setYmPending(true);
     setYm(resolved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityLoading, activityMaps, serverYear, serverMonth]);
 
   useEffect(() => {
