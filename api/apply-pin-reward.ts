@@ -5,9 +5,12 @@ import { ensureFirebaseAdmin, getCallerEmpId } from './_lib/firebaseAdmin.js';
 ensureFirebaseAdmin();
 
 const REWARD_CLAIM_WINDOW_DAYS = 7;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const CUTOFF_UTC_HOUR = 9;
+const CUTOFF_UTC_MINUTE = 30;
 
 const kstParts = () => {
-  const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const d = new Date(Date.now() + KST_OFFSET_MS);
   const pad = (n: number, len = 2) => String(n).padStart(len, '0');
   return {
     y: d.getUTCFullYear(),
@@ -117,14 +120,21 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
   const day = activityYmd.slice(6, 8);
   const ym = `${year}${paddedMonth}`;
 
-  const activityDateSnap = await db.ref(`activityDate/${year}/${month}`).get();
+  const [activityDateResult, rateResult] = await Promise.allSettled([
+    db.ref(`activityDate/${year}/${month}`).get(),
+    db.ref(`eventConfig/pinReward/${ym}/targetScore`).get(),
+  ]);
+  if (activityDateResult.status === 'rejected') throw activityDateResult.reason;
+  const activityDateSnap = activityDateResult.value;
   if (activityDateSnap.val() !== Number(activityYmd)) {
     return { rewarded: false as const };
   }
+  if (rateResult.status === 'rejected') throw rateResult.reason;
+  const rateSnap = rateResult.value;
 
   const activityMidnightUtcMs =
     Date.UTC(Number(year), Number(month) - 1, Number(day), 0, 0, 0, 0) -
-    9 * 60 * 60 * 1000;
+    KST_OFFSET_MS;
   const diffDays = Math.floor(
     (Date.now() - activityMidnightUtcMs) / (24 * 60 * 60 * 1000),
   );
@@ -132,7 +142,6 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
     return { rewarded: false as const };
   }
 
-  const rateSnap = await db.ref(`eventConfig/pinReward/${ym}/targetScore`).get();
   const rate = typeof rateSnap.val() === 'number' ? (rateSnap.val() as number) : 0;
   if (rate <= 0) return { rewarded: false as const };
 
@@ -148,7 +157,15 @@ const applyTargetScoreReward = async (empId: string, activityYmd: string) => {
     return { rewarded: false as const };
   }
 
-  const cutoffUtcMs = Date.UTC(Number(year), Number(month) - 1, Number(day), 9, 30, 0, 0);
+  const cutoffUtcMs = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    CUTOFF_UTC_HOUR,
+    CUTOFF_UTC_MINUTE,
+    0,
+    0,
+  );
   const targetUpdatedAtMs = targetMetaSnap.val();
   if (typeof targetUpdatedAtMs !== 'number' || targetUpdatedAtMs > cutoffUtcMs) {
     return { rewarded: false as const };
