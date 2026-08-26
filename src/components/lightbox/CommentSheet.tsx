@@ -370,7 +370,11 @@ const CommentSheet = () => {
             dragPropagation={false}
             onDragEnd={onDragEnd}
           >
-            <DragZone onPointerDown={(e) => dragControls.start(e)}>
+            <DragZone
+              onPointerDown={(e) => {
+                if (isScrollable) dragControls.start(e);
+              }}
+            >
               <HandleBar />
               <SheetHeader>
                 <Title>댓글 {total}</Title>

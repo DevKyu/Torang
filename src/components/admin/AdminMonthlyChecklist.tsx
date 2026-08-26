@@ -135,7 +135,7 @@ const AdminMonthlyChecklist = () => {
   const [search, setSearch] = useState('');
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [loading, setLoading] = useState(true);
-  const latestRequestYmRef = useRef('');
+  const requestTokenRef = useRef(0);
 
   useEffect(() => {
     if (!eventLoaded) loadEventConfig();
@@ -153,7 +153,7 @@ const AdminMonthlyChecklist = () => {
   }, []);
 
   const loadStatusForMonth = useCallback(async (ym: string, fallbackType: MatchType) => {
-    latestRequestYmRef.current = ym;
+    const token = ++requestTokenRef.current;
     setLoading(true);
     const year = ym.slice(0, 4);
     const month = String(Number(ym.slice(4)));
@@ -181,7 +181,7 @@ const AdminMonthlyChecklist = () => {
         get(ref(db, `teamFormation/${ym}/status`)),
         get(ref(db, `teamFormation/${ym}/groups`)),
       ]);
-      if (latestRequestYmRef.current !== ym) return;
+      if (requestTokenRef.current !== token) return;
 
       const hasChoices = (snap: typeof rivalMatchSnap): boolean => {
         if (!snap.exists()) return false;
@@ -289,7 +289,7 @@ const AdminMonthlyChecklist = () => {
         predictRevealed: predictViewState === 'revealed',
       });
     } catch {
-      if (latestRequestYmRef.current !== ym) return;
+      if (requestTokenRef.current !== token) return;
       setRivalDoneMap({});
       setParticipants([]);
       setPredictMission({
@@ -314,7 +314,7 @@ const AdminMonthlyChecklist = () => {
         position: 'top-center',
       });
     } finally {
-      if (latestRequestYmRef.current === ym) setLoading(false);
+      if (requestTokenRef.current === token) setLoading(false);
     }
   }, []);
 

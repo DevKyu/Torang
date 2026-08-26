@@ -391,6 +391,7 @@ export function buildTeammatePenalties(monthsAgoOrderedTeams: TeamPairGroup[][])
 export function calcGroupDiff(group: FormationGroup): number {
   const n1 = group.team1.length
   const n2 = group.team2.length
+  if (n1 === 0 || n2 === 0) return 0
   const avg1 = group.team1.reduce((a, p) => a + p.average, 0) / n1
   const avg2 = group.team2.reduce((a, p) => a + p.average, 0) / n2
   return Math.abs(avg1 - avg2) * ((n1 + n2) / 2)

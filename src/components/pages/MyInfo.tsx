@@ -110,11 +110,14 @@ const MyInfo = () => {
     monthNum,
   );
   const activityYm = activityYmdStr?.slice(0, 6) ?? serverYm;
-  const { participants: activityParticipants, loading: participantsLoading } =
-    useMonthParticipants(activityYm.slice(0, 4), Number(activityYm.slice(4, 6)));
+  const {
+    participants: activityParticipants,
+    loading: participantsLoading,
+    error: participantsError,
+  } = useMonthParticipants(activityYm.slice(0, 4), Number(activityYm.slice(4, 6)));
   const isActivityParticipant =
-    !!myEmpId && activityParticipants.includes(myEmpId);
-  const isReady = isUserReady && !activityLoading && !participantsLoading;
+    participantsError || (!!myEmpId && activityParticipants.includes(myEmpId));
+  const isReady = isUserReady && !!myEmpId && !activityLoading && !participantsLoading;
   const targetResult = useTargetResult(userInfo, activityYmdStr);
   const isPinRewardEnabled = useEventStore((s) => s.isPinRewardEnabled);
 

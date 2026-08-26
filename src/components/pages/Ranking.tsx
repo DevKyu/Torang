@@ -203,6 +203,14 @@ const Ranking = () => {
     setRankingReady(true);
   }, [availableTabs, usersLoaded]);
 
+  useEffect(() => {
+    if (!rankingInitRef.current || rankingType !== 'monthly' || monthlyEnabled) {
+      return;
+    }
+    const first = RANKING_TABS.find((t) => availableTabs.includes(t));
+    if (first) setRankingType(first);
+  }, [monthlyEnabled, rankingType, availableTabs]);
+
   const ranking: RankingEntry[] = useMemo(() => {
     if (!usersLoaded) return [];
     if (rankingType === 'quarter') return quarterEntries;

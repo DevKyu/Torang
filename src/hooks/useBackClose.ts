@@ -45,7 +45,8 @@ export function useBackClose(isOpen: boolean, onClose: () => void) {
     return () => {
       if (handlers.has(myDepth)) {
         handlers.delete(myDepth);
-        if (currentDepth() >= myDepth) {
+        const isTop = ![...handlers.keys()].some((d) => d > myDepth);
+        if (isTop && currentDepth() >= myDepth) {
           window.history.back();
         }
       }
