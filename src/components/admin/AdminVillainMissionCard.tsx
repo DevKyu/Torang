@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import VillainMissionModal from '../mission/VillainMissionModal';
 import VoteBreakdownList from './VoteBreakdownList';
@@ -6,6 +6,7 @@ import { ref, get } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
 import { db } from '../../services/firebase';
+import { useSyncOnSignatureChange } from '../../hooks/useSyncOnSignatureChange';
 import {
   STATUS_LABEL,
   toSuccessStyle,
@@ -15,7 +16,9 @@ import {
   runMissionReset,
   runMissionReveal,
   runVotesReset,
+  buildVoteEntries,
 } from './missionAdminHelpers';
+import { MISSION_ROLE_COLOR } from '../../styles/mission/HiddenMissionModalStyle';
 import {
   FormTitle,
   FieldLabel,
@@ -117,23 +120,16 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
     setConfirmRoleChange(false);
   }, [roleDraft.villainId, roleDraft.helperId]);
 
-  const syncedSignatureRef = useRef<string>('');
+  const villainSignature = JSON.stringify({
+    ym,
+    config: data?.config ?? null,
+    hidden: data?.hidden ?? null,
+    roles: data?.roles ?? null,
+    villainName: data?.roles ? allNames[data.roles.villain] ?? '' : '',
+    helperName: data?.roles ? allNames[data.roles.helper] ?? '' : '',
+  });
 
-  useEffect(() => {
-    if (loading) return;
-    const villainName = data?.roles ? allNames[data.roles.villain] ?? '' : '';
-    const helperName = data?.roles ? allNames[data.roles.helper] ?? '' : '';
-    const signature = JSON.stringify({
-      ym,
-      config: data?.config ?? null,
-      hidden: data?.hidden ?? null,
-      roles: data?.roles ?? null,
-      villainName,
-      helperName,
-    });
-    if (signature === syncedSignatureRef.current) return;
-    syncedSignatureRef.current = signature;
-
+  useSyncOnSignatureChange(villainSignature, loading, () => {
     if (data) {
       const rp = data.config?.rewardPin ?? 1;
       const vp = data.config?.villainRewardPin ?? rp;
@@ -175,7 +171,7 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
       setHiddenDraft(DEFAULT_HIDDEN_DRAFT);
       setRoleDraft({ villainName: '', villainId: '', helperName: '', helperId: '' });
     }
-  }, [data, loading, allNames, ym]);
+  });
 
   const lookupRole = (role: 'villain' | 'helper') => {
     const query = (role === 'villain' ? roleDraft.villainName : roleDraft.helperName).trim().toLowerCase();
@@ -299,21 +295,18 @@ const AdminVillainMissionCard = ({ ym, data, loading, allNames }: Props) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const villainVoteCounts: Record<string, number> = {};
-  for (const target of Object.values(villainVotes)) {
-    villainVoteCounts[target] = (villainVoteCounts[target] ?? 0) + 1;
-  }
-
   const villainId = data?.roles?.villain;
   const helperId = data?.roles?.helper;
-  const villainVoteEntries = Object.entries(villainVoteCounts)
-    .sort(([, a], [, b]) => b - a)
-    .map(([empId, count]) => ({
-      empId,
-      label: allNames[empId] ?? empId,
-      count,
-      color: empId === villainId ? '#ef4444' : empId === helperId ? '#3b82f6' : '#9ca3af',
-    }));
+  const villainVoteEntries = buildVoteEntries(
+    Object.values(villainVotes),
+    allNames,
+    (empId) =>
+      empId === villainId
+        ? MISSION_ROLE_COLOR.villain
+        : empId === helperId
+          ? MISSION_ROLE_COLOR.helper
+          : '#9ca3af',
+  );
 
   return (
     <MissionTypeCard>

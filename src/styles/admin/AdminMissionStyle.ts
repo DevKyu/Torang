@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { MISSION_ROLE_COLOR } from '../mission/HiddenMissionModalStyle';
 
 export { MonthSelect, EmptyMsg, FormTitle, FieldLabel, SaveRow, SaveBtn, EmpIdBadge, NameDropdown, NameDropdownItem, LookupBtn } from './AdminLeagueStyle';
 
@@ -81,7 +82,7 @@ export const NumberRow = styled.div`
 export const HiddenSection = styled.div<{ role: 'villain' | 'helper' }>`
   background: ${({ role }) => (role === 'villain' ? '#fef2f2' : '#eff6ff')};
   border: 1px solid ${({ role }) => (role === 'villain' ? '#fecaca' : '#bfdbfe')};
-  border-left: 3px solid ${({ role }) => (role === 'villain' ? '#ef4444' : '#3b82f6')};
+  border-left: 3px solid ${({ role }) => MISSION_ROLE_COLOR[role]};
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 10px;

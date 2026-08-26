@@ -280,7 +280,17 @@ export const useMission = (ym: string) => {
     const unsub = onValue(
       r,
       (snap) => {
-        setSnapshot(parseMissionSnapshot(snap.exists() ? (snap.val() as RawMissionSnapshot) : null));
+        const next = parseMissionSnapshot(snap.exists() ? (snap.val() as RawMissionSnapshot) : null);
+        setSnapshot((prev) => {
+          const villain =
+            JSON.stringify(next.villain) === JSON.stringify(prev.villain) ? prev.villain : next.villain;
+          const predict =
+            JSON.stringify(next.predict) === JSON.stringify(prev.predict) ? prev.predict : next.predict;
+          if (villain === prev.villain && predict === prev.predict && next.predictType === prev.predictType) {
+            return prev;
+          }
+          return { villain, predict, predictType: next.predictType };
+        });
         setDataReady(true);
       },
       () => {

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { ref, get, remove } from 'firebase/database';
+import { ref, get, onValue, remove } from 'firebase/database';
 import { toast } from 'sonner';
 import MissionRichEditor from './MissionRichEditor';
 import VoteBreakdownList from './VoteBreakdownList';
 import { db, fetchAllUsers } from '../../services/firebase';
 import { getQuarterStartYm, getQuarterEndYm, getPrevYm } from '../../utils/date';
+import { useSyncOnSignatureChange } from '../../hooks/useSyncOnSignatureChange';
 import {
   STATUS_LABEL,
   toSuccessStyle,
@@ -15,6 +16,7 @@ import {
   runMissionReset,
   runMissionReveal,
   runVotesReset,
+  buildVoteEntries,
 } from './missionAdminHelpers';
 import {
   FormTitle,
@@ -153,14 +155,9 @@ const AdminPredictMissionCard = ({
     if (predictType) setMissionType(predictType);
   }, [predictType]);
 
-  const configSyncRef = useRef<string>('');
+  const configSignature = JSON.stringify({ ym, predictType, config: data?.config ?? null });
 
-  useEffect(() => {
-    if (loading) return;
-    const configSignature = JSON.stringify({ ym, predictType, config: data?.config ?? null });
-    if (configSignature === configSyncRef.current) return;
-    configSyncRef.current = configSignature;
-
+  useSyncOnSignatureChange(configSignature, loading, () => {
     if (predictType === 'scoreGuess' && data?.config) {
       const d = data as ScoreGuessMissionData;
       const rp = d.config?.rewardPin ?? 0.5;
@@ -197,7 +194,7 @@ const AdminPredictMissionCard = ({
       setTgRewardPinRaw('1');
       setTgBonusRewardPinRaw('1');
     }
-  }, [data, predictType, loading, ym]);
+  });
 
   const [candidateStartYm, quarterEndYm] = useMemo(() => {
     const refDate = new Date(Number(ym.slice(0, 4)), Number(ym.slice(4)) - 1, 1);
@@ -206,56 +203,63 @@ const AdminPredictMissionCard = ({
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setCandidatesLoading(true);
-      try {
-        const year = ym.slice(0, 4);
-        const month = String(Number(ym.slice(4)));
-        const [users, partSnap] = await Promise.all([
-          fetchAllUsers(),
-          get(ref(db, `activityParticipants/${year}/${month}`)),
-        ]);
-        if (cancelled) return;
-        const participantIds = partSnap.exists() ? Object.keys(partSnap.val() as Record<string, true>) : [];
-        const detected = participantIds.filter((empId) => {
-          const join = users[empId]?.join;
-          return !!join && join >= candidateStartYm && join <= quarterEndYm;
-        });
-        setCandidates(detected.map((empId) => [empId, users[empId]?.name ?? empId]));
-      } catch {
-        setCandidates([]);
-      } finally {
-        if (!cancelled) setCandidatesLoading(false);
-      }
-    })();
+    let token = 0;
+    setCandidatesLoading(true);
+    const year = ym.slice(0, 4);
+    const month = String(Number(ym.slice(4)));
+    const unsub = onValue(
+      ref(db, `activityParticipants/${year}/${month}`),
+      (partSnap) => {
+        const myToken = ++token;
+        (async () => {
+          try {
+            const users = await fetchAllUsers();
+            if (cancelled || myToken !== token) return;
+            const participantIds = partSnap.exists() ? Object.keys(partSnap.val() as Record<string, true>) : [];
+            const detected = participantIds.filter((empId) => {
+              const join = users[empId]?.join;
+              return !!join && join >= candidateStartYm && join <= quarterEndYm;
+            });
+            setCandidates(detected.map((empId) => [empId, users[empId]?.name ?? empId]));
+          } catch {
+            if (!cancelled && myToken === token) setCandidates([]);
+          } finally {
+            if (!cancelled && myToken === token) setCandidatesLoading(false);
+          }
+        })();
+      },
+      () => {
+        token += 1;
+        if (!cancelled) {
+          setCandidates([]);
+          setCandidatesLoading(false);
+        }
+      },
+    );
     return () => {
       cancelled = true;
+      unsub();
     };
   }, [ym, candidateStartYm, quarterEndYm]);
 
-  const candidateSyncRef = useRef<string>('');
+  const candidateEmpIds =
+    predictType === 'scoreGuess' ? (data as ScoreGuessMissionData)?.targets?.empIds ?? null : null;
+  const candidateSignature = JSON.stringify({
+    ym,
+    predictType,
+    empIds: candidateEmpIds,
+    candidateIds: candidates.map(([id]) => id),
+  });
 
-  useEffect(() => {
-    if (loading) return;
-    const empIds =
-      predictType === 'scoreGuess' ? (data as ScoreGuessMissionData)?.targets?.empIds ?? null : null;
-    const candidateSignature = JSON.stringify({
-      ym,
-      predictType,
-      empIds,
-      candidateIds: candidates.map(([id]) => id),
-    });
-    if (candidateSignature === candidateSyncRef.current) return;
-    candidateSyncRef.current = candidateSignature;
-
-    if (empIds) {
-      setCandidateChecked(Object.fromEntries(empIds.map((id) => [id, true])));
+  useSyncOnSignatureChange(candidateSignature, loading, () => {
+    if (candidateEmpIds) {
+      setCandidateChecked(Object.fromEntries(candidateEmpIds.map((id) => [id, true])));
     } else if (candidates.length > 0) {
       setCandidateChecked(Object.fromEntries(candidates.map(([id]) => [id, true])));
     } else {
       setCandidateChecked({});
     }
-  }, [data, predictType, candidates, loading, ym]);
+  });
 
   const toggleCandidate = (empId: string) => {
     setConfirmTargetChange(false);
@@ -354,15 +358,10 @@ const AdminPredictMissionCard = ({
     .filter(Boolean)
     .join(' · ');
 
-  const scoreGuessVoteEntries = (() => {
-    const counts: Record<string, number> = {};
-    for (const vote of Object.values(predictVotes as Record<string, { targetEmpId: string }>)) {
-      counts[vote.targetEmpId] = (counts[vote.targetEmpId] ?? 0) + 1;
-    }
-    return Object.entries(counts)
-      .sort(([, a], [, b]) => b - a)
-      .map(([empId, count]) => ({ empId, label: allNames[empId] ?? empId, count }));
-  })();
+  const scoreGuessVoteEntries = buildVoteEntries(
+    Object.values(predictVotes as Record<string, { targetEmpId: string }>).map((v) => v.targetEmpId),
+    allNames,
+  );
 
   return (
     <MissionTypeCard>

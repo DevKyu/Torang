@@ -12,6 +12,27 @@ import {
 } from '../../hooks/useMission';
 import { ADMIN_TOAST_SUCCESS_STYLE } from '../../styles/admin/adminToastStyle';
 
+export type VoteEntry = { empId: string; label: string; count: number; color?: string };
+
+export function buildVoteEntries(
+  targetEmpIds: string[],
+  allNames: Record<string, string>,
+  colorFor?: (empId: string) => string | undefined,
+): VoteEntry[] {
+  const counts: Record<string, number> = {};
+  for (const empId of targetEmpIds) {
+    counts[empId] = (counts[empId] ?? 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([empId, count]) => ({
+      empId,
+      label: allNames[empId] ?? empId,
+      count,
+      color: colorFor?.(empId),
+    }));
+}
+
 export const STATUS_LABEL: Record<MissionStatus, string> = {
   draft: '준비중',
   active: '공개됨',

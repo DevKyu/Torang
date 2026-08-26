@@ -1,4 +1,3 @@
-// 1. Firebase 초기화
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -29,7 +28,6 @@ import type { ProductBundle } from '../types/product';
 import { getYearMonth, resolveActivityYmd } from '../utils/date';
 import { useUiStore } from '../stores/useUiStore';
 
-// 2. Firebase App 설정
 const firebaseConfig = {
   apiKey: 'AIzaSyCaTgX8mfkr8md8SF-ZfH87Qr48i1Dw6Ek',
   authDomain: 'torang-3d5a2.firebaseapp.com',
@@ -45,7 +43,6 @@ export const auth = getAuth(app);
 export const db = getDatabase(app);
 export const storage = getStorage(app);
 
-// 3. 공통 유틸
 export const empIdFromEmail = (email?: string | null): string =>
   email?.replace('@torang.com', '') ?? '';
 
@@ -69,7 +66,6 @@ export const getAuthHeader = async (): Promise<Record<string, string>> => {
   return { Authorization: `Bearer ${idToken}` };
 };
 
-// 4. 인증 관련
 export const anonLogin = async () => signInAnonymously(auth);
 export const loginUser = async (email: string, password: string) =>
   (await signInWithEmailAndPassword(auth, email, password)).user;
@@ -81,7 +77,6 @@ export const linkAnonymousAccount = async (email: string, password: string) => {
 };
 export const logOut = async () => signOut(auth);
 
-// 5. 유저 관련
 export const checkAdminId = async (): Promise<boolean> => {
   const uid = getCurrentUserOrThrow().uid;
   const snapshot = await get(ref(db, `admins/${uid}`));
@@ -195,7 +190,6 @@ export const deleteUser = async (empId: string) => {
   });
 };
 
-// 6. 상품 관련
 export const getProductData = async (ym: string) => {
   getCurrentUserOrThrow();
   const snapshot = await get(ref(db, `products/${ym}/items`));
@@ -245,7 +239,6 @@ export const removeProductData = async (ym: string, items: Set<string>) => {
   );
 };
 
-// 7. 핀 관련
 export const setUserPinData = async (pin: number) => {
   const empId = empIdFromEmail(getCurrentUserOrThrow().email);
   const result = await runTransaction(ref(db, `users/${empId}/pin`), (current) => {
@@ -388,7 +381,6 @@ export const getCachedUserName = (empId: string): string => {
   return nameCache[empId] ?? '???';
 };
 
-// 10. 목표 점수 관련
 export const setTargetScore = async (
   year: string,
   month: string,
@@ -410,7 +402,6 @@ export const getAllActivityDates = async (): Promise<ActivityDateAll> => {
   return snap.exists() ? (snap.val() as ActivityDateAll) : {};
 };
 
-// 11. 랭킹 관련
 export const fetchAllUsers = async (): Promise<Record<string, UserInfo>> => {
   const snapshot = await get(ref(db, 'users'));
   if (!snapshot.exists()) return {};
@@ -467,7 +458,6 @@ export const saveMatchResult = async (
   });
 };
 
-// 12. 업적 관련
 export const getAllUserMatchResults = async (): Promise<
   Record<string, Record<MatchType, Record<string, Record<string, unknown>>>>
 > => {
@@ -491,16 +481,6 @@ export const saveAchievements = async (
   await update(ref(db), updates);
 };
 
-// 13. 활동 참여자 관련
-export const getActivityParticipants = async (
-  year: string,
-  month: string,
-): Promise<string[]> => {
-  const snap = await get(ref(db, `activityParticipants/${year}/${month}`));
-  return snap.exists() ? Object.keys(snap.val()) : [];
-};
-
-// 14. 점수 관련
 export const getUserYearScores = async (
   empId: string,
   year: Year,
